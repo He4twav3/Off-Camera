@@ -178,6 +178,46 @@
   }
 }
 
+/* Slow pan+scale on the generative liquid-metal texture (LiquidMetalField)
+   — the SVG filter itself never re-runs, only this transform does, so the
+   drift is effectively free no matter how large the layer is. Scaled up
+   110% so the pan never reveals a hard edge. */
+@keyframes liquid-metal-drift {
+  0%,
+  100% {
+    transform: scale(1.1) translate(0%, 0%);
+  }
+  50% {
+    transform: scale(1.16) translate(-2%, 1.5%);
+  }
+}
+
+@utility liquid-metal-drift {
+  animation: liquid-metal-drift 60s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes liquid-metal-drift-alt {
+  0%,
+  100% {
+    transform: scale(1.14) translate(0%, 0%) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) translate(2%, -1.5%) rotate(1deg);
+  }
+}
+
+@utility liquid-metal-drift-alt {
+  animation: liquid-metal-drift-alt 75s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
