@@ -48,11 +48,14 @@ export function CrestEmblem({ className }: { className?: string }) {
         stroke="var(--ink)"
         strokeWidth={3}
       />
-      {/* Camera-off mark */}
-      <rect x="37" y="39" width="26" height="16" rx="3" fill="none" stroke="var(--card)" strokeWidth={2.75} />
-      <rect x="45" y="35" width="8" height="5" rx="1" fill="none" stroke="var(--card)" strokeWidth={2.75} />
-      <circle cx="50" cy="47" r="5.5" fill="none" stroke="var(--card)" strokeWidth={2.75} />
-      <line x1="33" y1="31" x2="67" y2="59" stroke="var(--card)" strokeWidth={3} strokeLinecap="round" />
+      {/* Camera-off mark — the medallion behind it is an opaque bright
+          metal fill (--ink), so this needs an opaque dark stroke to read
+          as debossed, not --card, which is a near-transparent glass wash
+          now and would barely show up against solid silver. */}
+      <rect x="37" y="39" width="26" height="16" rx="3" fill="none" stroke="var(--background)" strokeWidth={2.75} />
+      <rect x="45" y="35" width="8" height="5" rx="1" fill="none" stroke="var(--background)" strokeWidth={2.75} />
+      <circle cx="50" cy="47" r="5.5" fill="none" stroke="var(--background)" strokeWidth={2.75} />
+      <line x1="33" y1="31" x2="67" y2="59" stroke="var(--background)" strokeWidth={3} strokeLinecap="round" />
 
       {/* Banner plaque */}
       <polygon
@@ -75,14 +78,15 @@ export function CrestEmblem({ className }: { className?: string }) {
         OFF CAMERA
       </text>
 
-      {/* Sits on the cover wrapper's own dark (ink) background, so this
-          needs to contrast against ink, not be ink. */}
+      {/* Sits on the cover wrapper's own dark background, so this needs a
+          bright, opaque fill — --card is a translucent glass wash now and
+          would be nearly invisible here. */}
       <text
         x="50"
         y="103"
         textAnchor="middle"
         className="font-heading"
-        fill="var(--card)"
+        fill="var(--foreground)"
         fontSize="7"
         fontWeight={600}
         letterSpacing="1"

@@ -14,21 +14,21 @@ import { VideoPoster } from "@/components/media/video-poster";
 import { LiquidFrame } from "@/components/media/liquid-frame";
 import { CURRICULUM } from "@/lib/curriculum";
 
-// One 8-step gradient of the single brand hue (terracotta, ~32°→22°) for
-// the module numbers — light-to-dark, not four colors repeated twice.
-// Lightness steps evenly from pale to near-black; chroma peaks in the
-// middle and tapers at both ends (flat chroma looks washed out pale and
-// muddy dark — this is how real color ramps, e.g. Tailwind's own, avoid
-// that). Text flips from ink to card at the lightness midpoint.
+// One 8-step titanium ramp for the module numbers — polished silver down
+// to near-black gunmetal, not a hue at all now (strict monochrome liquid-
+// metal palette). Text is a hardcoded opaque near-black/near-white rather
+// than var(--ink)/var(--card) — both of those are translucent-glass-ish
+// under this theme now and would wash out sitting directly on a solid
+// opaque badge fill.
 const MODULE_SHADES = [
-  { bg: "oklch(0.88 0.06 32)", text: "var(--ink)" },
-  { bg: "oklch(0.80 0.10 32)", text: "var(--ink)" },
-  { bg: "oklch(0.71 0.15 31)", text: "var(--ink)" },
-  { bg: "oklch(0.62 0.18 30)", text: "var(--ink)" },
-  { bg: "oklch(0.53 0.18 28)", text: "var(--card)" },
-  { bg: "oklch(0.44 0.16 26)", text: "var(--card)" },
-  { bg: "oklch(0.35 0.13 24)", text: "var(--card)" },
-  { bg: "oklch(0.27 0.1 22)", text: "var(--card)" },
+  { bg: "oklch(0.93 0.003 265)", text: "oklch(0.12 0 0)" },
+  { bg: "oklch(0.82 0.004 265)", text: "oklch(0.12 0 0)" },
+  { bg: "oklch(0.7 0.004 265)", text: "oklch(0.12 0 0)" },
+  { bg: "oklch(0.58 0.005 265)", text: "oklch(0.97 0 0)" },
+  { bg: "oklch(0.46 0.005 265)", text: "oklch(0.97 0 0)" },
+  { bg: "oklch(0.35 0.005 265)", text: "oklch(0.97 0 0)" },
+  { bg: "oklch(0.25 0.005 265)", text: "oklch(0.97 0 0)" },
+  { bg: "oklch(0.17 0.005 265)", text: "oklch(0.97 0 0)" },
 ] as const;
 
 const modules = CURRICULUM;

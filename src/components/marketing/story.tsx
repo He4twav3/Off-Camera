@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
 import { LiquidFrame } from "@/components/media/liquid-frame";
-import { MascotWave } from "@/components/illustrations/mascots";
 import { siteConfig } from "@/lib/site-config";
 
 const credentials = [
@@ -15,10 +14,6 @@ export function Story() {
   return (
     <section id="story" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="card-sticker relative grid gap-10 rounded-3xl bg-card p-6 sm:p-10 md:grid-cols-[20rem_1fr] md:items-center md:p-12">
-        <MascotWave
-          variant="soft"
-          className="absolute -top-6 -right-4 hidden w-16 rotate-6 drop-shadow-md sm:block md:w-20"
-        />
         <LiquidFrame variant={1} radius="1rem" thickness="1.25rem" className="mx-auto w-full max-w-xs">
           <VideoPlayer
             aspect="portrait"

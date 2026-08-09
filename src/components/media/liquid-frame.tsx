@@ -1,22 +1,24 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-// Ten hand-picked 3-color combos so neighboring video cards never land on
-// the same palette by coincidence — each drifts through analogous-ish
-// hues rather than a jarring hard-stop rainbow, staying in the same
-// "sticker" chroma/lightness range as the rest of the site instead of
-// looking neon.
+// Ten metallic 3-tone combos — titanium white through gunmetal, each with
+// a slightly different cast (a touch cooler, a touch warmer, a hint of
+// the reference material's own violet glint) rather than a different hue
+// altogether, so neighboring frames read as distinct pours of the same
+// liquid metal instead of a rainbow. Chroma stays near-zero throughout —
+// this is the one place "different colors to accentuate them" and the
+// strict black/charcoal/silver palette both have to hold at once.
 const PALETTES: [string, string, string][] = [
-  ["oklch(0.74 0.17 25)", "oklch(0.7 0.19 350)", "oklch(0.8 0.13 70)"], // terracotta / coral / amber — hero
-  ["oklch(0.72 0.15 300)", "oklch(0.68 0.18 260)", "oklch(0.76 0.12 330)"], // violet / indigo / magenta — story
-  ["oklch(0.76 0.14 90)", "oklch(0.7 0.18 40)", "oklch(0.66 0.16 20)"], // gold / terracotta / rust — m1
-  ["oklch(0.7 0.16 175)", "oklch(0.65 0.18 220)", "oklch(0.78 0.11 140)"], // teal / blue / sage — m2
-  ["oklch(0.73 0.18 330)", "oklch(0.68 0.2 300)", "oklch(0.8 0.13 10)"], // pink / purple / coral — m3
-  ["oklch(0.78 0.14 100)", "oklch(0.7 0.17 55)", "oklch(0.65 0.15 30)"], // lime-gold / amber / rust — m4
-  ["oklch(0.68 0.17 250)", "oklch(0.72 0.14 300)", "oklch(0.72 0.13 190)"], // indigo / violet / cyan — m5
-  ["oklch(0.75 0.17 15)", "oklch(0.7 0.19 350)", "oklch(0.8 0.12 65)"], // red / pink / gold — m6
-  ["oklch(0.71 0.15 160)", "oklch(0.65 0.17 205)", "oklch(0.78 0.11 100)"], // green / teal / lime — m7
-  ["oklch(0.73 0.16 280)", "oklch(0.68 0.19 320)", "oklch(0.78 0.13 45)"], // purple / magenta / orange — m8
+  ["oklch(0.92 0.002 265)", "oklch(0.3 0.004 265)", "oklch(0.68 0.02 290)"], // hero — bright chrome / graphite / violet glint
+  ["oklch(0.88 0.015 290)", "oklch(0.25 0.01 290)", "oklch(0.6 0.02 260)"], // story — cool violet-tinted chrome
+  ["oklch(0.9 0.002 265)", "oklch(0.22 0.004 265)", "oklch(0.55 0.004 265)"], // m1 — neutral titanium
+  ["oklch(0.85 0.01 250)", "oklch(0.28 0.006 250)", "oklch(0.65 0.015 220)"], // m2 — cool steel
+  ["oklch(0.9 0.012 300)", "oklch(0.24 0.008 300)", "oklch(0.62 0.02 300)"], // m3 — violet chrome
+  ["oklch(0.87 0.004 265)", "oklch(0.32 0.004 265)", "oklch(0.7 0.006 265)"], // m4 — bright steel
+  ["oklch(0.84 0.014 240)", "oklch(0.2 0.008 240)", "oklch(0.58 0.016 260)"], // m5 — deep blue-grey
+  ["oklch(0.91 0.006 30)", "oklch(0.26 0.004 30)", "oklch(0.64 0.01 30)"], // m6 — warm silver
+  ["oklch(0.86 0.01 200)", "oklch(0.23 0.006 200)", "oklch(0.6 0.014 210)"], // m7 — cool teal-grey
+  ["oklch(0.93 0.008 300)", "oklch(0.29 0.006 300)", "oklch(0.7 0.018 290)"], // m8 — bright violet chrome
 ];
 
 /**

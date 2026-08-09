@@ -6,7 +6,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { siteConfig } from "@/lib/site-config";
-import { MascotSpiky } from "@/components/illustrations/mascots";
 
 const faqs: { question: string; answer: ReactNode }[] = [
   {
@@ -64,12 +63,9 @@ export function FAQ() {
   return (
     <section id="faq" className="border-t border-border/70 bg-secondary/40">
       <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center gap-3">
-          <MascotSpiky variant="strong" className="hidden w-10 sm:block" />
-          <h2 className="text-sticker text-center text-3xl font-semibold tracking-tight sm:text-4xl">
-            Frequently asked questions
-          </h2>
-        </div>
+        <h2 className="text-sticker text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+          Frequently asked questions
+        </h2>
         <Accordion className="mt-10">
           {faqs.map((faq, i) => (
             <AccordionItem key={faq.question} value={`item-${i}`}>
