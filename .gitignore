@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# captured lead emails and account credentials (see src/lib/leads.ts,
+# src/lib/users.ts) — real visitor/user data, never commit
+/data/*.jsonl
+/data/users.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

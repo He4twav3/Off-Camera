@@ -1,26 +1,312 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-heading);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-toy-soft: var(--toy-soft);
+  --color-toy-soft-foreground: var(--toy-soft-foreground);
+  --color-toy-base: var(--toy-base);
+  --color-toy-base-foreground: var(--toy-base-foreground);
+  --color-toy-strong: var(--toy-strong);
+  --color-toy-strong-foreground: var(--toy-strong-foreground);
+  --color-toy-deep: var(--toy-deep);
+  --color-toy-deep-foreground: var(--toy-deep-foreground);
+  --color-menu-1: var(--menu-1);
+  --color-menu-2: var(--menu-2);
+  --color-menu-3: var(--menu-3);
+  --color-menu-4: var(--menu-4);
+  --color-menu-5: var(--menu-5);
+  --color-menu-foreground: var(--menu-foreground);
+  --color-cream-depth: var(--cream-depth);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Off Camera — light theme: white/cream base, black "ink" outlines,
+     terracotta as the one brand accent. Modeled after Gumroad's actual
+     chrome (white surfaces, black borders and text, one bold accent doing
+     the work) rather than the earlier dark Nardo Grey pass — simple on
+     purpose, so the color arguments happen in the menu palette below,
+     not in the base theme. */
+  --background: oklch(0.985 0.008 75);
+  --foreground: oklch(0.16 0.012 50);
+  --card: oklch(1 0.004 75);
+  --card-foreground: oklch(0.16 0.012 50);
+  --popover: oklch(1 0.004 75);
+  --popover-foreground: oklch(0.16 0.012 50);
+  --primary: oklch(0.62 0.19 35);
+  --primary-foreground: oklch(0.99 0.005 75);
+  --secondary: oklch(0.94 0.02 70);
+  --secondary-foreground: oklch(0.16 0.012 50);
+  --muted: oklch(0.95 0.015 70);
+  --muted-foreground: oklch(0.48 0.02 50);
+  --accent: oklch(0.89 0.06 85);
+  --accent-foreground: oklch(0.16 0.012 50);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.88 0.02 60);
+  --input: oklch(0.88 0.02 60);
+  --ring: oklch(0.62 0.19 35);
+  --chart-1: oklch(0.62 0.19 35);
+  --chart-2: oklch(0.7 0.13 65);
+  --chart-3: oklch(0.75 0.1 85);
+  --chart-4: oklch(0.55 0.02 50);
+  --chart-5: oklch(0.4 0.02 50);
+  --radius: 0.85rem;
+  --sidebar: oklch(0.96 0.015 70);
+  --sidebar-foreground: oklch(0.16 0.012 50);
+  --sidebar-primary: oklch(0.62 0.19 35);
+  --sidebar-primary-foreground: oklch(0.99 0.005 75);
+  --sidebar-accent: oklch(0.89 0.06 85);
+  --sidebar-accent-foreground: oklch(0.16 0.012 50);
+  --sidebar-border: oklch(0.88 0.02 60);
+  --sidebar-ring: oklch(0.62 0.19 35);
+
+  /* "Toybox" accent system — for illustrated/sticker-style UI (product
+     cards, price tags, mascot marks, chips). --ink is near-black again —
+     the 3D borders/shadows/heading-shadows read as the black outline
+     Gumroad uses everywhere.
+
+     One hue family, four shades — not four different hues. Each step
+     drifts a few degrees warmer/deeper (35 → 30 → 28 → 22) rather than
+     holding hue perfectly flat, which is what keeps a monochrome ramp
+     from reading as dull while never introducing a genuinely different
+     (clashing) color. --toy-base is literally --primary — the accent
+     ramp is built around the one brand color, not next to it. */
+  --ink: oklch(0.16 0.012 50);
+  --toy-soft: oklch(0.86 0.07 35);
+  --toy-soft-foreground: oklch(0.24 0.05 30);
+  --toy-base: var(--primary);
+  --toy-base-foreground: var(--primary-foreground);
+  --toy-strong: oklch(0.52 0.17 28);
+  --toy-strong-foreground: oklch(0.97 0.015 70);
+  --toy-deep: oklch(0.32 0.11 22);
+  --toy-deep-foreground: oklch(0.95 0.02 70);
+
+  /* Dedicated depth/shadow cream — noticeably richer than --background
+     (so it still reads as a deliberate accent, not just "no color"), but
+     nowhere near as saturated as the toy-* ramp. This is what gives type
+     and outlines their offset "pop" without shouting like a bold hue
+     would if it were doing that job on every heading, everywhere. */
+  --cream-depth: oklch(0.91 0.03 75);
+
+  /* "Menu" palette — used only for the nav's section pills, the one place
+     on the site allowed to be as varied as Gumroad's actual category
+     dropdowns. Flat, bold, black text on all of them (never a gradient),
+     kept out of the main theme/toybox system so the rest of the site
+     stays legible and calm by comparison. */
+  --menu-1: oklch(0.8 0.09 300);
+  --menu-2: oklch(0.72 0.1 175);
+  --menu-3: oklch(0.66 0.19 30);
+  --menu-4: oklch(0.82 0.13 90);
+  --menu-5: oklch(0.76 0.16 350);
+  --menu-foreground: oklch(0.16 0.012 50);
+}
+
+/* Slow horizontal drift for the background symbol field — content is
+   duplicated by the component and this shifts exactly one copy-width, so
+   the loop point is invisible. Paused entirely under reduced-motion via
+   the motion-reduce: variant on the element itself. */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility animate-marquee {
+  animation: marquee-scroll 60s linear infinite;
+}
+
+/* "Toybox" structural utilities — the ink-outline + hard-shadow sticker
+   system used across the storefront (marketing) pages. Kept out of the
+   dashboard/app UI on purpose: a daily-use tool should stay calmer than a
+   storefront. */
+/* !important is deliberate here: these override shadcn primitives
+   (Card's ring-1, Button's own shadow) that would otherwise win the
+   box-shadow property outright — box-shadow doesn't merge across rules,
+   so without this the ring silently erases the hard shadow. */
+@utility card-sticker {
+  border-width: 3px !important;
+  border-color: var(--ink) !important;
+  box-shadow: 6px 6px 0 0 var(--ink) !important;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 0 var(--ink) !important;
+  }
+}
+
+@utility btn-sticker {
+  border-width: 2px !important;
+  border-color: var(--ink) !important;
+  box-shadow: 3px 3px 0 0 var(--ink) !important;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+
+  &:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 0 var(--ink) !important;
+  }
+
+  &:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 0 var(--ink) !important;
+  }
+}
+
+@utility pill-outline {
+  border-width: 2px !important;
+  border-color: var(--ink) !important;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* Chunky offset text-shadow — the same "hard shadow" language as
+   card-sticker/btn-sticker, applied to type instead of boxes. The visible
+   part of a hard offset shadow is the sliver next to each glyph, so what
+   it needs contrast against is the page/card background behind it, not
+   the text on top. --cream-depth is deliberately quiet — a bold hue here
+   would repeat on every single heading site-wide and read as loud fast;
+   a warm cream that's still a clear step off pure background gives the
+   "chunky" pop without shouting. */
+@utility text-sticker {
+  text-shadow: 3px 3px 0 var(--cream-depth);
+}
+
+@utility text-sticker-sm {
+  text-shadow: 2px 2px 0 var(--cream-depth);
+}
+
+/* Animated "liquid" video frame — LiquidFrame (media/liquid-frame.tsx)
+   uses these on the actual border band that wraps a video's rectangle
+   (not a halo behind it). Only that band is ever visible (the video sits
+   on top, opaque, covering the rest), so the fill has to stay vividly
+   colored right out to its own edges — an oversized gradient panned via
+   background-position, always fully saturated with no fade-to-transparent
+   gaps, reads as a continuously flowing liquid band; a radial blob that
+   fades out toward its edges (the more obvious-sounding approach) mostly
+   shows its own faint rim in a band this size and ends up looking washed
+   out. A diagonal light streak sweeping across on its own cycle, blended
+   on top, adds the "wet, glossy" surface quality. Colors come in
+   per-instance via --liquid-a/b/c, so neighboring frames carry different
+   palettes instead of one repeated everywhere. */
+@keyframes liquid-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes liquid-sheen {
+  from {
+    background-position: -60% -60%;
+  }
+  to {
+    background-position: 160% 160%;
+  }
+}
+
+@utility liquid-frame-fill {
+  background-image: linear-gradient(
+    120deg,
+    var(--liquid-a, oklch(0.72 0.16 30)) 0%,
+    var(--liquid-b, oklch(0.68 0.18 340)) 25%,
+    var(--liquid-c, oklch(0.76 0.13 70)) 50%,
+    var(--liquid-a, oklch(0.72 0.16 30)) 75%,
+    var(--liquid-b, oklch(0.68 0.18 340)) 100%
+  );
+  background-size: 320% 320%;
+  animation: liquid-flow 9s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background-position: 50% 50%;
+  }
+}
+
+@utility liquid-frame-sheen {
+  background-image: linear-gradient(
+    115deg,
+    transparent 42%,
+    oklch(1 0 0 / 40%) 50%,
+    transparent 58%
+  );
+  background-size: 240% 240%;
+  animation: liquid-sheen 7s linear infinite;
+  mix-blend-mode: overlay;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
 }
