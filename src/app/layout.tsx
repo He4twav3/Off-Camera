@@ -62,26 +62,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-background text-foreground">
         {/* The real liquid-metal photo as a persistent, sitewide background —
             fixed to the viewport so it covers top to bottom at any scroll
-            position, not just the Hero's own height, at full strength
-            (the photo's own colors are untouched, nothing washed out).
+            position, not just the Hero's own height.
 
-            Turning its black backdrop into cream is a *mask*, not a blend:
-            mix-blend-mode: screen was the wrong tool against a *light*
-            page — screen can only ever lighten toward the backdrop, never
-            preserve something darker than it, so it flattened the metal's
-            own dark grooves toward white along with the black.
-
-            The mask is done with the plain CSS mask-image/mask-mode
-            properties (see .liquid-bg-photo in globals.css), not an inline
-            SVG <mask> element. An SVG <mask> with
-            maskContentUnits="objectBoundingBox" wrapping a raster <image>
-            looks correct in Chrome but was confirmed (against real WebKit,
-            via Playwright's webkit engine, which mirrors Safari) to fail
-            outright there — the photo renders fully unmasked, solid black
-            backdrop and all, exactly matching the bug reported in Safari.
-            The plain mask-image + mask-mode: luminance /
-            -webkit-mask-image + -webkit-mask-source-type: luminance pairing
-            was verified working in that same real WebKit engine.
+            Turning its black backdrop into cream used to be a live CSS
+            mask (mix-blend-mode: screen was tried first and was wrong —
+            it can only lighten toward the backdrop, never preserve
+            something darker, so it flattened the metal's own dark grooves
+            toward white too). Every CSS masking technique that followed
+            (an inline SVG <mask>, then plain mask-image/mask-mode +
+            -webkit-mask-image/-webkit-mask-source-type) tested fine
+            against Playwright's real Chromium *and* WebKit engines, yet
+            still failed on an actual iPhone in both Safari and Chrome —
+            iOS's real WebKit build has its own further masking support
+            gaps neither of those emulated engines reproduced. Rather than
+            keep chasing per-engine CSS masking support, the knockout is
+            now baked directly into the image's own pixels once at asset-
+            prep time (scripts/bake-liquid-bg.mjs) — plain background-image,
+            no runtime masking of any kind, so there's nothing left for any
+            browser to get wrong.
 
             Content is wrapped in its own `relative z-10` box rather than
             giving this a negative z-index — a `position:fixed` layer with

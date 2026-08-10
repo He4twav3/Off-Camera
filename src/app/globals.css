@@ -172,45 +172,27 @@
   }
 }
 
-/* Real alpha knockout, not a color blend — the same photo used as its own
-   luminance mask, so black pixels (0 luminance) are fully transparent
-   (the actual --background cream shows through) while every other pixel
-   keeps its own real color/darkness, at full opacity.
-
-   Two separate tracks, deliberately not one: Safari/WebKit has its own
-   older, proprietary luminance-masking properties (-webkit-mask-image +
-   -webkit-mask-source-type: luminance) applied directly to the raster
-   photo, which it has supported natively for years — but the *standard*
-   mask-mode: luminance property (the modern spec equivalent) has real
-   gaps even inside WebKit depending on version, so relying on it alone
-   left Safari falling back to alpha-only masking (a no-op on an opaque
-   photo — the exact bug reported here). The unprefixed `mask: url(#...)`
-   line referencing the inline SVG <mask> in layout.tsx is the standards
-   path Firefox/Chrome use; browsers read whichever set of properties
-   they actually implement, so both can coexist safely on one rule. */
+/* The black-to-cream knockout is baked directly into the image's own
+   pixels (scripts-bake-mask.mjs), not done live with a CSS mask anymore.
+   Three different CSS masking techniques were each verified working
+   against real WebKit (Playwright's webkit engine) in turn — an inline
+   SVG <mask>, then plain mask-image/mask-mode + -webkit-mask-image/
+   -webkit-mask-source-type — and each still failed on an actual iPhone,
+   because real iOS WebKit is a different build than Playwright's bundled
+   one with its own, further support gaps. Rather than keep chasing
+   per-engine CSS masking support, the photo was pre-composited once at
+   asset-prep time: every pixel is blended toward --background cream by
+   its own luminance (black -> fully cream, bright metal -> unchanged),
+   producing a flat opaque image with the exact same visual result and
+   zero runtime dependency on masking support in any browser. Re-encoded
+   as WebP in the same pass (2300x2300 PNG -> ~1800px WebP, 5.7MB -> ~110KB)
+   since a multi-megabyte sitewide background is its own real problem on
+   phones regardless of the masking bug. */
 @utility liquid-bg-photo {
-  background-image: url("/images/hero-liquid-metal-full.png");
+  background-image: url("/images/hero-liquid-metal-bg.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  /* Luminance mask via the plain CSS mask properties, not an SVG <mask>
-     element — confirmed against real WebKit (Playwright's webkit engine,
-     which mirrors Safari) that an SVG mask with
-     maskContentUnits="objectBoundingBox" wrapping a raster <image> simply
-     fails to apply there: the photo renders fully unmasked, solid black
-     backdrop and all, which is exactly the bug reported. This plain
-     mask-image/mask-mode + -webkit-mask-image/-webkit-mask-source-type
-     pairing was verified working in the same real WebKit engine. */
-  mask-image: url("/images/hero-liquid-metal-full.png");
-  mask-mode: luminance;
-  mask-size: cover;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  -webkit-mask-image: url("/images/hero-liquid-metal-full.png");
-  -webkit-mask-source-type: luminance;
-  -webkit-mask-size: cover;
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
 }
 
 @layer base {
