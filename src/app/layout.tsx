@@ -71,36 +71,22 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             preserve something darker than it, so it flattened the metal's
             own dark grooves toward white along with the black.
 
-            The mask itself is a real inline SVG <mask> (below), not the
-            CSS `mask-image` + `mask-mode: luminance` shorthand — that
-            combination has inconsistent cross-browser support (Safari and
-            some Chrome versions silently fall back to alpha-only masking,
-            and since this PNG has no real transparency, alpha masking
-            does nothing at all: the photo just renders unmasked, solid
-            black backdrop and all). An SVG <mask> is luminance-based by
-            spec default in every browser with no extra property needed,
-            so it doesn't have that fallback failure mode.
+            The mask is done with the plain CSS mask-image/mask-mode
+            properties (see .liquid-bg-photo in globals.css), not an inline
+            SVG <mask> element. An SVG <mask> with
+            maskContentUnits="objectBoundingBox" wrapping a raster <image>
+            looks correct in Chrome but was confirmed (against real WebKit,
+            via Playwright's webkit engine, which mirrors Safari) to fail
+            outright there — the photo renders fully unmasked, solid black
+            backdrop and all, exactly matching the bug reported in Safari.
+            The plain mask-image + mask-mode: luminance /
+            -webkit-mask-image + -webkit-mask-source-type: luminance pairing
+            was verified working in that same real WebKit engine.
 
             Content is wrapped in its own `relative z-10` box rather than
             giving this a negative z-index — a `position:fixed` layer with
             a negative z-index can end up painted behind `<body>`'s own
             propagated background regardless of DOM order. */}
-        <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
-          <defs>
-            <mask
-              id="liquid-bg-mask"
-              maskContentUnits="objectBoundingBox"
-              maskUnits="objectBoundingBox"
-            >
-              <image
-                href="/images/hero-liquid-metal-full.png"
-                width={1}
-                height={1}
-                preserveAspectRatio="xMidYMid slice"
-              />
-            </mask>
-          </defs>
-        </svg>
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-background">
           <div className="liquid-bg-pan liquid-bg-photo absolute inset-0" />
         </div>
