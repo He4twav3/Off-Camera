@@ -175,21 +175,18 @@
 /* Real alpha knockout, not a color blend — the same photo used as its own
    luminance mask, so black pixels (0 luminance) are fully transparent
    (the actual --background cream shows through) while every other pixel
-   keeps its own real color/darkness, at full opacity. */
+   keeps its own real color/darkness, at full opacity. References the
+   inline SVG <mask> defined in layout.tsx (see there for why: an SVG
+   mask is luminance-based in every browser with no extra property, unlike
+   the CSS mask-image + mask-mode: luminance combination, which has real
+   cross-browser fallback gaps). */
 @utility liquid-bg-photo {
   background-image: url("/images/hero-liquid-metal-full.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  mask-image: url("/images/hero-liquid-metal-full.png");
-  -webkit-mask-image: url("/images/hero-liquid-metal-full.png");
-  mask-mode: luminance;
-  -webkit-mask-size: cover;
-  mask-size: cover;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  mask: url("#liquid-bg-mask");
+  -webkit-mask: url("#liquid-bg-mask");
 }
 
 @layer base {

@@ -69,17 +69,38 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             mix-blend-mode: screen was the wrong tool against a *light*
             page — screen can only ever lighten toward the backdrop, never
             preserve something darker than it, so it flattened the metal's
-            own dark grooves toward white along with the black. A
-            luminance mask instead uses the image as its own alpha
-            channel — black pixels (0 luminance) become fully transparent,
-            revealing the real --background cream underneath, while every
-            other pixel keeps its actual original color and relative
-            darkness, exactly like a real photo cut out from its backdrop.
+            own dark grooves toward white along with the black.
+
+            The mask itself is a real inline SVG <mask> (below), not the
+            CSS `mask-image` + `mask-mode: luminance` shorthand — that
+            combination has inconsistent cross-browser support (Safari and
+            some Chrome versions silently fall back to alpha-only masking,
+            and since this PNG has no real transparency, alpha masking
+            does nothing at all: the photo just renders unmasked, solid
+            black backdrop and all). An SVG <mask> is luminance-based by
+            spec default in every browser with no extra property needed,
+            so it doesn't have that fallback failure mode.
 
             Content is wrapped in its own `relative z-10` box rather than
             giving this a negative z-index — a `position:fixed` layer with
             a negative z-index can end up painted behind `<body>`'s own
             propagated background regardless of DOM order. */}
+        <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+          <defs>
+            <mask
+              id="liquid-bg-mask"
+              maskContentUnits="objectBoundingBox"
+              maskUnits="objectBoundingBox"
+            >
+              <image
+                href="/images/hero-liquid-metal-full.png"
+                width={1}
+                height={1}
+                preserveAspectRatio="xMidYMid slice"
+              />
+            </mask>
+          </defs>
+        </svg>
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-background">
           <div className="liquid-bg-pan liquid-bg-photo absolute inset-0" />
         </div>
