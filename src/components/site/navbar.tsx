@@ -59,15 +59,24 @@ export function Navbar() {
           <AuthNavPill />
         </nav>
 
-        <MetalButtonWrap className="ml-auto hidden lg:inline-flex">
-          <Button
-            nativeButton={false}
-            render={<Link href="/course#pricing" />}
-            className="btn-sticker"
-          >
-            Enroll now
-          </Button>
-        </MetalButtonWrap>
+        {/* Visibility lives on this plain wrapper, not on MetalButtonWrap's
+            own className: metal-fx injects its own runtime stylesheet with
+            `.metal-fx-root { display: inline-flex }`, appended to <head>
+            after Tailwind's, which wins the specificity tie against
+            Tailwind's `.hidden` utility when applied directly to that same
+            root element -- the button silently stayed visible on mobile.
+            A wrapper metal-fx never targets has no such conflict. */}
+        <div className="ml-auto hidden lg:inline-flex">
+          <MetalButtonWrap>
+            <Button
+              nativeButton={false}
+              render={<Link href="/course#pricing" />}
+              className="btn-sticker"
+            >
+              Enroll now
+            </Button>
+          </MetalButtonWrap>
+        </div>
 
         <Sheet>
           <SheetTrigger
@@ -127,7 +136,12 @@ export function Navbar() {
         </Sheet>
       </div>
 
-      <div className="no-scrollbar overflow-x-auto border-t border-border/70 bg-secondary/40">
+      {/* Hidden below lg: this row lives inside the sticky header, so on a
+          phone it would permanently occupy header height at every scroll
+          position, cut off mid-label with no scroll affordance, and it's
+          already fully duplicated by the section links in the hamburger
+          sheet above. Desktop keeps it unchanged. */}
+      <div className="no-scrollbar hidden overflow-x-auto border-t border-border/70 bg-secondary/40 lg:block">
         <div className="mx-auto flex max-w-6xl items-center gap-2.5 px-4 py-2.5 sm:px-6 lg:px-8">
           {sections.map((section) => (
             <Link
