@@ -6,12 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Logo } from "@/components/site/logo";
 import { PriceTag } from "@/components/marketing/price-tag";
 import { FinalCTA } from "@/components/marketing/final-cta";
-import { SymbolField } from "@/components/marketing/symbol-field";
 import { Reveal } from "@/components/marketing/reveal";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
 import { VideoThumbnail } from "@/components/media/video-thumbnail";
-import { LiquidFrame } from "@/components/media/liquid-frame";
 import { CURRICULUM, TOTAL_LESSONS, TOTAL_MODULES, TOTAL_MINUTES } from "@/lib/curriculum";
 import { siteConfig } from "@/lib/site-config";
 
@@ -84,8 +82,6 @@ const faqs = [
 export default function GoPage() {
   return (
     <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
-      <SymbolField className="fixed inset-0 -z-10" />
-
       <header className="flex items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
         <Logo />
         <Link
@@ -125,22 +121,19 @@ export default function GoPage() {
         </section>
 
         <section className="mx-auto max-w-2xl px-4 pb-16 sm:px-6 lg:px-8">
-          <LiquidFrame variant={0} radius="1rem" thickness="1.25rem">
-            <VideoPlayer
-              aspect="video"
-              label="Intro from Aron · 1:12"
-              durationSeconds={72}
-              youtubeId={siteConfig.videos.intro}
-              poster={
-                <VideoPoster>
-                  <p className="max-w-sm text-balance text-lg font-medium sm:text-xl">
-                    &ldquo;Here&apos;s exactly how I went from zero to
-                    full-time, without ever showing my face.&rdquo;
-                  </p>
-                </VideoPoster>
-              }
-            />
-          </LiquidFrame>
+          <VideoPlayer
+            aspect="video"
+            label="Intro from Aron · 1:12"
+            durationSeconds={72}
+            poster={
+              <VideoPoster>
+                <p className="max-w-sm text-balance text-lg font-medium sm:text-xl">
+                  &ldquo;Here&apos;s exactly how I went from zero to
+                  full-time, without ever showing my face.&rdquo;
+                </p>
+              </VideoPoster>
+            }
+          />
         </section>
 
         <Reveal>

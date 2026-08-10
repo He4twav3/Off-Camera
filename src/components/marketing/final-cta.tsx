@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { SymbolField } from "@/components/marketing/symbol-field";
 
 export function FinalCTA() {
   return (
@@ -18,7 +17,6 @@ export function FinalCTA() {
               "radial-gradient(ellipse 70% 60% at 50% 0%, oklch(1 0 0 / 12%), transparent 65%)",
           }}
         />
-        <SymbolField />
         <h2 className="text-sticker relative text-3xl font-semibold tracking-tight sm:text-4xl">
           Your face doesn&apos;t need to be the product.
         </h2>

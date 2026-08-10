@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MetalButtonWrap } from "@/components/site/metal-button-wrap";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
-import { LiquidFrame } from "@/components/media/liquid-frame";
-import { siteConfig } from "@/lib/site-config";
 
 export function Hero() {
   return (
@@ -26,14 +25,16 @@ export function Hero() {
           I&apos;ll show you how.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button
-            size="lg"
-            nativeButton={false}
-            render={<Link href="#pricing" />}
-            className="btn-sticker"
-          >
-            Enroll now
-          </Button>
+          <MetalButtonWrap>
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={<Link href="#pricing" />}
+              className="btn-sticker"
+            >
+              Enroll now
+            </Button>
+          </MetalButtonWrap>
           <Button
             size="lg"
             variant="outline"
@@ -50,22 +51,19 @@ export function Hero() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 md:pb-24 lg:px-8">
-        <LiquidFrame variant={0} radius="1rem" thickness="1.25rem">
-          <VideoPlayer
-            aspect="video"
-            label="Intro from Aron · 1:12"
-            durationSeconds={72}
-            youtubeId={siteConfig.videos.intro}
-            poster={
-              <VideoPoster>
-                <p className="max-w-sm text-balance text-lg font-medium sm:text-xl">
-                  &ldquo;Here&apos;s exactly how I went from zero to
-                  full-time, without ever showing my face.&rdquo;
-                </p>
-              </VideoPoster>
-            }
-          />
-        </LiquidFrame>
+        <VideoPlayer
+          aspect="video"
+          label="Intro from Aron · 1:12"
+          durationSeconds={72}
+          poster={
+            <VideoPoster>
+              <p className="max-w-sm text-balance text-lg font-medium sm:text-xl">
+                &ldquo;Here&apos;s exactly how I went from zero to
+                full-time, without ever showing my face.&rdquo;
+              </p>
+            </VideoPoster>
+          }
+        />
       </div>
     </section>
   );

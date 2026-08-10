@@ -65,43 +65,38 @@
 }
 
 :root {
-  /* Off Camera — "Liquid Glass / Liquid Metal" redesign: a single,
-     deliberately dark identity (not a dark-mode variant of a light site).
-     Pitch black / charcoal / titanium silver, stark white highlights, one
-     restrained cool-violet glint pulled from the reference material's own
-     highlight color — never a second hue introduced on top of it. Surface
-     tokens (card/secondary/muted/accent/popover) are translucent white
-     washes on purpose: every place that already does `bg-card`,
-     `bg-secondary` etc. across the site becomes real frosted glass for
-     free, no per-component edits needed. --ink flips meaning here too —
-     it used to be "the black outline," now it's "the bright metal
-     stroke," which is exactly what every existing border-ink/var(--ink)
-     usage sitewide should become. */
-  --background: oklch(0.085 0.004 265);
-  --foreground: oklch(0.97 0.002 265);
-  --card: oklch(1 0 0 / 4%);
+  /* Off Camera — "Liquid Glass / Liquid Metal" redesign, cream pass: warm
+     cream ground with a real liquid-metal photo as the sitewide backdrop
+     (see layout.tsx/liquid-bg-photo) and cream lettering to read against
+     it. Surface tokens (card/secondary/muted/accent/popover) are
+     translucent *dark* washes — the frosted-glass trick still works the
+     same way, just tinted dark-on-cream. --ink stays "the dark ink
+     stroke" for borders/outlines (unchanged by the lettering flip). */
+  --background: oklch(0.97 0.01 75);
+  --foreground: oklch(0.17 0.012 50);
+  --card: oklch(0 0 0 / 4%);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.12 0.006 265 / 92%);
+  --popover: oklch(0.94 0.012 75 / 92%);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.95 0.003 265);
-  --primary-foreground: oklch(0.1 0.004 265);
-  --secondary: oklch(1 0 0 / 5.5%);
+  --primary: oklch(0.17 0.012 50);
+  --primary-foreground: oklch(0.97 0.006 75);
+  --secondary: oklch(0 0 0 / 5.5%);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(1 0 0 / 3.5%);
-  --muted-foreground: oklch(0.68 0.006 265);
-  --accent: oklch(1 0 0 / 8%);
+  --muted: oklch(0 0 0 / 3.5%);
+  --muted-foreground: oklch(0.42 0.012 50);
+  --accent: oklch(0 0 0 / 8%);
   --accent-foreground: var(--foreground);
-  --destructive: oklch(0.64 0.19 25);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.85 0.006 265 / 55%);
-  --chart-1: oklch(0.85 0.005 265);
-  --chart-2: oklch(0.68 0.006 265);
-  --chart-3: oklch(0.5 0.006 265);
-  --chart-4: oklch(0.35 0.006 265);
-  --chart-5: oklch(0.25 0.006 265);
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0 0 0 / 12%);
+  --input: oklch(0 0 0 / 14%);
+  --ring: oklch(0.17 0.012 50 / 40%);
+  --chart-1: oklch(0.25 0.01 50);
+  --chart-2: oklch(0.4 0.01 50);
+  --chart-3: oklch(0.55 0.01 50);
+  --chart-4: oklch(0.7 0.01 60);
+  --chart-5: oklch(0.85 0.01 70);
   --radius: 0.85rem;
-  --sidebar: oklch(0.1 0.005 265);
+  --sidebar: oklch(0.95 0.01 75);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
@@ -110,46 +105,41 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 
-  /* Bright titanium-silver stroke — every border-ink/fill="var(--ink)" on
-     the site (icon outlines, badge rings, star fill, dividers) becomes a
-     metal line for free. */
-  --ink: oklch(0.88 0.004 265);
+  /* Dark ink stroke — every border-ink/fill="var(--ink)" on the site
+     (icon outlines, badge rings, star fill, dividers) becomes a dark line
+     on the cream ground. */
+  --ink: oklch(0.17 0.012 50);
 
-  /* "Toybox" chip ramp — now four translucency steps of the same glass
-     instead of four shades of one hue. Text stays bright on every step
-     (all of them sit dark-ish against the dark page regardless of tier),
-     which keeps this a one-line-per-token change instead of a rewrite of
-     every component that reads toy-*. */
-  --toy-soft: oklch(1 0 0 / 8%);
+  /* "Toybox" chip ramp — translucent dark-glass washes instead of white
+     ones, same four-step logic. Text stays dark on every step. */
+  --toy-soft: oklch(0 0 0 / 6%);
   --toy-soft-foreground: var(--foreground);
-  --toy-base: oklch(1 0 0 / 12%);
+  --toy-base: oklch(0 0 0 / 10%);
   --toy-base-foreground: var(--foreground);
-  --toy-strong: oklch(1 0 0 / 18%);
+  --toy-strong: oklch(0 0 0 / 17%);
   --toy-strong-foreground: var(--foreground);
-  --toy-deep: oklch(0.3 0.006 265 / 60%);
-  --toy-deep-foreground: var(--foreground);
+  --toy-deep: oklch(0.22 0.01 50 / 75%);
+  --toy-deep-foreground: oklch(0.97 0.006 75);
 
-  /* Embossed-text glow — a bright, soft white instead of the old warm
-     cream, since the "chunky offset shadow" language is retired in favor
-     of an engraved/glowing metal look (see text-sticker below). */
-  --cream-depth: oklch(1 0 0 / 40%);
+  /* Embossed-text shadow — dark now (was a bright glow), giving dark
+     lettering a subtle engraved/pressed look on the cream ground instead
+     of a glow (a glow only reads against a dark page). */
+  --cream-depth: oklch(0.3 0.015 50 / 22%);
 
-  /* "Menu" palette — was five flat hues (deliberately playful, the one
-     place the old theme allowed real color); the strict brief here is
-     monochrome only, so all five collapse to the same glass tone. Kept as
-     five separate tokens (rather than editing every component that reads
-     --menu-N) so this is a pure CSS-level change. */
-  --menu-1: oklch(1 0 0 / 7%);
-  --menu-2: oklch(1 0 0 / 7%);
-  --menu-3: oklch(1 0 0 / 7%);
-  --menu-4: oklch(1 0 0 / 7%);
-  --menu-5: oklch(1 0 0 / 7%);
+  /* "Menu" palette — collapsed to the same dark-glass tone as the rest of
+     the strict-monochrome brief, kept as five tokens so this stays a pure
+     CSS-level change. */
+  --menu-1: oklch(0 0 0 / 6%);
+  --menu-2: oklch(0 0 0 / 6%);
+  --menu-3: oklch(0 0 0 / 6%);
+  --menu-4: oklch(0 0 0 / 6%);
+  --menu-5: oklch(0 0 0 / 6%);
   --menu-foreground: var(--foreground);
 
-  /* One restrained accent glint, pulled straight from the reference
-     material's own highlight color (not a new hue on top of it) — used
-     sparingly, e.g. a focus/active glow, never as a fill. */
-  --liquid-glint: oklch(0.78 0.05 290);
+  /* One restrained accent glint, pulled from the same reference material —
+     darkened a touch from the dark-theme version so it still reads as a
+     glint rather than a pastel on a light ground. */
+  --liquid-glint: oklch(0.42 0.07 290);
 
   /* The "viscous" easing every fluid interaction in this file shares —
      fast-ish start, long soft settle, reads as weighted/liquid rather
@@ -157,65 +147,49 @@
   --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Ambient dark radial gradients — "wet dark metal" rather than a flat
-   fill. Fixed to the viewport (not the document) so it reads as one
-   continuous surface behind every section instead of tiling per-page-
-   length; a slow drift keeps it from reading static without ever being
-   distracting. Paused under reduced-motion. */
-@keyframes ambient-drift {
-  0%,
-  100% {
-    background-position:
-      15% -10%,
-      110% 10%,
-      50% 115%;
+/* Very slow Ken-Burns drift for the sitewide background photo — felt more
+   than seen, a 90s cycle so it never reads as "playing," just alive.
+   Scaled up so the pan never reveals a hard edge. Paused under
+   reduced-motion (the plain centered/cover frame is still a complete,
+   legible image on its own). */
+@keyframes liquid-bg-pan {
+  0% {
+    transform: scale(1.08) translate(0%, 0%);
   }
   50% {
-    background-position:
-      25% 0%,
-      95% 18%,
-      45% 105%;
+    transform: scale(1.14) translate(-1.5%, 1%);
+  }
+  100% {
+    transform: scale(1.08) translate(0%, 0%);
   }
 }
 
-/* Slow pan+scale on the generative liquid-metal texture (LiquidMetalField)
-   — the SVG filter itself never re-runs, only this transform does, so the
-   drift is effectively free no matter how large the layer is. Scaled up
-   110% so the pan never reveals a hard edge. */
-@keyframes liquid-metal-drift {
-  0%,
-  100% {
-    transform: scale(1.1) translate(0%, 0%);
-  }
-  50% {
-    transform: scale(1.16) translate(-2%, 1.5%);
-  }
-}
-
-@utility liquid-metal-drift {
-  animation: liquid-metal-drift 60s ease-in-out infinite;
+@utility liquid-bg-pan {
+  animation: liquid-bg-pan 90s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 }
 
-@keyframes liquid-metal-drift-alt {
-  0%,
-  100% {
-    transform: scale(1.14) translate(0%, 0%) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.2) translate(2%, -1.5%) rotate(1deg);
-  }
-}
-
-@utility liquid-metal-drift-alt {
-  animation: liquid-metal-drift-alt 75s ease-in-out infinite;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
+/* Real alpha knockout, not a color blend — the same photo used as its own
+   luminance mask, so black pixels (0 luminance) are fully transparent
+   (the actual --background cream shows through) while every other pixel
+   keeps its own real color/darkness, at full opacity. */
+@utility liquid-bg-photo {
+  background-image: url("/images/hero-liquid-metal-full.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  mask-image: url("/images/hero-liquid-metal-full.png");
+  -webkit-mask-image: url("/images/hero-liquid-metal-full.png");
+  mask-mode: luminance;
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 @layer base {
@@ -223,22 +197,11 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply text-foreground;
-    background-color: var(--background);
-    background-image:
-      radial-gradient(ellipse 90% 60% at 15% -10%, oklch(1 0 0 / 6%), transparent 60%),
-      radial-gradient(ellipse 70% 55% at 110% 10%, oklch(0.78 0.05 290 / 7%), transparent 65%),
-      radial-gradient(ellipse 120% 70% at 50% 115%, oklch(1 0 0 / 4%), transparent 70%);
-    background-attachment: fixed;
-    animation: ambient-drift 50s ease-in-out infinite;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
+    @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
-    color-scheme: dark;
+    color-scheme: light;
   }
   h1,
   h2,
@@ -282,9 +245,9 @@
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
   box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 10%),
-    inset 0 -20px 30px -24px oklch(0 0 0 / 60%),
-    0 24px 48px -18px oklch(0 0 0 / 65%) !important;
+    inset 0 1px 0 0 oklch(1 0 0 / 30%),
+    inset 0 -20px 30px -24px oklch(0 0 0 / 10%),
+    0 24px 48px -18px oklch(0 0 0 / 16%) !important;
   transition:
     transform 0.5s var(--ease-liquid),
     box-shadow 0.5s var(--ease-liquid);
@@ -313,9 +276,9 @@
   &:hover {
     transform: translateY(-3px);
     box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 16%),
-      inset 0 -20px 30px -24px oklch(0 0 0 / 65%),
-      0 32px 64px -20px oklch(0 0 0 / 75%) !important;
+      inset 0 1px 0 0 oklch(1 0 0 / 40%),
+      inset 0 -20px 30px -24px oklch(0 0 0 / 14%),
+      0 32px 64px -20px oklch(0 0 0 / 22%) !important;
   }
 }
 
@@ -325,7 +288,7 @@
   border: 1px solid transparent !important;
   box-shadow:
     inset 0 1px 0 0 oklch(1 0 0 / 25%),
-    0 8px 20px -8px oklch(0 0 0 / 55%) !important;
+    0 8px 20px -8px oklch(0 0 0 / 18%) !important;
   transition:
     transform 0.35s var(--ease-liquid),
     border-radius 0.35s var(--ease-liquid),
@@ -358,7 +321,7 @@
     border-radius: calc(var(--radius-lg) * 1.2);
     box-shadow:
       inset 0 1px 0 0 oklch(1 0 0 / 35%),
-      0 14px 30px -8px oklch(0 0 0 / 6%) !important;
+      0 14px 30px -8px oklch(0 0 0 / 24%) !important;
   }
   &:hover::before {
     background: linear-gradient(
@@ -399,21 +362,23 @@
   }
 }
 
-/* Embossed / glowing metallic type — a tight two-tone shadow reads as
-   engraved (a bright sliver above, a dark sliver below), plus a soft wide
-   glow underneath it for the "slightly glowing metal" half of the brief. */
+/* Embossed metallic type on cream — dark lettering, so this flips from a
+   glow (only reads against a dark page) to a pressed/engraved look: a
+   bright sliver catching light just below each glyph, a faint dark sliver
+   above (the recessed edge), and a soft warm contact shadow standing in
+   for the old glow's sense of depth. */
 @utility text-sticker {
   text-shadow:
-    0 1px 0 oklch(1 0 0 / 12%),
-    0 -1px 1px oklch(0 0 0 / 70%),
-    0 0 28px oklch(1 0 0 / 20%);
+    0 1px 0 oklch(1 0 0 / 60%),
+    0 -1px 1px oklch(0 0 0 / 20%),
+    0 2px 12px oklch(0.3 0.02 50 / 15%);
 }
 
 @utility text-sticker-sm {
   text-shadow:
-    0 1px 0 oklch(1 0 0 / 10%),
-    0 -1px 1px oklch(0 0 0 / 60%),
-    0 0 18px oklch(1 0 0 / 16%);
+    0 1px 0 oklch(1 0 0 / 55%),
+    0 -1px 1px oklch(0 0 0 / 16%),
+    0 2px 8px oklch(0.3 0.02 50 / 12%);
 }
 
 /* Animated "liquid" video frame — LiquidFrame (media/liquid-frame.tsx)

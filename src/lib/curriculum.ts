@@ -94,23 +94,11 @@ const RAW_CURRICULUM = [
  * preview card plays the real thing instead of the simulated placeholder —
  * see VideoPlayer's `youtubeId` prop. Kept separate from RAW_CURRICULUM so
  * adding real footage later is a one-line change per module, not a rewrite
- * of the lesson data.
- *
- * The ids below are real, publicly posted, topically-matched YouTube
- * videos from other creators, standing in for the real course footage so
- * the site's video sections can be previewed with actual playing video
- * instead of flat placeholders. Swap each one for the real recorded
- * lesson before this goes live — they're a preview aid, not final content.
+ * of the lesson data. Left empty on purpose — placeholders, not stand-in
+ * footage from other creators.
  */
 export const MODULE_VIDEO_IDS: Partial<Record<string, string>> = {
-  m1: "C2cxKRNZ_30", // "AI Influencer UGC Videos in 5 Minutes – Faceless & Automated!"
-  m2: "OyFwb8ha5Hg", // "7 TikTok Hooks That Actually Make You Go Viral (Copy These)"
-  m3: "sqMhWmeu7p4", // "Filming on an iPhone just got easier for everyone"
-  m4: "JvcnvY3S5mU", // "How to Make Trend Videos Before Everyone Moves On"
-  m5: "S3Xdu0WIdfY", // "How to pitch brands to land PAID brand deals (UGC)"
-  m6: "HpKOyNLnqiY", // "UGC Portfolio for Beginners"
-  m7: "SW16BP9cjyk", // "How To Create a UGC Portfolio That Lands Brand Deals Even with 0 Followers"
-  m8: "GgdRJfpqIbs", // "How to Get Paid for Your UGC Content"
+  // m1: "your-youtube-id-here",
 };
 
 export const CURRICULUM = RAW_CURRICULUM.map((mod, moduleIndex) => {

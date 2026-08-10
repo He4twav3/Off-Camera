@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/marketing/price-tag";
+import { MetalButtonWrap } from "@/components/site/metal-button-wrap";
 import { siteConfig } from "@/lib/site-config";
 
 const inclusions = [
@@ -41,14 +42,16 @@ export function Pricing() {
             </li>
           ))}
         </ul>
-        <Button
-          size="lg"
-          nativeButton={false}
-          render={<Link href="/checkout" />}
-          className="btn-sticker mt-8 w-full"
-        >
-          Enroll now
-        </Button>
+        <MetalButtonWrap className="mt-8 w-full">
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link href="/checkout" />}
+            className="btn-sticker w-full"
+          >
+            Enroll now
+          </Button>
+        </MetalButtonWrap>
       </div>
     </section>
   );

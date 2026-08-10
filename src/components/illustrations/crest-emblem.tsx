@@ -78,9 +78,9 @@ export function CrestEmblem({ className }: { className?: string }) {
         OFF CAMERA
       </text>
 
-      {/* Sits on the cover wrapper's own dark background, so this needs a
-          bright, opaque fill — --card is a translucent glass wash now and
-          would be nearly invisible here. */}
+      {/* Sits directly on the cover wrapper's own --background fill, so this
+          needs an opaque fill that contrasts with it — --card is a
+          translucent glass wash and would barely show up here. */}
       <text
         x="50"
         y="103"

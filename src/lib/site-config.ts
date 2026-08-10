@@ -36,14 +36,12 @@ export const siteConfig = {
   // needs to be public) and the Hero/Story sections switch from the
   // simulated placeholder player to a real embed automatically. See
   // VideoPlayer's `youtubeId` prop for how this is consumed, and
-  // curriculum.ts's MODULE_VIDEO_IDS for the per-module equivalent.
-  //
-  // Standing in for now: real, public, topically-matched videos from
-  // other creators, so these sections can be previewed with real playing
-  // video. Swap for the real recorded intro/story before going live.
+  // curriculum.ts's MODULE_VIDEO_IDS for the per-module equivalent. Left
+  // empty on purpose — placeholders, not stand-in footage from other
+  // creators.
   videos: {
-    intro: "45J5sS5icOg" as string | undefined, // "How to Create Faceless UGC Videos with Your Phone (No Tripod or Lights)"
-    story: "oRvzRVS99yw" as string | undefined, // "(STEP-BY-STEP) How to actually land PAID BRAND DEALS as a UGC creator"
+    intro: undefined as string | undefined,
+    story: undefined as string | undefined,
   },
   // Real community, once it exists: a Discord/Circle/Skool invite link.
   // Until then, every "community" touchpoint on the site (dashboard

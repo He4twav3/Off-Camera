@@ -11,6 +11,7 @@ import {
 import { Logo } from "@/components/site/logo";
 import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
 import { SiteSearch } from "@/components/site/site-search";
+import { MetalButtonWrap } from "@/components/site/metal-button-wrap";
 import { cn } from "@/lib/utils";
 
 const pages = [
@@ -58,13 +59,15 @@ export function Navbar() {
           <AuthNavPill />
         </nav>
 
-        <Button
-          nativeButton={false}
-          render={<Link href="/course#pricing" />}
-          className="btn-sticker ml-auto hidden lg:inline-flex"
-        >
-          Enroll now
-        </Button>
+        <MetalButtonWrap className="ml-auto hidden lg:inline-flex">
+          <Button
+            nativeButton={false}
+            render={<Link href="/course#pricing" />}
+            className="btn-sticker"
+          >
+            Enroll now
+          </Button>
+        </MetalButtonWrap>
 
         <Sheet>
           <SheetTrigger

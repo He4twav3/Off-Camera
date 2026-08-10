@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { siteConfig } from "@/lib/site-config";
-import { LiquidMetalField } from "@/components/site/liquid-metal-field";
 import "./globals.css";
 
 const heading = Fraunces({
@@ -60,30 +59,31 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${heading.variable} ${body.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        {/* Sitewide ambient strokes, not just the marketing pages — the
-            page's real --background stays a plain solid dark surface;
-            these two layers add a few flowing chrome/violet highlight
-            lines across it, not a filled texture. Fixed to the viewport
-            (not the document), z-below everything real including the
-            marketing SymbolField. Only a transform animates on top of the
-            already-rendered SVGs, so the filters themselves never re-run
-            per frame. */}
-        <LiquidMetalField
-          seed={7}
-          tint="#f4f5f8"
-          angle={230}
-          exponent={60}
-          className="liquid-metal-drift pointer-events-none fixed inset-0 -z-20 size-full opacity-[0.14]"
-        />
-        <LiquidMetalField
-          seed={31}
-          tint="oklch(0.78 0.05 290)"
-          angle={100}
-          exponent={55}
-          className="liquid-metal-drift-alt pointer-events-none fixed inset-0 -z-20 size-full opacity-[0.1]"
-        />
-        {children}
+      <body className="min-h-full bg-background text-foreground">
+        {/* The real liquid-metal photo as a persistent, sitewide background —
+            fixed to the viewport so it covers top to bottom at any scroll
+            position, not just the Hero's own height, at full strength
+            (the photo's own colors are untouched, nothing washed out).
+
+            Turning its black backdrop into cream is a *mask*, not a blend:
+            mix-blend-mode: screen was the wrong tool against a *light*
+            page — screen can only ever lighten toward the backdrop, never
+            preserve something darker than it, so it flattened the metal's
+            own dark grooves toward white along with the black. A
+            luminance mask instead uses the image as its own alpha
+            channel — black pixels (0 luminance) become fully transparent,
+            revealing the real --background cream underneath, while every
+            other pixel keeps its actual original color and relative
+            darkness, exactly like a real photo cut out from its backdrop.
+
+            Content is wrapped in its own `relative z-10` box rather than
+            giving this a negative z-index — a `position:fixed` layer with
+            a negative z-index can end up painted behind `<body>`'s own
+            propagated background regardless of DOM order. */}
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-background">
+          <div className="liquid-bg-pan liquid-bg-photo absolute inset-0" />
+        </div>
+        <div className="relative z-10 flex min-h-full flex-col">{children}</div>
       </body>
     </html>
   );
