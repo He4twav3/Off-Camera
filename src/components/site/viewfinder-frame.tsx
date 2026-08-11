@@ -59,9 +59,9 @@ function StopwatchIcon({ className }: { className?: string }) {
 }
 
 /** Thin-line battery glyph, three-quarters full — same stroke-only style. */
-function BatteryIcon({ className }: { className?: string }) {
+function BatteryIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 28 16" className={className}>
+    <svg viewBox="0 0 28 16" style={style} className={className}>
       <rect
         x="1"
         y="1"
@@ -85,34 +85,55 @@ function formatElapsed(totalSeconds: number) {
   return [h, m, s].map((n) => n.toString().padStart(2, "0")).join(":");
 }
 
+// How much scroll (px) it takes to fully fade the HUD symbols out. Not the
+// borders/crosshair -- those stay at constant opacity, this only drives the
+// REC+stopwatch cluster and the battery glyph.
+const SYMBOL_FADE_DISTANCE = 420;
+
 /**
  * Landing-page-only ambient backdrop, dressed as a camera's own recording
- * HUD: four corner brackets, a center crosshair, a stopwatch that counts
- * up from page load (top-left), a pulsing REC indicator (top-right), and
- * a battery glyph (bottom-left) — with the actual camera-app chrome from
- * the reference mockup stripped out (the VIDEO/PHOTO toggle, the record
- * button, the gallery button, the flip-camera button), since none of
- * that means anything divorced from an actual live camera.
+ * HUD: four corner brackets, a center crosshair, and — nested right into
+ * the kink of the top-right and bottom-left brackets, reading as part of
+ * the frame corner rather than a separate floating readout — a REC
+ * indicator + stopwatch, and a battery glyph. The actual camera-app
+ * chrome from the reference mockup is stripped out (the VIDEO/PHOTO
+ * toggle, the record button, the gallery button, the flip-camera
+ * button), since none of that means anything divorced from an actual
+ * live camera.
  *
  * The stopwatch is a real ticking clock, not a frozen value — it reads as
  * a shot genuinely in progress rather than a static screenshot of one.
- * That's the "dynamic" quality this is meant to have: the page itself is
- * always "recording."
  *
- * Fixed to the viewport like SymbolField was, so it reads as depth behind
- * every section at any scroll position rather than a band that ends
- * partway down. Purely decorative: aria-hidden, pointer-events-none, low
- * opacity so it never competes with foreground text contrast — opaque
- * section backgrounds naturally cover it locally, which is fine, it's a
- * page texture, not content.
+ * The brackets/crosshair are fixed to the viewport the whole time, same
+ * as SymbolField was, so the frame itself reads as constant depth behind
+ * every section. The three HUD symbols (REC+stopwatch, battery) are
+ * fixed the same way but fade out as the page scrolls — present for the
+ * hero's first impression, then receding into the page rather than
+ * staying a fixture the whole way down.
+ *
+ * Purely decorative: aria-hidden, pointer-events-none, low opacity so it
+ * never competes with foreground text contrast — opaque section
+ * backgrounds naturally cover it locally, which is fine, it's a page
+ * texture, not content.
  */
 export function ViewfinderFrame({ className }: { className?: string }) {
   const [elapsed, setElapsed] = useState(0);
+  const [symbolOpacity, setSymbolOpacity] = useState(1);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    function onScroll() {
+      const ratio = 1 - window.scrollY / SYMBOL_FADE_DISTANCE;
+      setSymbolOpacity(Math.min(1, Math.max(0, ratio)));
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
@@ -167,31 +188,39 @@ export function ViewfinderFrame({ className }: { className?: string }) {
         />
       </svg>
 
-      {/* Stopwatch, top-left — the counterpart to REC at top-right, same
-          offset so the two sit level with each other. Real elapsed time
-          since load, not a frozen value. */}
-      <div className="absolute top-24 left-16 flex items-center gap-1.5 sm:left-20 lg:top-36">
-        <StopwatchIcon className="size-3.5" />
-        <span className="font-mono text-[0.65rem] tabular-nums">
-          {formatElapsed(elapsed)}
-        </span>
+      {/* REC + stopwatch, nested into the top-right bracket's kink (its
+          own top-24/lg:top-36 offset, just a touch further in from the
+          edge). Fades out with scroll via symbolOpacity -- the bracket
+          itself keeps its constant opacity untouched. */}
+      <div
+        className="absolute top-24 right-9 flex flex-col items-end gap-1 sm:right-11 lg:top-36"
+        style={{ opacity: symbolOpacity }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70 motion-reduce:animate-none" />
+            <span className="relative inline-flex size-2 rounded-full bg-destructive" />
+          </span>
+          <span className="text-[0.65rem] font-semibold tracking-wide">REC</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <StopwatchIcon className="size-3.5" />
+          <span className="font-mono text-[0.65rem] tabular-nums">
+            {formatElapsed(elapsed)}
+          </span>
+        </div>
       </div>
 
-      {/* Recording indicator, top-right — a live camera's actual "this is
-          rolling" tell, pulsing the way a real one does. */}
-      <div className="absolute top-24 right-16 flex items-center gap-1.5 sm:right-20 lg:top-36">
-        <span className="relative flex size-2">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70 motion-reduce:animate-none" />
-          <span className="relative inline-flex size-2 rounded-full bg-destructive" />
-        </span>
-        <span className="text-[0.65rem] font-semibold tracking-wide">REC</span>
+      {/* Battery, nested into the bottom-left bracket's kink the same
+          way. Own breathing pulse (like the corners/crosshair) nested
+          inside the scroll-fade wrapper -- opacity from an animation and
+          opacity from an inline style on the same element would fight
+          each other, so the fade lives on this wrapper and the breathe
+          animation stays on the icon itself; the two compose instead of
+          conflicting. */}
+      <div className="absolute bottom-9 left-9 sm:bottom-11 sm:left-11" style={{ opacity: symbolOpacity }}>
+        <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
       </div>
-
-      {/* Battery, bottom-left — the fourth status readout a real
-          recording HUD carries alongside the clock and the REC tally.
-          Same breathing pulse as the corners/crosshair, just enough
-          motion to read as "alive" rather than a static icon. */}
-      <BatteryIcon className="absolute bottom-6 left-16 h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none sm:bottom-8 sm:left-20" />
     </div>
   );
 }
