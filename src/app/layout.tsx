@@ -60,6 +60,65 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${heading.variable} ${body.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
+        {/* TEMPORARY diagnostic — not real product code, remove once the
+            real-iPhone blank-content bug is actually root-caused. Plain
+            inline <script>, not a React effect, so it runs before React
+            even attaches and survives if hydration itself is the problem.
+            Next's dev server forwards browser console output to the
+            terminal, so this shows up in the server log on any real load
+            without needing the user to open dev tools. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function () {
+              function log(label, data) {
+                // console.error, not .log -- Next's dev browser-console
+                // forwarding to the terminal only relays .error (confirmed
+                // by testing: .log calls never showed up server-side).
+                try { console.error('[DIAG]', label, JSON.stringify(data)); }
+                catch (e) { console.error('[DIAG]', label, String(data)); }
+              }
+              window.addEventListener('error', function (e) {
+                console.error('[DIAG] window.error:', e.message, 'at', e.filename + ':' + e.lineno + ':' + e.colno, e.error && e.error.stack);
+              });
+              window.addEventListener('unhandledrejection', function (e) {
+                console.error('[DIAG] unhandledrejection:', e.reason && (e.reason.stack || e.reason.message || e.reason));
+              });
+              function envInfo() {
+                return {
+                  ua: navigator.userAgent,
+                  viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio },
+                  IntersectionObserver: typeof IntersectionObserver !== 'undefined',
+                  webgl: (function () { try { return !!document.createElement('canvas').getContext('webgl'); } catch (e) { return 'threw: ' + e.message; } })(),
+                };
+              }
+              function dump(when) {
+                log(when + ' env', envInfo());
+                var h1 = document.querySelector('h1');
+                if (!h1) { log(when + ' h1', 'NOT IN DOM'); return; }
+                var cs = getComputedStyle(h1);
+                var rect = h1.getBoundingClientRect();
+                var wrap = h1.closest('div[style]');
+                var wrapCs = wrap ? getComputedStyle(wrap) : null;
+                log(when + ' h1', {
+                  text: h1.textContent,
+                  opacity: cs.opacity, display: cs.display, visibility: cs.visibility, color: cs.color,
+                  rect: { top: rect.top, w: rect.width, h: rect.height },
+                  wrapOpacity: wrapCs ? wrapCs.opacity : null,
+                  wrapTransform: wrapCs ? wrapCs.transform : null,
+                });
+              }
+              // Fired at three separate points (not just once) specifically
+              // because the very first synchronous calls have been observed
+              // to get lost — the dev console-forwarding channel itself
+              // needs a moment to connect after navigation, so anything
+              // logged before that connects never reaches the terminal.
+              dump('t=0');
+              setTimeout(function () { dump('t=1s'); }, 1000);
+              setTimeout(function () { dump('t=2.5s'); log('bodyTextLen', document.body.innerText.length); }, 2500);
+              setTimeout(function () { dump('t=5s'); }, 5000);
+            })();`,
+          }}
+        />
         {/* The real liquid-metal photo as a persistent, sitewide background —
             fixed to the viewport so it covers top to bottom at any scroll
             position, not just the Hero's own height.
