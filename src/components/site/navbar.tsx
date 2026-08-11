@@ -11,8 +11,6 @@ import {
 import { Logo } from "@/components/site/logo";
 import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
 import { SiteSearch } from "@/components/site/site-search";
-import { MetalButtonWrap } from "@/components/site/metal-button-wrap";
-import { DesktopOnlyMount } from "@/components/site/desktop-only-mount";
 import { cn } from "@/lib/utils";
 
 const pages = [
@@ -60,31 +58,13 @@ export function Navbar() {
           <AuthNavPill />
         </nav>
 
-        {/* DesktopOnlyMount, not `hidden lg:*`: metal-fx sets up a real
-            WebGL renderer and measures its own container on mount, and CSS-
-            hiding (display:none) doesn't stop that -- it still ran that
-            setup against a zero-size box on every mobile pageview for a
-            button that's permanently invisible there, which also produced
-            real invalid-attribute console errors from its own internal
-            sizing math. Not rendering it into the DOM at all below `lg`
-            avoids both. (An earlier version tried CSS-hiding this same
-            button via className on MetalButtonWrap directly, which had its
-            own separate bug: metal-fx's injected stylesheet won the
-            specificity tie against Tailwind's `.hidden` and the button
-            stayed visible on mobile regardless — fixed at the time by
-            moving the classes to a wrapper div, which is what this
-            replaces now that hiding isn't the right tool here at all.) */}
-        <DesktopOnlyMount className="ml-auto inline-flex">
-          <MetalButtonWrap>
-            <Button
-              nativeButton={false}
-              render={<Link href="/course#pricing" />}
-              className="btn-sticker"
-            >
-              Enroll now
-            </Button>
-          </MetalButtonWrap>
-        </DesktopOnlyMount>
+        <Button
+          nativeButton={false}
+          render={<Link href="/course#pricing" />}
+          className="btn-sticker ml-auto hidden lg:inline-flex"
+        >
+          Enroll now
+        </Button>
 
         <Sheet>
           <SheetTrigger

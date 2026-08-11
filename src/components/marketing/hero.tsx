@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MetalButtonWrap } from "@/components/site/metal-button-wrap";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
 
@@ -25,16 +24,14 @@ export function Hero() {
           I&apos;ll show you how.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <MetalButtonWrap>
-            <Button
-              size="lg"
-              nativeButton={false}
-              render={<Link href="#pricing" />}
-              className="btn-sticker"
-            >
-              Enroll now
-            </Button>
-          </MetalButtonWrap>
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link href="#pricing" />}
+            className="btn-sticker"
+          >
+            Enroll now
+          </Button>
           <Button
             size="lg"
             variant="outline"

@@ -65,153 +65,84 @@
 }
 
 :root {
-  /* Off Camera — "Liquid Glass / Liquid Metal" redesign, cream pass: warm
-     cream ground with a real liquid-metal photo as the sitewide backdrop
-     (see layout.tsx/liquid-bg-photo) and cream lettering to read against
-     it. Surface tokens (card/secondary/muted/accent/popover) are
-     translucent *dark* washes — the frosted-glass trick still works the
-     same way, just tinted dark-on-cream. --ink stays "the dark ink
-     stroke" for borders/outlines (unchanged by the lettering flip). */
-  --background: oklch(0.97 0.01 75);
-  --foreground: oklch(0.17 0.012 50);
-  --card: oklch(0 0 0 / 4%);
-  --card-foreground: var(--foreground);
-  --popover: oklch(0.94 0.012 75 / 92%);
-  --popover-foreground: var(--foreground);
-  --primary: oklch(0.17 0.012 50);
-  --primary-foreground: oklch(0.97 0.006 75);
-  --secondary: oklch(0 0 0 / 5.5%);
-  --secondary-foreground: var(--foreground);
-  --muted: oklch(0 0 0 / 3.5%);
-  --muted-foreground: oklch(0.42 0.012 50);
-  --accent: oklch(0 0 0 / 8%);
-  --accent-foreground: var(--foreground);
-  --destructive: oklch(0.55 0.2 25);
-  --border: oklch(0 0 0 / 12%);
-  --input: oklch(0 0 0 / 14%);
-  --ring: oklch(0.17 0.012 50 / 40%);
-  --chart-1: oklch(0.25 0.01 50);
-  --chart-2: oklch(0.4 0.01 50);
-  --chart-3: oklch(0.55 0.01 50);
-  --chart-4: oklch(0.7 0.01 60);
-  --chart-5: oklch(0.85 0.01 70);
+  /* Off Camera — light theme: white/cream base, black "ink" outlines,
+     terracotta as the one brand accent. Modeled after Gumroad's actual
+     chrome (white surfaces, black borders and text, one bold accent doing
+     the work) rather than the earlier dark Nardo Grey pass — simple on
+     purpose, so the color arguments happen in the menu palette below,
+     not in the base theme. */
+  --background: oklch(0.985 0.008 75);
+  --foreground: oklch(0.16 0.012 50);
+  --card: oklch(1 0.004 75);
+  --card-foreground: oklch(0.16 0.012 50);
+  --popover: oklch(1 0.004 75);
+  --popover-foreground: oklch(0.16 0.012 50);
+  --primary: oklch(0.62 0.19 35);
+  --primary-foreground: oklch(0.99 0.005 75);
+  --secondary: oklch(0.94 0.02 70);
+  --secondary-foreground: oklch(0.16 0.012 50);
+  --muted: oklch(0.95 0.015 70);
+  --muted-foreground: oklch(0.48 0.02 50);
+  --accent: oklch(0.89 0.06 85);
+  --accent-foreground: oklch(0.16 0.012 50);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.88 0.02 60);
+  --input: oklch(0.88 0.02 60);
+  --ring: oklch(0.62 0.19 35);
+  --chart-1: oklch(0.62 0.19 35);
+  --chart-2: oklch(0.7 0.13 65);
+  --chart-3: oklch(0.75 0.1 85);
+  --chart-4: oklch(0.55 0.02 50);
+  --chart-5: oklch(0.4 0.02 50);
   --radius: 0.85rem;
-  --sidebar: oklch(0.95 0.01 75);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
+  --sidebar: oklch(0.96 0.015 70);
+  --sidebar-foreground: oklch(0.16 0.012 50);
+  --sidebar-primary: oklch(0.62 0.19 35);
+  --sidebar-primary-foreground: oklch(0.99 0.005 75);
+  --sidebar-accent: oklch(0.89 0.06 85);
+  --sidebar-accent-foreground: oklch(0.16 0.012 50);
+  --sidebar-border: oklch(0.88 0.02 60);
+  --sidebar-ring: oklch(0.62 0.19 35);
 
-  /* Dark ink stroke — every border-ink/fill="var(--ink)" on the site
-     (icon outlines, badge rings, star fill, dividers) becomes a dark line
-     on the cream ground. */
-  --ink: oklch(0.17 0.012 50);
+  /* "Toybox" accent system — for illustrated/sticker-style UI (product
+     cards, price tags, mascot marks, chips). --ink is near-black again —
+     the 3D borders/shadows/heading-shadows read as the black outline
+     Gumroad uses everywhere.
 
-  /* "Toybox" chip ramp — translucent dark-glass washes instead of white
-     ones, same four-step logic. Text stays dark on every step. */
-  --toy-soft: oklch(0 0 0 / 6%);
-  --toy-soft-foreground: var(--foreground);
-  --toy-base: oklch(0 0 0 / 10%);
-  --toy-base-foreground: var(--foreground);
-  --toy-strong: oklch(0 0 0 / 17%);
-  --toy-strong-foreground: var(--foreground);
-  --toy-deep: oklch(0.22 0.01 50 / 75%);
-  --toy-deep-foreground: oklch(0.97 0.006 75);
+     One hue family, four shades — not four different hues. Each step
+     drifts a few degrees warmer/deeper (35 → 30 → 28 → 22) rather than
+     holding hue perfectly flat, which is what keeps a monochrome ramp
+     from reading as dull while never introducing a genuinely different
+     (clashing) color. --toy-base is literally --primary — the accent
+     ramp is built around the one brand color, not next to it. */
+  --ink: oklch(0.16 0.012 50);
+  --toy-soft: oklch(0.86 0.07 35);
+  --toy-soft-foreground: oklch(0.24 0.05 30);
+  --toy-base: var(--primary);
+  --toy-base-foreground: var(--primary-foreground);
+  --toy-strong: oklch(0.52 0.17 28);
+  --toy-strong-foreground: oklch(0.97 0.015 70);
+  --toy-deep: oklch(0.32 0.11 22);
+  --toy-deep-foreground: oklch(0.95 0.02 70);
 
-  /* Embossed-text shadow — dark now (was a bright glow), giving dark
-     lettering a subtle engraved/pressed look on the cream ground instead
-     of a glow (a glow only reads against a dark page). */
-  --cream-depth: oklch(0.3 0.015 50 / 22%);
+  /* Dedicated depth/shadow cream — noticeably richer than --background
+     (so it still reads as a deliberate accent, not just "no color"), but
+     nowhere near as saturated as the toy-* ramp. This is what gives type
+     and outlines their offset "pop" without shouting like a bold hue
+     would if it were doing that job on every heading, everywhere. */
+  --cream-depth: oklch(0.91 0.03 75);
 
-  /* "Menu" palette — collapsed to the same dark-glass tone as the rest of
-     the strict-monochrome brief, kept as five tokens so this stays a pure
-     CSS-level change. */
-  --menu-1: oklch(0 0 0 / 6%);
-  --menu-2: oklch(0 0 0 / 6%);
-  --menu-3: oklch(0 0 0 / 6%);
-  --menu-4: oklch(0 0 0 / 6%);
-  --menu-5: oklch(0 0 0 / 6%);
-  --menu-foreground: var(--foreground);
-
-  /* One restrained accent glint, pulled from the same reference material —
-     darkened a touch from the dark-theme version so it still reads as a
-     glint rather than a pastel on a light ground. */
-  --liquid-glint: oklch(0.42 0.07 290);
-
-  /* The "viscous" easing every fluid interaction in this file shares —
-     fast-ish start, long soft settle, reads as weighted/liquid rather
-     than mechanical. */
-  --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Very slow Ken-Burns drift for the sitewide background photo — felt more
-   than seen, a 90s cycle so it never reads as "playing," just alive.
-   Scaled up so the pan never reveals a hard edge. Paused under
-   reduced-motion (the plain centered/cover frame is still a complete,
-   legible image on its own). */
-@keyframes liquid-bg-pan {
-  0% {
-    transform: scale(1.08) translate(0%, 0%);
-  }
-  50% {
-    transform: scale(1.14) translate(-1.5%, 1%);
-  }
-  100% {
-    transform: scale(1.08) translate(0%, 0%);
-  }
-}
-
-@utility liquid-bg-pan {
-  animation: liquid-bg-pan 90s ease-in-out infinite;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-}
-
-/* The black-to-cream knockout is baked directly into the image's own
-   pixels (scripts-bake-mask.mjs), not done live with a CSS mask anymore.
-   Three different CSS masking techniques were each verified working
-   against real WebKit (Playwright's webkit engine) in turn — an inline
-   SVG <mask>, then plain mask-image/mask-mode + -webkit-mask-image/
-   -webkit-mask-source-type — and each still failed on an actual iPhone,
-   because real iOS WebKit is a different build than Playwright's bundled
-   one with its own, further support gaps. Rather than keep chasing
-   per-engine CSS masking support, the photo was pre-composited once at
-   asset-prep time: every pixel is blended toward --background cream by
-   its own luminance (black -> fully cream, bright metal -> unchanged),
-   producing a flat opaque image with the exact same visual result and
-   zero runtime dependency on masking support in any browser. Re-encoded
-   as WebP in the same pass (2300x2300 PNG -> ~1800px WebP, 5.7MB -> ~110KB)
-   since a multi-megabyte sitewide background is its own real problem on
-   phones regardless of the masking bug. */
-@utility liquid-bg-photo {
-  background-image: url("/images/hero-liquid-metal-bg.webp");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
-    color-scheme: light;
-  }
-  h1,
-  h2,
-  h3,
-  h4 {
-    @apply font-heading;
-  }
+  /* "Menu" palette — used only for the nav's section pills, the one place
+     on the site allowed to be as varied as Gumroad's actual category
+     dropdowns. Flat, bold, black text on all of them (never a gradient),
+     kept out of the main theme/toybox system so the rest of the site
+     stays legible and calm by comparison. */
+  --menu-1: oklch(0.8 0.09 300);
+  --menu-2: oklch(0.72 0.1 175);
+  --menu-3: oklch(0.66 0.19 30);
+  --menu-4: oklch(0.82 0.13 90);
+  --menu-5: oklch(0.76 0.16 350);
+  --menu-foreground: oklch(0.16 0.012 50);
 }
 
 /* Slow horizontal drift for the background symbol field — content is
@@ -231,157 +162,69 @@
   animation: marquee-scroll 60s linear infinite;
 }
 
-/* ── Liquid Glass structural utilities ──────────────────────────────────
-   card-sticker / btn-sticker / pill-outline all get their metallic edge
-   the same way: a ::before pseudo-element, inset 0, with a 1px padding
-   masked down to just the ring (mask-composite: exclude cuts the
-   content-box out of the full box, leaving only the 1px border strip).
-   That's deliberate — it means the ring effect never touches the
-   `background` property, so it layers over whatever bg-card/bg-primary/
-   etc. utility the element already carries at each call site instead of
-   fighting it, and it clips to the element's own border-radius correctly
-   in every browser (a plain `border-image` gradient does not). */
+/* "Toybox" structural utilities — the ink-outline + hard-shadow sticker
+   system used across the storefront (marketing) pages. Kept out of the
+   dashboard/app UI on purpose: a daily-use tool should stay calmer than a
+   storefront. */
+/* !important is deliberate here: these override shadcn primitives
+   (Card's ring-1, Button's own shadow) that would otherwise win the
+   box-shadow property outright — box-shadow doesn't merge across rules,
+   so without this the ring silently erases the hard shadow. */
 @utility card-sticker {
-  position: relative;
-  isolation: isolate;
-  border: 1px solid transparent !important;
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 30%),
-    inset 0 -20px 30px -24px oklch(0 0 0 / 10%),
-    0 24px 48px -18px oklch(0 0 0 / 16%) !important;
+  border-width: 3px !important;
+  border-color: var(--ink) !important;
+  box-shadow: 6px 6px 0 0 var(--ink) !important;
   transition:
-    transform 0.5s var(--ease-liquid),
-    box-shadow 0.5s var(--ease-liquid);
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      oklch(1 0 0 / 55%) 0%,
-      oklch(1 0 0 / 4%) 40%,
-      oklch(1 0 0 / 30%) 100%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 40%),
-      inset 0 -20px 30px -24px oklch(0 0 0 / 14%),
-      0 32px 64px -20px oklch(0 0 0 / 22%) !important;
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 0 var(--ink) !important;
   }
 }
 
 @utility btn-sticker {
-  position: relative;
-  isolation: isolate;
-  border: 1px solid transparent !important;
-  box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 25%),
-    0 8px 20px -8px oklch(0 0 0 / 18%) !important;
+  border-width: 2px !important;
+  border-color: var(--ink) !important;
+  box-shadow: 3px 3px 0 0 var(--ink) !important;
   transition:
-    transform 0.35s var(--ease-liquid),
-    border-radius 0.35s var(--ease-liquid),
-    box-shadow 0.35s var(--ease-liquid);
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      oklch(1 0 0 / 90%) 0%,
-      oklch(1 0 0 / 10%) 45%,
-      oklch(1 0 0 / 55%) 100%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    transition: background 0.5s ease;
-  }
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    border-radius: calc(var(--radius-lg) * 1.2);
-    box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 35%),
-      0 14px 30px -8px oklch(0 0 0 / 24%) !important;
-  }
-  &:hover::before {
-    background: linear-gradient(
-      315deg,
-      oklch(1 0 0 / 95%) 0%,
-      oklch(1 0 0 / 12%) 45%,
-      oklch(1 0 0 / 65%) 100%
-    );
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0 0 var(--ink) !important;
   }
 
   &:active {
-    transform: translateY(0) scale(0.97);
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 0 var(--ink) !important;
   }
 }
 
 @utility pill-outline {
-  position: relative;
-  isolation: isolate;
-  border: 1px solid transparent !important;
+  border-width: 2px !important;
+  border-color: var(--ink) !important;
   transition:
-    transform 0.3s var(--ease-liquid),
-    background-color 0.3s ease;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, oklch(1 0 0 / 50%), oklch(1 0 0 / 5%) 50%, oklch(1 0 0 / 30%));
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
+    transform 0.2s ease,
+    background-color 0.2s ease;
 }
 
-/* Embossed metallic type on cream — dark lettering, so this flips from a
-   glow (only reads against a dark page) to a pressed/engraved look: a
-   bright sliver catching light just below each glyph, a faint dark sliver
-   above (the recessed edge), and a soft warm contact shadow standing in
-   for the old glow's sense of depth. */
+/* Chunky offset text-shadow — the same "hard shadow" language as
+   card-sticker/btn-sticker, applied to type instead of boxes. The visible
+   part of a hard offset shadow is the sliver next to each glyph, so what
+   it needs contrast against is the page/card background behind it, not
+   the text on top. --cream-depth is deliberately quiet — a bold hue here
+   would repeat on every single heading site-wide and read as loud fast;
+   a warm cream that's still a clear step off pure background gives the
+   "chunky" pop without shouting. */
 @utility text-sticker {
-  text-shadow:
-    0 1px 0 oklch(1 0 0 / 60%),
-    0 -1px 1px oklch(0 0 0 / 20%),
-    0 2px 12px oklch(0.3 0.02 50 / 15%);
+  text-shadow: 3px 3px 0 var(--cream-depth);
 }
 
 @utility text-sticker-sm {
-  text-shadow:
-    0 1px 0 oklch(1 0 0 / 55%),
-    0 -1px 1px oklch(0 0 0 / 16%),
-    0 2px 8px oklch(0.3 0.02 50 / 12%);
+  text-shadow: 2px 2px 0 var(--cream-depth);
 }
 
 /* Animated "liquid" video frame — LiquidFrame (media/liquid-frame.tsx)
@@ -396,7 +239,7 @@
    out. A diagonal light streak sweeping across on its own cycle, blended
    on top, adds the "wet, glossy" surface quality. Colors come in
    per-instance via --liquid-a/b/c, so neighboring frames carry different
-   metallic tones instead of one repeated everywhere. */
+   palettes instead of one repeated everywhere. */
 @keyframes liquid-flow {
   0%,
   100% {
@@ -419,11 +262,11 @@
 @utility liquid-frame-fill {
   background-image: linear-gradient(
     120deg,
-    var(--liquid-a, oklch(0.85 0.004 265)) 0%,
-    var(--liquid-b, oklch(0.35 0.004 265)) 25%,
-    var(--liquid-c, oklch(0.65 0.02 290)) 50%,
-    var(--liquid-a, oklch(0.85 0.004 265)) 75%,
-    var(--liquid-b, oklch(0.35 0.004 265)) 100%
+    var(--liquid-a, oklch(0.72 0.16 30)) 0%,
+    var(--liquid-b, oklch(0.68 0.18 340)) 25%,
+    var(--liquid-c, oklch(0.76 0.13 70)) 50%,
+    var(--liquid-a, oklch(0.72 0.16 30)) 75%,
+    var(--liquid-b, oklch(0.68 0.18 340)) 100%
   );
   background-size: 320% 320%;
   animation: liquid-flow 9s ease-in-out infinite;
@@ -438,7 +281,7 @@
   background-image: linear-gradient(
     115deg,
     transparent 42%,
-    oklch(1 0 0 / 55%) 50%,
+    oklch(1 0 0 / 40%) 50%,
     transparent 58%
   );
   background-size: 240% 240%;
@@ -447,5 +290,23 @@
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
   }
 }

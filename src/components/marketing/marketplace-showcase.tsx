@@ -1,5 +1,6 @@
 import { ProductCard } from "@/components/marketing/product-card";
 import { CrestEmblem } from "@/components/illustrations/crest-emblem";
+import { MascotChomp } from "@/components/illustrations/mascots";
 import { siteConfig } from "@/lib/site-config";
 
 export function MarketplaceShowcase() {
@@ -15,11 +16,11 @@ export function MarketplaceShowcase() {
         </p>
       </div>
 
-      <div className="mx-auto mt-12 max-w-sm">
+      <div className="mx-auto mt-12 grid max-w-3xl items-start gap-8 sm:grid-cols-[1fr_auto]">
         <ProductCard
-          className="w-full"
+          className="mx-auto w-full max-w-sm"
           cover={
-            <div className="flex size-full items-center justify-center bg-background p-8">
+            <div className="flex size-full items-center justify-center bg-ink p-8">
               <CrestEmblem className="max-h-full max-w-[10rem]" />
             </div>
           }
@@ -31,6 +32,10 @@ export function MarketplaceShowcase() {
           price={siteConfig.price.formatted}
           priceVariant="base"
         />
+
+        <div className="hidden w-24 sm:flex sm:justify-center sm:pt-10">
+          <MascotChomp variant="strong" className="w-20" />
+        </div>
       </div>
     </section>
   );
