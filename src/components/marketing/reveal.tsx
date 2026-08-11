@@ -27,17 +27,35 @@ export function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Belt-and-suspenders: real iOS Safari has had genuine bugs where
+    // IntersectionObserver never fires for elements already in the initial
+    // viewport on load (no scroll event to trigger its first check). This
+    // is only ever a decorative fade-in — it must never be able to hide
+    // real content permanently if its trigger doesn't fire, so a fallback
+    // timer reveals everything regardless once it's clearly not coming.
+    const fallback = window.setTimeout(() => setVisible(true), 1200);
+
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return () => window.clearTimeout(fallback);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
           observer.disconnect();
+          window.clearTimeout(fallback);
         }
       },
       { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (
