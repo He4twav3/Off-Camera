@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { siteConfig } from "@/lib/site-config";
-import { ViewfinderFrame } from "@/components/site/viewfinder-frame";
 import "./globals.css";
 
 const heading = Fraunces({
@@ -61,12 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${heading.variable} ${body.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
-        {/* Content is wrapped in its own `relative z-10` box rather than
-            giving ViewfinderFrame a negative z-index — a `position:fixed`
-            layer with a negative z-index can end up painted behind
-            <body>'s own propagated background regardless of DOM order. */}
-        <ViewfinderFrame className="z-0" />
-        <div className="relative z-10 flex min-h-full flex-col">{children}</div>
+        <div className="flex min-h-full flex-col">{children}</div>
       </body>
     </html>
   );

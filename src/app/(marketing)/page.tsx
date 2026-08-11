@@ -11,10 +11,16 @@ import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
 import { FinalCTA } from "@/components/marketing/final-cta";
 import { Reveal } from "@/components/marketing/reveal";
+import { ViewfinderFrame } from "@/components/site/viewfinder-frame";
 
 export default function Home() {
   return (
     <>
+      {/* Landing-page-only, not sitewide: the "this site is about making
+          content" framing device belongs to the pitch, not to /course,
+          /dashboard, or checkout, which have their own calmer, more
+          transactional tone. */}
+      <ViewfinderFrame />
       <Reveal>
         <Hero />
       </Reveal>

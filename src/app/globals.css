@@ -162,6 +162,24 @@
   animation: marquee-scroll 60s linear infinite;
 }
 
+/* Gentle scale+fade pulse for ViewfinderFrame's corners/crosshair — reads
+   as a camera continuously re-settling focus, not a flashy effect. Each
+   corner uses a negative animation-delay so they don't all breathe in
+   lockstep. Paused under reduced-motion via the motion-reduce: variant on
+   each element itself (see viewfinder-frame.tsx), the same convention
+   animate-marquee/Reveal use. */
+@keyframes viewfinder-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
 /* "Toybox" structural utilities — the ink-outline + hard-shadow sticker
    system used across the storefront (marketing) pages. Kept out of the
    dashboard/app UI on purpose: a daily-use tool should stay calmer than a
@@ -225,6 +243,18 @@
 
 @utility text-sticker-sm {
   text-shadow: 2px 2px 0 var(--cream-depth);
+}
+
+/* Same "chunky offset" shadow language, for the inverse case: light text
+   on a saturated card (final-cta's bg-primary band). --cream-depth is a
+   near-white cream, calibrated to contrast against dark ink text on the
+   page's own light background — stacked behind light text on primary
+   instead, it sits too close in lightness to the text itself and the
+   offset reads as a soft blur rather than a crisp sliver. A dark shadow
+   contrasts against light text the same way --cream-depth contrasts
+   against dark text, so this is the direct inverse, not a new idea. */
+@utility text-sticker-on-primary {
+  text-shadow: 3px 3px 0 var(--ink);
 }
 
 /* Animated "liquid" video frame — LiquidFrame (media/liquid-frame.tsx)

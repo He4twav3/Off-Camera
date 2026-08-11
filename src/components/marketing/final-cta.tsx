@@ -7,7 +7,7 @@ export function FinalCTA() {
     <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="card-sticker relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center text-primary-foreground sm:py-20">
         <SymbolField tone="onPrimary" />
-        <h2 className="text-sticker relative text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h2 className="text-sticker-on-primary relative text-3xl font-semibold tracking-tight sm:text-4xl">
           Your face doesn&apos;t need to be the product.
         </h2>
         <p className="relative mx-auto mt-4 max-w-xl text-primary-foreground/85">

@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/accordion";
 import { VideoThumbnail } from "@/components/media/video-thumbnail";
 import { VideoPoster } from "@/components/media/video-poster";
-import { LiquidFrame } from "@/components/media/liquid-frame";
 import { CURRICULUM } from "@/lib/curriculum";
 
 // One 8-step gradient of the single brand hue (terracotta, ~32°→22°) for
@@ -107,23 +106,21 @@ export function FullCurriculum() {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-                    <LiquidFrame variant={i + 2} radius="0.75rem" className="w-full shrink-0 sm:w-48">
-                      <VideoThumbnail
-                        aspect="video"
-                        poster={
-                          <VideoPoster variant="muted">
-                            <span className="font-heading text-2xl font-semibold">
-                              {i + 1}
-                            </span>
-                          </VideoPoster>
-                        }
-                        label="Module preview"
-                        duration={mod.preview}
-                        dialogTitle={`${mod.title} (preview)`}
-                        youtubeId={mod.youtubeId}
-                        className="w-full border-2 border-ink"
-                      />
-                    </LiquidFrame>
+                    <VideoThumbnail
+                      aspect="video"
+                      poster={
+                        <VideoPoster variant="muted">
+                          <span className="font-heading text-2xl font-semibold">
+                            {i + 1}
+                          </span>
+                        </VideoPoster>
+                      }
+                      label="Module preview"
+                      duration={mod.preview}
+                      dialogTitle={`${mod.title} (preview)`}
+                      youtubeId={mod.youtubeId}
+                      className="w-full shrink-0 border-2 border-ink sm:w-48"
+                    />
                     <ul className="flex-1 space-y-2.5">
                       {mod.lessons.map((lesson) => (
                         <li
