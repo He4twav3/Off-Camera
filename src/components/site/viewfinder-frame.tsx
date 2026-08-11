@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,6 +38,46 @@ function CornerBracket({
         strokeLinecap="square"
       />
     </svg>
+  );
+}
+
+/**
+ * A corner bracket plus its own HUD symbol, sharing the bracket's own
+ * coordinate box: the symbol sits diagonally inset from the same corner
+ * the bracket kinks at (`insetClassName`), tucked just inside the angle
+ * rather than out past the bracket entirely — the arms are only a 2.5px
+ * stroke right at the edge, not a solid band, so a modest inset clears
+ * them with real margin while still reading as nested inside this one
+ * corner mark, not a separate floating readout.
+ */
+function CornerWithSymbol({
+  corner,
+  bracketDelay,
+  positionClassName,
+  insetClassName,
+  symbolOpacity,
+  children,
+}: {
+  corner: "tl" | "tr" | "bl" | "br";
+  bracketDelay: string;
+  positionClassName: string;
+  insetClassName: string;
+  symbolOpacity: number;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn("absolute", positionClassName)}>
+      <div className="relative size-10 sm:size-12">
+        <CornerBracket
+          corner={corner}
+          className="absolute inset-0 animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none"
+          style={{ animationDelay: bracketDelay }}
+        />
+        <div className={cn("absolute", insetClassName)} style={{ opacity: symbolOpacity }}>
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -92,23 +132,23 @@ const SYMBOL_FADE_DISTANCE = 420;
 
 /**
  * Landing-page-only ambient backdrop, dressed as a camera's own recording
- * HUD: four corner brackets, a center crosshair, and — each aligned to
- * its own corner's bracket, offset just past its arms so nothing
- * overlaps — a REC indicator + stopwatch at top-right and a battery
- * glyph at both top-left and bottom-left. The actual camera-app chrome
- * from the reference mockup is stripped out (the VIDEO/PHOTO toggle, the
- * record button, the gallery button, the flip-camera button), since none
- * of that means anything divorced from an actual live camera.
+ * HUD: four corner brackets, a center crosshair, and — tucked diagonally
+ * inside the same corner each bracket kinks at, not off past it — a
+ * battery glyph at top-left and a REC indicator + stopwatch at top-right.
+ * The actual camera-app chrome from the reference mockup is stripped out
+ * (the VIDEO/PHOTO toggle, the record button, the gallery button, the
+ * flip-camera button), since none of that means anything divorced from
+ * an actual live camera.
  *
  * The stopwatch is a real ticking clock, not a frozen value — it reads as
  * a shot genuinely in progress rather than a static screenshot of one.
  *
  * The brackets/crosshair are fixed to the viewport the whole time, same
  * as SymbolField was, so the frame itself reads as constant depth behind
- * every section. The HUD symbols (REC+stopwatch, both batteries) are
- * fixed the same way but fade out as the page scrolls — present for the
- * hero's first impression, then receding into the page rather than
- * staying a fixture the whole way down.
+ * every section. The two HUD symbol clusters are fixed the same way but
+ * fade out as the page scrolls — present for the hero's first impression,
+ * then receding into the page rather than staying a fixture the whole
+ * way down.
  *
  * Purely decorative: aria-hidden, pointer-events-none, low opacity so it
  * never competes with foreground text contrast — opaque section
@@ -139,27 +179,53 @@ export function ViewfinderFrame({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none fixed inset-0 overflow-hidden text-foreground/[0.24]",
+        "pointer-events-none fixed inset-0 overflow-hidden text-foreground/[0.34]",
         className
       )}
     >
-      {/* top-24/lg:top-36, not top-6/top-8 like the bottom two: the navbar
+      {/* top-20/lg:top-32, not top-6/top-8 like the bottom two: the navbar
           is sticky at the very top of the viewport for the entire time
           the page is visible (67px tall below `lg`, 120px at `lg`+ once
-          the quick-jump pill row appears) -- unlike the bottom edge, which
-          only sometimes has opaque content under it depending on scroll
-          position, the top corners would be permanently hidden behind it
-          at any smaller offset, not just "textured" like the rest of this
-          layer is meant to be. */}
-      <CornerBracket
+          the quick-jump pill row appears) -- this clears just the navbar,
+          keeping the corners high and tight rather than pushed down to
+          also dodge the hero's own badge/heading, which just traded one
+          collision for another the deeper it went. Unlike the bottom
+          edge, which only sometimes has opaque content under it depending
+          on scroll position, the top corners would otherwise be
+          permanently hidden behind the navbar, not just "textured" like
+          the rest of this layer is meant to be. */}
+      <CornerWithSymbol
         corner="tl"
-        className="absolute top-24 left-6 animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none sm:left-8 lg:top-36"
-      />
-      <CornerBracket
+        bracketDelay="0s"
+        positionClassName="top-20 left-6 sm:left-8 lg:top-32"
+        insetClassName="top-4 left-4"
+        symbolOpacity={symbolOpacity}
+      >
+        <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
+      </CornerWithSymbol>
+
+      <CornerWithSymbol
         corner="tr"
-        className="absolute top-24 right-6 animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none sm:right-8 lg:top-36"
-        style={{ animationDelay: "-1.25s" }}
-      />
+        bracketDelay="-1.25s"
+        positionClassName="top-20 right-6 sm:right-8 lg:top-32"
+        insetClassName="top-4 right-4 flex flex-col items-end gap-1"
+        symbolOpacity={symbolOpacity}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70 motion-reduce:animate-none" />
+            <span className="relative inline-flex size-2 rounded-full bg-destructive" />
+          </span>
+          <span className="text-[0.65rem] font-semibold tracking-wide">REC</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <StopwatchIcon className="size-3.5" />
+          <span className="font-mono text-[0.65rem] tabular-nums">
+            {formatElapsed(elapsed)}
+          </span>
+        </div>
+      </CornerWithSymbol>
+
       <CornerBracket
         corner="bl"
         className="absolute bottom-6 left-6 animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none sm:bottom-8 sm:left-8"
@@ -186,54 +252,6 @@ export function ViewfinderFrame({ className }: { className?: string }) {
           strokeLinecap="round"
         />
       </svg>
-
-      {/* The three HUD symbol clusters below all share one placement rule:
-          same left/right inset as their corner's own bracket (so each
-          reads as that corner's column, evenly matched against the
-          others), offset far enough past the bracket's own arm reach that
-          nothing overlaps it. The bracket is a 40px/48px box holding an
-          L with ~28px arms, positioned at top-24/lg:top-36 (top corners)
-          or bottom-6/sm:bottom-8 (bottom corners) -- top-40/lg:top-52 and
-          bottom-20/sm:bottom-24 clear those with a real gap at every
-          breakpoint, verified against the actual rendered corners rather
-          than assumed. */}
-
-      {/* Battery, top-left. */}
-      <div className="absolute top-40 left-6 sm:left-8 lg:top-52" style={{ opacity: symbolOpacity }}>
-        <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
-      </div>
-
-      {/* REC + stopwatch, top-right. Fades out with scroll via
-          symbolOpacity -- the bracket itself keeps its constant opacity
-          untouched. */}
-      <div
-        className="absolute top-40 right-6 flex flex-col items-end gap-1 sm:right-8 lg:top-52"
-        style={{ opacity: symbolOpacity }}
-      >
-        <div className="flex items-center gap-1.5">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70 motion-reduce:animate-none" />
-            <span className="relative inline-flex size-2 rounded-full bg-destructive" />
-          </span>
-          <span className="text-[0.65rem] font-semibold tracking-wide">REC</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <StopwatchIcon className="size-3.5" />
-          <span className="font-mono text-[0.65rem] tabular-nums">
-            {formatElapsed(elapsed)}
-          </span>
-        </div>
-      </div>
-
-      {/* Battery, bottom-left. Own breathing pulse (like the corners/
-          crosshair) nested inside the scroll-fade wrapper -- opacity from
-          an animation and opacity from an inline style on the same
-          element would fight each other, so the fade lives on this
-          wrapper and the breathe animation stays on the icon itself; the
-          two compose instead of conflicting. */}
-      <div className="absolute bottom-20 left-6 sm:bottom-24 sm:left-8" style={{ opacity: symbolOpacity }}>
-        <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
-      </div>
     </div>
   );
 }
