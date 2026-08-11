@@ -92,21 +92,20 @@ const SYMBOL_FADE_DISTANCE = 420;
 
 /**
  * Landing-page-only ambient backdrop, dressed as a camera's own recording
- * HUD: four corner brackets, a center crosshair, and — nested right into
- * the kink of the top-right and bottom-left brackets, reading as part of
- * the frame corner rather than a separate floating readout — a REC
- * indicator + stopwatch, and a battery glyph. The actual camera-app
- * chrome from the reference mockup is stripped out (the VIDEO/PHOTO
- * toggle, the record button, the gallery button, the flip-camera
- * button), since none of that means anything divorced from an actual
- * live camera.
+ * HUD: four corner brackets, a center crosshair, and — each aligned to
+ * its own corner's bracket, offset just past its arms so nothing
+ * overlaps — a REC indicator + stopwatch at top-right and a battery
+ * glyph at both top-left and bottom-left. The actual camera-app chrome
+ * from the reference mockup is stripped out (the VIDEO/PHOTO toggle, the
+ * record button, the gallery button, the flip-camera button), since none
+ * of that means anything divorced from an actual live camera.
  *
  * The stopwatch is a real ticking clock, not a frozen value — it reads as
  * a shot genuinely in progress rather than a static screenshot of one.
  *
  * The brackets/crosshair are fixed to the viewport the whole time, same
  * as SymbolField was, so the frame itself reads as constant depth behind
- * every section. The three HUD symbols (REC+stopwatch, battery) are
+ * every section. The HUD symbols (REC+stopwatch, both batteries) are
  * fixed the same way but fade out as the page scrolls — present for the
  * hero's first impression, then receding into the page rather than
  * staying a fixture the whole way down.
@@ -188,12 +187,27 @@ export function ViewfinderFrame({ className }: { className?: string }) {
         />
       </svg>
 
-      {/* REC + stopwatch, nested into the top-right bracket's kink (its
-          own top-24/lg:top-36 offset, just a touch further in from the
-          edge). Fades out with scroll via symbolOpacity -- the bracket
-          itself keeps its constant opacity untouched. */}
+      {/* The three HUD symbol clusters below all share one placement rule:
+          same left/right inset as their corner's own bracket (so each
+          reads as that corner's column, evenly matched against the
+          others), offset far enough past the bracket's own arm reach that
+          nothing overlaps it. The bracket is a 40px/48px box holding an
+          L with ~28px arms, positioned at top-24/lg:top-36 (top corners)
+          or bottom-6/sm:bottom-8 (bottom corners) -- top-40/lg:top-52 and
+          bottom-20/sm:bottom-24 clear those with a real gap at every
+          breakpoint, verified against the actual rendered corners rather
+          than assumed. */}
+
+      {/* Battery, top-left. */}
+      <div className="absolute top-40 left-6 sm:left-8 lg:top-52" style={{ opacity: symbolOpacity }}>
+        <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
+      </div>
+
+      {/* REC + stopwatch, top-right. Fades out with scroll via
+          symbolOpacity -- the bracket itself keeps its constant opacity
+          untouched. */}
       <div
-        className="absolute top-24 right-9 flex flex-col items-end gap-1 sm:right-11 lg:top-36"
+        className="absolute top-40 right-6 flex flex-col items-end gap-1 sm:right-8 lg:top-52"
         style={{ opacity: symbolOpacity }}
       >
         <div className="flex items-center gap-1.5">
@@ -211,14 +225,13 @@ export function ViewfinderFrame({ className }: { className?: string }) {
         </div>
       </div>
 
-      {/* Battery, nested into the bottom-left bracket's kink the same
-          way. Own breathing pulse (like the corners/crosshair) nested
-          inside the scroll-fade wrapper -- opacity from an animation and
-          opacity from an inline style on the same element would fight
-          each other, so the fade lives on this wrapper and the breathe
-          animation stays on the icon itself; the two compose instead of
-          conflicting. */}
-      <div className="absolute bottom-9 left-9 sm:bottom-11 sm:left-11" style={{ opacity: symbolOpacity }}>
+      {/* Battery, bottom-left. Own breathing pulse (like the corners/
+          crosshair) nested inside the scroll-fade wrapper -- opacity from
+          an animation and opacity from an inline style on the same
+          element would fight each other, so the fade lives on this
+          wrapper and the breathe animation stays on the icon itself; the
+          two compose instead of conflicting. */}
+      <div className="absolute bottom-20 left-6 sm:bottom-24 sm:left-8" style={{ opacity: symbolOpacity }}>
         <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
       </div>
     </div>
