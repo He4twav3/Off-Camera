@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
 import { ensureUser } from "@/lib/users";
+import { sendEmail } from "@/lib/mailer";
+import { getBaseUrl } from "@/lib/request-url";
 
 export type CheckoutState = { error?: string };
 
@@ -42,7 +44,16 @@ export async function checkout(
   // charge) so /checkout/success can send them straight to the dashboard.
   // A real account record is created for them too (see users.ts), so
   // their dashboard progress is genuinely theirs, not just this browser's.
-  await ensureUser(email);
+  const { isNew, verifyToken } = await ensureUser(email);
+  if (isNew && verifyToken) {
+    const baseUrl = await getBaseUrl();
+    const verifyUrl = `${baseUrl}/verify-email?email=${encodeURIComponent(email.toLowerCase())}&token=${verifyToken}`;
+    await sendEmail({
+      to: email.toLowerCase(),
+      subject: "Verify your email — Off Camera",
+      bodyText: `Welcome to Off Camera! Verify your email to confirm it's really you:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
+    });
+  }
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, email.toLowerCase(), SESSION_COOKIE_OPTIONS);
 

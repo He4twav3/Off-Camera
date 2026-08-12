@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LogOut, RotateCcw } from "lucide-react";
+import { LogOut, RotateCcw, MailWarning } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { getSession } from "@/lib/auth";
 import { getDashboardProgress } from "@/lib/progress";
 import { resetProgress } from "@/app/dashboard/actions";
+import { ChangePasswordForm } from "./change-password-form";
+import { ResendVerificationButton } from "./resend-verification-button";
 
 export const metadata: Metadata = {
   title: "Account",
@@ -20,6 +22,7 @@ export default async function AccountPage() {
     email: "student@example.com",
     displayName: "Student",
     initials: "ST",
+    emailVerified: true,
   };
   const { completedLessons, totalLessons } = await getDashboardProgress();
 
@@ -30,7 +33,26 @@ export default async function AccountPage() {
         Your account and progress — see how sign-in works here below.
       </p>
 
-      <Card className="mt-8 border-border/70">
+      {!session.emailVerified && (
+        <Card className="mt-8 border-2 border-ink bg-toy-soft">
+          <CardContent className="flex items-start gap-3">
+            <MailWarning className="mt-0.5 size-5 shrink-0 text-toy-soft-foreground" />
+            <div className="flex-1 space-y-2">
+              <div>
+                <h2 className="text-sm font-semibold text-toy-soft-foreground">
+                  Verify your email
+                </h2>
+                <p className="mt-1 text-sm text-toy-soft-foreground/80">
+                  {session.email} hasn&apos;t been confirmed yet.
+                </p>
+              </div>
+              <ResendVerificationButton />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="mt-4 border-border/70">
         <CardContent className="flex items-center gap-4">
           <Avatar className="size-14">
             <AvatarFallback className="bg-primary/15 text-lg font-medium text-primary">
@@ -60,6 +82,16 @@ export default async function AccountPage() {
             local file instead of a hosted database. A different email is
             always a different, fresh account.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-4 border-border/70">
+        <CardContent>
+          <h2 className="text-sm font-semibold">Change password</h2>
+          <p className="mt-1 mb-4 text-sm text-muted-foreground">
+            Requires your current password.
+          </p>
+          <ChangePasswordForm />
         </CardContent>
       </Card>
 
