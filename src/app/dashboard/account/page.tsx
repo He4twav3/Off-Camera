@@ -27,7 +27,7 @@ export default async function AccountPage() {
     <div className="max-w-xl">
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Account</h1>
       <p className="mt-1.5 text-muted-foreground">
-        Signed in as this browser&apos;s session, see how that works below.
+        Your account and progress — see how sign-in works here below.
       </p>
 
       <Card className="mt-8 border-border/70">
@@ -51,11 +51,14 @@ export default async function AccountPage() {
         <CardContent>
           <h2 className="text-sm font-semibold">How sign-in works here</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            This is a demo build with no user database: logging in sets a
-            session cookie for the email you typed, and your lesson
-            progress is stored the same way, in this browser only. Log out
-            and back in with a different email and you&apos;ll land back
-            on a fresh account.
+            This is a real account, checked by password — the first time
+            you sign in with an email, that password is set for it; every
+            time after, it has to match. Your lesson progress is saved on
+            the account itself, not this browser, so signing in with the
+            same email and password anywhere gets you the same progress
+            back. What&apos;s still &quot;demo&quot;: accounts live in a
+            local file instead of a hosted database. A different email is
+            always a different, fresh account.
           </p>
         </CardContent>
       </Card>
@@ -67,7 +70,7 @@ export default async function AccountPage() {
               <h2 className="text-sm font-semibold">Progress</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {completedLessons} of {totalLessons} lessons marked complete
-                in this browser.
+                on this account.
               </p>
             </div>
             <form action={resetProgress}>
