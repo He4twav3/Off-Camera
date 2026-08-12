@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
-import { LoginForm } from "./login-form";
+import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Create your account",
   robots: { index: false, follow: false },
 };
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="flex min-h-full flex-1 flex-col items-center justify-center bg-secondary/30 px-4 py-16">
       <div className="mb-8">
@@ -16,13 +16,14 @@ export default function LoginPage() {
       </div>
 
       <div className="card-sticker w-full max-w-sm rounded-2xl bg-card p-6 sm:p-8">
-        <h1 className="text-xl font-semibold tracking-tight">Sign in</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Create your account</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Pick up right where you left off.
+          Real accounts, checked by password — see how it works on the
+          account page once you&apos;re in.
         </p>
 
         <div className="mt-6">
-          <LoginForm />
+          <SignupForm />
         </div>
       </div>
 
