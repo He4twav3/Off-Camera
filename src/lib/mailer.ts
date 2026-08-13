@@ -1,25 +1,29 @@
 import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
+import { Resend } from "resend";
 
 /**
- * Real outbound "email" for this demo build: no ESP/SMTP provider is
- * configured (no Resend/Postmark/SES key anywhere), so there's nowhere to
- * actually deliver a password-reset or verify-email link. Two things
- * happen instead, same honesty-about-the-boundary approach as leads.ts:
+ * Real outbound email via Resend when RESEND_API_KEY is set (see
+ * .env.local — never committed, see .gitignore). Every send is also
+ * appended to a local outbox file regardless, same as leads.ts's
+ * approach to captured emails — a real, inspectable record that a "send"
+ * happened, independent of whether the API call itself succeeds.
  *
- * 1. The message is appended to a local outbox file — a real, inspectable
- *    record that a "send" happened, same as a real provider's dashboard
- *    would show.
- * 2. The caller (forgot-password/verify-email actions) shows the actual
- *    link directly in the response instead of just saying "check your
- *    email" — there's no inbox to check. This is clearly labeled in the
- *    UI as the dev/demo stand-in for real delivery, not hidden.
+ * Without a real domain verified on the Resend account, mail can only
+ * go out from the shared `onboarding@resend.dev` sender, and Resend will
+ * only actually deliver it to the email address the Resend account
+ * itself was signed up with — fine while it's just the account owner
+ * testing, not yet for real students until a domain is verified there
+ * (swap RESEND_FROM once that's done).
  *
- * Swap `sendEmail`'s body for a real API call before going live; nothing
- * else (token generation, expiry, hashing) needs to change — those parts
- * are already real, this is only the delivery boundary.
+ * If RESEND_API_KEY isn't set at all, this silently falls back to
+ * outbox-only (the original demo behavior) instead of throwing — so the
+ * app still runs for anyone who clones this without setting up email.
  */
 const OUTBOX_FILE = path.join(process.cwd(), "data", "outbox.jsonl");
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const FROM = process.env.RESEND_FROM ?? "Off Camera <onboarding@resend.dev>";
 
 export async function sendEmail(message: {
   to: string;
@@ -27,6 +31,39 @@ export async function sendEmail(message: {
   bodyText: string;
 }) {
   await mkdir(path.dirname(OUTBOX_FILE), { recursive: true });
-  const line = JSON.stringify({ ...message, sentAt: new Date().toISOString() });
+
+  let delivery: "sent" | "outbox-only" | "failed" = "outbox-only";
+  let deliveryError: string | undefined;
+
+  if (resend) {
+    try {
+      const result = await resend.emails.send({
+        from: FROM,
+        to: message.to,
+        subject: message.subject,
+        text: message.bodyText,
+      });
+      if (result.error) {
+        delivery = "failed";
+        deliveryError = result.error.message;
+        console.error("Resend send failed:", result.error);
+      } else {
+        delivery = "sent";
+      }
+    } catch (err) {
+      delivery = "failed";
+      deliveryError = err instanceof Error ? err.message : String(err);
+      console.error("Resend send threw:", err);
+    }
+  }
+
+  const line = JSON.stringify({
+    ...message,
+    sentAt: new Date().toISOString(),
+    delivery,
+    ...(deliveryError && { deliveryError }),
+  });
   await appendFile(OUTBOX_FILE, line + "\n", "utf8");
+
+  return { delivery };
 }
