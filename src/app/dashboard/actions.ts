@@ -12,6 +12,7 @@ import {
 } from "@/lib/users";
 import { sendEmail } from "@/lib/mailer";
 import { getBaseUrl } from "@/lib/request-url";
+import { VerifyEmailEmail } from "@/emails/verify-email";
 
 const VALID_IDS = new Set(ALL_LESSON_IDS);
 
@@ -87,7 +88,8 @@ export async function resendVerificationAction(
   await sendEmail({
     to: session.email,
     subject: "Verify your email — Off Camera",
-    bodyText: `Verify your email:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
+    react: VerifyEmailEmail({ verifyUrl }),
+    text: `Verify your email:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
   });
 
   revalidatePath("/dashboard/account");

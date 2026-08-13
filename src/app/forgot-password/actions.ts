@@ -3,6 +3,7 @@
 import { requestPasswordReset } from "@/lib/users";
 import { sendEmail } from "@/lib/mailer";
 import { getBaseUrl } from "@/lib/request-url";
+import { ResetPasswordEmail } from "@/emails/reset-password-email";
 
 export type ForgotPasswordState = {
   error?: string;
@@ -39,7 +40,8 @@ export async function requestReset(
     await sendEmail({
       to: email,
       subject: "Reset your password — Off Camera",
-      bodyText: `Reset your password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
+      react: ResetPasswordEmail({ resetUrl }),
+      text: `Reset your password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
     });
     return { submitted: true, devLink: resetUrl };
   }

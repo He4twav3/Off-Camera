@@ -1,5 +1,6 @@
 import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
+import type { ReactElement } from "react";
 import { Resend } from "resend";
 
 /**
@@ -7,7 +8,15 @@ import { Resend } from "resend";
  * .env.local — never committed, see .gitignore). Every send is also
  * appended to a local outbox file regardless, same as leads.ts's
  * approach to captured emails — a real, inspectable record that a "send"
- * happened, independent of whether the API call itself succeeds.
+ * happened, independent of whether the API call itself succeeded. The
+ * outbox only ever stores the plain-text fallback, not the rendered
+ * HTML — it's an audit log, not a preview tool.
+ *
+ * The rich version (see emails/) is a real React component tree, in the
+ * site's own colors resolved to plain hex — email clients don't
+ * understand oklch()/CSS custom properties at all. Resend's SDK renders
+ * it server-side itself (the `react` field below), no manual render()
+ * step needed.
  *
  * Without a real domain verified on the Resend account, mail can only
  * go out from the shared `onboarding@resend.dev` sender, and Resend will
@@ -28,7 +37,11 @@ const FROM = process.env.RESEND_FROM ?? "Off Camera <onboarding@resend.dev>";
 export async function sendEmail(message: {
   to: string;
   subject: string;
-  bodyText: string;
+  react: ReactElement;
+  /** Plain-text fallback — required by real email best practice (some
+   * clients/previews use it) and by the local outbox log, which never
+   * stores the rendered HTML. */
+  text: string;
 }) {
   await mkdir(path.dirname(OUTBOX_FILE), { recursive: true });
 
@@ -41,7 +54,8 @@ export async function sendEmail(message: {
         from: FROM,
         to: message.to,
         subject: message.subject,
-        text: message.bodyText,
+        react: message.react,
+        text: message.text,
       });
       if (result.error) {
         delivery = "failed";
@@ -58,7 +72,9 @@ export async function sendEmail(message: {
   }
 
   const line = JSON.stringify({
-    ...message,
+    to: message.to,
+    subject: message.subject,
+    bodyText: message.text,
     sentAt: new Date().toISOString(),
     delivery,
     ...(deliveryError && { deliveryError }),

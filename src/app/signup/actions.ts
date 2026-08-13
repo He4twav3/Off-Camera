@@ -6,6 +6,7 @@ import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
 import { createUser } from "@/lib/users";
 import { sendEmail } from "@/lib/mailer";
 import { getBaseUrl } from "@/lib/request-url";
+import { VerifyEmailEmail } from "@/emails/verify-email";
 
 export type SignupState = { error?: string };
 
@@ -39,7 +40,8 @@ export async function signup(
   await sendEmail({
     to: email.toLowerCase(),
     subject: "Verify your email — Off Camera",
-    bodyText: `Welcome to Off Camera! Verify your email to confirm it's really you:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
+    react: VerifyEmailEmail({ verifyUrl }),
+    text: `Welcome to Off Camera! Verify your email to confirm it's really you:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
   });
 
   const cookieStore = await cookies();
