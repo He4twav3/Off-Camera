@@ -70,7 +70,15 @@ export async function changePasswordAction(
   return { success: true };
 }
 
-export type ResendVerificationState = { error?: string; sent?: boolean; devLink?: string };
+export type ResendVerificationState = {
+  error?: string;
+  sent?: boolean;
+  /** Only set when the email genuinely wasn't delivered (no provider
+   * configured, or the provider rejected it) — see mailer.ts's
+   * `delivery` field. When real delivery succeeds, this stays unset so
+   * the UI shows "check your inbox" instead of the raw link. */
+  devLink?: string;
+};
 
 /** Issues a fresh verify-email token and "sends" it (see mailer.ts). */
 export async function resendVerificationAction(
@@ -85,7 +93,7 @@ export async function resendVerificationAction(
 
   const baseUrl = await getBaseUrl();
   const verifyUrl = `${baseUrl}/verify-email?email=${encodeURIComponent(session.email)}&token=${result.token}`;
-  await sendEmail({
+  const { delivery } = await sendEmail({
     to: session.email,
     subject: "Verify your email — Off Camera",
     react: VerifyEmailEmail({ verifyUrl }),
@@ -93,5 +101,5 @@ export async function resendVerificationAction(
   });
 
   revalidatePath("/dashboard/account");
-  return { sent: true, devLink: verifyUrl };
+  return { sent: true, devLink: delivery === "sent" ? undefined : verifyUrl };
 }

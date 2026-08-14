@@ -18,10 +18,9 @@ function DevLinkNotice({ link }: { link: string }) {
       <div className="flex items-start gap-2">
         <Info className="mt-0.5 size-3.5 shrink-0" />
         <p>
-          No real email provider is connected in this demo, so here&apos;s
-          the reset link directly instead of &ldquo;check your
-          email&rdquo; — in a real deployment, this would only ever reach
-          your actual inbox.
+          Couldn&apos;t actually deliver that email (no provider
+          configured, or it was rejected), so here&apos;s the reset link
+          directly instead of &ldquo;check your email&rdquo;.
         </p>
       </div>
       <div className="flex items-center gap-2 rounded-md border-2 border-ink bg-card px-2.5 py-2">

@@ -8,8 +8,10 @@ import { ResetPasswordEmail } from "@/emails/reset-password-email";
 export type ForgotPasswordState = {
   error?: string;
   submitted?: boolean;
-  /** Only set when the account actually exists — see the comment below on
-   * why this doesn't leak existence to the UI either way. */
+  /** Only set when the account exists AND the email genuinely wasn't
+   * delivered (no provider configured, or the provider rejected it) —
+   * see mailer.ts's `delivery` field and the comment below on why an
+   * existing-but-delivered account still doesn't leak via this field. */
   devLink?: string;
 };
 
@@ -37,13 +39,13 @@ export async function requestReset(
   if (result.exists && result.token) {
     const baseUrl = await getBaseUrl();
     const resetUrl = `${baseUrl}/reset-password?email=${encodeURIComponent(email)}&token=${result.token}`;
-    await sendEmail({
+    const { delivery } = await sendEmail({
       to: email,
       subject: "Reset your password — Off Camera",
       react: ResetPasswordEmail({ resetUrl }),
       text: `Reset your password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
     });
-    return { submitted: true, devLink: resetUrl };
+    return { submitted: true, devLink: delivery === "sent" ? undefined : resetUrl };
   }
 
   return { submitted: true };
