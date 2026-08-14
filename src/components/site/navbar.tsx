@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +41,13 @@ const sections = [
 // AuthNavRow are client components that fetch real session state from
 // /api/session after hydration instead, so the marketing pages stay static.
 export function Navbar() {
+  // Controlled so every link inside the mobile sheet can close it on click —
+  // uncontrolled, the sheet only closed via its own X button or the
+  // backdrop, so tapping "Dashboard" navigated away but left the menu
+  // sitting open on top of the new page underneath.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const closeMobileNav = () => setMobileNavOpen(false);
+
   return (
     <header className="sticky top-0 z-50 border-b-[3px] border-ink bg-background">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -66,7 +76,7 @@ export function Navbar() {
           Enroll now
         </Button>
 
-        <Sheet>
+        <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetTrigger
             render={
               <Button
@@ -86,12 +96,13 @@ export function Navbar() {
               </SheetTitle>
             </SheetHeader>
             <nav className="flex flex-col gap-2 px-4">
-              <SiteSearch variant="row" />
+              <SiteSearch variant="row" onNavigate={closeMobileNav} />
               <div className="my-1 border-t border-border" />
               {pages.map((page) => (
                 <Link
                   key={page.href}
                   href={page.href}
+                  onClick={closeMobileNav}
                   className="pill-outline rounded-full bg-card px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-accent"
                 >
                   {page.label}
@@ -102,6 +113,7 @@ export function Navbar() {
                 <Link
                   key={section.href}
                   href={section.href}
+                  onClick={closeMobileNav}
                   className={cn(
                     "pill-outline rounded-full px-3.5 py-2 text-sm font-semibold text-menu-foreground",
                     section.color
@@ -112,13 +124,13 @@ export function Navbar() {
               ))}
               <Button
                 nativeButton={false}
-                render={<Link href="/course#pricing" />}
+                render={<Link href="/course#pricing" onClick={closeMobileNav} />}
                 className="btn-sticker mt-3"
               >
                 Enroll now
               </Button>
               <div className="my-1 border-t border-border" />
-              <AuthNavRow />
+              <AuthNavRow onNavigate={closeMobileNav} />
             </nav>
           </SheetContent>
         </Sheet>

@@ -24,8 +24,16 @@ function matches(entry: SearchEntry, query: string) {
  * `variant` picks the trigger's appearance (the desktop pill-shaped search
  * bar vs. a plain row inside the mobile sheet); each mounted instance owns
  * its own dialog, which is fine since at most one is visible at a time.
+ * `onNavigate` closes the enclosing mobile sheet on selecting a result —
+ * this dialog closing doesn't touch that separate open state.
  */
-export function SiteSearch({ variant = "bar" }: { variant?: "bar" | "row" }) {
+export function SiteSearch({
+  variant = "bar",
+  onNavigate,
+}: {
+  variant?: "bar" | "row";
+  onNavigate?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +79,7 @@ export function SiteSearch({ variant = "bar" }: { variant?: "bar" | "row" }) {
 
   function go(href: string) {
     setOpen(false);
+    onNavigate?.();
     router.push(href);
   }
 

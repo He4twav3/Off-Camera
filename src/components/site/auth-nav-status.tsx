@@ -92,8 +92,11 @@ export function AuthNavPill() {
   );
 }
 
-/** Full-width row for the mobile sheet menu. */
-export function AuthNavRow() {
+/** Full-width row for the mobile sheet menu. `onNavigate` closes the
+ * enclosing sheet — this row triggers a route change either way
+ * (client-side `router.push` on logout, or a plain Link on log in),
+ * neither of which the sheet notices on its own. */
+export function AuthNavRow({ onNavigate }: { onNavigate?: () => void } = {}) {
   const { session, setSession } = useClientSession();
   const logout = useLogout(setSession);
 
@@ -105,7 +108,10 @@ export function AuthNavRow() {
     return (
       <button
         type="button"
-        onClick={logout}
+        onClick={() => {
+          onNavigate?.();
+          logout();
+        }}
         className="pill-outline flex items-center gap-2.5 rounded-full bg-card px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-accent"
       >
         <LogOut className="size-4" />
@@ -117,6 +123,7 @@ export function AuthNavRow() {
   return (
     <Link
       href="/login"
+      onClick={onNavigate}
       className="pill-outline rounded-full bg-card px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-accent"
     >
       Log in
