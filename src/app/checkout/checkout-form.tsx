@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { captureCheckoutLead } from "@/app/actions/leads";
 import { cn } from "@/lib/utils";
-import { StripeCardPanel } from "./stripe-card-panel";
 import { createCryptoCheckoutAction } from "./actions";
 
 type Method = "card" | "crypto";
@@ -93,7 +92,31 @@ export function CheckoutForm() {
       </div>
 
       {method === "card" ? (
-        <StripeCardPanel email={email} emailValid={emailValid} />
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Cards, UPI, and local payment methods — you&apos;ll finish
+            payment on a secure Dodo Payments checkout page, then land
+            straight back here signed in.
+          </p>
+          {/* Plain link, not a fetch-then-redirect: Dodo's checkout is a
+              hosted page, not an embedded form, so there's no client/
+              server round-trip to do first — the route itself creates
+              the session and redirects. */}
+          <Button
+            size="lg"
+            disabled={!emailValid}
+            nativeButton={false}
+            render={
+              <a href={emailValid ? `/api/checkout/dodo?email=${encodeURIComponent(email.trim())}` : undefined} />
+            }
+            className="btn-sticker w-full"
+          >
+            Continue to secure checkout
+          </Button>
+          {!emailValid && (
+            <p className="text-xs text-muted-foreground">Enter your email above to continue.</p>
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
@@ -118,8 +141,8 @@ export function CheckoutForm() {
 
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
         <Lock className="size-3.5" />
-        Payments are handled by Stripe or NOWPayments — your card or wallet
-        details never touch our servers.
+        Payments are handled by Dodo Payments or NOWPayments — your card
+        or wallet details never touch our servers.
       </p>
     </div>
   );

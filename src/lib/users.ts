@@ -49,7 +49,7 @@ export type UserRecord = {
   paidAt?: string;
   /** Which rail the confirmed payment came through, and that processor's
    * own id for it — useful for support/refund lookups later. */
-  paymentProvider?: "stripe" | "nowpayments";
+  paymentProvider?: "dodo" | "nowpayments";
   paymentReference?: string;
 };
 
@@ -263,7 +263,7 @@ export async function ensureUser(
  */
 export async function markUserPaid(
   email: string,
-  provider: "stripe" | "nowpayments",
+  provider: "dodo" | "nowpayments",
   reference: string
 ): Promise<{ ok: true; alreadyPaid: boolean } | { ok: false; error: string }> {
   const key = email.toLowerCase();

@@ -1,30 +1,20 @@
 "use server";
 
-import { createCheckoutPaymentIntent } from "@/lib/stripe";
 import { createCryptoCheckout } from "@/lib/nowpayments";
 import { getBaseUrl } from "@/lib/request-url";
 
 /**
- * These no longer grant access on their own — they only start a real
+ * Neither of these grant access on their own — they only start a real
  * charge with a real processor. Access is granted exclusively by
  * fulfillPurchase() (see fulfillment.ts), called from a confirmed
- * payment: Stripe's webhook + the browser's return from
- * stripe.confirmPayment() for cards, NOWPayments' IPN webhook for
- * crypto. Nothing here ever creates an account or signs anyone in.
+ * payment: Dodo's webhook + the browser's return from its hosted
+ * checkout for cards, NOWPayments' IPN webhook for crypto.
+ *
+ * Card checkout has no action here — unlike Stripe's embedded Elements
+ * form, Dodo's checkout is a redirect to their own hosted page, so the
+ * "Card" button in checkout-form.tsx is just a plain link to
+ * api/checkout/dodo, no client/server round-trip needed first.
  */
-
-export type CreatePaymentIntentState =
-  | { status: "idle" }
-  | { status: "ready"; clientSecret: string }
-  | { status: "error"; error: string };
-
-export async function createStripePaymentIntentAction(
-  email: string
-): Promise<CreatePaymentIntentState> {
-  const result = await createCheckoutPaymentIntent(email);
-  if (!result.ok) return { status: "error", error: result.error };
-  return { status: "ready", clientSecret: result.clientSecret };
-}
 
 export type CreateCryptoCheckoutState =
   | { status: "idle" }

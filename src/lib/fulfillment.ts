@@ -5,13 +5,13 @@ import { WelcomePurchaseEmail } from "@/emails/welcome-purchase-email";
 
 /**
  * The single place a payment turns into real course access. Called from
- * two independent paths for each provider — Stripe's webhook AND the
- * browser's own return-URL confirm route; NOWPayments' IPN webhook AND
- * its success-URL confirm route — so whichever one fires first does the
- * real work, and the other is a no-op thanks to markUserPaid's
- * idempotency. Never called with anything a browser submitted directly;
- * only with a reference the payment provider's own API has already
- * confirmed as paid (see the two confirm routes and two webhook routes).
+ * two independent paths for each provider — Dodo's webhook AND the
+ * browser's own return-URL confirm route; NOWPayments' IPN webhook only
+ * (crypto has no reliable synchronous confirmation, see nowpayments.ts)
+ * — so whichever one fires first does the real work, and the other is a
+ * no-op thanks to markUserPaid's idempotency. Never called with anything
+ * a browser submitted directly; only with a reference the payment
+ * provider's own API has already confirmed as paid.
  */
 export async function fulfillPurchase({
   email,
@@ -19,7 +19,7 @@ export async function fulfillPurchase({
   reference,
 }: {
   email: string;
-  provider: "stripe" | "nowpayments";
+  provider: "dodo" | "nowpayments";
   reference: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const normalizedEmail = email.trim().toLowerCase();
