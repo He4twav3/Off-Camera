@@ -1,45 +1,50 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
-import { CreditCard, Lock } from "lucide-react";
+import { useRef, useState } from "react";
+import { CreditCard, Bitcoin, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { checkout, type CheckoutState } from "./actions";
 import { captureCheckoutLead } from "@/app/actions/leads";
+import { cn } from "@/lib/utils";
+import { StripeCardPanel } from "./stripe-card-panel";
+import { createCryptoCheckoutAction } from "./actions";
 
-const initialState: CheckoutState = {};
-
-function formatCardNumber(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 16);
-  return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
-}
-
-function formatExpiry(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  if (digits.length < 3) return digits;
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-}
+type Method = "card" | "crypto";
 
 export function CheckoutForm() {
-  const [state, formAction, pending] = useActionState(checkout, initialState);
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
+  const [email, setEmail] = useState("");
+  const [method, setMethod] = useState<Method>("card");
+  const [cryptoPending, setCryptoPending] = useState(false);
+  const [cryptoError, setCryptoError] = useState<string | null>(null);
   const capturedLeadRef = useRef<string | null>(null);
 
-  // Capture the email as a lead the moment it's entered, before checkout is
-  // ever submitted — so someone who fills in their email and then leaves
+  const emailValid = email.trim().includes("@");
+
+  // Capture the email as a lead the moment it's entered, before checkout
+  // is ever completed — so someone who fills in their email and leaves
   // still leaves a real, followable-up-with trace instead of vanishing.
-  function onEmailBlur(e: React.FocusEvent<HTMLInputElement>) {
-    const email = e.target.value.trim();
-    const isDemoPlaceholder = email === "student@example.com";
-    if (email && email.includes("@") && !isDemoPlaceholder && capturedLeadRef.current !== email) {
-      capturedLeadRef.current = email;
-      captureCheckoutLead(email);
+  function onEmailBlur() {
+    const trimmed = email.trim();
+    if (trimmed && trimmed.includes("@") && capturedLeadRef.current !== trimmed) {
+      capturedLeadRef.current = trimmed;
+      captureCheckoutLead(trimmed);
     }
   }
 
+  async function payWithCrypto() {
+    setCryptoError(null);
+    setCryptoPending(true);
+    const result = await createCryptoCheckoutAction(email.trim());
+    if (result.status === "ready") {
+      window.location.href = result.checkoutUrl;
+      return;
+    }
+    setCryptoPending(false);
+    setCryptoError(result.status === "error" ? result.error : "Could not start checkout.");
+  }
+
   return (
-    <form action={formAction} className="space-y-4">
+    <div className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="email">Email</Label>
         <input
@@ -48,91 +53,74 @@ export function CheckoutForm() {
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
-          defaultValue="student@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           onBlur={onEmailBlur}
           className="h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
         />
+        <p className="text-xs text-muted-foreground">
+          Your account and course access go to this address.
+        </p>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="name">Name on card</Label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          autoComplete="cc-name"
-          placeholder="Jamie Rivera"
-          defaultValue="Jamie Rivera"
-          className="h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-        />
+      <div className="grid grid-cols-2 gap-2 rounded-lg border-2 border-ink bg-secondary/40 p-1">
+        <button
+          type="button"
+          onClick={() => setMethod("card")}
+          className={cn(
+            "flex items-center justify-center gap-1.5 rounded-md py-2 text-sm font-semibold transition-colors",
+            method === "card"
+              ? "pill-outline bg-card"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <CreditCard className="size-4" />
+          Card
+        </button>
+        <button
+          type="button"
+          onClick={() => setMethod("crypto")}
+          className={cn(
+            "flex items-center justify-center gap-1.5 rounded-md py-2 text-sm font-semibold transition-colors",
+            method === "crypto"
+              ? "pill-outline bg-card"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Bitcoin className="size-4" />
+          Crypto
+        </button>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="cardNumber">Card number</Label>
-        <div className="relative">
-          <CreditCard className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            id="cardNumber"
-            name="cardNumber"
-            type="text"
-            inputMode="numeric"
-            autoComplete="cc-number"
-            placeholder="4242 4242 4242 4242"
-            value={cardNumber}
-            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-            className="h-11 w-full rounded-lg border-2 border-ink bg-card pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
+      {method === "card" ? (
+        <StripeCardPanel email={email} emailValid={emailValid} />
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Pay with USDT, USDC, BTC, ETH, and more. You&apos;ll be
+            redirected to complete payment, then emailed as soon as it&apos;s
+            confirmed on-chain.
+          </p>
+          {cryptoError && (
+            <p className="text-sm font-medium text-destructive">{cryptoError}</p>
+          )}
+          <Button
+            type="button"
+            size="lg"
+            disabled={!emailValid || cryptoPending}
+            onClick={payWithCrypto}
+            className="btn-sticker w-full"
+          >
+            {cryptoPending ? "Starting…" : "Continue with crypto"}
+          </Button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="expiry">Expiry</Label>
-          <input
-            id="expiry"
-            name="expiry"
-            type="text"
-            inputMode="numeric"
-            autoComplete="cc-exp"
-            placeholder="MM/YY"
-            value={expiry}
-            onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-            className="h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="cvc">CVC</Label>
-          <input
-            id="cvc"
-            name="cvc"
-            type="text"
-            inputMode="numeric"
-            autoComplete="cc-csc"
-            placeholder="123"
-            maxLength={4}
-            className="h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
-        </div>
-      </div>
-
-      {state.error && (
-        <p className="text-sm font-medium text-destructive">{state.error}</p>
       )}
-
-      <Button
-        type="submit"
-        size="lg"
-        disabled={pending}
-        className="btn-sticker w-full"
-      >
-        {pending ? "Processing…" : "Complete purchase"}
-      </Button>
 
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
         <Lock className="size-3.5" />
-        Demo checkout: this form does not transmit or store real card
-        details anywhere.
+        Payments are handled by Stripe or NOWPayments — your card or wallet
+        details never touch our servers.
       </p>
-    </form>
+    </div>
   );
 }

@@ -38,5 +38,11 @@ export async function getSession() {
     namePart.charAt(0).toUpperCase() + namePart.slice(1).replace(/[._-]/g, " ");
   const initials = namePart.slice(0, 2).toUpperCase();
 
-  return { email, displayName, initials, emailVerified: user?.emailVerified ?? false };
+  return {
+    email,
+    displayName,
+    initials,
+    emailVerified: user?.emailVerified ?? false,
+    paid: user?.paid ?? false,
+  };
 }

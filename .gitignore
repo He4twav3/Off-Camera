@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template itself — no secrets in it, and it's the only
+# place documenting which env vars a fresh checkout of this repo needs.
+!.env.local.example
 
 # vercel
 .vercel

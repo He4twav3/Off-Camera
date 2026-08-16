@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { siteConfig } from "@/lib/site-config";
 import { CheckoutForm } from "./checkout-form";
@@ -17,12 +17,39 @@ const inclusions = [
   "Lifetime access + future updates",
 ];
 
-export default function CheckoutPage() {
+// Where Stripe's confirm route (api/checkout/stripe/confirm) sends the
+// browser back on anything other than success — a card decline, an
+// incomplete/abandoned confirmation, or the rare case fulfillment itself
+// failed after a real charge went through (logged server-side either
+// way; this is just what the buyer sees).
+const ERROR_MESSAGES: Record<string, string> = {
+  missing_payment: "We couldn't find that payment. Try again below.",
+  payment_incomplete: "That payment didn't complete. No charge was made — try again.",
+  missing_email: "Something went wrong linking that payment to an account. Contact support.",
+  fulfillment_failed:
+    "Your card was charged, but we hit an error setting up your account. Contact support and we'll sort it out.",
+};
+
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+  const errorMessage = error ? (ERROR_MESSAGES[error] ?? "Something went wrong. Try again.") : null;
+
   return (
     <div className="flex min-h-full flex-1 flex-col items-center bg-secondary/30 px-4 py-12">
       <div className="mb-8">
         <Logo />
       </div>
+
+      {errorMessage && (
+        <div className="mb-6 flex w-full max-w-3xl items-start gap-2.5 rounded-lg border-2 border-ink bg-destructive/10 p-4 text-sm text-destructive">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+          {errorMessage}
+        </div>
+      )}
 
       <div className="grid w-full max-w-3xl gap-6 md:grid-cols-[1fr_1.2fr]">
         <div className="card-sticker order-2 h-fit rounded-2xl bg-card p-6 md:order-1">

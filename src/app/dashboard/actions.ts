@@ -27,7 +27,10 @@ export async function toggleLesson(formData: FormData) {
   // Read-then-write is fine here — setLessonCompletion serializes writes
   // internally (see users.ts), so this can't race with itself.
   const user = await getUser(session.email);
-  const alreadyDone = user?.completedLessons.includes(lessonId) ?? false;
+  // Real gate, not just the dashboard UI hiding the button: an unpaid
+  // account calling this action directly still can't mark lessons done.
+  if (!user?.paid) return;
+  const alreadyDone = user.completedLessons.includes(lessonId);
   await setLessonCompletion(session.email, lessonId, !alreadyDone);
 
   revalidatePath("/dashboard");

@@ -40,6 +40,17 @@ export type UserRecord = {
   resetTokenExpiresAt?: string;
   failedLoginAttempts: number;
   lockedUntil?: string;
+  /** Set only by a confirmed payment webhook (Stripe or NOWPayments) —
+   * never by the client, never optimistically. This is the actual gate on
+   * course access; an account existing (free signup) is not the same
+   * thing as having paid for it. See markUserPaid() and dashboard access
+   * checks that read this field. */
+  paid: boolean;
+  paidAt?: string;
+  /** Which rail the confirmed payment came through, and that processor's
+   * own id for it — useful for support/refund lookups later. */
+  paymentProvider?: "stripe" | "nowpayments";
+  paymentReference?: string;
 };
 
 type UserStore = Record<string, UserRecord>;
@@ -143,6 +154,7 @@ export async function createUser(
       verifyTokenHash: hashToken(verifyToken),
       verifyTokenExpiresAt: new Date(Date.now() + VERIFY_TOKEN_TTL_MS).toISOString(),
       failedLoginAttempts: 0,
+      paid: false,
     };
     users[key] = user;
     await writeUsers(users);
@@ -202,7 +214,14 @@ export async function verifyUser(
   });
 }
 
-/** Creates the account if it doesn't exist yet, without requiring a password (used by checkout's instant-access flow). Reports whether it actually created one, so the caller only sends a verify email for genuinely new accounts. */
+/**
+ * Creates the account if it doesn't exist yet, without requiring a
+ * password. Only ever called from confirmed-payment fulfillment (see
+ * fulfillment.ts) — never from client-submitted checkout form data
+ * directly, since that would grant access without an actual charge
+ * having happened. Reports whether it actually created one, so the
+ * caller only sends a verify email for genuinely new accounts.
+ */
 export async function ensureUser(
   email: string
 ): Promise<{ user: UserRecord; isNew: boolean; verifyToken?: string }> {
@@ -223,10 +242,41 @@ export async function ensureUser(
       verifyTokenHash: hashToken(verifyToken),
       verifyTokenExpiresAt: new Date(Date.now() + VERIFY_TOKEN_TTL_MS).toISOString(),
       failedLoginAttempts: 0,
+      paid: false,
     };
     users[key] = user;
     await writeUsers(users);
     return { user, isNew: true, verifyToken };
+  });
+}
+
+/**
+ * Marks an account as paid — the one and only function allowed to flip
+ * `paid` to true, and it's only ever called from confirmed-payment
+ * fulfillment (a verified Stripe webhook/PaymentIntent retrieve, or a
+ * verified NOWPayments IPN), never from anything a browser submits
+ * directly. Idempotent: safe to call more than once for the same
+ * purchase (Stripe can deliver the same webhook event more than once by
+ * design, and the confirm-redirect route and the webhook both call this
+ * for the same payment as a belt-and-suspenders pair) — a second call
+ * just re-confirms the same state instead of erroring.
+ */
+export async function markUserPaid(
+  email: string,
+  provider: "stripe" | "nowpayments",
+  reference: string
+): Promise<{ ok: true; alreadyPaid: boolean } | { ok: false; error: string }> {
+  const key = email.toLowerCase();
+  return withUsersLock(async (users) => {
+    const user = users[key];
+    if (!user) return { ok: false, error: "Account not found." };
+    const alreadyPaid = user.paid;
+    user.paid = true;
+    user.paidAt = user.paidAt ?? new Date().toISOString();
+    user.paymentProvider = user.paymentProvider ?? provider;
+    user.paymentReference = user.paymentReference ?? reference;
+    await writeUsers(users);
+    return { ok: true, alreadyPaid };
   });
 }
 
