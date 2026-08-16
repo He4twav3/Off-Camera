@@ -40,17 +40,21 @@ export type UserRecord = {
   resetTokenExpiresAt?: string;
   failedLoginAttempts: number;
   lockedUntil?: string;
-  /** Set only by a confirmed payment webhook (Stripe or NOWPayments) —
+  /** Set only by a confirmed payment webhook (Dodo or NOWPayments) —
    * never by the client, never optimistically. This is the actual gate on
    * course access; an account existing (free signup) is not the same
    * thing as having paid for it. See markUserPaid() and dashboard access
-   * checks that read this field. */
+   * checks that read this field. Flipped back to false by a confirmed
+   * refund webhook — see revokeUserAccess(). */
   paid: boolean;
   paidAt?: string;
   /** Which rail the confirmed payment came through, and that processor's
-   * own id for it — useful for support/refund lookups later. */
+   * own id for it — useful for support/refund lookups later. Kept even
+   * after a refund (see refundedAt) as the audit trail of what was
+   * actually paid and refunded, rather than being erased. */
   paymentProvider?: "dodo" | "nowpayments";
   paymentReference?: string;
+  refundedAt?: string;
 };
 
 type UserStore = Record<string, UserRecord>;
@@ -277,6 +281,28 @@ export async function markUserPaid(
     user.paymentReference = user.paymentReference ?? reference;
     await writeUsers(users);
     return { ok: true, alreadyPaid };
+  });
+}
+
+/**
+ * The refund counterpart to markUserPaid — only ever called from a
+ * confirmed refund webhook (see api/webhook/dodo-payments), never from
+ * anything client-triggered. Flips `paid` back to false so the
+ * dashboard re-locks immediately, but deliberately leaves
+ * paymentProvider/paymentReference alone (see the field's own comment)
+ * — this is a revocation, not an erasure of what happened.
+ */
+export async function revokeUserAccess(
+  email: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const key = email.toLowerCase();
+  return withUsersLock(async (users) => {
+    const user = users[key];
+    if (!user) return { ok: false, error: "Account not found." };
+    user.paid = false;
+    user.refundedAt = new Date().toISOString();
+    await writeUsers(users);
+    return { ok: true };
   });
 }
 

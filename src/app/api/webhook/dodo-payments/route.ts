@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhooks } from "@dodopayments/nextjs";
 import { fulfillPurchase } from "@/lib/fulfillment";
+import { revokeUserAccess } from "@/lib/users";
 
 /**
  * The authoritative fulfillment path — unlike the browser's confirm
@@ -35,6 +36,17 @@ function buildHandler() {
         });
         if (!result.ok) {
           console.error("Dodo webhook fulfillment failed:", result.error);
+        }
+      },
+      // Refunds don't currently self-serve — this is Dodo notifying us
+      // one happened (initiated from their dashboard/support flow), not
+      // us initiating it. Re-locks the dashboard immediately instead of
+      // access silently outliving the payment that granted it.
+      onRefundSucceeded: async (payload) => {
+        const email = payload.data.customer.email;
+        const result = await revokeUserAccess(email);
+        if (!result.ok) {
+          console.error("Dodo webhook refund-revocation failed:", result.error);
         }
       },
     });
