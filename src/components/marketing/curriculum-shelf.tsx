@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,15 @@ import { VideoPoster } from "@/components/media/video-poster";
 import { CURRICULUM, MODULE_SHADES } from "@/lib/curriculum";
 import { cn } from "@/lib/utils";
 
-const AUTOPLAY_INTERVAL_MS = 2400;
-
 /**
  * Horizontal accordion of the 8 modules — one panel open at a time,
  * color-ramped left-to-right by MODULE_SHADES so the eye reads course
- * progression without needing to read every number. Autoplays through
- * once on load, then hands control to the visitor: clicking any collapsed
- * panel (or tabbing to it and pressing Enter/Space, since these are plain
- * <button>s) stops the autoplay and focuses that module instead.
+ * progression without needing to read every number. Purely hover-driven:
+ * whichever panel the cursor is currently over is the expanded one,
+ * recalculated continuously as the mouse moves — no click needed, and
+ * no autoplay/timer ever changes it on its own. Tabbing to a panel
+ * (keyboard, no mouse) expands it the same way via onFocus, so it's
+ * still reachable without a pointer.
  *
  * Only shown at lg+ — 8 panels, even collapsed, don't have room to also
  * hold an expanded one on a phone-width screen. Below lg, ModuleShelfMobile
@@ -27,21 +27,6 @@ const AUTOPLAY_INTERVAL_MS = 2400;
  */
 function ModuleAccordion() {
   const [active, setActive] = useState(0);
-  const [autoplay, setAutoplay] = useState(true);
-
-  useEffect(() => {
-    if (!autoplay) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => {
-      setActive((i) => (i + 1) % CURRICULUM.length);
-    }, AUTOPLAY_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [autoplay]);
-
-  function focus(i: number) {
-    setAutoplay(false);
-    setActive(i);
-  }
 
   return (
     <div className="card-sticker mt-10 hidden h-[440px] overflow-hidden rounded-3xl lg:flex">
@@ -61,11 +46,18 @@ function ModuleAccordion() {
             key={mod.id}
             {...(!isActive && {
               type: "button" as const,
-              onClick: () => focus(i),
+              // Hover is the trigger, not click — matches the reference
+              // recording exactly: whichever panel the cursor is
+              // currently over expands, continuously, with no click
+              // needed. onFocus mirrors the same behavior for keyboard
+              // tabbing, since that's the one way to reach this
+              // component without a mouse.
+              onMouseEnter: () => setActive(i),
+              onFocus: () => setActive(i),
               "aria-label": mod.title,
             })}
             className={cn(
-              "group relative flex shrink-0 flex-col overflow-hidden text-left transition-[flex-grow] duration-500 ease-out",
+              "group relative flex shrink-0 flex-col overflow-hidden text-left transition-[flex-grow] duration-300 ease-out",
               !isActive && "cursor-pointer"
             )}
             style={{
@@ -236,7 +228,7 @@ export function CurriculumShelf() {
         </h2>
         <p className="mt-4 text-muted-foreground">
           Eight modules that take you from your first faceless post to a
-          steady stream of brand campaigns. Click any panel to jump to it.
+          steady stream of brand campaigns.
         </p>
       </div>
 
