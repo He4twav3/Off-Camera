@@ -31,7 +31,7 @@ export async function ContinueLearning() {
 
   return (
     <Card className="overflow-hidden border-border/70 py-0">
-      <CardContent className="grid gap-0 p-0 sm:grid-cols-[10rem_1fr]">
+      <CardContent className="grid grid-cols-1 gap-0 p-0 sm:grid-cols-[10rem_1fr]">
         <VideoThumbnail
           aspect="video"
           poster={

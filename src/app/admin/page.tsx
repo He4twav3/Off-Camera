@@ -87,7 +87,7 @@ export default async function AdminHomePage() {
         </p>
       </header>
 
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {queue.map((item) => (
           <li key={item.label}>
             <Link href={item.href} className="block h-full">
@@ -115,7 +115,7 @@ export default async function AdminHomePage() {
         <h2 className="mb-4 font-heading text-xl font-semibold text-foreground">
           Manage
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[
             { href: "/admin/jobs", label: "Campaigns", body: "Post, edit and close campaigns." },
             { href: "/admin/applicants", label: "Creators", body: "Approve, reject and assign." },

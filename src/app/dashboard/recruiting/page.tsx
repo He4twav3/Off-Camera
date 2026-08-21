@@ -131,7 +131,7 @@ export default async function DashboardPage(props: {
         <Stat label="Paid to date" value={formatCurrency(earned)} tone="success" />
       </dl>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
         {/* ---- Main column ---- */}
         <div className="flex flex-col gap-8">
           <section id="campaigns" className="scroll-mt-20">

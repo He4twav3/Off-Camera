@@ -34,7 +34,7 @@ export default function CoursePage() {
         accordion expand/collapse already supplies plenty of motion here.
       */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1fr_22rem]">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_22rem]">
           <Suspense fallback={<div id="curriculum" className="h-40" />}>
             <FullCurriculum />
           </Suspense>

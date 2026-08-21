@@ -100,7 +100,7 @@ export default async function JobDetailPage(props: {
 
       <Card className="mt-8 border-border/70">
         <CardContent>
-        <dl className="grid gap-5 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <dt className="text-sm font-semibold text-muted-foreground">
               Payout

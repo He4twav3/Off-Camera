@@ -159,7 +159,7 @@ export default async function JobsPage(props: {
             <p className="mb-5 text-sm font-semibold text-muted-foreground">
               {jobs.length} {jobs.length === 1 ? "job" : "jobs"} found
             </p>
-            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {jobs.map((job) => (
                 <li key={job.id}>
                   <JobCard

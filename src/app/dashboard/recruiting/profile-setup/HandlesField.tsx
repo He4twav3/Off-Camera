@@ -91,7 +91,7 @@ export function HandlesField({ value, onChange }: HandlesFieldProps) {
             </div>
 
             {/* Platform + handle are the two that matter, so they lead. */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Platform" htmlFor={`platform-${row.key}`} required>
                 <Select
                   id={`platform-${row.key}`}

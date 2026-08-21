@@ -30,12 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": [
-    "node_modules",
-    // Dashboard chrome ported from CreatorRoster, not yet wired into any
-    // route (Phase 3) or reskinned off @phosphor-icons/react onto
-    // lucide-react (Phase 4). Remove from this exclude once both land.
-    "src/components/app/AppShell.tsx",
-    "src/components/app/AppNav.tsx"
-  ]
+  "exclude": ["node_modules"]
 }

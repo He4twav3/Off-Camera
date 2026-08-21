@@ -109,7 +109,7 @@ export default async function DashboardPage(props: {
         </div>
       )}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_18rem]">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_18rem]">
         <div className="space-y-6">
           <StatCards />
           <ContinueLearning />
