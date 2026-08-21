@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock } from "lucide-react";
+import { Lock, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { ContinueLearning } from "@/components/dashboard/continue-learning";
@@ -10,7 +10,10 @@ import { getSession } from "@/lib/auth";
 import { getDashboardProgress } from "@/lib/progress";
 import { siteConfig } from "@/lib/site-config";
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams: Promise<{ reason?: string }>;
+}) {
+  const { reason } = await props.searchParams;
   const session = await getSession();
   const firstName = session?.displayName.split(" ")[0] ?? "Student";
 
@@ -52,7 +55,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { percent, completedLessons } = await getDashboardProgress();
+  const { percent, completedLessons, isComplete } = await getDashboardProgress();
 
   return (
     <div>
@@ -68,6 +71,43 @@ export default async function DashboardPage() {
       <div className="mt-6">
         <VerifyEmailBanner />
       </div>
+
+      {reason === "finish_course_first" && (
+        <p className="mt-6 rounded-lg border-2 border-ink bg-accent px-4 py-3 text-sm font-medium text-accent-foreground">
+          Finish every lesson to unlock recruiting — you&apos;re at {percent}%
+          right now.
+        </p>
+      )}
+
+      {/* The training->recruiting handoff — only appears once every lesson
+          is done. This is the moment the product becomes more than a course:
+          the same account now unlocks paid brand placements. The route
+          itself is gated too (dashboard/recruiting/layout.tsx), so this is
+          a real unlock, not just a UI nudge someone could ignore by typing
+          the URL directly. */}
+      {isComplete && (
+        <div className="card-sticker mt-6 flex flex-col items-start gap-4 rounded-2xl bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="pill-outline flex size-12 shrink-0 items-center justify-center rounded-full bg-toy-soft text-toy-soft-foreground">
+              <Briefcase className="size-5" />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold">You&apos;ve completed the course</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Apply to work with our partner brands — set up your creator
+                profile and start browsing paid campaigns.
+              </p>
+            </div>
+          </div>
+          <Button
+            nativeButton={false}
+            render={<Link href="/dashboard/recruiting/profile-setup" />}
+            className="btn-sticker w-full shrink-0 sm:w-auto"
+          >
+            Get started
+          </Button>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_18rem]">
         <div className="space-y-6">

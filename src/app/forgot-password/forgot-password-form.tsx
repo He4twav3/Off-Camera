@@ -2,48 +2,12 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { Mail, Info, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { requestReset, type ForgotPasswordState } from "./actions";
 
 const initialState: ForgotPasswordState = {};
-
-function DevLinkNotice({ link }: { link: string }) {
-  const [copied, setCopied] = useState(false);
-
-  return (
-    <div className="space-y-2 rounded-lg bg-secondary/60 p-3 text-xs text-muted-foreground">
-      <div className="flex items-start gap-2">
-        <Info className="mt-0.5 size-3.5 shrink-0" />
-        <p>
-          Couldn&apos;t actually deliver that email (no provider
-          configured, or it was rejected), so here&apos;s the reset link
-          directly instead of &ldquo;check your email&rdquo;.
-        </p>
-      </div>
-      <div className="flex items-center gap-2 rounded-md border-2 border-ink bg-card px-2.5 py-2">
-        <code className="min-w-0 flex-1 truncate text-foreground">{link}</code>
-        <button
-          type="button"
-          onClick={() => {
-            navigator.clipboard.writeText(link);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-          }}
-          className="shrink-0 rounded p-1 hover:bg-secondary"
-          aria-label="Copy reset link"
-        >
-          {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-        </button>
-      </div>
-      <Link href={link} className="font-medium text-foreground underline underline-offset-2">
-        Open the reset link
-      </Link>
-    </div>
-  );
-}
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(requestReset, initialState);
@@ -52,11 +16,8 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-4">
         <p className="text-sm">
-          {state.devLink
-            ? "Found an account for that email — here's your reset link:"
-            : "If an account exists for that email, a reset link has been sent."}
+          If an account exists for that email, a reset link has been sent.
         </p>
-        {state.devLink && <DevLinkNotice link={state.devLink} />}
         <Link
           href="/login"
           className="block text-center text-sm font-medium text-foreground underline underline-offset-2"

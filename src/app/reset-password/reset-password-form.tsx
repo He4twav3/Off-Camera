@@ -8,14 +8,11 @@ import { resetPassword, type ResetPasswordState } from "./actions";
 
 const initialState: ResetPasswordState = {};
 
-export function ResetPasswordForm({ email, token }: { email: string; token: string }) {
+export function ResetPasswordForm() {
   const [state, formAction, pending] = useActionState(resetPassword, initialState);
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="email" value={email} />
-      <input type="hidden" name="token" value={token} />
-
       <div className="space-y-1.5">
         <Label htmlFor="password">New password</Label>
         <div className="relative">

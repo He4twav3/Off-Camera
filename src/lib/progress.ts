@@ -1,20 +1,20 @@
 /**
- * Real per-account lesson progress. Backed by the same local user store as
- * auth (see users.ts): completed lessons live on the account record, keyed
- * by email, not just this browser — log in with the same email+password on
- * a different device and the same progress is there. A fresh account has
- * completed nothing, so every figure on the dashboard genuinely reads 0
- * until a lesson is actually marked complete.
+ * Real per-account lesson progress. Backed by the `profiles` table (see
+ * lib/profiles.ts): completed lessons live on the account record in
+ * Supabase, keyed by user, not just this browser — log in with the same
+ * account on a different device and the same progress is there. A fresh
+ * account has completed nothing, so every figure on the dashboard
+ * genuinely reads 0 until a lesson is actually marked complete.
  */
 import { CURRICULUM, TOTAL_LESSONS, TOTAL_MODULES } from "@/lib/curriculum";
 import { getSession } from "@/lib/auth";
-import { getUser } from "@/lib/users";
+import { getUser } from "@/lib/profiles";
 
 async function getCompletedLessonIds(): Promise<Set<string>> {
   const session = await getSession();
   if (!session) return new Set();
   const user = await getUser(session.email);
-  return new Set(user?.completedLessons ?? []);
+  return new Set(user?.completed_lessons ?? []);
 }
 
 export function formatMinutes(total: number): string {

@@ -1,28 +1,24 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
-import { resetPasswordWithToken } from "@/lib/users";
+import { createClient } from "@/lib/supabase/server";
 
 export type ResetPasswordState = { error?: string };
 
-/** A valid token already proves ownership of the account (it only ever
- * reached this exact link, see mailer.ts), so this signs the user
- * straight in afterward instead of sending them back to /login to type
- * the password they just set. */
+/**
+ * By the time this runs, the recovery link (see forgot-password/actions.ts)
+ * has already been clicked and verified via /auth/callback, which
+ * established a real session — so this just sets the new password on
+ * the already-authenticated user. No separate email/token check needed
+ * here anymore; the session itself is the proof.
+ */
 export async function resetPassword(
   _prevState: ResetPasswordState,
   formData: FormData
 ): Promise<ResetPasswordState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
-  if (!email || !token) {
-    return { error: "This reset link is invalid. Request a new one." };
-  }
   if (password.length < 6) {
     return { error: "Password must be at least 6 characters." };
   }
@@ -30,11 +26,16 @@ export async function resetPassword(
     return { error: "Passwords don't match." };
   }
 
-  const result = await resetPasswordWithToken(email, token, password);
-  if (!result.ok) return { error: result.error };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "This reset link is invalid or has expired. Request a new one." };
+  }
 
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, email, SESSION_COOKIE_OPTIONS);
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
 
   redirect("/dashboard");
 }

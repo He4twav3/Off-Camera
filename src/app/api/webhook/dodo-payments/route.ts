@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhooks } from "@dodopayments/nextjs";
 import { fulfillPurchase } from "@/lib/fulfillment";
-import { revokeUserAccess } from "@/lib/users";
+import { revokeUserAccess } from "@/lib/profiles";
 
 /**
  * The authoritative fulfillment path — unlike the browser's confirm

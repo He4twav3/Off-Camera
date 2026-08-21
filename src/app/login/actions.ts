@@ -1,17 +1,18 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
-import { verifyUser } from "@/lib/users";
+import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { error?: string };
 
 /**
- * Sign-in only — a wrong email now says so and points at /signup, rather
- * than silently creating a new account for it (that's a separate, explicit
- * flow now — see signup/actions.ts). Real password check, including real
- * lockout after too many wrong attempts (see verifyUser).
+ * Sign-in only — a real password check against Supabase Auth, which
+ * owns its own abuse-protection/rate-limiting internally now (no more
+ * hand-rolled MAX_FAILED_ATTEMPTS/lockout on our side). One generic
+ * error for both "no such account" and "wrong password" — Supabase's
+ * own `signInWithPassword` already returns the same generic message for
+ * both, which is the correct behavior (distinguishing them lets an
+ * attacker enumerate which emails have accounts).
  */
 export async function login(
   _prevState: LoginState,
@@ -27,11 +28,11 @@ export async function login(
     return { error: "Enter your password." };
   }
 
-  const result = await verifyUser(email, password);
-  if (!result.ok) return { error: result.error };
-
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, email.toLowerCase(), SESSION_COOKIE_OPTIONS);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    return { error: "Incorrect email or password." };
+  }
 
   redirect("/dashboard");
 }

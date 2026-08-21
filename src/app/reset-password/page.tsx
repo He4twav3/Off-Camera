@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
+import { getSession } from "@/lib/auth";
 import { ResetPasswordForm } from "./reset-password-form";
 
 export const metadata: Metadata = {
@@ -8,13 +9,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ email?: string; token?: string }>;
-}) {
-  const { email, token } = await searchParams;
-  const valid = Boolean(email && token);
+/**
+ * By the time someone lands here, the recovery link from
+ * forgot-password/actions.ts has already been clicked and verified via
+ * /auth/callback, which established a real (if limited-purpose)
+ * session — so this just checks that a session exists, not a `?token=`
+ * query param the way it used to.
+ */
+export default async function ResetPasswordPage() {
+  const session = await getSession();
 
   return (
     <div className="flex min-h-full flex-1 flex-col items-center justify-center bg-secondary/30 px-4 py-16">
@@ -23,14 +26,12 @@ export default async function ResetPasswordPage({
       </div>
 
       <div className="card-sticker w-full max-w-sm rounded-2xl bg-card p-6 sm:p-8">
-        {valid ? (
+        {session ? (
           <>
             <h1 className="text-xl font-semibold tracking-tight">Set a new password</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              For {email}
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">For {session.email}</p>
             <div className="mt-6">
-              <ResetPasswordForm email={email!} token={token!} />
+              <ResetPasswordForm />
             </div>
           </>
         ) : (
@@ -39,7 +40,7 @@ export default async function ResetPasswordPage({
               Invalid reset link
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              This link is missing its email or token. Request a new one to
+              This link is invalid or has expired. Request a new one to
               reset your password.
             </p>
             <Link

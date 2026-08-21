@@ -1,40 +1,36 @@
+import { createClient } from "@/lib/supabase/server";
+
 /**
- * Real accounts for this demo build (see users.ts): a session is just the
- * signed-in email, stored in a cookie — but reaching that state now
- * requires a real password, checked against a real (locally-stored)
- * account record. It's a genuine gate: you cannot reach /dashboard without
- * going through /login (enforced in `proxy.ts`, not just hidden in the
- * UI), and you cannot log into an existing account with the wrong
- * password. What's still "demo": credentials live in a local JSON file
- * instead of a real database — see users.ts for the swap-out point.
+ * Real accounts backed by Supabase Auth (see supabase/migrations/) —
+ * a session is a real signed GoTrue JWT in cookies managed entirely by
+ * @supabase/ssr, not an app-chosen cookie value. Route protection is
+ * enforced in `proxy.ts` (not just hidden in the UI), and the "paid"
+ * gate on course access lives on the `profiles` row, set only by
+ * confirmed payment webhooks — see lib/profiles.ts.
  */
-export const SESSION_COOKIE = "off_camera_session";
-
-export const SESSION_COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 60 * 60 * 24 * 7, // 7 days
-};
 
 /**
- * Server-only — reads the session cookie and looks up the real account
- * record for display info. Returns null if not signed in.
+ * Server-only — reads the real Supabase session and joins the matching
+ * `profiles` row for display/course-progress info. Returns null if not
+ * signed in.
  */
 export async function getSession() {
-  // Local import keeps `next/headers` out of any client bundle that
-  // imports the cookie name/options above from this same file.
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-  const email = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!email) return null;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || !user.email) return null;
 
-  const { getUser } = await import("@/lib/users");
-  const user = await getUser(email);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, paid")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
+  const email = user.email;
   const namePart = email.split("@")[0] ?? "student";
   const displayName =
-    user?.displayName ??
+    profile?.display_name ??
     namePart.charAt(0).toUpperCase() + namePart.slice(1).replace(/[._-]/g, " ");
   const initials = namePart.slice(0, 2).toUpperCase();
 
@@ -42,7 +38,7 @@ export async function getSession() {
     email,
     displayName,
     initials,
-    emailVerified: user?.emailVerified ?? false,
-    paid: user?.paid ?? false,
+    emailVerified: user.email_confirmed_at != null,
+    paid: profile?.paid ?? false,
   };
 }

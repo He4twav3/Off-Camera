@@ -1,24 +1,30 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/auth";
-import { createUser } from "@/lib/users";
-import { sendEmail } from "@/lib/mailer";
+import { createClient } from "@/lib/supabase/server";
 import { getBaseUrl } from "@/lib/request-url";
-import { VerifyEmailEmail } from "@/emails/verify-email";
 
 export type SignupState = { error?: string };
 
-/** Creates a new account only — rejects if the email is already taken
+/**
+ * Creates a new account only — rejects if the email is already taken
  * (unlike the old combined login form, this never silently signs someone
  * into an existing account). See login/actions.ts for the sign-in-only
- * counterpart. */
+ * counterpart.
+ *
+ * Confirmation email is sent by Supabase Auth itself now, not our own
+ * Resend template (its wording/branding is customizable in the Supabase
+ * dashboard under Authentication -> Email Templates) — matches how
+ * CreatorRoster's own signup already worked before this merge. Whether
+ * this returns an active session immediately or requires clicking that
+ * email first depends on the project's "Confirm email" setting (on by
+ * default), which is why the redirect branches on `data.session`.
+ */
 export async function signup(
   _prevState: SignupState,
   formData: FormData
 ): Promise<SignupState> {
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
@@ -32,20 +38,21 @@ export async function signup(
     return { error: "Passwords don't match." };
   }
 
-  const result = await createUser(email, password);
-  if (!result.ok) return { error: result.error };
-
+  const supabase = await createClient();
   const baseUrl = await getBaseUrl();
-  const verifyUrl = `${baseUrl}/verify-email?email=${encodeURIComponent(email.toLowerCase())}&token=${result.verifyToken}`;
-  await sendEmail({
-    to: email.toLowerCase(),
-    subject: "Verify your email — Off Camera",
-    react: VerifyEmailEmail({ verifyUrl }),
-    text: `Welcome to Off Camera! Verify your email to confirm it's really you:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${baseUrl}/auth/callback?next=/dashboard` },
   });
 
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, email.toLowerCase(), SESSION_COOKIE_OPTIONS);
+  if (error) {
+    return {
+      error: error.message.toLowerCase().includes("already registered")
+        ? "An account with this email already exists."
+        : error.message,
+    };
+  }
 
-  redirect("/dashboard");
+  redirect(data.session ? "/dashboard" : "/verify-email");
 }

@@ -3,16 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { ALL_LESSON_IDS } from "@/lib/curriculum";
 import { getSession } from "@/lib/auth";
-import {
-  getUser,
-  setLessonCompletion,
-  resetUserProgress,
-  changePassword,
-  createVerificationToken,
-} from "@/lib/users";
-import { sendEmail } from "@/lib/mailer";
-import { getBaseUrl } from "@/lib/request-url";
-import { VerifyEmailEmail } from "@/emails/verify-email";
+import { getUser, setLessonCompletion, resetUserProgress, changePassword } from "@/lib/profiles";
+import { createClient } from "@/lib/supabase/server";
 
 const VALID_IDS = new Set(ALL_LESSON_IDS);
 
@@ -24,13 +16,11 @@ export async function toggleLesson(formData: FormData) {
   const session = await getSession();
   if (!session) return;
 
-  // Read-then-write is fine here — setLessonCompletion serializes writes
-  // internally (see users.ts), so this can't race with itself.
   const user = await getUser(session.email);
   // Real gate, not just the dashboard UI hiding the button: an unpaid
   // account calling this action directly still can't mark lessons done.
   if (!user?.paid) return;
-  const alreadyDone = user.completedLessons.includes(lessonId);
+  const alreadyDone = user.completed_lessons.includes(lessonId);
   await setLessonCompletion(session.email, lessonId, !alreadyDone);
 
   revalidatePath("/dashboard");
@@ -73,17 +63,10 @@ export async function changePasswordAction(
   return { success: true };
 }
 
-export type ResendVerificationState = {
-  error?: string;
-  sent?: boolean;
-  /** Only set when the email genuinely wasn't delivered (no provider
-   * configured, or the provider rejected it) — see mailer.ts's
-   * `delivery` field. When real delivery succeeds, this stays unset so
-   * the UI shows "check your inbox" instead of the raw link. */
-  devLink?: string;
-};
+export type ResendVerificationState = { error?: string; sent?: boolean };
 
-/** Issues a fresh verify-email token and "sends" it (see mailer.ts). */
+/** Resends Supabase's own confirmation email — see signup/actions.ts
+ * for why that's the one sending it now, not our own Resend template. */
 export async function resendVerificationAction(
   _prevState: ResendVerificationState,
   _formData: FormData
@@ -91,18 +74,10 @@ export async function resendVerificationAction(
   const session = await getSession();
   if (!session) return { error: "You're not signed in." };
 
-  const result = await createVerificationToken(session.email);
-  if (!result.ok) return { error: result.error };
-
-  const baseUrl = await getBaseUrl();
-  const verifyUrl = `${baseUrl}/verify-email?email=${encodeURIComponent(session.email)}&token=${result.token}`;
-  const { delivery } = await sendEmail({
-    to: session.email,
-    subject: "Verify your email — Off Camera",
-    react: VerifyEmailEmail({ verifyUrl }),
-    text: `Verify your email:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
-  });
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({ type: "signup", email: session.email });
+  if (error) return { error: error.message };
 
   revalidatePath("/dashboard/account");
-  return { sent: true, devLink: delivery === "sent" ? undefined : verifyUrl };
+  return { sent: true };
 }
