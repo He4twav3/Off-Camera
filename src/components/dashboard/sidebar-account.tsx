@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LogoutButton } from "@/components/dashboard/logout-button";
 
 /** Pinned to the foot of the sidebar rail (and reused inside the mobile
  * drawer) — who's signed in, and the one way out. */
@@ -26,13 +25,7 @@ export function SidebarAccount({
           <span className="block truncate text-xs text-muted-foreground">{email}</span>
         </span>
       </div>
-      <Link
-        href="/logout"
-        className="flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      >
-        <LogOut className="size-4 shrink-0" />
-        Log out
-      </Link>
+      <LogoutButton />
     </div>
   );
 }

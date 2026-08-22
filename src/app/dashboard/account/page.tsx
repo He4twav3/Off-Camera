@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { LogOut, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { getDashboardProgress } from "@/lib/progress";
 import { resetProgress } from "@/app/dashboard/actions";
 import { ChangePasswordForm } from "./change-password-form";
 import { VerifyEmailBanner } from "@/components/dashboard/verify-email-banner";
+import { LogoutButtonStyled } from "@/components/dashboard/logout-button";
 
 export const metadata: Metadata = {
   title: "Account",
@@ -102,15 +102,7 @@ export default async function AccountPage() {
 
       <Separator className="my-6" />
 
-      <Button
-        variant="outline"
-        nativeButton={false}
-        render={<Link href="/logout" />}
-        className="w-full"
-      >
-        <LogOut />
-        Log out
-      </Button>
+      <LogoutButtonStyled className="w-full" />
     </div>
   );
 }
