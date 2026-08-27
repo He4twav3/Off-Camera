@@ -67,13 +67,6 @@ export function LoginForm() {
       >
         {pending ? "Signing in…" : "Sign in"}
       </Button>
-
-      <p className="text-center text-sm text-muted-foreground">
-        New here?{" "}
-        <Link href="/signup" className="font-medium text-foreground underline underline-offset-2">
-          Create an account
-        </Link>
-      </p>
     </form>
   );
 }

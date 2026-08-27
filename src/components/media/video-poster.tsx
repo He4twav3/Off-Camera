@@ -1,10 +1,14 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Flat-color placeholder standing in for a real video frame. Deliberately
- * no gradient — a solid tone reads cleaner against the rest of the site's
- * flat-fill/hard-outline system than a blended one does.
- * Swap for a real poster image later — same slot, same aspect ratio.
+ * Placeholder standing in for a real video frame. Swap for a real poster
+ * image later — same slot, same aspect ratio.
+ *
+ * Was a flat fill, which matched the old hard-outline sticker system.
+ * Under the landing page's depth system a flat rectangle is the one
+ * thing that reads as a hole in the page, so each variant is a soft
+ * vertical gradient across the surface ramp instead — the same "lit from
+ * above" story every other surface tells.
  */
 export function VideoPoster({
   variant = "primary",
@@ -16,9 +20,10 @@ export function VideoPoster({
   children?: React.ReactNode;
 }) {
   const variants = {
-    primary: "bg-primary text-primary-foreground",
-    muted: "bg-secondary text-foreground",
-    dark: "bg-muted text-foreground",
+    primary:
+      "bg-gradient-to-b from-crimson to-crimson-deep text-cta-foreground",
+    muted: "bg-gradient-to-b from-surface-3 to-surface-1 text-foreground",
+    dark: "bg-gradient-to-b from-surface-2 to-surface-0 text-foreground",
   };
 
   return (

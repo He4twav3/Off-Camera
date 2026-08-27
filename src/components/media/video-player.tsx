@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode, type MouseEvent } from "react";
+import { useRef, useState, type ReactNode, type MouseEvent } from "react";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,8 +19,7 @@ export interface VideoPlayerProps {
   src?: string;
   /**
    * Real YouTube video id (the part after `v=`, works for unlisted videos
-   * too) — rendered as an actual youtube-nocookie.com embed, not the
-   * simulated player. Ignored if `src` is set.
+   * too) — rendered as an actual youtube-nocookie.com embed.
    */
   youtubeId?: string;
   /** Poster/placeholder content shown behind the controls (typically a gradient + icon). */
@@ -28,11 +27,28 @@ export interface VideoPlayerProps {
   /** Small pill label shown top-left before playback starts, e.g. "Intro from Aron". */
   label?: string;
   aspect?: keyof typeof ASPECT_CLASSES;
-  /** Simulated clip length in seconds, used only when there's no real `src`/`youtubeId`. */
-  durationSeconds?: number;
   className?: string;
   autoPlay?: boolean;
+  /**
+   * Which visual language frames the video.
+   *
+   * "sticker" — the ink-outline + hard offset shadow used across the
+   * app/checkout/dashboard UI. Still the default, so nothing outside the
+   * marketing pages changes.
+   *
+   * "premium" — the landing page's hairline + soft-depth frame. The two
+   * systems genuinely can't be reconciled into one (a hard cartoon
+   * offset and a soft cinematic shadow are opposite claims about what
+   * kind of object this is), so the caller picks, rather than this
+   * component guessing from context.
+   */
+  frame?: "sticker" | "premium";
 }
+
+const FRAME_CLASSES = {
+  sticker: "card-sticker bg-card",
+  premium: "border border-hairline bg-surface-2 shadow-[0_22px_48px_-24px_oklch(0_0_0_/_0.85)]",
+} as const;
 
 function formatTime(totalSeconds: number) {
   if (!Number.isFinite(totalSeconds)) return "0:00";
@@ -47,40 +63,21 @@ export function VideoPlayer({
   poster,
   label,
   aspect = "video",
-  durationSeconds = 48,
   className,
   autoPlay = false,
+  frame = "sticker",
 }: VideoPlayerProps) {
+  const frameClass = FRAME_CLASSES[frame];
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(autoPlay);
   const [muted, setMuted] = useState(true);
   const [elapsed, setElapsed] = useState(0);
-  const [duration, setDuration] = useState(durationSeconds);
-
-  const hasRealEmbed = Boolean(src || youtubeId);
-
-  // Simulated playback clock — only runs when there's no real video to drive it.
-  useEffect(() => {
-    if (hasRealEmbed || !playing) return;
-    const id = setInterval(() => {
-      setElapsed((prev) => {
-        const next = prev + 0.25;
-        if (next >= duration) {
-          setPlaying(false);
-          return duration;
-        }
-        return next;
-      });
-    }, 250);
-    return () => clearInterval(id);
-  }, [playing, hasRealEmbed, duration]);
+  const [duration, setDuration] = useState(0);
 
   // Real YouTube embed (works for unlisted videos) — youtube-nocookie.com
   // avoids setting tracking cookies until the visitor actually presses
-  // play. This is a genuine embed, not the simulated placeholder below: no
-  // youtubeId is configured yet anywhere in this build (see curriculum.ts /
-  // site-config.ts), so nothing renders here until a real one is added.
+  // play.
   if (!src && youtubeId) {
     const params = new URLSearchParams({
       rel: "0",
@@ -90,7 +87,8 @@ export function VideoPlayer({
     return (
       <div
         className={cn(
-          "card-sticker overflow-hidden rounded-2xl bg-card",
+          "overflow-hidden rounded-2xl",
+          frameClass,
           ASPECT_CLASSES[aspect],
           className
         )}
@@ -106,16 +104,37 @@ export function VideoPlayer({
     );
   }
 
+  // No real src or youtubeId: an honest static poster, not a player. This
+  // used to run a fake progress clock behind a working-looking play
+  // button — a poster that visibly "played" nothing was exactly the kind
+  // of not-quite-real UI this whole rebuild has been removing elsewhere
+  // (fake ratings, fake testimonials, fake founding date). A real button
+  // that does nothing is worse than no button.
+  if (!src) {
+    return (
+      <div
+        className={cn(
+          "relative isolate overflow-hidden rounded-2xl",
+          frameClass,
+          ASPECT_CLASSES[aspect],
+          className
+        )}
+      >
+        <div className="absolute inset-0">{poster}</div>
+        {label && (
+          <div className="absolute top-4 left-4 rounded-full bg-black/35 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+            {label}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   function togglePlay() {
-    if (src && videoRef.current) {
+    if (videoRef.current) {
       if (playing) videoRef.current.pause();
       else videoRef.current.play();
-      return;
     }
-    setPlaying((p) => {
-      if (!p && elapsed >= duration) setElapsed(0);
-      return !p;
-    });
   }
 
   function seek(event: MouseEvent<HTMLDivElement>) {
@@ -124,7 +143,7 @@ export function VideoPlayer({
     const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
     const next = ratio * duration;
     setElapsed(next);
-    if (src && videoRef.current) videoRef.current.currentTime = next;
+    if (videoRef.current) videoRef.current.currentTime = next;
   }
 
   const progress = duration ? Math.min(1, elapsed / duration) : 0;
@@ -132,26 +151,23 @@ export function VideoPlayer({
   return (
     <div
       className={cn(
-        "card-sticker group relative isolate overflow-hidden rounded-2xl bg-card",
+        "group relative isolate overflow-hidden rounded-2xl",
+        frameClass,
         ASPECT_CLASSES[aspect],
         className
       )}
     >
-      {src ? (
-        <video
-          ref={videoRef}
-          src={src}
-          muted={muted}
-          playsInline
-          className="absolute inset-0 size-full object-cover"
-          onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
-          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-        />
-      ) : (
-        <div className="absolute inset-0">{poster}</div>
-      )}
+      <video
+        ref={videoRef}
+        src={src}
+        muted={muted}
+        playsInline
+        className="absolute inset-0 size-full object-cover"
+        onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+      />
 
       <button
         type="button"

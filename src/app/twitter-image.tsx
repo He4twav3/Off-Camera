@@ -5,9 +5,9 @@ export const contentType = "image/png";
 
 export default async function Image() {
   return renderOgImage({
-    eyebrow: "A course by a working UGC creator",
-    title: "Go viral without showing your face.",
+    eyebrow: "Built on real results, not theory",
+    title: "You don't need a following to get views.",
     subtitle:
-      "Learn to create faceless content that brands pay for, taught by Aron.",
+      "Real videos that reached millions of views, and the system behind them.",
   });
 }

@@ -114,7 +114,8 @@ export function SidebarNav({
               Locked for now
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Finish every lesson to unlock campaigns and brand deals.
+              Finish every lesson to become eligible for campaigns and brand
+              opportunities — earned, not automatic.
             </p>
           </div>
         )}

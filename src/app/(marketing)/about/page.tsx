@@ -9,10 +9,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
+// Only claims we can actually stand behind — see proof-content.ts's note
+// on why past campaign/student counts were removed rather than kept as
+// unverified placeholders.
 const credentials = [
-  "80+ paid brand campaigns",
-  "Worked with DTC & app-based brands",
-  "Zero face-on-camera content, ever",
+  "Videos that reached 6M+ and 15M+ views",
+  "Built from testing, not theory",
+  "Works on camera, not showing your face, or silent",
 ];
 
 export default function AboutPage() {
@@ -23,17 +26,18 @@ export default function AboutPage() {
       </h1>
       <p className="mt-2 text-muted-foreground">{siteConfig.creator.role}</p>
 
-      <div className="card-sticker mt-8 rounded-2xl bg-card p-6 sm:p-8">
+      <div className="card-premium mt-8 rounded-2xl bg-card p-6 sm:p-8">
         <p className="text-base leading-relaxed">
-          I&apos;m Aron, a full-time content creator who never shows my face
-          on camera. A few years ago I was filming content nobody watched.
-          Then I switched to faceless formats and everything changed: brands
-          started reaching out to me instead of the other way around.
+          I&apos;m Aron. I noticed the creators getting huge reach weren&apos;t
+          necessarily the ones with the biggest audiences or the best
+          cameras, they understood hooks, retention, format, volume,
+          consistency, and iteration. So I tested those principles myself,
+          on my own content, and some of it reached millions of views.
         </p>
         <p className="mt-4 text-base leading-relaxed">
-          I&apos;ve since completed 80+ paid brand campaigns without ever
-          being on camera, and {siteConfig.name} is me walking you through
-          the exact steps, the way I wish someone had walked me through it.
+          {siteConfig.name} breaks down that process so you can learn it
+          instead of spending months guessing, the actual videos, the actual
+          breakdowns, and the system behind them.
         </p>
 
         <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
@@ -47,14 +51,14 @@ export default function AboutPage() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button nativeButton={false} render={<Link href="/course" />} className="btn-sticker">
+        <Button nativeButton={false} render={<Link href="/#curriculum" />} className="btn-premium">
           See the course
         </Button>
         <Button
           variant="outline"
           nativeButton={false}
           render={<Link href={`mailto:${siteConfig.contactEmail}`} />}
-          className="btn-sticker bg-card"
+          className="btn-premium bg-card"
         >
           Get in touch
         </Button>

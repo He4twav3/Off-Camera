@@ -51,7 +51,14 @@ export async function ModuleProgressList() {
                 </span>
               </AccordionTrigger>
               <AccordionContent>
-                <ul className="ml-8 space-y-1">
+                {/* The practice line is the point where this stops being a
+                    video course and starts requiring you to actually make
+                    something — it shouldn't only exist on the marketing
+                    pages someone saw before they paid. */}
+                <p className="text-sm font-medium text-muted-foreground">
+                  Practice: <span className="text-foreground">{mod.practice}</span>
+                </p>
+                <ul className="mt-3 ml-8 space-y-1">
                   {mod.lessons.map((lesson) => (
                     <li key={lesson.id}>
                       <form action={toggleLesson}>

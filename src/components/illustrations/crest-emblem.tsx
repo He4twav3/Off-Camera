@@ -9,13 +9,19 @@ const LEFT_ARC = RIGHT_ARC.map((deg) => -deg);
 
 /**
  * Off Camera's brand crest — a heraldic badge in the vein of a vintage
- * club/academy emblem: shield, laurel-tick wreath, a camera-off mark at
- * the center, and a banner plaque. Monoline, flat-filled, ink-outlined —
- * no gradients, matching the "toybox sticker" illustration system.
+ * club/academy emblem: shield, laurel-tick wreath, a play mark at the
+ * center, and a banner plaque. Monoline, flat-filled, ink-outlined — no
+ * gradients, matching the "toybox sticker" illustration system.
+ *
+ * The center mark used to be a camera with a slash through it — a literal
+ * "no camera" glyph, which fit the site's old faceless-only identity but
+ * actively contradicts the current one (camera optional, not camera
+ * banned). A play mark reads as "content" without taking a position on
+ * format.
  */
 export function CrestEmblem({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 112" className={className} aria-hidden>
+    <svg viewBox="0 0 100 92" className={className} aria-hidden>
       {/* Shield */}
       <path
         d="M20,14 L80,14 C86,14 90,18 90,26 L90,46 C90,64 76,82 50,92 C24,82 10,64 10,46 L10,26 C10,18 14,14 20,14 Z"
@@ -48,11 +54,14 @@ export function CrestEmblem({ className }: { className?: string }) {
         stroke="var(--ink)"
         strokeWidth={3}
       />
-      {/* Camera-off mark */}
-      <rect x="37" y="39" width="26" height="16" rx="3" fill="none" stroke="var(--card)" strokeWidth={2.75} />
-      <rect x="45" y="35" width="8" height="5" rx="1" fill="none" stroke="var(--card)" strokeWidth={2.75} />
-      <circle cx="50" cy="47" r="5.5" fill="none" stroke="var(--card)" strokeWidth={2.75} />
-      <line x1="33" y1="31" x2="67" y2="59" stroke="var(--card)" strokeWidth={3} strokeLinecap="round" />
+      {/* Play mark */}
+      <path
+        d="M42,33 L42,61 L66,47 Z"
+        fill="var(--card)"
+        stroke="var(--card)"
+        strokeWidth={3}
+        strokeLinejoin="round"
+      />
 
       {/* Banner plaque */}
       <polygon
@@ -73,21 +82,6 @@ export function CrestEmblem({ className }: { className?: string }) {
         letterSpacing="0.5"
       >
         OFF CAMERA
-      </text>
-
-      {/* Sits on the cover wrapper's own dark (ink) background, so this
-          needs to contrast against ink, not be ink. */}
-      <text
-        x="50"
-        y="103"
-        textAnchor="middle"
-        className="font-heading"
-        fill="var(--card)"
-        fontSize="7"
-        fontWeight={600}
-        letterSpacing="1"
-      >
-        EST. 2024
       </text>
     </svg>
   );

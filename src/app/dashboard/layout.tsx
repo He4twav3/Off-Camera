@@ -31,7 +31,7 @@ export default async function DashboardLayout({
   const shell = await getShellData();
   // proxy.ts already guarantees a session exists for anything under
   // /dashboard — this fallback is defensive, not expected to render.
-  const session = shell.session ?? { displayName: "Student", email: "student@example.com", initials: "ST" };
+  const session = shell.session ?? { displayName: "Creator", email: "creator@example.com", initials: "CR" };
 
   return (
     <div className="flex min-h-full flex-1 bg-secondary/30">

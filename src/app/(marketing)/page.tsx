@@ -1,62 +1,134 @@
 import { Hero } from "@/components/marketing/hero";
-import { Stats } from "@/components/marketing/stats";
-import { BrandStrip } from "@/components/marketing/brand-strip";
+import { getProofPosters } from "@/lib/proof-thumbnails";
+import { Brands } from "@/components/marketing/brand-constellation";
 import { WhoItsFor } from "@/components/marketing/who-its-for";
-import { CurriculumShelf } from "@/components/marketing/curriculum-shelf";
+import { ProofWall } from "@/components/marketing/proof-wall";
+import { HowItWorks } from "@/components/marketing/how-it-works";
+import { CourseIntro } from "@/components/marketing/course-intro";
+import { FullCurriculum } from "@/components/marketing/full-curriculum";
+import { Outcomes } from "@/components/marketing/outcomes";
 import { Story } from "@/components/marketing/story";
-import { Testimonials } from "@/components/marketing/testimonials";
-import { ResultsStrip } from "@/components/marketing/results-strip";
-import { MarketplaceShowcase } from "@/components/marketing/marketplace-showcase";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
 import { FinalCTA } from "@/components/marketing/final-cta";
-import { Reveal } from "@/components/marketing/reveal";
 import { ViewfinderFrame } from "@/components/site/viewfinder-frame";
+import { SectionSeam } from "@/components/marketing/section-frame";
 
-export default function Home() {
+/**
+ * One landing page, built as one continuous argument.
+ *
+ * The order below is the argument's order, and each move in it answers a
+ * question the previous one raises. Read as a sequence of questions a
+ * stranger is actually asking:
+ *
+ *   HERO         "What is this, and is it real?"          claim + the
+ *                actual videos, with their actual view counts, side by
+ *                side on the first screen
+ *   BRANDS       "Has anyone else trusted them?"          third-party
+ *                validation, while it is still worth something — before
+ *                the reader has decided whether to keep going, not two
+ *                thirds of the way down once they already have
+ *   01 BELIEFS   "Yes, but I have no following / no
+ *                experience / my videos don't work."      the reasons
+ *                people talk themselves out of starting, named before
+ *                anything tries to answer them
+ *   02 PROOF     "Prove it."                              the same real
+ *                videos again, at full size, playable, with the
+ *                breakdown behind each one — the answer to the beliefs
+ *                just named, which is why it has to follow them
+ *   03 PROCESS   "Okay — so what actually happens if I
+ *                join?"                                   the three
+ *                steps, stated explicitly for the majority who skim
+ *   04 PLAIN     "Is any of this something I could
+ *                actually do?"                           the eight
+ *                things that decide whether a video works, named the way
+ *                someone who has never posted would name them rather
+ *                than in the industry's words — the beat where "they did
+ *                this" turns into "I could do this too"
+ *   05 COURSE    "What's in it?"                          the product,
+ *                its real numbers, and every module with what you make
+ *                in it and the lessons inside it
+ *   06 STORY     "Who is teaching this?"
+ *   07 PRICING   "What does it cost, and when do I have
+ *                to decide?"                              the price and
+ *                the live window, together, at the moment the question
+ *                is actually being asked
+ *   08 FAQ       "The last few things stopping me."
+ *   CLOSE        the ask, once more, on its own.
+ *
+ * Two sections that used to be here are gone, both for the same reason —
+ * they answered a question nobody was asking at that point:
+ *
+ *   - The quick-stats panel restated the four view counts as abstract
+ *     numerals below the fold. Those numbers now sit on the videos they
+ *     belong to, in the hero. A number attached to the thing it measures
+ *     is evidence; the same number floating in a panel is a claim.
+ *   - The marketplace card showed the course "as it would look on Whop".
+ *     It made a visitor understand nothing they needed, and it displayed
+ *     the €17.99 price a few hundred pixels above the pricing section
+ *     saying the course is currently free — actively contradicting the
+ *     offer at the moment of the ask.
+ */
+export default async function Home() {
+  // Resolved once on the server and cached (lib/proof-thumbnails.ts), not
+  // per-card in the browser: these posters are the first thing on the
+  // page, and the wall cannot be empty for the first second of a visit.
+  const posters = await getProofPosters();
+
   return (
     <>
       {/* Landing-page-only, not sitewide: the "this site is about making
-          content" framing device belongs to the pitch, not to /course,
-          /dashboard, or checkout, which have their own calmer, more
+          content" framing device belongs to the pitch, not to
+          /dashboard or /checkout, which have their own calmer, more
           transactional tone. */}
       <ViewfinderFrame />
-      <Reveal>
-        <Hero />
-      </Reveal>
-      <Reveal>
-        <Stats />
-      </Reveal>
-      <Reveal>
-        <BrandStrip />
-      </Reveal>
-      <Reveal>
-        <WhoItsFor />
-      </Reveal>
-      <Reveal>
-        <CurriculumShelf />
-      </Reveal>
-      <Reveal>
-        <Story />
-      </Reveal>
-      <Reveal>
-        <Testimonials />
-      </Reveal>
-      <Reveal>
-        <ResultsStrip />
-      </Reveal>
-      <Reveal>
-        <MarketplaceShowcase />
-      </Reveal>
-      <Reveal>
-        <Pricing />
-      </Reveal>
-      <Reveal>
-        <FAQ />
-      </Reveal>
-      <Reveal>
-        <FinalCTA />
-      </Reveal>
+
+      {/* Every section below animates its own individual headings,
+          paragraphs, cards, icons, and other pieces on scroll (each wraps
+          its own content in Reveal directly) — no outer Reveal here, that
+          would just double up the motion on top of the per-element
+          stagger every section already does internally.
+
+          The SectionSeam between blocks is the page's punctuation: a
+          hairline that fades to nothing at both ends with a soft bloom
+          on it, so one section ends and the next begins rather than the
+          two running together. It is omitted wherever it would land
+          immediately against a section's own contained card edge, where
+          it reads as a stray line rather than as a boundary — which is
+          why the hero, ending in the reel's own controls, is the only
+          block that opens straight into one. */}
+      {/* No seam between these two: the hero's claim and the wall of
+          videos backing it are one screen, not two sections. */}
+      <Hero />
+      <ProofWall posters={posters} />
+      <SectionSeam />
+      <Brands />
+      <SectionSeam />
+      <WhoItsFor />
+      <SectionSeam />
+      <HowItWorks />
+      <SectionSeam />
+      {/* The plain-English decoder sits BEFORE the module list, not after
+          it. The whole point of it is that someone who has never posted
+          learns what "hook" and "retention" actually mean — reading that
+          after a curriculum written in those same words would be arriving
+          with the translation once the page no longer needs it. */}
+      <Outcomes />
+      <SectionSeam />
+      <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-28 lg:px-8">
+        <CourseIntro />
+        <div className="mt-16">
+          <FullCurriculum />
+        </div>
+      </section>
+      <SectionSeam />
+      <Story />
+      <SectionSeam />
+      <Pricing />
+      <SectionSeam />
+      <FAQ />
+      <SectionSeam />
+      <FinalCTA />
     </>
   );
 }

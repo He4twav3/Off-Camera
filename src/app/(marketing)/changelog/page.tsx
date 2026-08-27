@@ -9,6 +9,11 @@ export const metadata: Metadata = {
 
 const entries = [
   {
+    date: "2026-08-23",
+    title: "Rebuilt around real results",
+    body: "Reworked the site and curriculum around our own videos that reached millions of views, and the repeatable system behind them, hooks, retention, volume, consistency, timing, and iteration, instead of one format. Removed the AI-generated example testimonials and the placeholder rating in favor of real video breakdowns.",
+  },
+  {
     date: "2026-08-09",
     title: "Real lesson progress tracking",
     body: "Your dashboard now tracks the lessons you've actually marked complete, module by module, instead of showing example numbers. A brand new account starts at zero, on purpose.",

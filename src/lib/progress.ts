@@ -38,7 +38,7 @@ export async function getDashboardProgress() {
   const modules = CURRICULUM.map((mod) => ({
     id: mod.id,
     title: mod.title,
-    preview: mod.preview,
+    practice: mod.practice,
     lessons: mod.lessons.map((lesson) => ({
       ...lesson,
       done: completed.has(lesson.id),

@@ -67,7 +67,7 @@ export async function createCryptoCheckout({
       amount: siteConfig.price.amount,
       currency: siteConfig.price.currency.toLowerCase(),
       orderId: normalizedEmail,
-      description: "Off Camera: Faceless Content & Brand Deals",
+      description: siteConfig.courseTitle,
       ipnCallbackUrl: `${baseUrl}/api/webhooks/nowpayments`,
       successUrl: `${baseUrl}/checkout/pending`,
       cancelUrl: `${baseUrl}/checkout`,

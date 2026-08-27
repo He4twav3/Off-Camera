@@ -9,13 +9,15 @@ import { VerifyEmailBanner } from "@/components/dashboard/verify-email-banner";
 import { getSession } from "@/lib/auth";
 import { getDashboardProgress } from "@/lib/progress";
 import { siteConfig } from "@/lib/site-config";
+import { TOTAL_LESSONS, TOTAL_MODULES } from "@/lib/curriculum";
+import { COURSE_IS_FREE } from "@/lib/feature-flags";
 
 export default async function DashboardPage(props: {
   searchParams: Promise<{ reason?: string }>;
 }) {
   const { reason } = await props.searchParams;
   const session = await getSession();
-  const firstName = session?.displayName.split(" ")[0] ?? "Student";
+  const firstName = session?.displayName.split(" ")[0] ?? "Creator";
 
   // Signing in and paying for the course are two separate facts — an
   // account existing (e.g. from /signup, which never touches payment)
@@ -23,6 +25,10 @@ export default async function DashboardPage(props: {
   // ever set by a confirmed payment webhook (see fulfillment.ts), never
   // by anything client-side, so this is a genuine gate, not UI theater —
   // the lesson-completion action checks the same field server-side.
+  // Currently bypassed sitewide while the course is free (see
+  // lib/auth.ts's COURSE_IS_FREE) — this block is effectively dead code
+  // until that's turned back off, kept exactly as it'll need to work
+  // again then.
   if (!session?.paid) {
     return (
       <div>
@@ -39,16 +45,17 @@ export default async function DashboardPage(props: {
           </span>
           <h2 className="mt-4 text-lg font-semibold">Unlock Off Camera</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            8 modules, 25 lessons, pitch &amp; contract templates, and lifetime
-            access for {siteConfig.price.formatted}.
+            {TOTAL_MODULES} modules, {TOTAL_LESSONS} lessons, pitch &amp;
+            contract templates, and lifetime access
+            {COURSE_IS_FREE ? ", free right now." : ` for ${siteConfig.price.formatted}.`}
           </p>
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/checkout" />}
+            render={<Link href="/signup" />}
             className="btn-sticker mt-6 w-full"
           >
-            Enroll now
+            Save your spot
           </Button>
         </div>
       </div>
@@ -94,8 +101,10 @@ export default async function DashboardPage(props: {
             <div>
               <h2 className="text-lg font-semibold">You&apos;ve completed the course</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Apply to work with our partner brands — set up your creator
-                profile and start browsing paid campaigns.
+                Set up your creator profile and start browsing campaigns.
+                Strong creators who demonstrate their ability may be
+                introduced to real brand opportunities through the network —
+                earned, not automatic.
               </p>
             </div>
           </div>

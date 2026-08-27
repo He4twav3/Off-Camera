@@ -105,7 +105,7 @@ export function EmailLayout({
                 color: colors.mutedForeground,
               }}
             >
-              Off Camera · Faceless content & brand deals.{" "}
+              Off Camera · The content system behind videos that perform.{" "}
               <Link href={siteConfig.url} style={{ color: colors.mutedForeground }}>
                 {siteConfig.url.replace(/^https?:\/\//, "")}
               </Link>

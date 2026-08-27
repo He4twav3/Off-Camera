@@ -179,7 +179,7 @@ export function ViewfinderFrame({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none fixed inset-0 overflow-hidden text-foreground/[0.34]",
+        "viewfinder-frame pointer-events-none fixed inset-0 overflow-hidden text-foreground/[0.34]",
         className
       )}
     >
@@ -193,12 +193,24 @@ export function ViewfinderFrame({ className }: { className?: string }) {
           edge, which only sometimes has opaque content under it depending
           on scroll position, the top corners would otherwise be
           permanently hidden behind the navbar, not just "textured" like
-          the rest of this layer is meant to be. */}
+          the rest of this layer is meant to be.
+
+          The *symbol* readouts inside each corner (battery / REC+timer)
+          are `hidden` below 640px for exactly the reason above: on a
+          phone, the hero's eyebrow line ends and its headline begins
+          only ~28px apart, and the symbol cluster is taller than that
+          gap — there is no vertical position for it that clears both.
+          Confirmed by measuring: nudging it down far enough to clear the
+          eyebrow lands it squarely on the headline's first line instead.
+          The bracket itself has real room (it sits above the eyebrow
+          with clearance to spare) and stays at every width; only the
+          readable text inside it is what a phone-width hero has no space
+          left for. */}
       <CornerWithSymbol
         corner="tl"
         bracketDelay="0s"
         positionClassName="top-20 left-6 sm:left-8 lg:top-32"
-        insetClassName="top-4 left-4"
+        insetClassName="top-4 left-4 hidden sm:block"
         symbolOpacity={symbolOpacity}
       >
         <BatteryIcon className="h-3.5 w-auto animate-[viewfinder-breathe_5s_ease-in-out_infinite] motion-reduce:animate-none" />
@@ -208,13 +220,17 @@ export function ViewfinderFrame({ className }: { className?: string }) {
         corner="tr"
         bracketDelay="-1.25s"
         positionClassName="top-20 right-6 sm:right-8 lg:top-32"
-        insetClassName="top-4 right-4 flex flex-col items-end gap-1"
+        insetClassName="top-4 right-4 hidden flex-col items-end gap-1 sm:flex"
         symbolOpacity={symbolOpacity}
       >
         <div className="flex items-center gap-1.5">
           <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive/70 motion-reduce:animate-none" />
-            <span className="relative inline-flex size-2 rounded-full bg-destructive" />
+            {/* Was --destructive (a warm red). This palette has no warm
+                tone in it, and an error color used as decoration is the
+                wrong signal anyway — it's the brand crimson now, the same
+                accent as every other "live" mark on the page. */}
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-crimson-bright/70 motion-reduce:animate-none" />
+            <span className="relative inline-flex size-2 rounded-full bg-crimson-bright" />
           </span>
           <span className="text-[0.65rem] font-semibold tracking-wide">REC</span>
         </div>

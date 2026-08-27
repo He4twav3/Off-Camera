@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { COURSE_IS_FREE } from "@/lib/feature-flags";
 
 /**
  * Real accounts backed by Supabase Auth (see supabase/migrations/) —
@@ -6,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
  * @supabase/ssr, not an app-chosen cookie value. Route protection is
  * enforced in `proxy.ts` (not just hidden in the UI), and the "paid"
  * gate on course access lives on the `profiles` row, set only by
- * confirmed payment webhooks — see lib/profiles.ts.
+ * confirmed payment webhooks — see lib/profiles.ts. See
+ * lib/feature-flags.ts's COURSE_IS_FREE for the temporary bypass below.
  */
 
 /**
@@ -39,6 +41,9 @@ export async function getSession() {
     displayName,
     initials,
     emailVerified: user.email_confirmed_at != null,
-    paid: profile?.paid ?? false,
+    // See COURSE_IS_FREE above — real value is `profile?.paid ?? false`
+    // either way, so a signed-in user's actual paid status is never lost,
+    // just not enforced while the course is free.
+    paid: COURSE_IS_FREE ? true : (profile?.paid ?? false),
   };
 }

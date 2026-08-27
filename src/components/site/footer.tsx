@@ -1,16 +1,48 @@
 import Link from "next/link";
 import { Camera, PlayCircle, Music2 } from "lucide-react";
 import { Logo } from "@/components/site/logo";
-import { NewsletterForm } from "@/components/site/newsletter-form";
 import { siteConfig } from "@/lib/site-config";
 
+/**
+ * The footer, built to the reference site's measured layout.
+ *
+ * Every number here was read off their live footer in a browser rather
+ * than estimated, then re-coloured to our palette — their warm cream and
+ * orange is not ours, but the structure is theirs exactly:
+ *
+ *   container      1240px, centred (100px side margins at 1440)
+ *   row gap        20px between the two rows
+ *   ROW 1 "top"    logo hard left · "Social media" label + icon buttons
+ *                  hard right. Icons 32x32, 4px radius, 8px apart, with
+ *                  the label sitting to their LEFT at 19px gap.
+ *   ROW 2 "links"  tagline hard left at 239px wide · a 480px menu block
+ *                  hard right, three 133px columns, 40px between them,
+ *                  12px between a column heading and its first item,
+ *                  10px between items.
+ *   type           column headings 14px/500, links and tagline 12px/400.
+ *                  Small — a footer is scanned, not read.
+ *
+ * What their footer does NOT have, and so neither does this one any more:
+ * a newsletter band, an oversized cropped wordmark, or a second heading.
+ * Those were mine, and they were the reason the bottom of the page had
+ * three competing tiers where the reference has two calm rows.
+ *
+ * The colour mapping, since it is the only thing deliberately not copied:
+ *   their ink   #251f19  →  text-foreground
+ *   their muted #68615a  →  text-muted-foreground
+ *   their orange #f48d16 →  the brand crimson, and only on the tally dot
+ *                           inside the logo. Their accent appears in the
+ *                           footer eyebrow; ours is scarcer than that by
+ *                           design.
+ */
 const columns = [
   {
     title: "Course",
     links: [
-      { href: "/course", label: "Curriculum" },
-      { href: "/course#pricing", label: "Pricing" },
-      { href: "/course#faq", label: "FAQ" },
+      { href: "/#proof", label: "Proof" },
+      { href: "/#curriculum", label: "Curriculum" },
+      { href: "/#pricing", label: "Pricing" },
+      { href: "/#faq", label: "FAQ" },
     ],
   },
   {
@@ -24,75 +56,80 @@ const columns = [
   {
     title: "Legal",
     links: [
-      { href: "/terms", label: "Terms of Service" },
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/refund-policy", label: "Refund Policy" },
+      { href: "/terms", label: "Terms" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/refund-policy", label: "Refunds" },
     ],
   },
 ];
 
+const socials = [
+  { href: siteConfig.social.instagram, label: "Instagram", icon: Camera },
+  { href: siteConfig.social.tiktok, label: "TikTok", icon: Music2 },
+  { href: siteConfig.social.youtube, label: "YouTube", icon: PlayCircle },
+];
+
 export function Footer() {
   return (
-    <footer className="border-t-[3px] border-ink bg-secondary/40">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
-          <div className="max-w-xs">
-            <Logo />
-            <p className="mt-3 text-sm text-muted-foreground">
-              A no-fluff course on creating faceless viral content, landing brand deals,
-              and getting picked for campaigns, built from real experience, not theory.
+    <footer className="relative bg-surface-0/60 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-[1240px] flex-col gap-5 px-5 py-14 sm:px-6 lg:px-8">
+        {/* ── ROW 1 · top ─────────────────────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <Logo />
+
+          <div className="flex items-center gap-[19px]">
+            <p className="hidden text-xs text-muted-foreground sm:block">
+              Social media
             </p>
-            <div className="mt-4 flex items-center gap-2.5">
-              <Link
-                href={siteConfig.social.instagram}
-                aria-label="Instagram"
-                className="pill-outline flex size-8 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <Camera className="size-4" />
-              </Link>
-              <Link
-                href={siteConfig.social.tiktok}
-                aria-label="TikTok"
-                className="pill-outline flex size-8 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <Music2 className="size-4" />
-              </Link>
-              <Link
-                href={siteConfig.social.youtube}
-                aria-label="YouTube"
-                className="pill-outline flex size-8 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <PlayCircle className="size-4" />
-              </Link>
-            </div>
-            <div className="mt-6">
-              <NewsletterForm />
+            <div className="flex items-center gap-2">
+              {socials.map((social) => (
+                <Link
+                  key={social.label}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="focus-premium flex size-8 items-center justify-center rounded-[4px] border border-hairline bg-surface-1 text-muted-foreground transition-colors duration-300 hover:bg-surface-2 hover:text-foreground"
+                >
+                  <social.icon className="size-4" />
+                </Link>
+              ))}
             </div>
           </div>
-
-          {columns.map((col) => (
-            <div key={col.title}>
-              <h3 className="text-sm font-semibold">{col.title}</h3>
-              <ul className="mt-3 space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-border/70 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 {siteConfig.name}. All rights reserved.</p>
-          <p>Content and results shown are illustrative for this demo build.</p>
+        {/* ── ROW 2 · links ───────────────────────────────────────── */}
+        <div className="flex flex-col justify-between gap-10 pt-6 md:flex-row md:gap-16">
+          <p className="max-w-[239px] text-xs leading-relaxed text-muted-foreground">
+            Real breakdowns of videos that reached millions of views, and the
+            repeatable system behind them.
+          </p>
+
+          <div className="flex gap-10 sm:gap-[40px]">
+            {columns.map((col) => (
+              <div key={col.title} className="flex w-[133px] flex-col gap-3">
+                <h3 className="text-sm font-medium text-foreground">
+                  {col.title}
+                </h3>
+                <ul className="flex flex-col gap-2.5">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="focus-premium rounded text-xs text-muted-foreground transition-colors duration-300 hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Legally necessary, kept as quiet as their own small print. */}
+        <p className="mt-6 border-t border-hairline pt-6 text-xs text-muted-foreground/70">
+          © 2026 {siteConfig.name} · {siteConfig.contactEmail}
+        </p>
       </div>
     </footer>
   );

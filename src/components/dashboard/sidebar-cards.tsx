@@ -1,10 +1,7 @@
-import Link from "next/link";
 import { Download, Mail, MessageCircle, FileText } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { getSession } from "@/lib/auth";
 import { siteConfig } from "@/lib/site-config";
 
@@ -24,9 +21,9 @@ const downloads = [
 
 export async function SidebarCards() {
   const session = (await getSession()) ?? {
-    email: "student@example.com",
-    displayName: "Student",
-    initials: "ST",
+    email: "creator@example.com",
+    displayName: "Creator",
+    initials: "CR",
   };
 
   return (
@@ -43,16 +40,6 @@ export async function SidebarCards() {
           <Badge variant="secondary" className="mt-3 rounded-full px-3 py-1 text-xs">
             Full course · Lifetime access
           </Badge>
-          <Separator className="my-4" />
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            nativeButton={false}
-            render={<Link href="/course" />}
-          >
-            View course details
-          </Button>
         </CardContent>
       </Card>
 

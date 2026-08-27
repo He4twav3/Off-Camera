@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal-page";
 import { siteConfig } from "@/lib/site-config";
 
@@ -32,7 +33,7 @@ export default function RefundPolicyPage() {
       <h2>Before you buy</h2>
       <p>
         The intro video and full curriculum are on the{" "}
-        <a href="/course">course page</a> for exactly this reason: take a
+        <Link href="/#curriculum">main site</Link> for exactly this reason: take a
         proper look before you enroll, the same way you would with any
         one-time purchase.
       </p>

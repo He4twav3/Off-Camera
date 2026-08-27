@@ -70,10 +70,10 @@ export function AuthNavPill() {
         type="button"
         onClick={logout}
         title={`Log out (${session.email})`}
-        className="pill-outline flex items-center gap-1.5 rounded-full bg-card px-3.5 py-1.5 text-sm font-semibold transition-colors hover:bg-accent"
+        className="pill-premium focus-premium flex items-center gap-1.5 rounded-full bg-surface-1/70 px-3.5 py-1.5 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
       >
         <Avatar className="-ml-1 size-5">
-          <AvatarFallback className="bg-primary/15 text-[10px] font-medium text-primary">
+          <AvatarFallback className="bg-surface-3 text-[10px] font-medium text-foreground">
             {session.initials}
           </AvatarFallback>
         </Avatar>
@@ -85,7 +85,7 @@ export function AuthNavPill() {
   return (
     <Link
       href="/login"
-      className="pill-outline rounded-full bg-card px-3.5 py-1.5 text-sm font-semibold transition-colors hover:bg-accent"
+      className="pill-premium focus-premium rounded-full bg-surface-1/70 px-3.5 py-1.5 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
     >
       Log in
     </Link>
@@ -112,7 +112,7 @@ export function AuthNavRow({ onNavigate }: { onNavigate?: () => void } = {}) {
           onNavigate?.();
           logout();
         }}
-        className="pill-outline flex items-center gap-2.5 rounded-full bg-card px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-accent"
+        className="pill-premium focus-premium flex items-center gap-2.5 rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
       >
         <LogOut className="size-4" />
         Log out ({session.email})
@@ -124,7 +124,7 @@ export function AuthNavRow({ onNavigate }: { onNavigate?: () => void } = {}) {
     <Link
       href="/login"
       onClick={onNavigate}
-      className="pill-outline rounded-full bg-card px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-accent"
+      className="pill-premium focus-premium rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
     >
       Log in
     </Link>

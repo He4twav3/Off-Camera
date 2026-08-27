@@ -19,9 +19,9 @@ export const metadata: Metadata = {
 
 export default async function AccountPage() {
   const session = (await getSession()) ?? {
-    email: "student@example.com",
-    displayName: "Student",
-    initials: "ST",
+    email: "creator@example.com",
+    displayName: "Creator",
+    initials: "CR",
     emailVerified: true,
   };
   const { completedLessons, totalLessons } = await getDashboardProgress();

@@ -11,7 +11,7 @@ export function NewsletterForm() {
 
   if (state.status === "success") {
     return (
-      <p className="flex items-center gap-1.5 text-sm font-medium text-primary">
+      <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
         <Check className="size-4" />
         {state.message}
       </p>
@@ -27,13 +27,13 @@ export function NewsletterForm() {
           name="email"
           required
           placeholder="you@example.com"
-          className="h-10 w-full rounded-full border-2 border-ink bg-card pr-10 pl-3.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-10 w-full rounded-full border border-hairline bg-surface-1 pr-10 pl-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-hairline-strong focus-visible:ring-2 focus-visible:ring-white/20"
         />
         <button
           type="submit"
           disabled={pending}
           aria-label="Subscribe"
-          className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
+          className="absolute top-1/2 right-1.5 flex size-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-gradient-to-b from-crimson-bright to-crimson text-cta-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <ArrowRight className="size-3.5" />
         </button>

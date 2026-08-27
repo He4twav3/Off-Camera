@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, Star } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Logo } from "@/components/site/logo";
 import { PriceTag } from "@/components/marketing/price-tag";
 import { FinalCTA } from "@/components/marketing/final-cta";
 import { Reveal } from "@/components/marketing/reveal";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
-import { VideoThumbnail } from "@/components/media/video-thumbnail";
 import { CURRICULUM, TOTAL_LESSONS, TOTAL_MODULES, TOTAL_MINUTES } from "@/lib/curriculum";
+import { PROOF_CONTENT } from "@/lib/proof-content";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_IS_FREE } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "Start here",
@@ -19,47 +19,42 @@ export const metadata: Metadata = {
   alternates: { canonical: "/go" },
 };
 
+// Only confirmed-real numbers — see proof-content.ts's own note on why
+// past student-earnings/count figures were dropped rather than kept as
+// placeholders. Same curation as stats.tsx: headline (M+) numbers only,
+// and `statsLabel` (a rounded floor number, e.g. "15M+") when an entry
+// has one, so this strip stays consistent with the main homepage one.
 const proof = [
-  { value: "$180K+", label: "earned by students in brand deals" },
+  ...PROOF_CONTENT.filter((entry) => entry.views?.includes("M")).map((entry) => ({
+    value: entry.statsLabel ?? entry.views!,
+    label: "views on a single video",
+  })),
   { value: `${TOTAL_MODULES} modules`, label: `${TOTAL_LESSONS} lessons, ~${(TOTAL_MINUTES / 60).toFixed(1)}h` },
-  { value: "500+", label: "students taught" },
 ];
 
 const inclusions = [
-  "8 core modules, 25 lessons",
+  `${TOTAL_MODULES} core modules, ${TOTAL_LESSONS} lessons`,
   "Pitch & contract templates",
   "Private student community",
   "Lifetime access + future updates",
   "Campaign application checklist",
 ];
 
-const testimonials = [
-  {
-    initials: "JM",
-    name: "Jamie M.",
-    quote:
-      "I didn't think faceless content could actually make money. Two months in, I had three brands reaching out to me instead of the other way around.",
-    duration: "0:42",
-  },
-  {
-    initials: "PK",
-    name: "Priya K.",
-    quote:
-      "The pitching templates alone paid for the course ten times over. I finally understood what brands were actually looking for.",
-    duration: "0:38",
-  },
-];
-
 const faqs = [
   {
-    question: "Do I really never have to show my face?",
+    question: "Do I have to show my face?",
     answer:
-      "Correct. Every technique in this course, hooks, filming, editing, pitching, is built around faceless formats: voiceovers, hands-only shots, screen content, and b-roll.",
+      "No, but you don't have to avoid it either. The system works whether you're on camera, not showing your face, or completely silent.",
   },
   {
     question: "Do I need followers or expensive gear to start?",
     answer:
-      "No to both. Everything works with zero followers and just your phone. Module 1 is specifically about starting from nothing.",
+      "No to both. Everything works with zero followers and just your phone.",
+  },
+  {
+    question: "Will I go viral if I finish this course?",
+    answer:
+      "No one can promise that. What it teaches is the process that gives your content a much better chance, then how to test and iterate.",
   },
   {
     question: "How long do I have access for?",
@@ -68,7 +63,7 @@ const faqs = [
   {
     question: "What if it's not for me?",
     answer:
-      "Read through the module list below and watch the intro video first, that's exactly what they're there for. Once you're enrolled, you get instant access to all modules.",
+      "Watch the intro video and the module list below first, that's exactly what they're there for. Once you're enrolled, you get instant access to every module.",
   },
 ];
 
@@ -95,27 +90,28 @@ export default function GoPage() {
       <main className="flex-1">
         <section className="mx-auto max-w-2xl px-4 py-10 text-center sm:px-6 lg:px-8">
           <span className="pill-outline inline-flex rounded-full bg-toy-soft px-3 py-1 text-xs font-semibold text-toy-soft-foreground">
-            A course by a working UGC creator
+            Built on real results, not theory
           </span>
           <h1 className="text-sticker mx-auto mt-5 max-w-xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Go viral without showing your face.
+            You don&apos;t need a following to get views.
           </h1>
           <p className="mx-auto mt-5 max-w-md text-lg text-muted-foreground">
-            The exact system used to land a first paid brand deal in weeks,
-            with no followers, no camera, no expensive gear.
+            You need content people want to watch. We&apos;ve made videos
+            that reached millions of views with no following and no
+            expensive gear. Here&apos;s the system behind them.
           </p>
 
           <div className="mt-8">
             <Button
               size="lg"
               nativeButton={false}
-              render={<Link href="#enroll" />}
+              render={<Link href="/signup" />}
               className="btn-sticker"
             >
-              Enroll now · {siteConfig.price.formatted}
+              Save your spot
             </Button>
             <p className="mt-3 text-sm text-muted-foreground">
-              One-time payment · Lifetime access
+              {COURSE_IS_FREE ? "Free right now · No card required" : "One-time payment · Lifetime access"}
             </p>
           </div>
         </section>
@@ -123,13 +119,12 @@ export default function GoPage() {
         <section className="mx-auto max-w-2xl px-4 pb-16 sm:px-6 lg:px-8">
           <VideoPlayer
             aspect="video"
-            label="Intro from Aron · 1:12"
-            durationSeconds={72}
+            label="Intro from Aron"
             poster={
               <VideoPoster>
                 <p className="max-w-sm text-balance text-lg font-medium sm:text-xl">
-                  &ldquo;Here&apos;s exactly how I went from zero to
-                  full-time, without ever showing my face.&rdquo;
+                  &ldquo;We didn&apos;t guess what would work. We tested
+                  it, and it reached millions of views.&rdquo;
                 </p>
               </VideoPoster>
             }
@@ -141,7 +136,7 @@ export default function GoPage() {
             <div className="mx-auto flex max-w-2xl flex-wrap justify-center gap-4 px-4 py-10 sm:px-6 lg:px-8">
               {proof.map((p) => (
                 <div
-                  key={p.label}
+                  key={p.value}
                   className="pill-outline w-36 rounded-2xl bg-toy-soft px-3 py-4 text-center text-toy-soft-foreground"
                 >
                   <p className="font-heading text-2xl font-semibold">{p.value}</p>
@@ -174,7 +169,7 @@ export default function GoPage() {
               ))}
             </ol>
             <Link
-              href="/course#curriculum"
+              href="/#curriculum"
               className="mt-4 inline-block text-sm font-medium underline underline-offset-2 hover:text-primary"
             >
               See the full lesson-by-lesson breakdown →
@@ -184,46 +179,20 @@ export default function GoPage() {
 
         <Reveal>
           <section className="border-y border-border/70 bg-secondary/40">
-            <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-              <h2 className="text-sticker-sm text-center text-2xl font-semibold tracking-tight">
-                Students who made the leap
+            <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6 lg:px-8">
+              <h2 className="text-sticker-sm text-2xl font-semibold tracking-tight">
+                See the proof
               </h2>
-              <p className="mt-2 text-center text-sm text-muted-foreground">
-                AI-generated example videos, illustrating the kind of results
-                students describe.
+              <p className="mt-2 text-sm text-muted-foreground">
+                The full video breakdowns, hook, format, retention, and
+                what we learned, live on the main site.
               </p>
-              <div className="mt-8 grid gap-5 sm:grid-cols-2">
-                {testimonials.map((t) => (
-                  <Card key={t.name} className="card-sticker gap-3 rounded-2xl bg-card">
-                    <CardContent className="flex h-full flex-col">
-                      <VideoThumbnail
-                        aspect="portrait"
-                        poster={
-                          <VideoPoster variant="muted">
-                            <span className="font-heading text-2xl font-semibold">
-                              {t.initials}
-                            </span>
-                          </VideoPoster>
-                        }
-                        label={t.name}
-                        duration={t.duration}
-                        badge="AI-generated"
-                        dialogTitle={`AI-generated example video, styled as a testimonial from ${t.name}`}
-                        className="mb-1 border-2 border-ink"
-                      />
-                      <div className="mt-2 flex gap-0.5 text-primary">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className="size-3.5 fill-current" />
-                        ))}
-                      </div>
-                      <p className="mt-2 flex-1 text-sm leading-relaxed">
-                        &ldquo;{t.quote}&rdquo;
-                      </p>
-                      <p className="mt-3 text-sm font-medium">{t.name}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <Link
+                href="/#proof"
+                className="mt-4 inline-block text-sm font-medium underline underline-offset-2 hover:text-primary"
+              >
+                Watch the breakdowns →
+              </Link>
             </div>
           </section>
         </Reveal>
@@ -235,7 +204,9 @@ export default function GoPage() {
                 {siteConfig.name} · Full Course
               </span>
               <div className="mt-5">
-                <PriceTag variant="base">{siteConfig.price.formatted} one-time</PriceTag>
+                <PriceTag variant="base">
+                  {COURSE_IS_FREE ? "Free right now" : `${siteConfig.price.formatted} one-time`}
+                </PriceTag>
               </div>
               <ul className="mt-6 space-y-3">
                 {inclusions.map((item) => (
@@ -248,10 +219,10 @@ export default function GoPage() {
               <Button
                 size="lg"
                 nativeButton={false}
-                render={<Link href="/checkout" />}
+                render={<Link href="/signup" />}
                 className="btn-sticker mt-8 w-full"
               >
-                Enroll now
+                Save your spot
               </Button>
             </div>
           </section>
@@ -271,7 +242,7 @@ export default function GoPage() {
               ))}
             </div>
             <Link
-              href="/course#faq"
+              href="/#faq"
               className="mt-6 inline-block text-sm font-medium underline underline-offset-2 hover:text-primary"
             >
               See all questions →

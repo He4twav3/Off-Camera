@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { Button } from "@/components/ui/button";
+import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
   title: "Confirming your payment",
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 // granted once the IPN webhook actually sees it settle on-chain.
 export default function CheckoutPendingPage() {
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center justify-center bg-secondary/30 px-4 py-16 text-center">
+    <div className="dark-invert flex min-h-screen flex-col items-center justify-center bg-background text-foreground px-4 py-16 text-center">
       <div className="mb-8">
         <Logo />
       </div>

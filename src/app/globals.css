@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Sitewide dark palette — applied globally via the `dark-invert` class on
+   <body> (see app/layout.tsx), not scoped to any one route anymore. */
+@import "../styles/dark-invert.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -35,6 +38,8 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-cta: var(--cta);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -55,6 +60,24 @@
   --color-menu-5: var(--menu-5);
   --color-menu-foreground: var(--menu-foreground);
   --color-cream-depth: var(--cream-depth);
+  /* Premium surface/elevation ramp + the two accents the landing page is
+     allowed to use. Exposed through @theme so they're real Tailwind
+     utilities (bg-surface-2, text-beam, border-hairline) rather than
+     hand-written var() strings scattered through className props. */
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-beam: var(--beam);
+  --color-beam-bright: var(--beam-bright);
+  --color-beam-dim: var(--beam-dim);
+  --color-signal: var(--signal);
+  --color-crimson: var(--crimson);
+  --color-crimson-bright: var(--crimson-bright);
+  --color-crimson-deep: var(--crimson-deep);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -79,6 +102,16 @@
   --popover-foreground: oklch(0.16 0.012 50);
   --primary: oklch(0.62 0.19 35);
   --primary-foreground: oklch(0.99 0.005 75);
+  /* One deliberate exception to "one hue family" above: the single
+     highest-priority action on the page right now (the free-spot signup
+     CTA, hero + nav) needs to read as genuinely distinct from every other
+     orange element around it — the countdown badge, price tags, every
+     other button — not another shade of the same accent, and not a light/
+     pastel color either (this has to look bold and deliberate, not soft).
+     Maroon: deep, rich, unmistakably not the site's orange. Reserved for
+     this one CTA — not folded into the toy-* ramp or spread elsewhere. */
+  --cta: oklch(0.4 0.16 22);
+  --cta-foreground: oklch(0.98 0.01 60);
   --secondary: oklch(0.94 0.02 70);
   --secondary-foreground: oklch(0.16 0.012 50);
   --muted: oklch(0.95 0.015 70);
@@ -143,6 +176,33 @@
   --menu-4: oklch(0.82 0.13 90);
   --menu-5: oklch(0.76 0.16 350);
   --menu-foreground: oklch(0.16 0.012 50);
+
+  /* Light-theme fallbacks for the premium ramp — the real values live in
+     styles/dark-invert.css, which is what actually renders sitewide. These
+     exist so a component using bg-surface-2 or text-beam never resolves to
+     an empty custom property if the light palette is ever switched back on. */
+  --surface-0: var(--background);
+  --surface-1: oklch(0.965 0 0);
+  --surface-2: oklch(0.935 0 0);
+  --surface-3: oklch(0.9 0 0);
+  --surface-4: oklch(0.86 0 0);
+  --beam: oklch(0.24 0 0);
+  --beam-bright: oklch(0.12 0 0);
+  --beam-dim: oklch(0.46 0 0);
+  --signal: oklch(0.44 0 0);
+  --crimson-bright: oklch(0.55 0.205 29);
+  --crimson: oklch(0.47 0.19 26);
+  --crimson-deep: oklch(0.33 0.14 22);
+  --hairline: oklch(0 0 0 / 0.1);
+  --hairline-strong: oklch(0 0 0 / 0.18);
+
+  /* Motion constants. One easing curve for every entrance on the site
+     (expo-out: fast commitment, long soft settle, zero overshoot) so the
+     page reads as one choreographed system rather than a dozen components
+     each easing slightly differently. Bounce/back curves are deliberately
+     absent — they're what makes motion read as playful. */
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-glide: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 /* Slow horizontal drift for the background symbol field — content is
@@ -179,6 +239,10 @@
     transform: scale(1.08);
   }
 }
+
+/* Removed: the analog "recording grain" texture (ViewfinderFrame) — it
+   read as a low-quality video artifact rather than the premium camera-HUD
+   effect it was going for. */
 
 /* "Toybox" structural utilities — the ink-outline + hard-shadow sticker
    system used across the storefront (marketing) pages. Kept out of the
@@ -323,6 +387,502 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   ATMOSPHERE — the page's living background (see site/atmosphere.tsx)
+
+   Three ideas, layered, and deliberately nothing more: large blurred
+   pools of light drifting on very long cycles, a fixed light/vignette
+   gradient, and a static film grain. All of them are white at very low
+   alpha — with no hue anywhere in this palette, atmosphere is literally
+   just light of varying intensity, which is also what it is in a real
+   room. The whole layer is fixed to the viewport, so
+   scrolling the page past it produces real parallax for free — the
+   content moves, the light doesn't — with no scroll listener and no
+   per-frame JS at all.
+
+   Cycle lengths (38s–64s, mutually prime-ish so they never re-sync into
+   a visible "pattern") and travel distances are the restraint dial: at
+   this size and blur, a 6–10% translation is perceptible as the room
+   breathing but never as something moving on screen. Everything animates
+   transform/opacity only — no layout, no paint, compositor-only.
+   ───────────────────────────────────────────────────────────────────── */
+@keyframes atmos-drift-a {
+  0%,
+  100% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(5%, 4%, 0) scale(1.12);
+  }
+}
+
+@keyframes atmos-drift-b {
+  0%,
+  100% {
+    transform: translate3d(3%, 3%, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-5%, -3%, 0) scale(0.94);
+  }
+}
+
+@keyframes atmos-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 2%, 0) scale(0.96);
+  }
+  50% {
+    transform: translate3d(-3%, -4%, 0) scale(1.1);
+  }
+}
+
+/* Opacity, not position: the softbox above the fold shouldn't travel, it
+   should breathe — a light source settling, the same idea as the
+   viewfinder's focus pulse but an order of magnitude slower. */
+@keyframes atmos-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@utility atmos-drift-a {
+  animation: atmos-drift-a 46s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility atmos-drift-b {
+  animation: atmos-drift-b 64s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility atmos-drift-c {
+  animation: atmos-drift-c 38s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility atmos-breathe {
+  animation: atmos-breathe 22s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* Film grain. An inline feTurbulence SVG rather than a raster tile: no
+   network request, no cache miss, resolution-independent, and a couple
+   hundred bytes. Kept very low-opacity and blended so it reads as the
+   sensor noise of a dark frame — the thing that stops a large flat dark
+   area from banding — not as visible texture. */
+@utility atmos-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   PREMIUM SURFACE SYSTEM
+
+   Every card on the landing page is the same three physical ideas: a
+   hairline top edge catching the light from above, a soft wide shadow
+   underneath proving it sits off the page, and a fill a step lighter
+   than what's behind it. That's what reads as "dimensional" — not a
+   border, not a glow.
+   ───────────────────────────────────────────────────────────────────── */
+@utility card-premium {
+  position: relative;
+  border-width: 1px !important;
+  border-color: var(--hairline) !important;
+  background-image: linear-gradient(
+    180deg,
+    oklch(1 0 0 / 0.045) 0%,
+    transparent 42%
+  );
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.06),
+    0 1px 2px 0 oklch(0 0 0 / 0.6),
+    0 22px 48px -24px oklch(0 0 0 / 0.85) !important;
+  /* 0.28s, not the 0.5s this used to run at. A card lifting under the
+     cursor is a micro-interaction, and the motion guidance this project
+     checked itself against puts those at 150–300ms — half a second of
+     travel on a hover is the difference between a surface that responds
+     and one that lags behind the pointer. */
+  transition:
+    transform 0.28s var(--ease-cinematic),
+    border-color 0.28s var(--ease-cinematic),
+    box-shadow 0.28s var(--ease-cinematic);
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: var(--hairline-strong) !important;
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 0.1),
+      0 1px 2px 0 oklch(0 0 0 / 0.6),
+      0 40px 72px -28px oklch(0 0 0 / 0.95) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: border-color 0.3s ease;
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+/* The same card, marked as the one that matters (Pricing). In a palette
+   with no hue, "featured" can't mean "the colored one" — so it means
+   lit: a brighter top edge, a stronger inner highlight, and a soft white
+   bloom spilling out underneath, as though this one card is closer to
+   the light source than its neighbours. */
+@utility card-featured {
+  position: relative;
+  border-width: 1px !important;
+  border-color: oklch(1 0 0 / 0.24) !important;
+  background-image: linear-gradient(
+    180deg,
+    oklch(1 0 0 / 0.1) 0%,
+    oklch(1 0 0 / 0.02) 34%,
+    transparent 60%
+  );
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.26),
+    0 1px 2px 0 oklch(0 0 0 / 0.6),
+    0 34px 80px -34px oklch(1 0 0 / 0.16),
+    0 22px 48px -24px oklch(0 0 0 / 0.85) !important;
+  /* 0.28s, not the 0.5s this used to run at. A card lifting under the
+     cursor is a micro-interaction, and the motion guidance this project
+     checked itself against puts those at 150–300ms — half a second of
+     travel on a hover is the difference between a surface that responds
+     and one that lags behind the pointer. */
+  transition:
+    transform 0.28s var(--ease-cinematic),
+    border-color 0.28s var(--ease-cinematic),
+    box-shadow 0.28s var(--ease-cinematic);
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: oklch(1 0 0 / 0.34) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+/* Buttons press *into* the page rather than sliding around it: a 1px
+   settle plus the shadow tightening underneath. Same physical story as
+   the cards, one order of magnitude smaller and faster. */
+@utility btn-premium {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-width: 1px !important;
+  /* Reads from a variable, not a hardcoded color — and the variable has
+     a default, so a caller that never sets it still gets the neutral
+     hairline exactly as before. Previously this was
+     `border-color: var(--hairline) !important`, which meant no caller
+     could ever put a different border on the button: `!important` beats
+     a plain utility class regardless of source order, so the crimson
+     CTA buttons across the page (hero, pricing, navbar, final CTA) were
+     all quietly rendering a dim neutral ring instead of the crimson
+     border their className actually specified — a bug hiding in plain
+     sight as "the button looks a little off". A caller now opts in with
+     an arbitrary-value class: `[--btn-border:var(--crimson-bright)]`. */
+  border-color: var(--btn-border, var(--hairline)) !important;
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.14),
+    0 10px 26px -12px oklch(0 0 0 / 0.7) !important;
+  transition:
+    transform 0.25s var(--ease-cinematic),
+    box-shadow 0.25s var(--ease-cinematic),
+    background-color 0.25s var(--ease-cinematic);
+
+  /* Light sweeping across the face on hover — a highlight travelling over
+     a physical surface, ~700ms so it reads as a considered material
+     response and not a "shine" gimmick. Transform-only, so it composites. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      oklch(1 0 0 / 0.18) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.55s var(--ease-glide);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 0.2),
+      0 18px 38px -14px oklch(0 0 0 / 0.8) !important;
+  }
+
+  &:hover::after {
+    transform: translateX(120%);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 0.1),
+      0 4px 12px -8px oklch(0 0 0 / 0.6) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+    &::after {
+      display: none;
+    }
+  }
+}
+
+/* The signup CTA — the one red thing on the site — seated in a graphite
+   housing rather than floating loose on the black.
+
+   Straight crimson-on-near-black was the loudest possible version of this
+   button and also the flattest: nothing separated the fill from the page
+   except the fill itself, so the edge did all the work and the button
+   read as a coloured rectangle instead of a physical control. The ring
+   fixes both ends of that — a band of graphite (surface-3, the same grey
+   as every raised panel on the page) with a lit hairline on its outer
+   edge, so the red sits *in* something. It also buys the red back some
+   force: the eye reads the red against grey against black, three steps
+   instead of one, and the crimson looks hotter for being bracketed.
+
+   The face keeps its own top-to-bottom fall (crimson-bright → crimson →
+   crimson-deep) plus an inset shadow pooling at the bottom lip, which is
+   what makes it read as a lit surface rather than a flat gradient swatch.
+
+   Was a domed button with a thick multi-ring "housing" bezel around the
+   fill (a grey ring, then a hairline ring, then the shadow) — sleeker
+   read: a single thin edge, catching light rather than being boxed in
+   grey. The grey ring in particular was the problem: on a graphite page,
+   a grey ring around a red pill reads as a border drawn in the wrong
+   color, not as a deliberate housing.
+
+   Self-contained on purpose: it does NOT stack with btn-premium, whose
+   own `box-shadow: ... !important` would win and erase this one. */
+@utility btn-cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-width: 1px !important;
+  border-color: oklch(1 0 0 / 0.16) !important;
+  background-image: linear-gradient(
+    180deg,
+    var(--crimson-bright) 0%,
+    var(--crimson) 62%,
+    var(--crimson-deep) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.22),
+    inset 0 -10px 18px -12px oklch(0 0 0 / 0.4),
+    0 10px 26px -12px oklch(0 0 0 / 0.75),
+    0 0 40px -16px oklch(0.55 0.205 29 / 0.45) !important;
+  transition:
+    transform 0.25s var(--ease-cinematic),
+    box-shadow 0.25s var(--ease-cinematic),
+    border-color 0.25s var(--ease-cinematic);
+
+  /* Same sweeping highlight as btn-premium — a light travelling across a
+     physical face, not a shine gimmick. */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      oklch(1 0 0 / 0.2) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.55s var(--ease-glide);
+  }
+
+  /* Hover lifts the whole face and opens the glow slightly — no ring to
+     step through a surface level, just the one edge getting brighter. */
+  &:hover {
+    transform: translateY(-2px);
+    border-color: oklch(1 0 0 / 0.26) !important;
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 0.3),
+      inset 0 -10px 18px -12px oklch(0 0 0 / 0.35),
+      0 16px 34px -14px oklch(0 0 0 / 0.85),
+      0 0 56px -14px oklch(0.55 0.205 29 / 0.6) !important;
+  }
+
+  &:hover::after {
+    transform: translateX(120%);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 0.14),
+      inset 0 -8px 14px -10px oklch(0 0 0 / 0.45),
+      0 4px 12px -8px oklch(0 0 0 / 0.65),
+      0 0 30px -18px oklch(0.55 0.205 29 / 0.35) !important;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--beam);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+    &::after {
+      display: none;
+    }
+  }
+}
+
+@utility pill-premium {
+  border-width: 1px !important;
+  border-color: var(--hairline) !important;
+  transition:
+    border-color 0.3s var(--ease-cinematic),
+    background-color 0.3s var(--ease-cinematic),
+    color 0.3s var(--ease-cinematic);
+
+  &:hover {
+    border-color: var(--hairline-strong) !important;
+  }
+}
+
+/* Quiet depth instead of a chunky offset — a soft, wide shadow behind
+   the type reads as cinematic (a subject lit against dark, not a comic
+   sticker) without competing with the type weight itself for attention. */
+@utility text-premium {
+  text-shadow: 0 4px 28px oklch(0 0 0 / 0.6);
+}
+
+@utility text-premium-sm {
+  text-shadow: 0 2px 18px oklch(0 0 0 / 0.55);
+}
+
+/* A heading lit from above: near-white at the cap line falling off to a
+   dimmer grey at the baseline. Two or three percent of lightness, which
+   is enough to stop a large headline reading as a flat fill without
+   anyone consciously registering a gradient.
+
+   That description is a per-LINE effect — "cap line" and "baseline" are
+   both properties of one line box, not of a heading as a whole — but
+   without background-size/-repeat below, the gradient was being stretched
+   across the element's entire background box once, top to bottom. For a
+   one-line heading that's the same thing. For a multi-line one (e.g. the
+   hero's three-line h1) it isn't: the last line sits at the very bottom
+   of that one long gradient, at oklch(0.76 ...) instead of the near-white
+   the first line gets, so the *last line of any multi-line text-lit
+   heading fades toward the dark background much harder than intended* —
+   visibly enough on the hero's "to get views." to read as content going
+   missing, not as a lit heading. 1lh is the CSS line-height unit — it
+   always matches whatever `leading-*` the caller set, from
+   `leading-none` to `leading-[1.15]`, so this needs no per-instance
+   tuning. Tiling the same gradient at that height, repeating down the
+   block, gives every line the identical cap-to-baseline falloff the
+   comment above describes instead of compounding it further with every
+   line the heading has. */
+@utility text-lit {
+  background-image: linear-gradient(
+    180deg,
+    oklch(1 0 0) 0%,
+    oklch(0.98 0.004 264) 42%,
+    oklch(0.76 0.01 264) 100%
+  );
+  background-size: 100% 1lh;
+  background-repeat: repeat-y;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+
+/* The one phrase in a headline the whole page turns on. With no hue to
+   spend, emphasis inside running type is pure luminance: this phrase
+   stays at full white while the rest of the heading falls away to grey
+   under `text-lit`, plus a faint bloom so it reads as genuinely brighter
+   rather than merely un-dimmed. */
+@utility text-beam {
+  color: oklch(1 0 0);
+  background-image: none;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+  text-shadow: 0 0 34px oklch(1 0 0 / 0.28);
+}
+
+/* Hairline that fades out at both ends instead of stopping dead — the
+   difference between a rule that looks drawn and one that looks lit. The
+   page's section separators and every internal divider use this. */
+@utility rule-fade {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--hairline-strong) 22%,
+    var(--hairline-strong) 78%,
+    transparent 100%
+  );
+}
+
+/* The brighter sibling of rule-fade, for the short accent rule in every
+   section eyebrow — the one mark that says "a new chapter starts here". */
+@utility rule-fade-bright {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.55) 45%,
+    oklch(1 0 0 / 0.2) 100%
+  );
+}
+
+/* Focus ring, stated once. Dark UI needs a genuinely bright ring plus a
+   dark spacer to separate it from whatever surface it lands on. */
+/* Hide the scrollbar on a horizontally-scrolling strip while keeping it
+   scrollable by wheel, trackpad, touch and keyboard. Two places on the
+   landing page already applied this class (the navbar's section row and
+   the curriculum pipeline) but it was never actually defined anywhere —
+   so both were rendering a visible scrollbar cutting across the design.
+   Defined once, here. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility focus-premium {
+  &:focus-visible {
+    outline: 2px solid var(--beam-bright);
+    outline-offset: 2px;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -332,6 +892,41 @@
   }
   html {
     @apply font-sans;
+
+    /* Nothing on this site is meant to scroll sideways. Decorative
+       glow/atmosphere layers are deliberately wider than the viewport,
+       and any one of them escaping its section turns the whole page into
+       a free-floating canvas that drifts under a trackpad swipe. This is
+       the backstop for that class of bug — each offender still gets
+       fixed at its source (see pricing.tsx), but a missed one degrades
+       to "clipped" instead of "the page slides".
+
+       `clip`, not `hidden`: hidden would make the viewport a scroll
+       container on this axis and break the sticky navbar and the
+       viewfinder frame's sticky scroll sequence. clip does no such
+       thing — it only stops the overflow from being reachable. */
+    overflow-x: clip;
+
+    /* Anchor links (the navbar's Proof/Curriculum/Story/Pricing/FAQ row)
+       glide to their target rather than teleporting. On a page built as
+       one continuous argument, a jump-cut between sections destroys the
+       reader's sense of where they are relative to everything else —
+       which is precisely the spatial continuity the whole design is
+       trying to establish. `scroll-padding-top` keeps the sticky navbar
+       from landing on top of the heading it just scrolled to. */
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+
+    @media (min-width: 1024px) {
+      scroll-padding-top: 8rem;
+    }
+
+    /* Smooth scrolling is a vestibular trigger for some people, and it's
+       also the one motion here a user cannot opt out of by simply not
+       hovering something. */
+    @media (prefers-reduced-motion: reduce) {
+      scroll-behavior: auto;
+    }
   }
   h1,
   h2,

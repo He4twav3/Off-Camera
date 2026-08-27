@@ -4,6 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/site/logo";
 import { getSession } from "@/lib/auth";
+import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
   title: "You're in",
@@ -14,7 +15,7 @@ export default async function CheckoutSuccessPage() {
   const session = await getSession();
 
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center justify-center bg-secondary/30 px-4 py-16 text-center">
+    <div className="dark-invert flex min-h-screen flex-col items-center justify-center bg-background text-foreground px-4 py-16 text-center">
       <div className="mb-8">
         <Logo />
       </div>

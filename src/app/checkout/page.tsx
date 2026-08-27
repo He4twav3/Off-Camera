@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Check, TriangleAlert } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { siteConfig } from "@/lib/site-config";
+import { TOTAL_MODULES, TOTAL_LESSONS } from "@/lib/curriculum";
 import { CheckoutForm } from "./checkout-form";
+import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const inclusions = [
-  "8 core modules, 25 lessons",
+  `${TOTAL_MODULES} core modules, ${TOTAL_LESSONS} lessons`,
   "Pitch & contract templates",
   "Private student community",
   "Lifetime access + future updates",
@@ -39,7 +41,7 @@ export default async function CheckoutPage({
   const errorMessage = error ? (ERROR_MESSAGES[error] ?? "Something went wrong. Try again.") : null;
 
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center bg-secondary/30 px-4 py-12">
+    <div className="dark-invert flex min-h-screen flex-col items-center bg-background text-foreground px-4 py-12">
       <div className="mb-8">
         <Logo />
       </div>
@@ -57,7 +59,7 @@ export default async function CheckoutPage({
             Order summary
           </p>
           <h2 className="mt-2 font-heading text-lg font-semibold text-balance">
-            Off Camera: Faceless Content &amp; Brand Deals
+            {siteConfig.courseTitle}
           </h2>
           <ul className="mt-4 space-y-2">
             {inclusions.map((item) => (
@@ -87,8 +89,8 @@ export default async function CheckoutPage({
       </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        <Link href="/course" className="underline underline-offset-2">
-          Back to the course page
+        <Link href="/" className="underline underline-offset-2">
+          Back to the main site
         </Link>
       </p>
     </div>

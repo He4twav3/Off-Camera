@@ -9,9 +9,17 @@
  */
 export const siteConfig = {
   name: "Off Camera",
-  tagline: "Go viral without showing your face.",
+  tagline: "You don't need a following to get views.",
   description:
-    "A hands-on course on creating faceless viral content, UGC for brands, and getting picked for campaigns, taught from real creator experience by Aron.",
+    "Real breakdowns of our own videos that reached millions of views, and the repeatable system behind them: hooks, retention, formats, volume, consistency, and iteration. On camera, not showing your face, silent, UGC, demo, or screen recording — the format is flexible, the formula isn't.",
+  /**
+   * Single source of truth for the course product's name, so it can't
+   * drift out of sync the way the old "Off Camera: Faceless Content &
+   * Brand Deals" string did across ~8 separate hardcoded copies
+   * (course-hero, marketplace card, structured data, checkout, payment
+   * descriptions, emails, OG images). Every one of those now reads this.
+   */
+  courseTitle: "Off Camera: The Content Formula",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://offcamera.example.com",
   contactEmail: "support@offcamera.example.com",
   creator: {
@@ -40,7 +48,7 @@ export const siteConfig = {
   // empty on purpose — placeholders, not stand-in footage from other
   // creators.
   videos: {
-    intro: undefined as string | undefined,
+    intro: "aqz-KE-bpKQ" as string | undefined,
     story: undefined as string | undefined,
   },
   // Real community, once it exists: a Discord/Circle/Skool invite link.

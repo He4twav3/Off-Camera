@@ -12,26 +12,32 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/site/logo";
-import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
-import { SiteSearch } from "@/components/site/site-search";
+import { AuthNavPill } from "@/components/site/auth-nav-status";
+import { ScrollProgress } from "@/components/site/scroll-progress";
+import { useScrolledPast } from "@/lib/use-scroll-y";
 import { cn } from "@/lib/utils";
 
 const pages = [
   { href: "/", label: "Home" },
-  { href: "/course", label: "The Course" },
   { href: "/dashboard", label: "Dashboard" },
 ];
 
-// Real in-page jumps, not decoration — both marketing pages define matching
-// section ids, so these work identically from "/" or "/course". Each gets
-// its own flat color, the one place on the site allowed to be as varied as
-// Gumroad's actual category dropdowns.
+// Real in-page jumps, not decoration — the homepage defines all of these
+// section ids (there's only one landing page now, see UX_PAGE_AUDIT.md —
+// the old separate /course page that also defined them is gone). Prefixed
+// with "/" rather than a bare "#...", since this Navbar is shared by every
+// marketing page (/, /about, /changelog, ...), not just the homepage that
+// actually has these sections — a bare hash would silently no-op from
+// anywhere else. Used to be five different filled pill colors (a Gumroad-
+// style category-dropdown look) — replaced with plain tracked-out text
+// links, no fill, no border: a premium site's nav doesn't need five
+// colors to prove five things are clickable.
 const sections = [
-  { href: "#curriculum", label: "Curriculum", color: "bg-menu-1" },
-  { href: "#story", label: "Story", color: "bg-menu-2" },
-  { href: "#reviews", label: "Reviews", color: "bg-menu-3" },
-  { href: "#pricing", label: "Pricing", color: "bg-menu-4" },
-  { href: "#faq", label: "FAQ", color: "bg-menu-5" },
+  { href: "/#proof", label: "Proof" },
+  { href: "/#curriculum", label: "Curriculum" },
+  { href: "/#story", label: "Story" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 // Deliberately not async / no getSession() call here: this navbar is shared
@@ -48,19 +54,41 @@ export function Navbar() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const closeMobileNav = () => setMobileNavOpen(false);
 
-  return (
-    <header className="sticky top-0 z-50 border-b-[3px] border-ink bg-background">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo />
+  // At the very top the navbar is transparent and the hero reads
+  // full-bleed; the moment content starts passing underneath it, it
+  // becomes frosted glass with a hairline under it. That transition is
+  // the page telling you it's aware of where you are — a permanently
+  // opaque bar reads as chrome bolted on top, and a permanently
+  // transparent one leaves text scrolling through the logo.
+  const scrolled = useScrolledPast(24);
 
-        <SiteSearch variant="bar" />
+  // The mobile Sheet renders through a portal straight to document.body —
+  // that used to fall outside the .dark-invert scope (a wrapper div around
+  // just the homepage's own DOM subtree), so it fell back to the light
+  // theme even while open on a dark page (same root cause the old search
+  // dialog had before it was removed). Now that dark-invert is applied
+  // sitewide directly on <body> itself (see app/layout.tsx), the portaled
+  // Sheet is already inside that scope for free — no client-side class
+  // juggling needed here anymore.
+
+  return (
+    <header
+      className={cn(
+        "sticky top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500 ease-[var(--ease-cinematic)]",
+        scrolled
+          ? "border-b border-hairline bg-background/80 backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent"
+      )}
+    >
+      <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <Logo />
 
         <nav className="ml-auto hidden items-center gap-2.5 lg:flex">
           {pages.slice(1).map((page) => (
             <Link
               key={page.href}
               href={page.href}
-              className="pill-outline rounded-full bg-card px-3.5 py-1.5 text-sm font-semibold transition-colors hover:bg-accent"
+              className="pill-premium focus-premium rounded-full bg-surface-1/70 px-3.5 py-1.5 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
             >
               {page.label}
             </Link>
@@ -68,12 +96,19 @@ export function Navbar() {
           <AuthNavPill />
         </nav>
 
+        {/* "Save my free spot", not "Enroll now": we're gathering the free-
+            preview list first, not pushing checkout — see hero.tsx's own
+            note on the same call. Enrollment isn't gone, just not what
+            this persistent, always-visible slot pushes right now. Same
+            crimson treatment as the hero button — one action, one color,
+            everywhere it appears. */}
         <Button
+          size="lg"
           nativeButton={false}
-          render={<Link href="/course#pricing" />}
-          className="btn-sticker ml-auto hidden lg:inline-flex"
+          render={<Link href="/signup" />}
+          className="btn-cta ml-auto hidden rounded-full px-5 font-bold text-cta-foreground lg:inline-flex"
         >
-          Enroll now
+          Save my free spot
         </Button>
 
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -95,62 +130,53 @@ export function Navbar() {
                 <Logo />
               </SheetTitle>
             </SheetHeader>
-            <nav className="flex flex-col gap-2 px-4">
-              <SiteSearch variant="row" onNavigate={closeMobileNav} />
-              <div className="my-1 border-t border-border" />
-              {pages.map((page) => (
-                <Link
-                  key={page.href}
-                  href={page.href}
-                  onClick={closeMobileNav}
-                  className="pill-outline rounded-full bg-card px-3.5 py-2 text-sm font-semibold transition-colors hover:bg-accent"
-                >
-                  {page.label}
-                </Link>
-              ))}
-              <div className="my-1 border-t border-border" />
+            <nav className="flex flex-col px-4">
               {sections.map((section) => (
                 <Link
                   key={section.href}
                   href={section.href}
                   onClick={closeMobileNav}
-                  className={cn(
-                    "pill-outline rounded-full px-3.5 py-2 text-sm font-semibold text-menu-foreground",
-                    section.color
-                  )}
+                  className="border-b border-hairline py-3 text-sm font-semibold tracking-[0.14em] text-foreground uppercase transition-colors first:pt-0 hover:text-muted-foreground"
                 >
                   {section.label}
                 </Link>
               ))}
               <Button
+                size="lg"
                 nativeButton={false}
-                render={<Link href="/course#pricing" onClick={closeMobileNav} />}
-                className="btn-sticker mt-3"
+                render={<Link href="/signup" onClick={closeMobileNav} />}
+                className="btn-cta mt-3 rounded-full py-2.5 font-bold text-cta-foreground"
               >
-                Enroll now
+                Save my free spot
               </Button>
-              <div className="my-1 border-t border-border" />
-              <AuthNavRow onNavigate={closeMobileNav} />
             </nav>
           </SheetContent>
         </Sheet>
       </div>
+
+      {/* A hairline progress line pinned to the bottom edge of the
+          header. It answers the question a long page always raises —
+          "how much of this is there?" — without a word, and it's the
+          only element that moves continuously as you scroll. */}
+      <ScrollProgress />
 
       {/* Hidden below lg: this row lives inside the sticky header, so on a
           phone it would permanently occupy header height at every scroll
           position, cut off mid-label with no scroll affordance, and it's
           already fully duplicated by the section links in the hamburger
           sheet above. Desktop keeps it unchanged. */}
-      <div className="no-scrollbar hidden overflow-x-auto border-t border-border/70 bg-secondary/40 lg:block">
-        <div className="mx-auto flex max-w-6xl items-center gap-2.5 px-4 py-2.5 sm:px-6 lg:px-8">
+      <div
+        className={cn(
+          "no-scrollbar hidden overflow-x-auto border-t transition-colors duration-500 lg:block",
+          scrolled ? "border-hairline" : "border-transparent"
+        )}
+      >
+        <div className="mx-auto flex max-w-[1240px] items-center gap-8 px-4 py-3 sm:px-6 lg:px-8">
           {sections.map((section) => (
             <Link
               key={section.href}
               href={section.href}
-              className={cn(
-                "pill-outline shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap text-menu-foreground transition-transform hover:-translate-y-0.5",
-                section.color
-              )}
+              className="focus-premium relative shrink-0 rounded text-xs font-semibold tracking-[0.14em] whitespace-nowrap text-muted-foreground uppercase transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-crimson-bright after:transition-[width] after:duration-500 after:ease-[var(--ease-cinematic)] hover:text-foreground hover:after:w-full"
             >
               {section.label}
             </Link>
