@@ -72,15 +72,37 @@ function checkPending() {
   }
 }
 
+/** Coalesces checkPending to at most once per animation frame — same
+ * pattern as use-scroll-y.ts's own onScroll/flush, applied here for the
+ * same reason. Without this, checkPending ran on every raw `scroll`
+ * event, and unlike a component just reading one cached value, it reads
+ * `getBoundingClientRect()` — a forced layout — for every still-pending
+ * element (up to ~79 of them early on the page) on every single one of
+ * those events. That's real jank while actively scrolling, worst right
+ * when the most is still pending, which is also exactly when a visitor
+ * is scrolling fastest through the top of the page. */
+let checkFrame = 0;
+function scheduleCheck() {
+  if (checkFrame) return;
+  checkFrame = requestAnimationFrame(() => {
+    checkFrame = 0;
+    checkPending();
+  });
+}
+
 function stopListening() {
-  window.removeEventListener("scroll", checkPending);
-  window.removeEventListener("resize", checkPending);
+  window.removeEventListener("scroll", scheduleCheck);
+  window.removeEventListener("resize", scheduleCheck);
+  if (checkFrame) {
+    cancelAnimationFrame(checkFrame);
+    checkFrame = 0;
+  }
 }
 
 function watch(el: Element, show: () => void) {
   if (pending.size === 0) {
-    window.addEventListener("scroll", checkPending, { passive: true });
-    window.addEventListener("resize", checkPending, { passive: true });
+    window.addEventListener("scroll", scheduleCheck, { passive: true });
+    window.addEventListener("resize", scheduleCheck, { passive: true });
   }
   pending.set(el, show);
 

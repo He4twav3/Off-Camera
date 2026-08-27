@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useScrollY } from "@/lib/use-scroll-y";
 import { cn } from "@/lib/utils";
 
 /**
@@ -157,7 +158,6 @@ const SYMBOL_FADE_DISTANCE = 420;
  */
 export function ViewfinderFrame({ className }: { className?: string }) {
   const [elapsed, setElapsed] = useState(0);
-  const [symbolOpacity, setSymbolOpacity] = useState(1);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -165,15 +165,15 @@ export function ViewfinderFrame({ className }: { className?: string }) {
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    function onScroll() {
-      const ratio = 1 - window.scrollY / SYMBOL_FADE_DISTANCE;
-      setSymbolOpacity(Math.min(1, Math.max(0, ratio)));
-    }
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  // Was its own raw `scroll` listener recomputing this on every event —
+  // exactly the pattern use-scroll-y.ts exists to replace (see its own
+  // doc comment): a fixed, always-on-screen overlay re-rendering on every
+  // unthrottled scroll event, not just once per painted frame, is real
+  // jank on a scroll fling, especially on mobile Safari where `fixed`
+  // elements already repaint expensively. useScrollY shares one listener
+  // and one rAF-coalesced read across the whole page instead.
+  const scrollY = useScrollY();
+  const symbolOpacity = Math.min(1, Math.max(0, 1 - scrollY / SYMBOL_FADE_DISTANCE));
 
   return (
     <div
