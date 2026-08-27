@@ -1,59 +1,70 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/site/brand-mark";
 import { cn } from "@/lib/utils";
 
 /**
- * The wordmark: the name set lowercase and tight, with the tally light
- * after it.
+ * The logo: the viewfinder mark, then the name.
  *
- * BUILT TO THE REFERENCE SITE'S SPEC, WHICH WAS MEASURED RATHER THAN
- * EYEBALLED. Its logo is a pure lowercase wordmark — no symbol, no tile,
- * no lockup — and the numbers below came out of its actual pixels:
+ * TWO LOCKUPS, ONE IDENTITY.
+ *   full     — mark + wordmark. The default, for the navbar, the footer
+ *              and every auth/checkout page header.
+ *   compact  — the mark alone, for anywhere too tight for the name. It
+ *              is not a cropped version of the full lockup; the mark was
+ *              drawn to stand on its own (see brand-mark.tsx), which is
+ *              the whole reason the identity is a mark plus a name rather
+ *              than a wordmark with a decorative flourish in it.
  *
- *   stem / x-height   = 0.258  → Bold, 700. Notably heavier than the
- *                                500–600 the rest of the display type
- *                                runs at; a wordmark is set heavier than
- *                                the headings it sits above, and that
- *                                contrast is what makes it read as a mark
- *                                rather than as a line of copy.
- *   letter gap / stem = 0.5    → tracking pulled tight and negative. At
- *                                this weight the counters carry the
- *                                spacing, so the letters can close up.
- *   lowercase throughout       → no capitals anywhere in it.
+ * THE MARK IS OURS AND UNTOUCHED — see brand-mark.tsx. Everything below
+ * is about the letters that follow it.
  *
- * WHAT IS OURS. The construction is adapted; nothing is copied. Their
- * name is set in their letterforms — this is our name in DM Sans, and the
- * one element they do not have is the thing that makes it ours: a
- * camera's tally light, the red lamp that means the thing is recording,
- * sitting where a full stop would. It is as close to a literal reading of
- * "Off Camera" as a mark can get, and it is the only animated element in
- * the site's chrome. It pulses for the same reason a real tally does — it
- * reads as live rather than as decoration.
+ * THE WORDMARK. Lowercase, set tight, in Bricolage Grotesque — the same
+ * face the reference site's own oversized "Parley" lettering measures out
+ * to (see layout.tsx for how that was confirmed; it is not their heading
+ * face). Tracking -0.04em is read off that same source. The weight is
+ * not — 500 is what their oversized lettering measures to, but at this
+ * size (1.15rem) that reads thin rather than confident, so this is set
+ * at 700 instead, which is both closer to how their own small lettering
+ * actually looks and the ordinary fix for a face needing more weight in
+ * hand the smaller it's set. What made a plain lowercase wordmark read
+ * as a mark instead of a line of text either way is less the weight than
+ * the huge x-height this face has relative to its cap-height (0.82)
+ * closing the gap between the capital-less lowercase letters and a
+ * full-height line of text, plus tracking pulled tight enough that the
+ * counters, not the gaps, carry the spacing. The name and the mark
+ * beside it are ours; the letterforms are the one thing here that is
+ * deliberately not.
  *
- * The red is the brand crimson, not --destructive. --destructive is the
- * error colour, and this site has exactly one red in it: the same one on
- * the CTA, the module ramp and the countdown's live dot.
+ * NO MOSAIC HERE. The oversized lettering in footer-wordmark.tsx carries
+ * one; this doesn't. At 1.15rem there's barely a word to interrupt, and
+ * every version of that tried at this size read as noise on the primary
+ * navigation mark rather than a detail — the one place on the page a
+ * broken-looking wordmark actually costs something.
  */
-export function Logo({ className }: { className?: string }) {
+export function Logo({
+  className,
+  variant = "full",
+}: {
+  className?: string;
+  variant?: "full" | "compact";
+}) {
   return (
     <Link
       href="/"
       aria-label="Off Camera — home"
       className={cn(
-        "focus-premium group/logo inline-flex items-baseline gap-[0.3em] rounded-md py-1",
-        // Everything from here down is sized in em, so the whole lockup —
-        // the gap and the tally included — scales as one object if a
-        // caller changes the text size.
-        "font-heading text-[1.15rem] leading-none font-bold lowercase",
-        "tracking-[-0.03em] text-foreground",
+        "focus-premium group/logo inline-flex items-center gap-2 rounded-md",
         className
       )}
     >
-      off camera
-      {/* The tally, on the baseline where a full stop would sit. */}
-      <span className="relative inline-flex size-[0.24em] shrink-0">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-crimson-bright/70 motion-reduce:animate-none" />
-        <span className="relative inline-flex size-full rounded-full bg-crimson-bright shadow-[0_0_10px_-1px_oklch(0.55_0.205_29_/_0.85)] transition-transform duration-300 ease-[var(--ease-cinematic)] group-hover/logo:scale-125" />
-      </span>
+      <BrandMark
+        live
+        className="size-[1.35em] text-foreground/85 transition-colors duration-300 ease-[var(--ease-cinematic)] group-hover/logo:text-foreground"
+      />
+      {variant === "full" && (
+        <span className="font-wordmark text-[1.15rem] leading-none font-bold lowercase tracking-[-0.04em] text-foreground">
+          off camera
+        </span>
+      )}
     </Link>
   );
 }

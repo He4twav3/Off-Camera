@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Atmosphere } from "@/components/site/atmosphere";
+import { BrandTag } from "@/components/site/brand-tag";
 
 /**
  * The marketing group's own box — and the stacking context the
@@ -32,6 +33,11 @@ export function MarketingThemeScope({ children }: { children: ReactNode }) {
     <div className="relative isolate flex min-h-full flex-1 flex-col overflow-x-clip bg-background text-foreground">
       <Atmosphere />
       {children}
+      {/* The bottom-of-screen name tag. Lives here rather than in the
+          layout's flow so it is inside the marketing group only — the
+          dashboard and checkout have their own, calmer chrome and do not
+          want a floating brand pill over them. */}
+      <BrandTag />
     </div>
   );
 }
