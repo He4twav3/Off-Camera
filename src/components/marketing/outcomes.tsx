@@ -31,9 +31,14 @@ import { cn } from "@/lib/utils";
  *   34px, which is comfortable for a cursor and a real miss-rate for a
  *   thumb.
  *
- *   Selection is by hover OR tap OR keyboard focus, so it responds to
- *   whatever the visitor actually has. Hover costs nothing on a desktop,
- *   so browsing is free there; on a phone one deliberate tap does it.
+ *   Selection is by hover OR tap OR keyboard focus OR — on a phone only —
+ *   scroll position, so it responds to whatever the visitor actually has.
+ *   Hover costs nothing on a desktop, so browsing is free there; a phone
+ *   has no hover, so the chip nearest the row's centre selects itself as
+ *   you swipe past it, the same free-browsing feel translated to touch.
+ *   A tap still works too, it just isn't the only way in any more. See
+ *   the scroll-spy effect below — it does nothing at `sm` and up, where
+ *   the row wraps and stops scrolling.
  *
  * SHORT, ALWAYS. Every line is nine to twelve words, written to be read
  * in a breath. A paragraph explains; a line lands. If one needs a second
@@ -86,6 +91,15 @@ export function Outcomes() {
    * with them. */
   const [taken, setTaken] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const chipRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  /** Mirrors `active` for the scroll-spy effect below, which reads it
+   * inside a scroll handler that's attached once and never re-attached —
+   * reading `active` itself there would close over a stale value. */
+  const activeRef = useRef(active);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
 
   useEffect(() => {
     if (taken) return;
@@ -120,6 +134,54 @@ export function Outcomes() {
     setTaken(true);
   }
 
+  // The phone's answer to hover: there's no cursor to linger with, so
+  // whichever chip is nearest the scrollable row's own centre becomes
+  // active as you swipe, live, without a tap. Does nothing at `sm` and
+  // up, where the row switches to `overflow-visible` and wraps instead
+  // of scrolling — no scroll events ever fire there, so this never
+  // touches the desktop, hover-driven behaviour at all.
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let pending = false;
+
+    function pickNearest() {
+      pending = false;
+      const rowRect = row!.getBoundingClientRect();
+      const centerX = rowRect.left + rowRect.width / 2;
+      let nearest = 0;
+      let nearestDist = Infinity;
+      chipRefs.current.forEach((chip, i) => {
+        if (!chip) return;
+        const rect = chip.getBoundingClientRect();
+        const dist = Math.abs(rect.left + rect.width / 2 - centerX);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = i;
+        }
+      });
+      if (nearest !== activeRef.current) choose(nearest);
+    }
+
+    // rAF-throttled: `scroll` can fire many times a frame during a fling,
+    // and reading getBoundingClientRect on eight chips is layout work
+    // worth doing at most once per frame, not once per event.
+    function onScroll() {
+      if (pending) return;
+      pending = true;
+      frame = requestAnimationFrame(pickNearest);
+    }
+
+    row.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      row.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const shade = MODULE_SHADES[active % MODULE_SHADES.length];
   const Icon = MODULE_ICONS[active];
 
@@ -150,13 +212,19 @@ export function Outcomes() {
               touch-pan-x locks a drag started here to the horizontal
               axis, so a swipe across the chips can't wander into a
               vertical page scroll halfway through. */}
-          <div className="no-scrollbar -mx-4 flex touch-pan-x snap-x gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
+          <div
+            ref={rowRef}
+            className="no-scrollbar -mx-4 flex touch-pan-x snap-x gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0"
+          >
             {beats.map((beat, i) => {
               const chipShade = MODULE_SHADES[i % MODULE_SHADES.length];
               const isActive = i === active;
               return (
                 <button
                   key={beat.term}
+                  ref={(el) => {
+                    chipRefs.current[i] = el;
+                  }}
                   type="button"
                   onClick={() => choose(i)}
                   // Mouse only. `onMouseEnter` fires on a touch tap too

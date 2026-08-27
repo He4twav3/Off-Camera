@@ -30,12 +30,17 @@ import { cn } from "@/lib/utils";
  * the course is.
  *
  * THE PANORAMA. The videos sit on a shallow cylinder seen from close up,
- * pressed edge to edge with no gap between them — square corners, not
- * rounded, so a shared edge between two tiles reads as one continuous
- * surface instead of two separate stickers with a seam. Each one turns
- * to face the middle as it goes, but only a little: this is close-up and
- * flat, not a deep recession into the screen, so the depth cue is mostly
- * the turn and barely the distance.
+ * pressed edge to edge with no gap between them. Each one turns to face
+ * the middle as it goes, but only a little: this is close-up and flat,
+ * not a deep recession into the screen, so the depth cue is mostly the
+ * turn and barely the distance. Corners are only slightly rounded — the
+ * same radius every other real-video frame on the page uses now (see
+ * VideoPlayer's "premium" frame and PlatformEmbed) — which does put a
+ * small notch of the stage's own background at each shared corner
+ * instead of one unbroken seam; the tiles' actual width, spacing and
+ * pan bounds (geometry.tileWidth / .spacing / .panLimit below) are pure
+ * layout math untouched by that, a border-radius changes nothing about
+ * a box's own dimensions.
  *
  * BIGGER THAN THE VIEWPORT, ON PURPOSE. Tile size is a fraction of the
  * viewport, not the viewport divided by however many videos exist —
@@ -662,13 +667,13 @@ export function ProofWall({ posters }: { posters: ProofPoster[] }) {
               }}
               draggable={false}
               aria-label={`${entry.label}${entry.views ? `, ${entry.views} views` : ""} — watch on ${entry.platform ?? "the original post"}`}
-              // No radius, no border: square corners and no per-tile
-              // outline are both what let a shared edge between two
-              // touching tiles read as one continuous surface — a
-              // rounded corner or a 1px outline on each side of the seam
-              // would draw a visible line exactly where the wall is
-              // supposed to look unbroken.
-              className="focus-premium absolute top-1/2 left-1/2 block overflow-hidden bg-surface-2 shadow-[inset_0_1px_0_0_oklch(1_0_0_/_0.1),0_40px_90px_-30px_oklch(0_0_0_/_0.95)]"
+              // Still no per-tile border/outline — that would draw its
+              // own line at every shared edge regardless of corner
+              // radius. rounded-sm only softens the four corners of each
+              // tile; it doesn't add spacing or change width/height, so
+              // the drag geometry above (all pixel math on tileWidth /
+              // spacing / panLimit) is exactly as before.
+              className="focus-premium absolute top-1/2 left-1/2 block overflow-hidden rounded-sm bg-surface-2 shadow-[inset_0_1px_0_0_oklch(1_0_0_/_0.1),0_40px_90px_-30px_oklch(0_0_0_/_0.95)]"
               style={{
                 width: geometry.tileWidth,
                 height: geometry.tileHeight,

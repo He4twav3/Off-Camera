@@ -41,13 +41,21 @@ export interface VideoPlayerProps {
    * offset and a soft cinematic shadow are opposite claims about what
    * kind of object this is), so the caller picks, rather than this
    * component guessing from context.
+   *
+   * Corner radius lives here too, per frame, rather than as one radius
+   * hardcoded for both: "premium" is only ever real video content (an
+   * actual clip or a real platform embed), and real video — Instagram's
+   * own embeds included — reads as only slightly rounded, not the heavy
+   * rounding a sticker card wants. "sticker" keeps its original radius so
+   * app/checkout/dashboard, which never asked for this, don't change.
    */
   frame?: "sticker" | "premium";
 }
 
 const FRAME_CLASSES = {
-  sticker: "card-sticker bg-card",
-  premium: "border border-hairline bg-surface-2 shadow-[0_22px_48px_-24px_oklch(0_0_0_/_0.85)]",
+  sticker: "card-sticker bg-card rounded-2xl",
+  premium:
+    "rounded-sm border border-hairline bg-surface-2 shadow-[0_22px_48px_-24px_oklch(0_0_0_/_0.85)]",
 } as const;
 
 function formatTime(totalSeconds: number) {
@@ -87,7 +95,7 @@ export function VideoPlayer({
     return (
       <div
         className={cn(
-          "overflow-hidden rounded-2xl",
+          "overflow-hidden",
           frameClass,
           ASPECT_CLASSES[aspect],
           className
@@ -114,7 +122,7 @@ export function VideoPlayer({
     return (
       <div
         className={cn(
-          "relative isolate overflow-hidden rounded-2xl",
+          "relative isolate overflow-hidden",
           frameClass,
           ASPECT_CLASSES[aspect],
           className
@@ -151,7 +159,7 @@ export function VideoPlayer({
   return (
     <div
       className={cn(
-        "group relative isolate overflow-hidden rounded-2xl",
+        "group relative isolate overflow-hidden",
         frameClass,
         ASPECT_CLASSES[aspect],
         className

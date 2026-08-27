@@ -135,7 +135,7 @@ export function Hero() {
               youtubeId={introVideo}
               className="w-full max-w-xs sm:max-w-sm lg:max-w-xl"
               poster={
-                <VideoPoster variant="muted">
+                <VideoPoster>
                   <span className="font-mono text-2xl font-semibold tracking-[0.1em]">AR</span>
                 </VideoPoster>
               }

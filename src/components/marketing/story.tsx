@@ -83,7 +83,7 @@ export function Story() {
               youtubeId={storyVideo}
               className="mx-auto w-full max-w-xs"
               poster={
-                <VideoPoster variant="muted">
+                <VideoPoster>
                   <span className="font-mono text-3xl font-semibold tracking-[0.1em]">AR</span>
                 </VideoPoster>
               }

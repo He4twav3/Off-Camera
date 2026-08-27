@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
  * COMPOSITION → SUBTLE ORBIT.
  *
  * A reusable radial-emergence composition. One item appears alone and
- * holds — faded in, fully visible, doing nothing else — for real scroll
- * distance before anything moves: that hold is deliberate, not padding,
- * because the whole sequence only reads as "one becomes many" if a
- * viewer actually registers the one first. Only then does it lift off
+ * holds — faded in, fully visible, doing nothing else — for a real beat
+ * before anything moves: that hold is deliberate, not padding, because
+ * the whole sequence only reads as "one becomes many" if a viewer
+ * actually registers the one first. Only then does it lift off
  * its resting spot and balloon into a large, unmistakably circular shape
  * — that dramatic bloom *is* "the circle" the brief asks for, not a
  * separate shape drawn behind it. As it relaxes back down out of that
@@ -20,9 +20,9 @@ import { cn } from "@/lib/utils";
  * into a tight, compact ring around it. Once every item is present, that
  * tight ring is the whole set already — cohesive, unmistakably circular,
  * sized to read at a glance — and it then grows outward, spinning as it
- * goes, staying pressed together with no gap the entire way, into its
- * final full size. Once it arrives, the whole group turns, very slowly,
- * with every item staying upright and still touching.
+ * goes, its own spacing opening up as it does into an evenly gapped
+ * final composition. Once it arrives, the whole group turns, very
+ * slowly, with every item staying upright.
  *
  * WHY IT IS BUILT THIS WAY RATHER THAN AS A ROW THAT FADES IN. The
  * sequence is the argument. A logo strip says "here are five companies".
@@ -50,13 +50,15 @@ import { cn } from "@/lib/utils";
  * cluster on a phone, and the desktop version is never a cramped mobile
  * one stretched wide.
  *
- * SCROLL DRIVES IT. Progress comes from where the composition sits in the
- * viewport, not from a timer, so the visitor unfolds it by scrolling.
- * Progress is latched at its high-water mark rather than tracked both
- * ways: driving it forward is the experience, but having the ecosystem
- * visibly collapse back into a dot because you scrolled up two lines to
- * re-read the heading is not. The window is deliberately wide (most of a
- * viewport height) so it is never twitchy.
+ * SCROLL TRIGGERS IT; TIME DRIVES IT. Scrolling the composition into view
+ * is what starts the sequence, but a scrollbar is not a scrub bar for it:
+ * once started, progress comes from elapsed time at a fixed pace (see
+ * PLAYBACK_DURATION), identically whether the visitor scrolled fast,
+ * slow, or is holding still reading the heading. A viewer who scrolls
+ * straight past still gets to watch it, because leaving the viewport
+ * pauses the clock rather than losing the time (see `start`/`stop`), and
+ * one who scrolls back up mid-sequence finds it exactly where they left
+ * it rather than rewound — it only ever plays forward, once.
  *
  * CONTINUITY. Every phase boundary below is a place where two formulas
  * hand off to each other, and each pair is chosen so their values agree
@@ -69,8 +71,15 @@ import { cn } from "@/lib/utils";
  * later without this being reimplemented as a one-off.
  */
 
-/** Phase boundaries, in scroll progress. Each is a hand-off point where
- * the formula for every item changes — see CONTINUITY above. */
+/** How long the whole sequence takes to play once triggered, in seconds.
+ * This is the one place "speed" lives — see SCROLL TRIGGERS IT above.
+ * Everything below is a fraction of this fixed duration, not of however
+ * much of it a given scroll gesture happened to cover. */
+const PLAYBACK_DURATION = 3.2;
+
+/** Phase boundaries, as a fraction of PLAYBACK_DURATION. Each is a
+ * hand-off point where the formula for every item changes — see
+ * CONTINUITY above. */
 /** The origin sits alone, fully visible, doing nothing else — no shoot,
  * no bloom — until this point. This is "ONLY ONE BRAND FIRST" as its own
  * held beat rather than something the shoot-and-bloom motion blurs past
@@ -83,9 +92,8 @@ const EXPAND_PEAK = 0.34;
 /** The bloom has relaxed back down and every other item has arrived at
  * the tight ring: the full set is now visible, compact, and circular. */
 const CIRCLE_FORM_END = 0.62;
-/** The tight ring has finished growing out to its final radius — still
- * pressed together with no gap, just bigger. What is left of the
- * progress range is settle-and-latch. */
+/** The tight ring has finished growing out to its final, evenly-gapped
+ * radius. What is left of the progress range is settle-and-latch. */
 const FULL_EXPAND_END = 0.92;
 /** How much of the post-hold window the origin spends purely lifting
  * off — scale held at 1 — before it starts to swell. Keeps "shoots up"
@@ -122,12 +130,6 @@ const TIGHT_SPACING = 1.08;
  * full composition" read as opening out rather than just getting bigger
  * while staying clumped. */
 const FINAL_SPACING = 1.5;
-/** How fast the rendered state is allowed to chase the latched scroll
- * target, in progress-units per second. Ordinary scrolling never moves
- * the target this fast, so this is invisible in normal use — it only
- * ever engages to smooth over an abnormal single-frame jump in the
- * target itself. See `shown` below. */
-const CATCHUP_RATE = 3;
 
 /**
  * Per-breakpoint geometry. Not the same composition scaled — the two are
@@ -138,10 +140,10 @@ const CATCHUP_RATE = 3;
  * built from the actual artwork rather than a number picked to roughly
  * fit it.
  *
- *  - Desktop's origin bloom goes bigger (1.85×) because desktop has the
+ *  - Desktop's origin bloom goes bigger (2.1×) because desktop has the
  *    surrounding whitespace to spend on drama without nearing the
- *    viewport edge; mobile's bloom (1.55×) is tuned to stay safely inside
- *    a narrow column at the same relative position.
+ *    viewport edge; mobile's bloom (1.8×) is tuned to stay safely inside
+ *    a narrow column at the same relative position, still a real swell.
  *  - `tightItemScale` is what the whole set — origin included — settles
  *    to the instant the tight ring is complete, before the ring grows
  *    out to its full radius at a full scale of 1. Combined with
@@ -173,7 +175,7 @@ type Geometry = {
 };
 
 const DESKTOP: Geometry = {
-  originPeakScale: 1.85,
+  originPeakScale: 2.1,
   tightItemScale: 0.82,
   arcSweep: 52,
   expandOrbitDeg: 58,
@@ -181,7 +183,7 @@ const DESKTOP: Geometry = {
 };
 
 const MOBILE: Geometry = {
-  originPeakScale: 1.55,
+  originPeakScale: 1.8,
   tightItemScale: 0.86,
   arcSweep: 40,
   expandOrbitDeg: 42,
@@ -254,55 +256,30 @@ export function Constellation<T>({
     };
     measure();
 
-    /** Latched high-water mark — see the note above on why this only ever
-     * goes forward. */
-    let progress = reduced ? 1 : 0;
-    /** What actually drives the visuals. On a touch device the browser's
-     * own chrome (the URL bar hiding/showing as you scroll) changes
-     * `window.innerHeight` — the thing `readProgress` measures against —
-     * mid-gesture, which can move the raw target by a large amount on a
-     * single frame even though your finger moved normally. Chasing that
-     * target at a capped rate turns any such jump into a fast, smooth
-     * catch-up instead of a visible snap, while staying invisible during
-     * ordinary scrolling, where the target never moves fast enough to
-     * hit the cap. */
-    let shown = progress;
-    /** Real-time-accumulated degrees, added on top of the scroll-driven
-     * spin once the ring has fully settled. Starts from wherever the
-     * scroll-driven spin left off, so the handoff from "tied to scroll"
-     * to "ticking on its own" never jumps. */
+    /** Seconds of real playback time accrued so far. Only ever advances
+     * while `layout` is actually being ticked by rAF — which `start` /
+     * `stop` gate on visibility — so scrolling the composition off
+     * screen mid-sequence freezes this rather than losing the time, and
+     * it can never run backwards. This, not scroll position, is what
+     * `progress` below is computed from — see SCROLL TRIGGERS IT above. */
+    let elapsed = reduced ? PLAYBACK_DURATION : 0;
+    /** Real-time-accumulated degrees, added on top of the ring's own
+     * expansion spin once it has fully settled — see BEAT 4 below for
+     * why the handoff between the two never jumps. */
     let orbit = 0;
     let last = performance.now();
     let frame = 0;
     let visible = false;
 
-    function readProgress() {
-      const rect = container!.getBoundingClientRect();
-      const viewport = window.innerHeight;
-      // Starts as the composition's top edge crosses 95% of the viewport
-      // and completes once its middle has reached 5% — nearly a full
-      // viewport height of scrolling to unfold the whole sequence. This
-      // is deliberately generous: the sequence has a real held beat (one
-      // brand, alone, doing nothing — see HOLD_END) before anything
-      // moves, and a narrower window rushes past that beat and the
-      // dramatic bloom after it before either has time to read.
-      const start = viewport * 0.95;
-      const end = viewport * 0.05;
-      const travelled = (start - rect.top) / (start - end);
-      return clamp01(travelled);
-    }
-
     function layout(now: number) {
       const delta = Math.min((now - last) / 1000, 0.05);
       last = now;
 
-      if (!reduced) progress = Math.max(progress, readProgress());
-      // Chase the latch at a capped rate — see `shown`'s declaration for
-      // why. `progress` only ever rises, so this only ever rises too.
-      shown = reduced ? progress : Math.min(progress, shown + CATCHUP_RATE * delta);
+      if (!reduced) elapsed += delta;
+      const progress = clamp01(elapsed / PLAYBACK_DURATION);
 
       // BEAT 0 — HOLD. Before HOLD_END, `preT` below is clamped to 0 by
-      // construction (shown < HOLD_END), which is what makes the origin
+      // construction (progress < HOLD_END), which is what makes the origin
       // sit still at distance 0, scale 1: faded in, fully visible, and
       // doing nothing else. "ONLY ONE BRAND FIRST" is this beat, held for
       // real rather than implied by how fast the next one starts.
@@ -317,9 +294,9 @@ export function Constellation<T>({
       // scale every other item arrives at, so there is no jump when the
       // ring takes over at CIRCLE_FORM_END.
       const postHoldSpan = CIRCLE_FORM_END - HOLD_END;
-      const preT = clamp01((shown - HOLD_END) / postHoldSpan);
+      const preT = clamp01((progress - HOLD_END) / postHoldSpan);
       const originTravel = easeOut(preT);
-      const originIn = easeOut(clamp01(shown / ORIGIN_FADE_IN));
+      const originIn = easeOut(clamp01(progress / ORIGIN_FADE_IN));
 
       const peakT = (EXPAND_PEAK - HOLD_END) / postHoldSpan;
       const riseT = (SCALE_RISE_START - HOLD_END) / postHoldSpan;
@@ -342,19 +319,17 @@ export function Constellation<T>({
       // bloom, arcing into a tight, compact ring around it.
 
       // BEAT 4 — once the tight ring exists, it grows out to its full
-      // radius while sweeping through an extra rotation — radius and
-      // scale grow in lockstep (see the Geometry doc comment), so the
-      // set stays pressed together with no gap the whole way, not just
-      // at the two ends. The rotation is what makes the outward growth
-      // read as unwinding open rather than a static ring that simply got
-      // bigger. The ring only starts ticking on its own once it has
-      // actually completed and
-      // arrived — starting the idle spin while items are still arriving
-      // would make their targets move underneath them.
+      // radius while sweeping through an extra rotation — both the
+      // spacing opening up (see FINAL_SPACING) and the rotation are what
+      // make the outward growth read as unwinding open rather than a
+      // static ring that simply got bigger. The ring only starts ticking
+      // on its own once it has actually completed and arrived — starting
+      // the idle spin while items are still arriving would make their
+      // targets move underneath them.
       const ringGrowT = easeOut(
-        clamp01((shown - CIRCLE_FORM_END) / (FULL_EXPAND_END - CIRCLE_FORM_END))
+        clamp01((progress - CIRCLE_FORM_END) / (FULL_EXPAND_END - CIRCLE_FORM_END))
       );
-      if (shown >= 0.999) orbit = (orbit + geo.orbitSpeed * delta) % 360;
+      if (progress >= 0.999) orbit = (orbit + geo.orbitSpeed * delta) % 360;
       const spinDeg = ringGrowT * geo.expandOrbitDeg + orbit;
       const ringRadius = tightRadius + (finalRadius - tightRadius) * ringGrowT;
       const ringScale = geo.tightItemScale + (1 - geo.tightItemScale) * ringGrowT;
@@ -371,7 +346,7 @@ export function Constellation<T>({
         glowRef.current.style.transform = `scale(${glowScale.toFixed(3)})`;
       }
 
-      const inRing = shown > CIRCLE_FORM_END;
+      const inRing = progress > CIRCLE_FORM_END;
       const slots = Math.max(count - 1, 1);
       // See the CONTINUITY note above: this stagger is picked so the
       // LAST item's travel window ends at exactly CIRCLE_FORM_END, which
@@ -404,7 +379,7 @@ export function Constellation<T>({
             opacity = originIn;
           } else {
             const travelStart = EXPAND_PEAK + i * stagger;
-            const travel = easeOut(clamp01((shown - travelStart) / TRAVEL_SPAN));
+            const travel = easeOut(clamp01((progress - travelStart) / TRAVEL_SPAN));
             // Every item starts this arc at the exact same point (the
             // origin's centre, distance 0) and behind it in stacking
             // order — see the zIndex line below — so before `travel`
@@ -462,10 +437,16 @@ export function Constellation<T>({
       return () => observer.disconnect();
     }
 
-    // Only run while on screen and while the tab is in front.
+    // Trigger once a third of the composition is actually on screen —
+    // no pre-triggering margin, unlike the old scroll-scrubbed version:
+    // that used to matter so progress-reading never lagged behind a fast
+    // scroll, but playback is time-driven now, so starting early would
+    // just mean part of the sequence plays before there's anything to
+    // see it. Also pauses (not resets) if scrolled back off screen — see
+    // `elapsed`'s declaration.
     const visibility = new IntersectionObserver(
       ([entry]) => (entry.isIntersecting ? start() : stop()),
-      { rootMargin: "150px" }
+      { threshold: 0.3 }
     );
     visibility.observe(container);
     const onTabVisibility = () => (document.hidden ? stop() : start());
@@ -487,13 +468,12 @@ export function Constellation<T>({
       className={cn(
         // Sized to the composition itself now that both radii are
         // derived from real badge size rather than guessed as a
-        // fraction of this box (see Geometry's doc comment) — a
-        // pressed-together five-badge ring is a much smaller object
-        // than the old spacious-fraction version was, so a box sized
-        // for that would leave the finished circle floating in a lot
-        // of dead space. Still comfortably larger than the origin's
-        // peak bloom, the single biggest thing the sequence ever draws.
-        "relative mx-auto flex aspect-square w-full max-w-[14rem] items-center justify-center sm:max-w-[18rem]",
+        // fraction of this box (see Geometry's doc comment), with
+        // headroom for whichever moment draws largest — either the
+        // origin's peak bloom or the fully-opened final ring, both of
+        // which are recomputed here if FINAL_SPACING or originPeakScale
+        // ever move.
+        "relative mx-auto flex aspect-square w-full max-w-[17rem] items-center justify-center sm:max-w-[22rem]",
         className
       )}
     >

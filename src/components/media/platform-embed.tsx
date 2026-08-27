@@ -237,7 +237,7 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
         target="_blank"
         rel="noopener noreferrer"
         className={cn(
-          "group flex aspect-9/16 flex-col items-center justify-center gap-3 rounded-2xl border border-hairline bg-surface-2 p-6 text-center transition-colors duration-300 hover:bg-surface-3",
+          "group flex aspect-9/16 flex-col items-center justify-center gap-3 rounded-sm border border-hairline bg-surface-2 p-6 text-center transition-colors duration-300 hover:bg-surface-3",
           className
         )}
       >
@@ -259,7 +259,7 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
       return (
         <div
           className={cn(
-            "flex aspect-9/16 items-center justify-center rounded-2xl border border-hairline bg-surface-2 p-6 text-center font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase",
+            "flex aspect-9/16 items-center justify-center rounded-sm border border-hairline bg-surface-2 p-6 text-center font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase",
             className
           )}
         >
@@ -273,7 +273,7 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
         onClick={() => setTiktokClicked(true)}
         aria-label="Load video"
         className={cn(
-          "group relative isolate block aspect-9/16 overflow-hidden rounded-2xl bg-surface-2",
+          "group relative isolate block aspect-9/16 overflow-hidden rounded-sm bg-surface-2",
           className
         )}
       >
@@ -322,7 +322,7 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
     return (
       <div
         className={cn(
-          "flex items-center justify-center rounded-2xl border border-hairline bg-surface-2 p-6 text-center font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase",
+          "flex items-center justify-center rounded-sm border border-hairline bg-surface-2 p-6 text-center font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase",
           className
         )}
       >
@@ -339,7 +339,12 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
         // ref rather than conditionally forking this whole return.
         ref={instagramContainerRef}
         className={cn(
-          "relative overflow-hidden rounded-2xl border border-hairline bg-surface-2",
+          // Only slightly rounded, every state this file renders — real
+          // video, on either platform, reads as only slightly rounded
+          // (this matches what Instagram's own embed does), never the
+          // heavier rounding a decorative card wants. VideoPlayer's
+          // "premium" frame uses the same value for the same reason.
+          "relative overflow-hidden rounded-sm border border-hairline bg-surface-2",
           // TikTok's player IS the video: a 9:16 rectangle with no chrome
           // around it, so it can be pinned to fill a 9:16 frame and it
           // looks exactly right.
