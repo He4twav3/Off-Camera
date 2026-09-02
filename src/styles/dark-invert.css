@@ -10,22 +10,20 @@
  * (conditionally, see (marketing)/theme-scope.tsx) — one palette, not
  * two to keep in sync.
  *
- * PALETTE: flat rust-on-charcoal, the third and current iteration —
- * replaces both the original zero-chroma graphite-and-crimson system AND
- * "Golden Hour" (petrol ground + gold accent), each rejected in turn:
- * graphite-and-crimson read as generic AI-SaaS-dashboard, and Golden
- * Hour's gradient/glossy button treatment and gold accent still read as
- * too ornamental. This palette is deliberately plainer than either: one
- * near-black charcoal ground, one warm off-white for all text, ONE flat
- * accent color doing every job red and gold used to split between them
- * (CTAs, active states, the module-number ramp, live/urgency indicators),
- * and nothing else — no second hue anywhere, no gradients, no glossy
- * sheen, no drop-shadow glow. Exact values are the agreed literals, not
- * re-derived into oklch, so there's no drift between what was approved
- * and what's live:
+ * PALETTE: flat crimson-on-charcoal, the fourth iteration — rust/
+ * terracotta (#C1502E) didn't survive contact with review either, same as
+ * the two before it: the original zero-chroma graphite-and-crimson system,
+ * and "Golden Hour" (petrol ground + gold accent). Back to red, but kept
+ * everything the rust pass got right structurally: one near-black
+ * charcoal ground, one warm off-white for all text, ONE flat accent color
+ * doing every job (CTAs, active states, the module-number ramp, live/
+ * urgency indicators), and nothing else — no second hue anywhere, no
+ * gradients, no glossy sheen, no drop-shadow glow. Exact values are the
+ * agreed literals, not re-derived into oklch, so there's no drift between
+ * what was approved and what's live:
  *   Background     #16151A
  *   Primary text   #EDEAE4
- *   Accent         #C1502E  (flat rust/terracotta — CTAs, active states,
+ *   Accent         #AC0216  (flat crimson/red — CTAs, active states,
  *                            module numbers, live dot; the only chroma
  *                            on the page)
  *   Muted text     #706C68
@@ -105,23 +103,22 @@
   --signal: oklch(0.74 0.005 85);
 
   /* ── The accent ────────────────────────────────────────────────────
-     One flat rust/terracotta value doing every job red and gold used to
-     split between them across two earlier palettes: the CTA fill, the
-     live/urgency dot, active pills, the module-number ramp. Everything
-     else on the page is charcoal and off-white, which is what lets one
-     flat color carry all of that emphasis work at once. No 3-stop ramp,
-     no gradient, no glow — `--crimson*` names are kept (many components
+     One flat crimson value doing every job: the CTA fill, the live/
+     urgency dot, active pills, the module-number ramp. Everything else
+     on the page is charcoal and off-white, which is what lets one flat
+     color carry all of that emphasis work at once. No 3-stop ramp, no
+     gradient, no glow — `--crimson*` names are kept (many components
      already reference `bg-crimson-bright`/`text-crimson`/etc. — see
      globals.css's `--color-crimson*` mapping) but all three now resolve
      to the exact same flat value, not three lightness steps. */
-  --crimson-bright: #c1502e;
-  --crimson: #c1502e;
-  --crimson-deep: #c1502e;
+  --crimson-bright: #ac0216;
+  --crimson: #ac0216;
+  --crimson-deep: #ac0216;
 
-  --cta: #c1502e;
-  /* Near-white, not black — measured against #C1502E, white clears
-     WCAG AA (4.7:1) for button-label-sized text where black (4.45:1)
-     and this palette's own cream (3.9:1) both fall short. */
+  --cta: #ac0216;
+  /* White, not the page's warm cream — measured against #AC0216, white
+     clears WCAG AAA (7.6:1) for button-label text; cream clears AA
+     (6.3:1) too, but white reads crisper on a fully saturated fill. */
   --cta-foreground: #ffffff;
 
   --secondary: #242329;
@@ -133,8 +130,9 @@
   --muted-foreground: #706c68;
   --accent: #242329;
   --accent-foreground: #edeae4;
-  /* Kept genuinely red: this is form-error semantics on /checkout and
-     /login, not decoration, and a rust-accent error state reads as
+  /* Kept as its own brighter red, distinct from the accent: this is
+     form-error semantics on /checkout and /login, not decoration, and
+     reusing the brand accent itself for an error state would read as
      "the brand color", not an error. It does not appear anywhere on the
      landing page. */
   --destructive: oklch(0.645 0.2 25);

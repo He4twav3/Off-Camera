@@ -83,31 +83,69 @@ const MOSAIC = [
 
 export function FooterWordmark() {
   return (
-    <div
-      aria-hidden
-      className="relative -mx-5 overflow-hidden text-[clamp(3.5rem,23vw,18rem)] select-none sm:-mx-6 lg:-mx-8"
-    >
-      {/* font-size lives on this wrapper, not the text itself, so the
-          mosaic tiles below — siblings, not children, of the text —
-          inherit the same em and stay in proportion to it as it scales. */}
-      <p className="font-wordmark pointer-events-none -mb-[0.34em] text-center leading-none font-medium lowercase tracking-[-0.04em] whitespace-nowrap text-foreground/5">
-        on camera
-      </p>
+    // -mx-5/-mx-6/-mx-8 (what this used to be) only cancelled this row's
+    // own padding inside footer.tsx's max-w-[1240px] container — the
+    // wordmark's own box was still never wider than that 1240px column,
+    // so on any screen wider than it (basically every desktop) there was
+    // dead space on both sides instead of the word actually reaching
+    // the screen edges. left-1/2 + w-screen + -translate-x-1/2 is the
+    // real full-bleed escape: it breaks this OUTER layer out of the
+    // centred container and re-centres it on the *viewport* instead,
+    // regardless of how deep it sits inside that container. Safe to
+    // overshoot true viewport width by a scrollbar's worth of px here —
+    // globals.css already sets `overflow-x: clip` on the page as a
+    // backstop for exactly this.
+    //
+    // TWO LAYERS, NOT ONE, is what keeps the mosaic aligned. The mosaic
+    // tiles below are positioned as percentages of their own parent's
+    // width, tuned to land on specific letters — that only keeps working
+    // if that parent is sized to the TEXT's own width, not the
+    // viewport's. So the full-bleed span belongs on this outer div
+    // (flex + justify-center, no explicit width of its own), and the
+    // inner div below — the one the text and the mosaic actually
+    // share — stays shrink-wrapped to its content exactly like before,
+    // just now centred on the screen instead of on a 1240px column.
+    <div aria-hidden className="relative left-1/2 flex w-screen justify-center overflow-hidden -translate-x-1/2">
+      {/* Only the CAP moved (18rem -> 28rem), not the 23vw coefficient —
+          that vw term was already the right scale for "the text tracks
+          the viewport at every width", including mobile, and bumping it
+          instead (a mistake caught immediately after) made "on camera"
+          render at ~125px on a 390px phone, badly overflowing both
+          edges. The 18rem cap was only ever hit above ~1252px viewport
+          width, which is exactly why it never looked wrong on mobile —
+          it was tuned for back when this could never render wider than
+          the 1240px content column anyway (the old -mx-* bleed only
+          escaped that column's own padding, not its max-width — see the
+          outer div's note), so a 288px cap already overshot a 1240px
+          box. Now that the wrapper is genuinely viewport-wide, that same
+          cap left real gaps on both sides at any desktop width above
+          1252px; raising it to 28rem just lets the *same* 23vw curve
+          keep climbing at those larger sizes instead of flattening
+          early — mobile sizing is untouched since the cap doesn't
+          engage there either way. */}
+      <div className="relative text-[clamp(3.5rem,23vw,28rem)] select-none">
+        {/* font-size lives on this wrapper, not the text itself, so the
+            mosaic tiles below — siblings, not children, of the text —
+            inherit the same em and stay in proportion to it as it scales. */}
+        <p className="font-wordmark pointer-events-none -mb-[0.34em] text-center leading-none font-medium lowercase tracking-[-0.04em] whitespace-nowrap text-foreground/5">
+          on camera
+        </p>
 
-      {/* The mosaic — see THE MOSAIC above for why these six, here. */}
-      {MOSAIC.map((tile, i) => (
-        <span
-          key={i}
-          className="absolute -translate-x-1/2 -translate-y-1/2 bg-crimson-bright"
-          style={{
-            left: tile.left,
-            top: tile.top,
-            width: tile.size,
-            height: tile.size,
-            opacity: tile.opacity,
-          }}
-        />
-      ))}
+        {/* The mosaic — see THE MOSAIC above for why these six, here. */}
+        {MOSAIC.map((tile, i) => (
+          <span
+            key={i}
+            className="absolute -translate-x-1/2 -translate-y-1/2 bg-crimson-bright"
+            style={{
+              left: tile.left,
+              top: tile.top,
+              width: tile.size,
+              height: tile.size,
+              opacity: tile.opacity,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

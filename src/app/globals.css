@@ -195,11 +195,11 @@
   --beam-dim: oklch(0.46 0 0);
   --signal: oklch(0.44 0 0);
   /* Dead fallback (see comment above) — kept in sync with dark-invert.css's
-     one flat accent, #C1502E, rather than left on the old crimson-ramp
+     one flat accent, #AC0216, rather than left on the old crimson-ramp
      values, purely so nothing that ever hits this path renders off-palette. */
-  --crimson-bright: #c1502e;
-  --crimson: #c1502e;
-  --crimson-deep: #c1502e;
+  --crimson-bright: #ac0216;
+  --crimson: #ac0216;
+  --crimson-deep: #ac0216;
   --hairline: oklch(0 0 0 / 0.1);
   --hairline-strong: oklch(0 0 0 / 0.18);
 
@@ -229,29 +229,13 @@
   animation: marquee-scroll 60s linear infinite;
 }
 
-/* The hero's 3D ring carousel (marketing/hero-carousel.tsx). A true CSS
-   3D cylinder, not a 2D slider faking perspective: cards sit at a fixed
-   rotateY(angle) translateZ(radius) around this ring, and the ring
-   itself is the only thing that ever animates — one continuous
-   rotateY(0) -> rotateY(-360deg) sweep. The browser's own perspective
-   projection (set on the stage that holds this ring) does every bit of
-   the scaling/foreshortening as cards swing toward and away from
-   front-centre; nothing here is hand-computed per card. */
-@keyframes hero-ring-spin {
-  from {
-    transform: rotateY(0deg);
-  }
-  to {
-    transform: rotateY(-360deg);
-  }
-}
-
-@utility animate-hero-ring {
-  animation: hero-ring-spin 52s linear infinite;
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-}
+/* The hero's 3D ring carousel (marketing/hero-carousel.tsx) used to spin
+   on its own via a `rotateY(0) -> rotateY(-360deg)` keyframe here — gone
+   now that it's drag/wheel-spun by hand instead (proof-wall.tsx's old
+   damped-swipe feel, ported onto this ring's real 3D geometry). The
+   rotation is written to the ring's own inline style per frame by that
+   component's glide loop, not by a CSS animation, so there's nothing
+   left to declare at this layer. */
 
 /* Gentle scale+fade pulse for ViewfinderFrame's corners/crosshair — reads
    as a camera continuously re-settling focus, not a flashy effect. Each
@@ -757,6 +741,59 @@
   }
 }
 
+/* Glass, on purpose — now the actual treatment every "Save your
+   spot"/"Save my free spot" CTA uses (hero, navbar, pricing, final CTA):
+   one action, one physical treatment, everywhere it appears, not a
+   one-off reserved for the first button someone sees. Used to be
+   exactly that one-off — btn-cta above was the default and this was a
+   deliberate exception carved out for just the hero's own button — but
+   the split read as an inconsistency once every one of these buttons
+   sits for the same single action, not a hierarchy worth two different
+   physical treatments. btn-cta itself is untouched and still flat; no
+   "Save your spot" CTA currently reaches for it, but it stays — a
+   translucent fill genuinely can't be the right choice for every future
+   button (anything that needs to stay 100% opaque against whatever's
+   behind it can't use glass by definition), so the flat utility is
+   worth keeping around for that case rather than deleted for being
+   unused today.
+
+   Restrained glass, not gamer glass: a translucent crimson fill (not a
+   solid one) over a backdrop blur, one soft hairline-brightness edge,
+   and a barely-there top sheen — no colored outer glow, no animated
+   shine sweep, the same two effects the flat version above was already
+   pulled back from for reading as "gaming/streaming" rather than
+   premium. Text keeps a soft shadow since the fill is translucent now,
+   not opaque — legibility can't assume a flat, fully-covering color
+   underneath the label the way btn-cta could. */
+@utility btn-cta-glass {
+  border-width: 1px !important;
+  border-color: oklch(1 0 0 / 0.16) !important;
+  background-color: color-mix(in oklch, var(--cta) 62%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.18),
+    0 8px 30px -10px oklch(0 0 0 / 0.55) !important;
+  text-shadow: 0 1px 6px oklch(0 0 0 / 0.35);
+  transition:
+    background-color 0.2s var(--ease-cinematic),
+    border-color 0.2s var(--ease-cinematic);
+
+  &:hover {
+    background-color: color-mix(in oklch, var(--cta) 72%, transparent) !important;
+    border-color: oklch(1 0 0 / 0.26) !important;
+  }
+
+  &:active {
+    background-color: color-mix(in oklch, var(--cta) 80%, transparent) !important;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--beam);
+    outline-offset: 3px;
+  }
+}
+
 @utility pill-premium {
   border-width: 1px !important;
   border-color: var(--hairline) !important;
@@ -792,23 +829,34 @@
    across the element's entire background box once, top to bottom. For a
    one-line heading that's the same thing. For a multi-line one (e.g. the
    hero's three-line h1) it isn't: the last line sits at the very bottom
-   of that one long gradient, at oklch(0.76 ...) instead of the near-white
-   the first line gets, so the *last line of any multi-line text-lit
-   heading fades toward the dark background much harder than intended* —
-   visibly enough on the hero's "to get views." to read as content going
-   missing, not as a lit heading. 1lh is the CSS line-height unit — it
-   always matches whatever `leading-*` the caller set, from
-   `leading-none` to `leading-[1.15]`, so this needs no per-instance
-   tuning. Tiling the same gradient at that height, repeating down the
-   block, gives every line the identical cap-to-baseline falloff the
-   comment above describes instead of compounding it further with every
-   line the heading has. */
+   of that one long gradient instead of getting its own cap-to-baseline
+   falloff, so the *last line of any multi-line text-lit heading fades
+   toward the dark background much harder than intended*. 1lh is the CSS
+   line-height unit — it always matches whatever `leading-*` the caller
+   set, from `leading-none` to `leading-[1.15]`, so this needs no
+   per-instance tuning. Tiling the same gradient at that height, repeating
+   down the block, gives every line the identical cap-to-baseline falloff
+   the comment above describes instead of compounding it further with
+   every line the heading has.
+
+   The falloff itself has to actually BE the "two or three percent"
+   described above, not just tiled correctly — the terminal stop had
+   drifted to oklch(0.76), a 24-point swing within a single line height.
+   Tiling *that* per line doesn't fix a multi-line heading, it just
+   repeats the same jarring bright-top/dark-bottom sawtooth once per
+   line: the near-black last line reads as one glitch instead of three,
+   but each line-to-line seam is still a hard, visible jump from a line's
+   dim baseline back up to the next line's near-white cap line — legible
+   as broken rendering, not as lighting. oklch(0.97) at the terminal stop
+   is what "two or three percent of lightness" actually specifies; at
+   that range every seam is inside the threshold nobody consciously
+   registers as a gradient, on a one-line heading or a four-line one. */
 @utility text-lit {
   background-image: linear-gradient(
     180deg,
     oklch(1 0 0) 0%,
-    oklch(0.98 0.004 264) 42%,
-    oklch(0.76 0.01 264) 100%
+    oklch(0.99 0.002 264) 42%,
+    oklch(0.97 0.01 264) 100%
   );
   background-size: 100% 1lh;
   background-repeat: repeat-y;
@@ -816,6 +864,21 @@
   -webkit-background-clip: text;
   color: transparent;
   text-shadow: none;
+
+  /* Every LitWords heading nests several inline-block spans inside this
+     one element, each fading its own opacity in on a staggered delay
+     (lit-words.tsx) — which means the browser has to keep re-clipping
+     this one shared gradient to a text mask that's changing shape
+     several times a second while those spans transition. That's the
+     known flicker case for background-clip:text: without its own stable
+     compositing layer, the clip repaint can visibly flash mid-
+     transition instead of just cross-fading smoothly. Promoting the
+     gradient-clipped text to its own layer (a real, if visually inert,
+     transform) is the standard fix — it stops the repaint from
+     depending on whatever's happening to the animating children inside
+     it on that frame. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* The one phrase in a headline the whole page turns on. With no hue to

@@ -9,18 +9,23 @@
  * supplied" instead of impersonating an identity that isn't theirs.
  *
  * `tone` is the one piece of per-brand presentation that can't be
- * automated. These marks arrive with wildly different assumptions about
- * what's behind them, and the badge has to pick a disc colour that lets
- * each one read in its own real colours — never desaturated, never
- * colour-inverted (inverting a mark with real brand colour in it doesn't
- * just flip light/dark, it wrecks the actual colours: a red icon inverts
- * to cyan). So each entry declares what its disc needs to be:
+ * automated. Every mark here is grayscaled by BrandBadge itself (see
+ * that component's own note on why: eight competing brand palettes
+ * fighting the page's one accent colour), so `tone` isn't about a mark's
+ * real colour at all — it's a pure lightness problem, picking a disc
+ * that lets a grayscaled mark's *shape* still read (a light wordmark is
+ * invisible on another light disc, a dark mark disappears on a dark
+ * one). So each entry declares what its disc needs to be:
  *
  *   "onDark"  — the mark itself is light/white/pale enough to sit
- *               directly on this page's dark surface.
- *   "onLight" — the mark relies on dark ink or has real colour that
- *               only reads correctly against a light background, so its
- *               disc is light instead of trying to force it onto dark.
+ *               directly on this page's dark surface (--surface-2, a
+ *               dark charcoal — not literal black).
+ *   "onBlack" — same idea as "onDark", but a literal black disc rather
+ *               than --surface-2's charcoal, for a mark specifically
+ *               chosen to sit on true black.
+ *   "onLight" — the mark relies on dark ink, or was too pale to survive
+ *               grayscale legibly against a dark disc, so its disc is
+ *               light instead of trying to force it onto dark.
  *   "tile"    — a self-contained tile that already brings its own
  *               background. Rendered edge-to-edge so that background
  *               fills the badge, instead of floating a colored square
@@ -30,8 +35,8 @@ export type Brand = {
   name: string;
   /** Path under /public. Omit until a real logo file is available. */
   logo?: string;
-  /** Which disc colour lets this mark read in its own real colours. */
-  tone?: "onDark" | "onLight" | "tile";
+  /** Which disc colour lets this mark's grayscaled shape read cleanly. */
+  tone?: "onDark" | "onBlack" | "onLight" | "tile";
   /** Fallback shown when `logo` is absent. 1–2 characters. */
   monogram: string;
 };
@@ -39,7 +44,7 @@ export type Brand = {
 export const BRANDS: Brand[] = [
   { name: "Kyu Japan", monogram: "KY", logo: "/brands/kyu-japan.png", tone: "tile" },
   { name: "Parakeet AI", monogram: "PA", logo: "/brands/parakeet.png", tone: "onDark" },
-  { name: "Clippie AI", monogram: "CL", logo: "/brands/clippie.png", tone: "tile" },
+  { name: "Clippie AI", monogram: "CL", logo: "/brands/clippie.jpg", tone: "tile" },
   { name: "Eromify", monogram: "ER", logo: "/brands/eromify.png", tone: "tile" },
   // Was inverted (tone "dark") — a flat white silhouette that threw away
   // the mark's real two-tone charcoal/grey design. A light disc shows

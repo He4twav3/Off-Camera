@@ -277,9 +277,9 @@ const RAW_CURRICULUM = [
 ] as const;
 
 /**
- * One 8-step ramp through the single brand accent (#C1502E, flat
- * rust/terracotta — see dark-invert.css), from that exact value at module
- * one down into a near-black rust-brown at module eight.
+ * One 8-step ramp through the single brand accent (#AC0216, flat
+ * crimson — see dark-invert.css), from that exact value at module
+ * one down into a near-black oxblood at module eight.
  *
  * The eight modules are a pipeline (hook → retention → volume → ...), and
  * the ramp is what makes a row of them read as a sequence going
@@ -301,19 +301,19 @@ const RAW_CURRICULUM = [
  */
 const SHADE_TEXT_LIGHT = "oklch(0.98 0.01 25)";
 
-// color-mix(in srgb, #C1502E, black R%) at R = 0, 8, 16, 24, 33, 42, 52,
+// color-mix(in srgb, #AC0216, black R%) at R = 0, 8, 16, 24, 33, 42, 52,
 // 62 — a flat blend toward black, literal hex so the top step matches
 // --cta/--crimson* exactly with zero drift between "the accent" and
 // "the first step of its own ramp".
 export const MODULE_SHADES = [
-  { bg: "#c1502e", text: SHADE_TEXT_LIGHT },
-  { bg: "#b24a2a", text: SHADE_TEXT_LIGHT },
-  { bg: "#a24327", text: SHADE_TEXT_LIGHT },
-  { bg: "#933d23", text: SHADE_TEXT_LIGHT },
-  { bg: "#81361f", text: SHADE_TEXT_LIGHT },
-  { bg: "#702e1b", text: SHADE_TEXT_LIGHT },
-  { bg: "#5d2616", text: SHADE_TEXT_LIGHT },
-  { bg: "#491e11", text: SHADE_TEXT_LIGHT },
+  { bg: "#ac0216", text: SHADE_TEXT_LIGHT },
+  { bg: "#9e0214", text: SHADE_TEXT_LIGHT },
+  { bg: "#900212", text: SHADE_TEXT_LIGHT },
+  { bg: "#830211", text: SHADE_TEXT_LIGHT },
+  { bg: "#73010f", text: SHADE_TEXT_LIGHT },
+  { bg: "#64010d", text: SHADE_TEXT_LIGHT },
+  { bg: "#53010b", text: SHADE_TEXT_LIGHT },
+  { bg: "#410108", text: SHADE_TEXT_LIGHT },
 ] as const;
 
 /**
