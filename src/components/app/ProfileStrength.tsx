@@ -8,7 +8,7 @@ import type { Completeness } from "@/lib/profile-completeness";
  * A percentage alone just nags; a percentage plus "add a link to your best
  * work" gives someone something to actually do.
  *
- * Ported from CreatorRoster's Card/Button/token set onto Off Camera's own
+ * Ported from CreatorRoster's Card/Button/token set onto On Camera's own
  * (see the merge plan's Phase 4) — no `--success` token exists here, so
  * "looking strong" uses `--toy-soft`, the same soft-positive surface the
  * dashboard's own unlock card uses elsewhere.

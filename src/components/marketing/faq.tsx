@@ -88,7 +88,7 @@ export function FAQ() {
     <section id="faq" className="relative scroll-mt-20 lg:scroll-mt-32">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:px-6 lg:px-8">
         <SectionHeader
-          index="08"
+          index="07"
           eyebrow="Before you decide"
           title="Frequently asked questions"
         />

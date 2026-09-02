@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
  * sentence to make sense, the fix is a better first sentence — the moment
  * these become paragraphs this is the old table again.
  *
- * COLOURED, ALWAYS. The crimson→maroon module ramp (MODULE_SHADES) runs
+ * COLOURED, ALWAYS. The accent's own module ramp (MODULE_SHADES) runs
  * at length here. This is one of only two places on the page where the
  * accent does that — the curriculum is the other — and it earns it the
  * same way: these are eight ordered stages of one system, and the ramp is
@@ -191,7 +191,7 @@ export function Outcomes() {
       className="relative mx-auto max-w-[1240px] px-5 py-20 sm:px-6 lg:px-8"
     >
       <SectionHeader
-        index="04"
+        index="03"
         eyebrow="What changes for you"
         title="It's only eight things"
         lede={`Everything that decides whether a video works comes down to ${TOTAL_MODULES} of them. Here they are, in plain English.`}
@@ -240,12 +240,18 @@ export function Outcomes() {
                     // reliably. The chips were 34px tall, which is fine
                     // for a cursor and a genuine miss-rate on a phone.
                     "focus-premium flex min-h-11 shrink-0 snap-start cursor-pointer items-center rounded-full border px-4 text-[0.8rem] font-semibold whitespace-nowrap transition-all duration-300 ease-[var(--ease-cinematic)] sm:min-h-0 sm:py-2",
+                    // Flat, deliberately: no inset sheen, no glow, just
+                    // the ramp's own solid fill and a transparent border —
+                    // the same "solid fill only" constraint the CTA
+                    // button follows (globals.css's own note on
+                    // btn-cta), applied here too rather than left as a
+                    // one-off glossy exception.
                     isActive
-                      ? "border-white/15 shadow-[inset_0_1px_0_0_oklch(1_0_0_/_0.16),0_10px_26px_-14px_oklch(0_0_0_/_0.9)]"
+                      ? "border-transparent"
                       : "border-hairline bg-surface-1/70 text-muted-foreground hover:border-hairline-strong hover:text-foreground"
                   )}
                   // The ramp, applied as a real fill on the selected chip.
-                  // Inactive chips stay neutral: eight filled crimson pills
+                  // Inactive chips stay neutral: eight filled accent pills
                   // at once would be a colour bar, and the accent stops
                   // meaning "this one" the moment everything has it.
                   style={

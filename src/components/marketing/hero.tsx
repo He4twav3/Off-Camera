@@ -3,20 +3,22 @@ import { Button } from "@/components/ui/button";
 import { LitWords } from "@/components/marketing/lit-words";
 import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
-import { VideoPlayer } from "@/components/media/video-player";
-import { VideoPoster } from "@/components/media/video-poster";
-import { siteConfig } from "@/lib/site-config";
+import { HeroCarousel } from "@/components/marketing/hero-carousel";
+import type { ProofPoster } from "@/lib/proof-thumbnails";
 
 /**
  * The hero's job is one sentence long: make someone decide, in about two
  * seconds, that this is serious.
  *
- * It is deliberately only the claim and the ask — the evidence for it is
- * the panoramic proof wall directly underneath (proof-wall.tsx), which
- * this section runs straight into with no seam between them. They read
- * as one screen: the sentence, the button, and the videos it is talking
- * about, all above the fold on a desktop and within one short scroll on
- * a phone.
+ * It is the claim, the 3D ring of real proof clips (hero-carousel.tsx),
+ * and the ask — all one screen, above the fold on a desktop and within
+ * one short scroll on a phone. This used to run straight into a second,
+ * separate carousel of the same real clips (proof-wall.tsx) with no seam
+ * between them; that second one is gone now — two carousels showing the
+ * same five videos was one idea built twice, and the ring here, spinning
+ * continuously on the first screen, already does that job. `id="proof"`
+ * stays on this section specifically so the navbar's "Proof" link and
+ * this hero's own "See the proof" button still land somewhere real.
  *
  * What used to be here instead, and why none of it is:
  *
@@ -26,38 +28,33 @@ import { siteConfig } from "@/lib/site-config";
  *     psychological order exactly backwards — nobody hurries for an
  *     offer they have not yet decided is real. It now sits directly
  *     above the price, where that question is actually being asked.
- *   - A pull-quote reading "we didn't guess, we tested it", which is
- *     verbatim the heading of the proof section. Saying the page's best
- *     line twice makes it the page's best line once.
+ *   - A pull-quote reading "we didn't guess, we tested it", which was
+ *     verbatim the deleted proof section's own heading. Saying the
+ *     page's best line twice makes it the page's best line once.
  *   - A quick-stats panel restating the four view counts as abstract
  *     numerals. Those numbers now sit on the videos they belong to. A
  *     number attached to the thing it measures is evidence; the same
  *     number floating in a panel is a claim.
+ *   - A single conditional "Quick intro" YouTube embed, gated on
+ *     `siteConfig.videos.intro`. That config value had been left pointing
+ *     at a stock Big Buck Bunny demo id — a placeholder nobody had
+ *     swapped for a real founder video — which meant the hero was
+ *     actually shipping stock footage directly under copy promising "no
+ *     stock footage, real results". The 3D ring below replaces the job
+ *     that slot was trying to do (a video presence in the hero) with
+ *     something that was never able to go stale like that: it only ever
+ *     renders real proof clips pulled straight from proof-content.ts,
+ *     never a hardcoded id.
  *
  * The eyebrow is the one piece of text above the headline, and it says
  * what the page is standing on rather than restating the numbers: the
- * view counts are already on the wall directly underneath, so an eyebrow
+ * view counts are already on the ring directly underneath, so an eyebrow
  * that quotes them spends the first line of the page saying what the
  * evidence below it says better, and says it twice.
- *
- * The intro video, above the button, is conditional on siteConfig.
- * videos.intro the exact way story.tsx's is on videos.story — same
- * reasoning: a reserved box with no real video in it doesn't read as
- * "a video is coming", it reads as something broken, so there is no
- * video here at all until a real one exists. Set videos.intro and this
- * appears with no other change; leave it unset and the button just sits
- * one Reveal beat closer to the lede, which is exactly the layout that
- * shipped before this slot existed. It's deliberately small and
- * portrait, not the width of the column — this is the one part of the
- * hero's "every 10px pushed below the fold" argument that a video
- * genuinely earns an exception from, so it earns as little of it as a
- * real preview still can.
  */
-export function Hero() {
-  const introVideo = siteConfig.videos.intro;
-
+export function Hero({ posters }: { posters: ProofPoster[] }) {
   return (
-    <section className="relative isolate overflow-hidden">
+    <section id="proof" className="relative isolate scroll-mt-20 overflow-hidden lg:scroll-mt-32">
       {/* Local key light — tighter and brighter than the page atmosphere,
           so the headline sits in its own pool rather than in the room's
           general light. Sized in vmin so it stays a *pool* on a phone
@@ -71,9 +68,8 @@ export function Hero() {
           videos underneath it are one screen, not two — every 10px this
           block spends is 10px of evidence pushed below the fold, and the
           whole reason the wall exists is that it is seen without being
-          asked for. Padding, type scale and the gaps between the five
-          elements here were all pulled in for that one reason. */}
-      <div className="mx-auto max-w-4xl px-4 pt-8 pb-8 text-center sm:px-6 md:pt-12 md:pb-10 lg:px-8">
+          asked for. */}
+      <div className="mx-auto max-w-4xl px-4 pt-8 pb-4 text-center sm:px-6 md:pt-12 md:pb-6 lg:px-8">
         <Reveal>
           <p className="inline-flex items-center gap-3 font-mono text-[0.7rem] font-semibold tracking-[0.16em] text-signal uppercase">
             <span className="rule-fade-bright h-px w-8 shrink-0" aria-hidden />
@@ -82,9 +78,22 @@ export function Hero() {
           </p>
         </Reveal>
 
-        {/* leading-[0.95] + -0.035em tracking: at this size, default
-            line-height and letter-spacing are what make a headline read
-            as "a big paragraph" rather than as a statement.
+        {/* Tight leading + tracking: at this size, default line-height
+            and letter-spacing are what make a headline read as "a big
+            paragraph" rather than as a statement. (leading-[1.1], not
+            tighter — text-lit's gradient is tiled per line at 1lh; a
+            tighter value than the font's real descenders need is what
+            clipped "to get views." before, see globals.css's own note
+            on that utility.)
+
+            font-wordmark, not font-heading: the one other place on the
+            page that gets the logo's own face (Bricolage Grotesque),
+            deliberately — the hero's claim is the biggest single
+            statement on the page after the logo itself, and making it
+            in the logo's own voice is what ties the two together. Every
+            other heading stays in DM Sans; see layout.tsx's own note on
+            why this and the section titles (section-frame.tsx) are the
+            only two exceptions.
 
             Letter-by-letter here and nowhere else on the page — see
             lit-words.tsx on why that grain is reserved for the h1. The
@@ -96,7 +105,7 @@ export function Hero() {
             as="h1"
             unit="char"
             step={26}
-            className="text-lit mx-auto mt-7 max-w-3xl text-[2.7rem] leading-[0.95] font-semibold tracking-[-0.022em] text-balance sm:text-6xl md:text-[4.5rem] lg:text-[5rem]"
+            className="text-lit font-wordmark mx-auto mt-7 max-w-3xl text-[2.7rem] leading-[1.1] font-bold tracking-[-0.022em] text-balance sm:text-6xl md:text-[4.5rem] lg:text-[5rem]"
           >
             You don&apos;t need a following to get views.
           </LitWords>
@@ -110,70 +119,75 @@ export function Hero() {
             <strong className="font-semibold text-foreground">no expensive gear</strong>.
           </p>
         </Reveal>
+      </div>
 
-        {/* See the header note on why this is conditional rather than a
-            reserved box — no siteConfig.videos.intro, no video, no gap
-            left behind either: the button above just moves up to fill
-            the space, same as it did before this slot existed. */}
-        {introVideo && (
-          <Reveal delay={BEAT.body} variant="fade" className="mt-7 flex justify-center">
-            {/* Horizontal, not portrait — this is a talking-head/screen
-                intro, not another tile off the proof wall, and it reads
-                as a real video preview at this ratio instead of a tall
-                sliver. Sized in three real steps rather than one narrow
-                box that just gets a bit wider: max-w-xs on a phone is
-                already most of the column's width without crowding the
-                button under it; sm bumps it up for a bigger phone/small
-                tablet; lg matches the lede paragraph's own max-w-xl so
-                the video lines up with the text column above it instead
-                of looking like a separate, arbitrarily-sized object once
-                there's real desktop width to work with. */}
-            <VideoPlayer
-              aspect="video"
-              frame="premium"
-              label="Quick intro"
-              youtubeId={introVideo}
-              className="w-full max-w-xs sm:max-w-sm lg:max-w-xl"
-              poster={
-                <VideoPoster>
-                  <span className="font-mono text-2xl font-semibold tracking-[0.1em]">AR</span>
-                </VideoPoster>
-              }
-            />
-          </Reveal>
-        )}
+      {/* The 3D ring — real proof clips, evenly spaced around a true
+          perspective cylinder that does its own foreshortening (see
+          hero-carousel.tsx). The CTA cluster below is passed in as
+          children and rendered centred *over* the ring, front and
+          centre the way it would be if it were printed on the middle
+          card, not stacked in the page flow above or below it. */}
+      <Reveal delay={BEAT.body} variant="fade">
+        <HeroCarousel posters={posters} className="mt-12 md:mt-14">
+          {/* One dominant CTA, one quiet second one — not two competing
+              equally-weighted buttons. The crimson fill stays this
+              cluster's only genuinely colored element; the second button
+              is a plain outline that reads as "or, if you'd rather look
+              first" rather than a second ask. It points at the evidence
+              directly under this section, not at another sales step —
+              the honest answer to "why should I believe that headline"
+              is one scroll away, not a new page. */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {/* The one genuinely colored element above the fold. On a
+                page that is otherwise entirely graphite and light, a
+                deep crimson fill is unmissable at any size — which is
+                why it can be the only red thing here and still
+                dominate. The whole treatment lives in btn-cta — see
+                globals.css. */}
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={<Link href="/signup" />}
+              className="btn-cta h-auto rounded-full px-10 py-4 text-base font-bold tracking-tight text-cta-foreground sm:px-12 sm:py-5 sm:text-lg"
+            >
+              Save my free spot
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              nativeButton={false}
+              render={<Link href="#proof" />}
+              // Inline style, not bg-surface-2: the "outline" variant's
+              // own bg-background utility sets the same CSS property,
+              // and which of two same-specificity classes wins is down
+              // to Tailwind's internal generation order, not the order
+              // they're written here — btn-cta hit the exact same
+              // conflict against the base Button's bg-primary and
+              // needed !important to reliably win for the same reason.
+              // An inline style always wins that cascade outright.
+              style={{ backgroundColor: "var(--surface-2)" }}
+              className="h-auto rounded-full border-transparent px-8 py-4 text-base font-semibold text-foreground hover:brightness-110 sm:px-9 sm:py-5 sm:text-lg"
+            >
+              See the proof
+            </Button>
+          </div>
 
-        {/* Single CTA, deliberately: we're gathering the free-preview list
-            first, not pushing checkout, so this button shouldn't have to
-            compete with an equally-weighted "Enroll now" for attention.
-            Enrollment still exists — Pricing and the closing CTA keep
-            their own — this is just the hero's one job right now.
-
-            The one genuinely colored element above the fold. On a page
-            that is otherwise entirely graphite and light, a deep crimson
-            fill is unmissable at any size — which is why it can be the
-            only red thing here and still dominate. The whole treatment
-            lives in btn-cta — see globals.css. */}
-        <Reveal
-          delay={introVideo ? BEAT.body + BEAT.step : BEAT.body}
-          className="mt-8 flex justify-center"
-        >
-          <Button
-            size="lg"
-            nativeButton={false}
-            render={<Link href="/signup" />}
-            className="btn-cta h-auto rounded-full px-10 py-4 text-base font-bold tracking-tight text-cta-foreground sm:px-12 sm:py-5 sm:text-lg"
-          >
-            Save my free spot
-          </Button>
-        </Reveal>
-
-        <Reveal delay={BEAT.body + BEAT.step * (introVideo ? 2 : 1)}>
-          <p className="mt-4 font-mono text-[0.7rem] tracking-[0.12em] text-signal uppercase">
+          <p className="text-premium-sm font-mono text-[0.7rem] tracking-[0.12em] text-signal uppercase">
             Free for 5 days · No card required · €0 on gear to start
           </p>
-        </Reveal>
-      </div>
+
+          {/* The trust-line. Never a number we don't have — no "trusted
+              by N businesses" here, because we can't back that number
+              the way every view count on this page is backed by a real,
+              clickable post (PRODUCT_VISION.md §17: never invent a
+              stat). This is what an honest version of that line looks
+              like: a promise about what the reader is about to find,
+              not a headcount. */}
+          <p className="text-premium-sm text-xs text-muted-foreground/80">
+            Every number below is real — click through and watch it yourself.
+          </p>
+        </HeroCarousel>
+      </Reveal>
     </section>
   );
 }

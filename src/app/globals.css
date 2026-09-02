@@ -92,7 +92,7 @@
 }
 
 :root {
-  /* Off Camera — light theme: white/cream base, black "ink" outlines,
+  /* On Camera — light theme: white/cream base, black "ink" outlines,
      terracotta as the one brand accent. Modeled after Gumroad's actual
      chrome (white surfaces, black borders and text, one bold accent doing
      the work) rather than the earlier dark Nardo Grey pass — simple on
@@ -194,9 +194,12 @@
   --beam-bright: oklch(0.12 0 0);
   --beam-dim: oklch(0.46 0 0);
   --signal: oklch(0.44 0 0);
-  --crimson-bright: oklch(0.55 0.205 29);
-  --crimson: oklch(0.47 0.19 26);
-  --crimson-deep: oklch(0.33 0.14 22);
+  /* Dead fallback (see comment above) — kept in sync with dark-invert.css's
+     one flat accent, #C1502E, rather than left on the old crimson-ramp
+     values, purely so nothing that ever hits this path renders off-palette. */
+  --crimson-bright: #c1502e;
+  --crimson: #c1502e;
+  --crimson-deep: #c1502e;
   --hairline: oklch(0 0 0 / 0.1);
   --hairline-strong: oklch(0 0 0 / 0.18);
 
@@ -224,6 +227,30 @@
 
 @utility animate-marquee {
   animation: marquee-scroll 60s linear infinite;
+}
+
+/* The hero's 3D ring carousel (marketing/hero-carousel.tsx). A true CSS
+   3D cylinder, not a 2D slider faking perspective: cards sit at a fixed
+   rotateY(angle) translateZ(radius) around this ring, and the ring
+   itself is the only thing that ever animates — one continuous
+   rotateY(0) -> rotateY(-360deg) sweep. The browser's own perspective
+   projection (set on the stage that holds this ring) does every bit of
+   the scaling/foreshortening as cards swing toward and away from
+   front-centre; nothing here is hand-computed per card. */
+@keyframes hero-ring-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(-360deg);
+  }
+}
+
+@utility animate-hero-ring {
+  animation: hero-ring-spin 52s linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 /* Gentle scale+fade pulse for ViewfinderFrame's corners/crosshair — reads
@@ -453,24 +480,36 @@
   }
 }
 
+/* will-change: transform on all three — these run forever, the whole
+   time the page is open, not only while scrolling. Without an explicit
+   hint a browser that doesn't auto-promote the layer repaints an
+   expensive blur-3xl on every tick, a continuous cost that competes with
+   every other frame on the page (scroll included) for no visible reason,
+   since the promotion is free and the animation is transform-only. */
 @utility atmos-drift-a {
   animation: atmos-drift-a 46s ease-in-out infinite;
+  will-change: transform;
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    will-change: auto;
   }
 }
 
 @utility atmos-drift-b {
   animation: atmos-drift-b 64s ease-in-out infinite;
+  will-change: transform;
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    will-change: auto;
   }
 }
 
 @utility atmos-drift-c {
   animation: atmos-drift-c 38s ease-in-out infinite;
+  will-change: transform;
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    will-change: auto;
   }
 }
 
@@ -682,82 +721,39 @@
 
    Self-contained on purpose: it does NOT stack with btn-premium, whose
    own `box-shadow: ... !important` would win and erase this one. */
+/* Flat, deliberately — a specific instruction, not a simplification for
+   its own sake: solid fill, no gradient, no glossy inset highlight, no
+   soft outer glow, no sweeping shine animation. An earlier version of
+   this button had all four (a 3-stop gradient, inset sheen, an outer
+   colored glow, a light sweeping across on hover), which read as
+   "gaming/streaming" rather than the premium, restrained register the
+   rest of the page is going for — flat is the actual fix, not a
+   placeholder for a nicer effect later. */
 @utility btn-cta {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
   border-width: 1px !important;
-  border-color: oklch(1 0 0 / 0.16) !important;
-  background-image: linear-gradient(
-    180deg,
-    var(--crimson-bright) 0%,
-    var(--crimson) 62%,
-    var(--crimson-deep) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 0.22),
-    inset 0 -10px 18px -12px oklch(0 0 0 / 0.4),
-    0 10px 26px -12px oklch(0 0 0 / 0.75),
-    0 0 40px -16px oklch(0.55 0.205 29 / 0.45) !important;
-  transition:
-    transform 0.25s var(--ease-cinematic),
-    box-shadow 0.25s var(--ease-cinematic),
-    border-color 0.25s var(--ease-cinematic);
+  border-color: transparent !important;
+  /* !important on the fill itself, not just the border/shadow like the
+     rest of this utility already did: the base Button primitive's own
+     `bg-primary` sets this exact property (background-color), and
+     unlike the old gradient version — which used background-image, a
+     different property that simply paints over bg-primary rather than
+     competing with it — a flat fill genuinely needs to win that
+     cascade, not just coexist with it. */
+  background-color: var(--cta) !important;
+  box-shadow: 0 1px 2px 0 oklch(0 0 0 / 0.25) !important;
+  transition: background-color 0.2s var(--ease-cinematic);
 
-  /* Same sweeping highlight as btn-premium — a light travelling across a
-     physical face, not a shine gimmick. */
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-      110deg,
-      transparent 30%,
-      oklch(1 0 0 / 0.2) 50%,
-      transparent 70%
-    );
-    transform: translateX(-120%);
-    transition: transform 0.55s var(--ease-glide);
-  }
-
-  /* Hover lifts the whole face and opens the glow slightly — no ring to
-     step through a surface level, just the one edge getting brighter. */
   &:hover {
-    transform: translateY(-2px);
-    border-color: oklch(1 0 0 / 0.26) !important;
-    box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.3),
-      inset 0 -10px 18px -12px oklch(0 0 0 / 0.35),
-      0 16px 34px -14px oklch(0 0 0 / 0.85),
-      0 0 56px -14px oklch(0.55 0.205 29 / 0.6) !important;
-  }
-
-  &:hover::after {
-    transform: translateX(120%);
+    background-color: color-mix(in oklch, var(--cta), white 10%) !important;
   }
 
   &:active {
-    transform: translateY(1px);
-    box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.14),
-      inset 0 -8px 14px -10px oklch(0 0 0 / 0.45),
-      0 4px 12px -8px oklch(0 0 0 / 0.65),
-      0 0 30px -18px oklch(0.55 0.205 29 / 0.35) !important;
+    background-color: color-mix(in oklch, var(--cta), black 8%) !important;
   }
 
   &:focus-visible {
     outline: 2px solid var(--beam);
     outline-offset: 3px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    &:hover {
-      transform: none;
-    }
-    &::after {
-      display: none;
-    }
   }
 }
 

@@ -98,11 +98,13 @@ export function FullCurriculum() {
                 <AccordionItem value={mod.id} id={`module-${mod.id}`} className="border-b-0">
                   <AccordionTrigger className="py-5 text-left text-base font-medium no-underline hover:no-underline">
                     <span className="flex min-w-0 items-center gap-4">
-                      {/* The module's own step on the crimson→maroon ramp,
-                          so a module reads as the same thing here as it
-                          does in the rail above. */}
+                      {/* The module's own step on the accent's ramp, so a
+                          module reads as the same thing here as it does
+                          in the rail above. Flat fill, no inset sheen —
+                          same "solid fill only" rule as the CTA button
+                          and the topic-selector pills. */}
                       <span
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full border border-white/10 font-mono text-xs font-bold shadow-[inset_0_1px_0_0_oklch(1_0_0_/_0.14)] tabular-nums"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full border border-transparent font-mono text-xs font-bold tabular-nums"
                         style={{ backgroundColor: shade.bg, color: shade.text }}
                       >
                         {i + 1}

@@ -86,7 +86,7 @@ export function EmailLayout({
                       color: colors.ink,
                     }}
                   >
-                    Off Camera
+                    On Camera
                   </Text>
                 </td>
               </tr>
@@ -105,7 +105,7 @@ export function EmailLayout({
                 color: colors.mutedForeground,
               }}
             >
-              Off Camera · The content system behind videos that perform.{" "}
+              On Camera · The content system behind videos that perform.{" "}
               <Link href={siteConfig.url} style={{ color: colors.mutedForeground }}>
                 {siteConfig.url.replace(/^https?:\/\//, "")}
               </Link>

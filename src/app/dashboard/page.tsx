@@ -43,7 +43,7 @@ export default async function DashboardPage(props: {
           <span className="pill-outline mx-auto flex size-14 items-center justify-center rounded-full bg-toy-soft text-toy-soft-foreground">
             <Lock className="size-6" />
           </span>
-          <h2 className="mt-4 text-lg font-semibold">Unlock Off Camera</h2>
+          <h2 className="mt-4 text-lg font-semibold">Unlock On Camera</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {TOTAL_MODULES} modules, {TOTAL_LESSONS} lessons, pitch &amp;
             contract templates, and lifetime access
@@ -72,7 +72,7 @@ export default async function DashboardPage(props: {
       <p className="mt-1.5 text-muted-foreground">
         {completedLessons === 0
           ? "You're just getting started. Mark off your first lesson below."
-          : `You're ${percent}% through Off Camera. Keep the momentum going.`}
+          : `You're ${percent}% through On Camera. Keep the momentum going.`}
       </p>
 
       <div className="mt-6">

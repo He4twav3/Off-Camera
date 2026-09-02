@@ -40,7 +40,7 @@ const entries = [
   },
   {
     date: "2026-07-20",
-    title: "Off Camera launched",
+    title: "On Camera launched",
     body: "8 modules, 25 lessons, on how to create faceless content and get picked for brand deals.",
   },
 ];

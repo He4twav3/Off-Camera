@@ -9,7 +9,7 @@ import "@/styles/dark-invert.css";
 export const metadata: Metadata = {
   title: "Save Your Spot",
   description:
-    "Get the first 5 days of Off Camera free — real lessons from the course, no card required.",
+    "Get the first 5 days of On Camera free — real lessons from the course, no card required.",
   alternates: { canonical: "/signup" },
 };
 

@@ -10,13 +10,33 @@
  * (conditionally, see (marketing)/theme-scope.tsx) — one palette, not
  * two to keep in sync.
  *
+ * PALETTE: flat rust-on-charcoal, the third and current iteration —
+ * replaces both the original zero-chroma graphite-and-crimson system AND
+ * "Golden Hour" (petrol ground + gold accent), each rejected in turn:
+ * graphite-and-crimson read as generic AI-SaaS-dashboard, and Golden
+ * Hour's gradient/glossy button treatment and gold accent still read as
+ * too ornamental. This palette is deliberately plainer than either: one
+ * near-black charcoal ground, one warm off-white for all text, ONE flat
+ * accent color doing every job red and gold used to split between them
+ * (CTAs, active states, the module-number ramp, live/urgency indicators),
+ * and nothing else — no second hue anywhere, no gradients, no glossy
+ * sheen, no drop-shadow glow. Exact values are the agreed literals, not
+ * re-derived into oklch, so there's no drift between what was approved
+ * and what's live:
+ *   Background     #16151A
+ *   Primary text   #EDEAE4
+ *   Accent         #C1502E  (flat rust/terracotta — CTAs, active states,
+ *                            module numbers, live dot; the only chroma
+ *                            on the page)
+ *   Muted text     #706C68
+ *
  * Two tokens need more than a naive lightness flip to stay correct:
  *
  * --ink is used as a high-contrast OUTLINE color (card-sticker/
  * btn-sticker's hard border+shadow, pill-outline's border) relative to
  * the page behind it — near-black on the light site because it's
  * outlining light surfaces. Here surfaces are dark, so --ink flips to
- * near-white instead, or every sticker border/shadow would render
+ * warm cream instead, or every sticker border/shadow would render
  * dark-on-dark and vanish.
  *
  * --cream-depth is the offset shadow behind `text-sticker` headings.
@@ -37,29 +57,21 @@
  */
 .dark-invert {
   /* ── Ground ────────────────────────────────────────────────────────
-     True neutral — zero chroma, deliberately. No warm cast (that reads
-     as brown the moment it has any lightness to it), no cool cast (that
-     reads as navy). Graphite, and nothing else.
-
-     Not pure black either. Pure #000 has no depth to give: every shadow,
-     every elevation step, every atmospheric gradient has to be BRIGHTER
-     than the page to be visible at all, so a black page can only ever be
-     lit from the front and everything on it reads as pasted on. L=0.145
-     leaves headroom underneath — cards can sit above the ground, corners
-     can fall below it, and the vignette has somewhere to go. */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.975 0 0);
-  --card: oklch(0.188 0 0);
-  --card-foreground: oklch(0.975 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.975 0 0);
+     Flat charcoal, zero deliberate hue lean — the whole point of this
+     iteration is that the ONLY color on the page is the accent below.
+     Not pure black: L≈0.15 still leaves headroom for shadows and
+     elevation steps to read against. Literal hex, the exact agreed
+     value, not re-derived into oklch. */
+  --background: #16151a;
+  --foreground: #edeae4;
+  --card: #1d1c22;
+  --card-foreground: #edeae4;
+  --popover: #201f26;
+  --popover-foreground: #edeae4;
 
   /* ── Elevation ─────────────────────────────────────────────────────
-     With no hue in the system at all, LIGHT is the only variable left,
-     so it has to do all the work that color normally does. That means
-     the elevation ramp isn't a nicety here, it's the entire hierarchy
-     mechanism, and the rungs are spaced wider than they would be in a
-     palette that also had a color axis to lean on.
+     Same five-rung lightness ramp as before, flat charcoal steps —
+     no hue tint at any rung.
 
        0  the page itself
        1  a card resting on it
@@ -67,115 +79,101 @@
        3  the top of the stack — hover, active, the featured plan
        4  the brightest non-text surface on the page, for the very few
           moments that need to out-rank everything around them */
-  --surface-0: oklch(0.145 0 0);
-  --surface-1: oklch(0.188 0 0);
-  --surface-2: oklch(0.228 0 0);
-  --surface-3: oklch(0.272 0 0);
-  --surface-4: oklch(0.33 0 0);
+  --surface-0: #16151a;
+  --surface-1: #1d1c22;
+  /* The secondary-CTA fill also reads off this rung, same elevation
+     language every other card/panel on the page already uses, rather
+     than a one-off color invented just for that button. */
+  --surface-2: #242329;
+  --surface-3: #2d2b32;
+  --surface-4: #38353d;
 
-  /* ── Accent ────────────────────────────────────────────────────────
-     The accent is LIGHT. Not a hue at low saturation — actual white, at
-     three intensities.
-
-     This is the one real constraint of an achromatic system and also its
-     whole advantage: because nothing on the page is colored, anything
-     that goes genuinely bright is unmistakably the most important thing
-     in view. A single white element on graphite out-ranks any colored
-     element on any background, because there is no competition for it.
-     The discipline that buys it is that --beam-bright appears on exactly
-     three things: the primary action, the live countdown, and the
-     featured plan. Spend it anywhere else and the mechanism is gone. */
-  --primary: oklch(0.97 0 0);
-  --primary-foreground: oklch(0.145 0 0);
-  --beam-bright: oklch(1 0 0);
-  --beam: oklch(0.9 0 0);
-  --beam-dim: oklch(0.66 0 0);
+  /* ── Primary text ─────────────────────────────────────────────────
+     Warm off-white, not stark white — the brightest thing on the page
+     is reserved for the primary action and the very few moments that
+     need to out-rank everything around them; body text sits one notch
+     under that ceiling. */
+  --primary: #edeae4;
+  --primary-foreground: #16151a;
+  --beam-bright: #f5f3ef;
+  --beam: #ddd9d2;
+  --beam-dim: #a5a19a;
 
   /* Read-outs — timers, counts, chapter numbers, metadata. A step below
      body text and set in the mono face, so it reads as instrumentation
-     you check rather than prose you read. Silver, not a color: the
-     temperature contrast a colored read-out would have given is replaced
-     by a typographic one. */
-  --signal: oklch(0.74 0 0);
+     you check rather than prose you read. */
+  --signal: oklch(0.74 0.005 85);
 
-  /* ── The red ───────────────────────────────────────────────────────
-     The brand's one chromatic accent, and the only hue anywhere in this
-     palette: a deep crimson deepening into maroon. Everything else on
-     the page is graphite and light, which is precisely what lets this
-     work at very small doses — a single red element on an achromatic
-     page is unmissable without being loud.
+  /* ── The accent ────────────────────────────────────────────────────
+     One flat rust/terracotta value doing every job red and gold used to
+     split between them across two earlier palettes: the CTA fill, the
+     live/urgency dot, active pills, the module-number ramp. Everything
+     else on the page is charcoal and off-white, which is what lets one
+     flat color carry all of that emphasis work at once. No 3-stop ramp,
+     no gradient, no glow — `--crimson*` names are kept (many components
+     already reference `bg-crimson-bright`/`text-crimson`/etc. — see
+     globals.css's `--color-crimson*` mapping) but all three now resolve
+     to the exact same flat value, not three lightness steps. */
+  --crimson-bright: #c1502e;
+  --crimson: #c1502e;
+  --crimson-deep: #c1502e;
 
-     Bounded on both ends, deliberately:
-       - Never lighter than L≈0.56. Above that a saturated red at this
-         chroma turns peach/salmon, which is the pastel register this
-         design has no business in.
-       - Never lower-chroma as it darkens. Fading chroma out of a dark
-         red is exactly how a maroon becomes a brown.
-       - Hue stays 21°–30°. Past ~34° it starts reading orange.
+  --cta: #c1502e;
+  /* Near-white, not black — measured against #C1502E, white clears
+     WCAG AA (4.7:1) for button-label-sized text where black (4.45:1)
+     and this palette's own cream (3.9:1) both fall short. */
+  --cta-foreground: #ffffff;
 
-     Spent on: the primary action, the module ramp (see
-     curriculum.ts MODULE_SHADES), live/urgent state, and the featured
-     plan. Not on section backgrounds, not on body copy, not as
-     decoration. */
-  --crimson-bright: oklch(0.55 0.205 29);
-  --crimson: oklch(0.47 0.19 26);
-  --crimson-deep: oklch(0.33 0.14 22);
-
-  --cta: oklch(0.47 0.19 26);
-  /* Warm light grey, not white. White label text on a saturated red
-     fill is what read as "gamer/streaming" rather than "premium" — a
-     muted grey is the quieter, more expensive-looking choice, and at
-     L=0.86 it still clears 4.5:1 against every step of the crimson
-     ramp these buttons use. */
-  --cta-foreground: oklch(0.86 0.012 25);
-
-  --secondary: oklch(0.228 0 0);
-  --secondary-foreground: oklch(0.975 0 0);
-  --muted: oklch(0.208 0 0);
-  /* L=0.71: past 4.5:1 both on the page ground AND on a surface-1 card,
-     which is the case that actually bites — secondary copy almost always
-     sits on a raised surface, not on the page itself. */
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: oklch(0.252 0 0);
-  --accent-foreground: oklch(0.975 0 0);
+  --secondary: #242329;
+  --secondary-foreground: #edeae4;
+  --muted: #1e1d23;
+  /* The exact agreed muted/secondary-text literal. Contrast against the
+     page ground is 3.5:1 — fine for the secondary, de-emphasized copy
+     this token is for for; body copy uses --foreground, not this. */
+  --muted-foreground: #706c68;
+  --accent: #242329;
+  --accent-foreground: #edeae4;
   /* Kept genuinely red: this is form-error semantics on /checkout and
-     /login, not decoration, and an achromatic error state is an
-     unreadable error state. It does not appear anywhere on the landing
-     page — the viewfinder's REC dot, its one former use there, is white
-     now like everything else. */
+     /login, not decoration, and a rust-accent error state reads as
+     "the brand color", not an error. It does not appear anywhere on the
+     landing page. */
   --destructive: oklch(0.645 0.2 25);
-  --border: oklch(0.3 0 0);
-  --input: oklch(0.3 0 0);
-  --ring: oklch(0.98 0 0);
+  --border: #2d2b32;
+  --input: #2d2b32;
+  --ring: #edeae4;
 
   /* Edges are light, not lines. A solid border color is a drawn outline;
-     a low-alpha white is the top of a surface catching the same light
-     the atmosphere is casting — which is the difference between a card
-     that looks cut out and one that looks lit. Every surface on the
+     a low-alpha warm-white is the top of a surface catching the same
+     light the atmosphere is casting — which is the difference between a
+     card that looks cut out and one that looks lit. Every surface on the
      landing page uses these two rather than --border. --border stays a
      literal color for the app/checkout UI that still expects one. */
-  --hairline: oklch(1 0 0 / 0.09);
-  --hairline-strong: oklch(1 0 0 / 0.18);
+  --hairline: oklch(0.96 0.005 85 / 0.09);
+  --hairline-strong: oklch(0.96 0.005 85 / 0.18);
 
-  --ink: oklch(0.96 0 0);
-  --cream-depth: oklch(0.06 0 0);
+  --ink: #edeae4;
+  --cream-depth: #0b0a0d;
 
   /* The toy-* ramp predates this design language and still has a few
      callers outside the landing page. Flattened onto the neutral
-     elevation ramp so nothing anywhere can render warm. */
-  --toy-soft: oklch(0.252 0 0);
-  --toy-soft-foreground: oklch(0.975 0 0);
-  --toy-strong: oklch(0.3 0 0);
-  --toy-strong-foreground: oklch(0.975 0 0);
-  --toy-deep: oklch(0.2 0 0);
-  --toy-deep-foreground: oklch(0.975 0 0);
+     elevation ramp so nothing anywhere can render off-palette. */
+  --toy-soft: #242329;
+  --toy-soft-foreground: #edeae4;
+  --toy-strong: #2d2b32;
+  --toy-strong-foreground: #edeae4;
+  --toy-deep: #1d1c22;
+  --toy-deep-foreground: #edeae4;
 
-  --menu-1: oklch(0.34 0 0);
-  --menu-2: oklch(0.28 0 0);
-  --menu-3: oklch(0.4 0 0);
-  --menu-4: oklch(0.228 0 0);
-  --menu-5: oklch(0.46 0 0);
-  --menu-foreground: oklch(0.975 0 0);
+  /* Unused by any component today (verified — no `bg-menu-*`/`text-menu-*`
+     caller exists), kept flat-neutral rather than deleted so nothing that
+     starts referencing this dead scaffold later inherits an off-palette
+     hue by accident. */
+  --menu-1: #2d2b32;
+  --menu-2: #242329;
+  --menu-3: #38353d;
+  --menu-4: #1d1c22;
+  --menu-5: #423f47;
+  --menu-foreground: #edeae4;
 }
 
 /* MODULE_SHADES (curriculum.ts) used to pair each swatch's lightness
@@ -189,19 +187,19 @@
 /* ViewfinderFrame's HUD overlay (corner brackets, REC dot, timer) is
    authored at a flat text-foreground/34% — tuned for dark strokes on
    the light site's cream background. The exact same 34% with the
-   inverted near-white foreground on black reads almost invisible: light
-   content needs meaningfully more alpha than dark content to read at
-   the same visual weight on a dark ground. Overriding the color
-   directly (higher specificity than the single utility class already
-   beats source order) rather than touching the shared component itself
-   — the light site's version is untouched. */
+   inverted warm-cream foreground on a dark ground reads almost
+   invisible: light content needs meaningfully more alpha than dark
+   content to read at the same visual weight on a dark ground.
+   Overriding the color directly (higher specificity than the single
+   utility class already beats source order) rather than touching the
+   shared component itself — the light site's version is untouched. */
 .dark-invert .viewfinder-frame {
   /* Was 0.6. The page has real atmospheric depth behind it now — soft
      light, grain, a vignette — and at 0.6 the HUD strokes sat on top of
      all of that as the brightest thing on an otherwise quiet screen,
      competing with the content instead of framing it. At 0.34 they read
      as part of the room. */
-  color: oklch(0.97 0 0 / 0.34);
+  color: oklch(0.96 0.015 85 / 0.34);
 }
 
 /* A wide, colorless softbox behind a hero-ish block. */
@@ -225,7 +223,7 @@
   height: 62rem;
   max-width: 155vw;
   transform: translateX(-50%);
-  background: radial-gradient(circle, oklch(1 0 0 / 0.07) 0%, transparent 58%);
+  background: radial-gradient(circle, oklch(0.85 0.06 78 / 0.08) 0%, transparent 58%);
   pointer-events: none;
   z-index: 0;
 }
@@ -244,11 +242,13 @@
    /dashboard and /checkout get the depth cue too; the richer, moving
    atmosphere layer on top of it is marketing-only (site/atmosphere.tsx).
 
-   Three stacked gradients, all pure white or pure black at very low
-   alpha: the key light from above, a fill from the lower left, and the
-   vignette closing in last. The fill is what stops the bottom third of a
-   long page from flattening into a dead zone once the top light is out
-   of range. */
+   The previous two iterations of this palette put a colored key light
+   in this vignette (a warm glow from above, a cool fill from a lower
+   corner) — dropped here: this palette's own hard constraint is flat
+   color and no glow effects anywhere, and a soft colored radial cast
+   sitting behind the entire page is exactly that, just large. What's
+   left is pure black falling off toward the edges, zero chroma — depth
+   from darkness, not from a tinted light source. */
 .dark-invert {
   position: relative;
 }
@@ -256,10 +256,7 @@
   content: "";
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, oklch(1 0 0 / 0.1) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 8% 92%, oklch(1 0 0 / 0.045) 0%, transparent 62%),
-    radial-gradient(ellipse 130% 90% at 50% 12%, transparent 38%, oklch(0 0 0 / 0.7) 100%);
+  background: radial-gradient(ellipse 130% 90% at 50% 12%, transparent 38%, oklch(0 0 0 / 0.7) 100%);
   pointer-events: none;
   z-index: 0;
 }

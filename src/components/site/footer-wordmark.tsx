@@ -18,7 +18,7 @@
  * scale rather than a second, competing lettering style.
  *
  * ONE LINE, DELIBERATELY WIDER THAN THE CONTAINER. Their word is six
- * characters; "off camera" is ten. Matching their font-size verbatim
+ * characters; "on camera" is nine. Matching their font-size verbatim
  * would either overflow badly or, held to fit, shrink until it stopped
  * reading as oversized — so the size here is fluid (vw-based, clamped)
  * rather than a fixed number lifted from their pixels, and it is tuned
@@ -48,8 +48,10 @@
  * small squares sits across it too, like tiles missing from the word
  * rather than a texture laid over it. Rather than their thirteen
  * identically-sized, loosely-scattered tiles, these six are placed at
- * actual letter centres in "off camera" (measured off the rendered glyph
- * boxes, the same way the letterform ratios in layout.tsx were) and
+ * actual letter centres in "on camera" (re-measured against the rendered
+ * glyph boxes after the name changed from "off camera" — a Playwright
+ * range-per-character pass against the live page, not eyeballed either
+ * time) and
  * biased toward the crop line at the bottom — so each one reads as a
  * piece missing from a specific letter, concentrated where the word is
  * already sinking out of view, rather than confetti scattered irrespective
@@ -65,18 +67,18 @@
  * second time, oversized, with squares missing from it.
  */
 const MOSAIC = [
-  // over the "o" of "off" — early, high, small
-  { left: "5.0%", top: "58%", size: "0.14em", opacity: 0.9 },
-  // over the second "f" — right on the crop line
-  { left: "22.3%", top: "88%", size: "0.2em", opacity: 1 },
+  // over the "o" of "on" — early, high, small
+  { left: "6.5%", top: "58%", size: "0.14em", opacity: 0.9 },
+  // over the "n" — right on the crop line
+  { left: "19.7%", top: "88%", size: "0.2em", opacity: 1 },
   // over the "a" of "camera" — faint, mid-letter
-  { left: "47.1%", top: "62%", size: "0.12em", opacity: 0.6 },
+  { left: "49.4%", top: "62%", size: "0.12em", opacity: 0.6 },
   // over the "m" — on the crop line
-  { left: "61.8%", top: "90%", size: "0.16em", opacity: 0.85 },
+  { left: "65.6%", top: "90%", size: "0.16em", opacity: 0.85 },
   // over the "r" — faint, mid-letter
-  { left: "86.5%", top: "60%", size: "0.11em", opacity: 0.5 },
+  { left: "92.3%", top: "60%", size: "0.11em", opacity: 0.5 },
   // over the final "a" — on the crop line
-  { left: "95.5%", top: "87%", size: "0.18em", opacity: 0.75 },
+  { left: "102.6%", top: "87%", size: "0.18em", opacity: 0.75 },
 ] as const;
 
 export function FooterWordmark() {
@@ -89,7 +91,7 @@ export function FooterWordmark() {
           mosaic tiles below — siblings, not children, of the text —
           inherit the same em and stay in proportion to it as it scales. */}
       <p className="font-wordmark pointer-events-none -mb-[0.34em] text-center leading-none font-medium lowercase tracking-[-0.04em] whitespace-nowrap text-foreground/5">
-        off camera
+        on camera
       </p>
 
       {/* The mosaic — see THE MOSAIC above for why these six, here. */}

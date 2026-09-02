@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-// Status pills for the recruiting dashboard/admin panel. Off Camera's
+// Status pills for the recruiting dashboard/admin panel. On Camera's
 // palette is deliberately monochromatic (terracotta + neutrals, no
 // traffic-light red/green/yellow) — see globals.css's --toy-* scale — so
 // tones map onto that instead of introducing a foreign green/red system.

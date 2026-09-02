@@ -93,7 +93,7 @@ export function Story() {
 
         <div className="relative">
           <Reveal delay={BEAT.eyebrow}>
-            <SectionEyebrow index="06" label="Why we built this" align="start" />
+            <SectionEyebrow index="05" label="Why we built this" align="start" />
           </Reveal>
           <Reveal delay={BEAT.title}>
             <h2 className="text-lit mt-5 text-2xl leading-[1.15] font-semibold tracking-[-0.02em] text-balance sm:text-[2rem]">

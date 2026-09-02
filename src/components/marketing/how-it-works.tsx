@@ -84,7 +84,7 @@ export function HowItWorks() {
   return (
     <section className="relative mx-auto max-w-[1240px] px-5 py-20 sm:px-6 lg:px-8">
       <SectionHeader
-        index="03"
+        index="02"
         eyebrow="How this works"
         title="Learn it, make it, prove it"
         lede="Three steps, in order. The first one is free for five days."

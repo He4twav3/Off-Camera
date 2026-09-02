@@ -1,6 +1,21 @@
 import "server-only";
 
+import { statSync } from "node:fs";
+import { join } from "node:path";
 import { PROOF_CONTENT, type ProofEntry } from "@/lib/proof-content";
+
+/** The file's own last-modified time, as a cache-busting query value —
+ * see its call site below for why this exists. Never throws: a file
+ * that can't be stat'd (moved, permissions) just gets no version
+ * suffix, which is exactly the previous unversioned behavior, not a
+ * broken video. */
+function videoVersion(publicPath: string): number | "" {
+  try {
+    return statSync(join(process.cwd(), "public", publicPath)).mtimeMs;
+  } catch {
+    return "";
+  }
+}
 
 /**
  * Real poster frames for the real videos, resolved on the server.
@@ -39,6 +54,19 @@ export type ProofPoster = {
   id: string;
   /** Resolved poster image, or null when it couldn't be resolved. */
   thumbnail: string | null;
+  /**
+   * A real, directly-playable video file (an .mp4/.webm path/URL) —
+   * passed straight through from `ProofEntry.src`, the same field
+   * `VideoPlayer` already uses elsewhere on the page. When set, the
+   * hero's ring carousel (hero-carousel.tsx) renders this as a silent,
+   * autoplaying, looping `<video>` instead of a static poster image —
+   * real footage, not a platform embed, which is what makes ambient
+   * autoplay possible at all (TikTok's/Instagram's own embeds refuse to
+   * autoplay — see platform-embed.tsx's own note, confirmed by direct
+   * testing). Optional: an entry with no self-hosted file falls back to
+   * the resolved poster image below, same as always.
+   */
+  video?: string;
   /** The real view count, e.g. "15.1M+". */
   views?: string;
   /** The card's own headline, e.g. "No face. Still viral." */
@@ -150,8 +178,18 @@ export async function getProofPosters(): Promise<ProofPoster[]> {
   return Promise.all(
     PROOF_CONTENT.map(async (entry) => {
       const platform = platformOf(entry);
-      const thumbnail =
-        platform === "TikTok" && entry.postUrl
+      // An entry with a self-hosted `src` gets its poster from that same
+      // file (a first-frame JPG generated alongside it, see
+      // public/proof-videos/posters/) instead of the platform's own
+      // oEmbed thumbnail — same-origin and permanent, where TikTok's/
+      // Instagram's own CDN URLs are signed and expire (see
+      // fetchTikTokPoster's own note) and can flash solid black in the
+      // proof carousel if one fails to load right when the tile scrolls
+      // into view. Skips the network round-trip entirely, not just the
+      // failure mode.
+      const thumbnail = entry.src
+        ? `/proof-videos/posters/${entry.id}.jpg?v=${videoVersion(`/proof-videos/posters/${entry.id}.jpg`)}`
+        : platform === "TikTok" && entry.postUrl
           ? await fetchTikTokPoster(entry.postUrl)
           : platform === "Instagram" && entry.postUrl
             ? await fetchInstagramPoster(entry.postUrl)
@@ -159,6 +197,15 @@ export async function getProofPosters(): Promise<ProofPoster[]> {
       return {
         id: entry.id,
         thumbnail,
+        // `?v=<mtime>` on the video src — these files have been replaced
+        // in place at the same path more than once already (a blur pass,
+        // then reverted), and a browser that fetched the old bytes at
+        // that exact URL earlier in the same session has no reason to
+        // ask again for a plain, unversioned path. Tying the version to
+        // the file's own mtime means it updates automatically the next
+        // time the file actually changes, rather than needing a manual
+        // bump remembered every time.
+        video: entry.src ? `${entry.src}?v=${videoVersion(entry.src)}` : undefined,
         views: entry.views,
         label: entry.label,
         postUrl: entry.postUrl,

@@ -99,17 +99,25 @@ export function SectionHeader({
           splitting arbitrary markup on spaces would destroy it. Every
           section heading on this page is a plain string today, so in
           practice they all get it — the escape hatch just means a future
-          heading with an inline <span> or <br> can't silently break. */}
+          heading with an inline <span> or <br> can't silently break.
+
+          font-wordmark + font-bold: every numbered chapter title on the
+          page, the second of only two places (with the hero's own h1)
+          that get the logo's own face (Bricolage Grotesque) instead of
+          DM Sans — see hero.tsx's matching note and layout.tsx's header
+          comment for why these two and nothing else. font-bold (700),
+          not font-semibold (600): 600 isn't one of the weights that face
+          is actually loaded at. */}
       <Reveal delay={BEAT.title}>
         {typeof title === "string" ? (
           <LitWords
             as="h2"
-            className="text-lit mt-5 text-3xl leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[2.6rem]"
+            className="text-lit font-wordmark mt-5 text-3xl leading-[1.1] font-bold tracking-[-0.02em] text-balance sm:text-[2.6rem]"
           >
             {title}
           </LitWords>
         ) : (
-          <h2 className="text-lit mt-5 text-3xl leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[2.6rem]">
+          <h2 className="text-lit font-wordmark mt-5 text-3xl leading-[1.1] font-bold tracking-[-0.02em] text-balance sm:text-[2.6rem]">
             {title}
           </h2>
         )}

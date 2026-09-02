@@ -2,7 +2,7 @@ import { EmailLayout, EmailHeading, EmailText } from "./components/email-layout"
 
 export function ApplicantRejectedEmail({ name }: { name: string }) {
   return (
-    <EmailLayout preview="Update on your Off Camera application">
+    <EmailLayout preview="Update on your On Camera application">
       <EmailHeading>Thanks for applying, {name}</EmailHeading>
       <EmailText>
         We&apos;ve reviewed your profile and it isn&apos;t a fit for the

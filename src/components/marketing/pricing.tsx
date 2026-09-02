@@ -66,7 +66,7 @@ export function Pricing() {
       />
 
       <SectionHeader
-        index="07"
+        index="06"
         eyebrow="What it costs"
         title="One plan. Everything included."
         lede="No tiers to think about, just the full course, once."
