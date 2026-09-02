@@ -3,8 +3,9 @@
  * pricing. Used by metadata, OG images, sitemap, robots, and structured data
  * so they never drift out of sync with each other.
  *
- * TODO before going live: replace `url` with your real domain (also set it
- * as NEXT_PUBLIC_SITE_URL in your deploy env).
+ * `url` falls back to the real domain below, but production should still
+ * set NEXT_PUBLIC_SITE_URL explicitly in Vercel — see the Supabase Auth
+ * redirect-URL note this drives (getBaseUrl() in lib/request-url.ts).
  */
 export const siteConfig = {
   name: "On Camera",
@@ -19,7 +20,7 @@ export const siteConfig = {
    * descriptions, emails, OG images). Every one of those now reads this.
    */
   courseTitle: "On Camera: The Content Formula",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://oncamera.example.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://oncameraugc.com",
   price: {
     amount: 17.99,
     currency: "EUR",
