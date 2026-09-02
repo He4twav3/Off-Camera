@@ -43,15 +43,13 @@ export type Brand = {
 
 export const BRANDS: Brand[] = [
   { name: "Kyu Japan", monogram: "KY", logo: "/brands/kyu-japan.png", tone: "tile" },
-  { name: "Parakeet AI", monogram: "PA", logo: "/brands/parakeet.png", tone: "onDark" },
+  { name: "Parakeet AI", monogram: "PA", logo: "/brands/parakeet.png", tone: "onLight" },
   { name: "Clippie AI", monogram: "CL", logo: "/brands/clippie.jpg", tone: "tile" },
   { name: "Eromify", monogram: "ER", logo: "/brands/eromify.png", tone: "tile" },
   // Was inverted (tone "dark") — a flat white silhouette that threw away
   // the mark's real two-tone charcoal/grey design. A light disc shows
   // the actual logo instead.
   { name: "GPTZero", monogram: "GZ", logo: "/brands/gptzero.png", tone: "onLight" },
-  // A white wordmark on transparent — sits directly on the dark disc.
-  { name: "Stateshift", monogram: "SS", logo: "/brands/stateshift.png", tone: "onDark" },
   // Black wordmark on its own yellow tile — full-bleed like the other tiles.
   { name: "True Avenue", monogram: "TA", logo: "/brands/true-avenue.jpg", tone: "tile" },
   // Cantina Labs, Project25, Cosmos, Sternify were on the sideshift

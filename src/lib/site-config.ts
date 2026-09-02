@@ -9,7 +9,7 @@
  */
 export const siteConfig = {
   name: "On Camera",
-  tagline: "You don't need a following to get views.",
+  tagline: "Learn the craft. Build the career.",
   description:
     "Real breakdowns of our own videos that reached millions of views, and the repeatable system behind them: hooks, retention, formats, volume, consistency, and iteration. On camera, not showing your face, silent, UGC, demo, or screen recording — the format is flexible, the formula isn't.",
   /**

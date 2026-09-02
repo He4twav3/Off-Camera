@@ -134,7 +134,7 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
             as="h1"
             className="text-lit font-wordmark mx-auto mt-7 max-w-3xl text-[2.7rem] leading-[1.1] font-bold tracking-[-0.022em] text-balance sm:text-6xl md:text-[4.5rem] lg:text-[5rem]"
           >
-            You don&apos;t need a following to get views.
+            Learn the craft. Build the career.
           </LitWords>
         </Reveal>
 
