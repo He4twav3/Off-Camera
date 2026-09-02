@@ -202,14 +202,30 @@ export const PROOF_CONTENT: ProofEntry[] = [
       lesson: ANALYSIS_PENDING,
     },
   },
-  // One more real, live post from the same account — `views` is
-  // deliberately left unset (see the header note: every number here is
-  // one you gave directly, never fetched or guessed). TikTok's own video
-  // page never publishes a raw view count in the first place — only
-  // likes, comments and shares are public there; the real number lives
-  // in the account's private analytics. Once you have it, add
+  // Three more real, live posts from the same account, added from a
+  // fresh batch of links — `views` is deliberately left unset on all
+  // three (see the header note: every number here is one you gave
+  // directly, never fetched or guessed). TikTok's own video page never
+  // publishes a raw view count in the first place — only likes,
+  // comments and shares are public there; the real number lives in the
+  // account's private analytics. Once you have it, add
   // `views: "X+"` (and a matching `statsLabel` only if it needs
   // rounding for the top-of-page strip, see flagship-a).
+  {
+    id: "flagship-e",
+    // Label is a close paraphrase of the video's own real on-screen
+    // caption ("people cheat on EVERYTHING these days"), not invented.
+    label: "People cheat on everything now.",
+    postUrl: "https://vt.tiktok.com/ZSVHkp3TQ/",
+    src: "/proof-videos/flagship-e.mp4",
+    breakdown: {
+      hook: ANALYSIS_PENDING,
+      format: ANALYSIS_PENDING,
+      retention: ANALYSIS_PENDING,
+      whyItWorked: ANALYSIS_PENDING,
+      lesson: ANALYSIS_PENDING,
+    },
+  },
   {
     id: "flagship-f",
     // Paraphrase of the real on-screen caption ("14 failed interviews
@@ -217,6 +233,21 @@ export const PROOF_CONTENT: ProofEntry[] = [
     label: "14 failed interviews. Then this.",
     postUrl: "https://vt.tiktok.com/ZSVHkbvdR/",
     src: "/proof-videos/flagship-f.mp4",
+    breakdown: {
+      hook: ANALYSIS_PENDING,
+      format: ANALYSIS_PENDING,
+      retention: ANALYSIS_PENDING,
+      whyItWorked: ANALYSIS_PENDING,
+      lesson: ANALYSIS_PENDING,
+    },
+  },
+  {
+    id: "flagship-g",
+    // Paraphrase of the real on-screen caption ("Round 2 interview for
+    // Tesla $178k/yr position with chatgpt").
+    label: "Round 2 Tesla interview — with ChatGPT.",
+    postUrl: "https://www.instagram.com/reel/DTyZ3FhiKQG/",
+    src: "/proof-videos/flagship-g.mp4",
     breakdown: {
       hook: ANALYSIS_PENDING,
       format: ANALYSIS_PENDING,

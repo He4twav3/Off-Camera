@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 // Status pills for the recruiting dashboard/admin panel. On Camera's
-// palette is deliberately monochromatic (crimson + neutrals, no
+// palette is deliberately monochromatic (terracotta + neutrals, no
 // traffic-light red/green/yellow) — see globals.css's --toy-* scale — so
 // tones map onto that instead of introducing a foreign green/red system.
 // Status is always color + text label together, never color alone.

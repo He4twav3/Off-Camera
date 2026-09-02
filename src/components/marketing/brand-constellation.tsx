@@ -20,21 +20,19 @@ import { cn } from "@/lib/utils";
  * equal credentials, not a perspective trick. Its colour is the one
  * thing that isn't shared — see `tone` below.
  *
- * MONOCHROME, NOT REAL COLOUR. Eight different companies means eight
- * competing palettes, and every one of them fights the page's own single
- * accent colour — a logo bar is the one place on the page a visitor's
- * eye should register "credibility," not get pulled toward whichever
- * brand happened to ship the loudest hue. Grayscale (`grayscale` below)
- * reads as restraint here, the same discipline the rest of the page
- * already applies everywhere else in this palette (see dark-invert.css's
- * own "one flat accent, and nothing else" rule) — the marks are still
- * fully legible, just not competing with each other or with the page's
- * own red. `tone` still exists and still does the same job it always
- * did — picking a disc that lets a mark's shape actually read (a light
- * wordmark is invisible on another light disc, a dark mark disappears on
- * a dark one) — that's a lightness problem grayscale doesn't solve on
- * its own, since desaturating a colour doesn't change how light or dark
- * it already was.
+ * REAL COLOUR, NOT MONOCHROME. This used to desaturate every mark to
+ * grayscale, on the theory that eight competing brand palettes would
+ * fight the page's own single accent colour. In practice that read as
+ * the marks being disabled or blocked, not as restraint — a logo bar
+ * where every logo looks unavailable is a worse credibility signal than
+ * one where they look like real, current partners. Every mark here now
+ * renders in its own real colour; `tone` exists only to pick a disc that
+ * lets that colour actually read (a white wordmark is invisible on
+ * another white disc, a black mark disappears on a dark one), never to
+ * touch the mark's own pixels — no grayscale, no invert. Inverting a
+ * mark with real colour in it doesn't just flip light and dark, it
+ * wrecks the colour itself (a red icon inverts to cyan), which is why
+ * `tone` picks the disc instead of transforming the logo.
  */
 function BrandBadge({ brand }: { brand: Brand }) {
   const tone = brand.tone ?? "onDark";
@@ -50,16 +48,8 @@ function BrandBadge({ brand }: { brand: Brand }) {
         // them — "onLight" ones are marks that only read against a pale
         // surface (dark ink, or real colour that needs a light ground);
         // "onDark" ones are already light/white enough for this page's
-        // own dark surface (--surface-2, a dark charcoal); "onBlack" is
-        // the same case but on literal black instead, for a mark chosen
-        // to sit on true black specifically.
-        isTile
-          ? "bg-transparent"
-          : tone === "onLight"
-            ? "bg-white"
-            : tone === "onBlack"
-              ? "bg-black"
-              : "bg-surface-2"
+        // own dark surface.
+        isTile ? "bg-transparent" : tone === "onLight" ? "bg-white" : "bg-surface-2"
       )}
     >
       {brand.logo ? (
@@ -68,16 +58,7 @@ function BrandBadge({ brand }: { brand: Brand }) {
           src={brand.logo}
           alt={brand.name}
           className={cn(
-            // grayscale first (desaturate), then a much harder contrast
-            // push than a normal photo would ever want — the brief here
-            // is specifically black-and-white, not "muted grayscale":
-            // most of each mark's tonal range should snap to true black
-            // or true white, with mid-grey surviving only where a mark
-            // genuinely needs a third step to read as its own shape (the
-            // parakeet's shaded feathers, GPTZero's two-tone glyph) —
-            // gray as a minimal accent on top of black/white, not the
-            // dominant tone the old contrast-125 produced.
-            "object-contain grayscale contrast-[170%]",
+            "object-contain",
             // Tiles fill the badge and are clipped to the circle by the
             // parent's overflow-hidden; free-standing marks are inset so
             // they have breathing room inside the disc.
@@ -149,13 +130,6 @@ export function Brands({ className }: { className?: string }) {
           items={BRANDS}
           keyOf={(brand) => brand.name}
           renderItem={(brand) => <BrandBadge brand={brand} />}
-          // The page's one accent, on the light every badge emerges from
-          // and settles around — see Constellation's own note on why
-          // this lives here as a prop rather than as that component's
-          // hardcoded default, and BrandBadge's note on why the marks
-          // themselves stay grayscale rather than getting this colour
-          // individually.
-          glowTint="color-mix(in oklch, var(--crimson) 42%, transparent) 0%, color-mix(in oklch, var(--crimson) 14%, transparent) 45%"
         />
       </div>
 

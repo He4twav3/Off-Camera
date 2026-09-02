@@ -94,13 +94,12 @@ export function SectionHeader({
       <Reveal>
         <SectionEyebrow index={index} label={eyebrow} align={align} />
       </Reveal>
-      {/* A plain string title gets the left-to-right curtain wipe (see
+      {/* A plain string title gets the word-by-word light-up (see
           LitWords); a ReactNode title is passed through untouched, since
-          LitWords needs real string children to render (a ReactNode
-          could be arbitrary markup, not just text). Every section
-          heading on this page is a plain string today, so in practice
-          they all get it — the escape hatch just means a future heading
-          with an inline <span> or <br> can't silently break.
+          splitting arbitrary markup on spaces would destroy it. Every
+          section heading on this page is a plain string today, so in
+          practice they all get it — the escape hatch just means a future
+          heading with an inline <span> or <br> can't silently break.
 
           font-wordmark + font-bold: every numbered chapter title on the
           page, the second of only two places (with the hero's own h1)

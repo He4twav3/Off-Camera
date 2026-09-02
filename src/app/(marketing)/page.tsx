@@ -1,6 +1,7 @@
 import { Hero } from "@/components/marketing/hero";
 import { getProofPosters } from "@/lib/proof-thumbnails";
 import { Brands } from "@/components/marketing/brand-constellation";
+import { PlatformFamiliarity } from "@/components/marketing/platform-familiarity";
 import { WhoItsFor } from "@/components/marketing/who-its-for";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { CourseIntro } from "@/components/marketing/course-intro";
@@ -9,6 +10,7 @@ import { Outcomes } from "@/components/marketing/outcomes";
 import { Story } from "@/components/marketing/story";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
+import { FinalCTA } from "@/components/marketing/final-cta";
 import { ViewfinderFrame } from "@/components/site/viewfinder-frame";
 import { SectionSeam } from "@/components/marketing/section-frame";
 
@@ -43,33 +45,20 @@ import { SectionSeam } from "@/components/marketing/section-frame";
  *                its real numbers, and every module with what you make
  *                in it and the lessons inside it
  *   05 STORY     "Who is teaching this?"
- *   06 FAQ       "The last few things stopping me."       objections,
- *                answered before the final ask, not after it
- *   07 PRICING   "Okay — so what does it cost, and how do
- *                I actually start?"                       the price and
- *                the button, now doubling as the page's own close: the
- *                last thing on the page is the offer itself, not a
- *                second, separate card restating the same ask a few
- *                hundred pixels later. A dedicated FinalCTA section used
- *                to sit here instead, its own card with its own copy and
- *                its own "Save your spot" — genuinely repetitive once it
- *                followed Pricing this closely (same button, same fine
- *                print, one section apart), and a page that closed on an
- *                unresolved FAQ instead wasn't the fix either. Moving
- *                Pricing itself to close the page (past FAQ, not before
- *                it) is: the price is what FAQ's objections were about
- *                in the first place, so answering them and then landing
- *                immediately on the thing they were objections *to* is a
- *                tighter close than a generic restatement of it would
- *                have been.
+ *   06 PRICING   "What does it cost, and when do I have
+ *                to decide?"                              the price and
+ *                the live window, together, at the moment the question
+ *                is actually being asked
+ *   07 FAQ       "The last few things stopping me."
+ *   CLOSE        the ask, once more, on its own.
  *
  * The evidence used to get its own numbered chapter (02 PROOF) below the
  * beliefs — a second, flat carousel of the same real clips, separate
- * from the hero's own ring. Removed: two carousels of the same videos
- * was one idea built twice, and the hero's ring — draggable/spinnable,
- * always in view on the first screen — already does that job better
- * than a component someone had to scroll to reach. Every chapter after
- * it renumbered down by one to close the gap.
+ * from the hero's own ring. Removed: two carousels of the same five
+ * videos was one idea built twice, and the hero's ring — spinning
+ * continuously, always in view on the first screen — already does that
+ * job better than a component someone had to scroll to reach. Every
+ * chapter after it renumbered down by one to close the gap.
  *
  * Two sections that used to be here are gone, both for the same reason —
  * they answered a question nobody was asking at that point:
@@ -114,13 +103,14 @@ export default async function Home() {
           block that opens straight into one. */}
       {/* The hero's own 3D ring carousel (hero-carousel.tsx) is the
           proof wall now — a separate, second carousel of the same real
-          clips directly underneath it was two things doing one job, so
-          that older section (proof-wall.tsx, a flat drag-panned wall) is
-          gone. Its drag-panned spin and per-card view counts live on
-          though, ported onto the ring itself. */}
+          clips directly underneath it was two things doing one job, and
+          the older one (a flat, drag-panned wall of the same videos) is
+          gone. */}
       <Hero posters={posters} />
       <SectionSeam />
       <Brands />
+      <SectionSeam />
+      <PlatformFamiliarity />
       <SectionSeam />
       <WhoItsFor />
       <SectionSeam />
@@ -142,9 +132,11 @@ export default async function Home() {
       <SectionSeam />
       <Story />
       <SectionSeam />
+      <Pricing />
+      <SectionSeam />
       <FAQ />
       <SectionSeam />
-      <Pricing />
+      <FinalCTA />
     </>
   );
 }
