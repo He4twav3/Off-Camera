@@ -54,7 +54,7 @@ export async function saveSpot(
 
     await sendEmail({
       to: email,
-      subject: "You're in — Off Camera",
+      subject: "You're in — On Camera",
       react: WelcomeFreeEmail({ claimUrl: data.properties.action_link }),
       text: `You're in! Sign in and start the course:\n\n${data.properties.action_link}\n\nThis link expires in 24 hours.`,
     });

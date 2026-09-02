@@ -5,7 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { siteConfig } from "@/lib/site-config";
+import { DiscordLink } from "@/components/site/discord-link";
 import { Reveal } from "@/components/marketing/reveal";
 import { stagger } from "@/components/marketing/motion";
 import { SectionHeader } from "@/components/marketing/section-frame";
@@ -76,8 +76,8 @@ const faqs: { question: string; answer: ReactNode }[] = [
     answer: (
       <>
         You&apos;re not on your own. You get access to the private
-        student community for that, or you can email{" "}
-        {siteConfig.contactEmail} directly and get a real answer.
+        student community for that, or you can reach us on{" "}
+        <DiscordLink>Discord</DiscordLink> directly and get a real answer.
       </>
     ),
   },
@@ -88,7 +88,7 @@ export function FAQ() {
     <section id="faq" className="relative scroll-mt-20 lg:scroll-mt-32">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:px-6 lg:px-8">
         <SectionHeader
-          index="08"
+          index="07"
           eyebrow="Before you decide"
           title="Frequently asked questions"
         />
@@ -103,9 +103,23 @@ export function FAQ() {
             // as full-curriculum.tsx: AccordionItem's own `not-last:border-b`
             // can't see its real siblings once each row is individually
             // wrapped for the per-row reveal animation.
+            //
+            // stagger(i, { cap: 2 }), not the default cap of 6 — this
+            // list has 9 rows, and at the default cap the last several
+            // (everything from row 6 on) all landed on the SAME 680ms
+            // delay, finishing their own 420ms fade+lift around 1.1s
+            // after the section crossed the reveal line. Real, felt
+            // friction on a section people jump straight to from the
+            // navbar's own "FAQ" link — arriving with intent to read a
+            // specific question and finding the last few rows still
+            // arriving over a second later is the wrong kind of "worth
+            // waiting for." Capped at 2 instead: still a wave (the
+            // first three rows genuinely stagger), but the whole list
+            // is fully settled by ~820ms instead of ~1.1s, with every
+            // question actually readable much sooner.
             <Reveal
               key={faq.question}
-              delay={stagger(i)}
+              delay={stagger(i, { cap: 2 })}
               className={cn(i < faqs.length - 1 && "border-b border-hairline")}
             >
               <AccordionItem value={`item-${i}`} className="border-b-0">

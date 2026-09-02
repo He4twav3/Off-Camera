@@ -210,11 +210,21 @@ export function Constellation<T>({
   renderItem,
   keyOf,
   className,
+  glowTint = "oklch(1 0 0 / 0.14) 0%, oklch(1 0 0 / 0.04) 45%",
 }: {
   items: T[];
   renderItem: (item: T, index: number) => ReactNode;
   keyOf: (item: T, index: number) => string;
   className?: string;
+  /** The origin light's two inner gradient stops (colour + position each,
+   * comma-separated) — a plain white glow by default. Brands passes a
+   * crimson-tinted pair instead: the page's one accent colour, on the
+   * one element in this composition that was reading as flatly
+   * black-and-white once every badge itself went grayscale (see
+   * BrandBadge's own note in brand-constellation.tsx) — without
+   * touching a single logo's real pixels or adding a coloured ring
+   * around each disc, which read as a distracting "lining" when tried. */
+  glowTint?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -482,7 +492,12 @@ export function Constellation<T>({
       <div
         ref={glowRef}
         aria-hidden
-        className="pointer-events-none absolute size-1/2 rounded-full bg-[radial-gradient(circle,oklch(1_0_0_/_0.14)_0%,oklch(1_0_0_/_0.04)_45%,transparent_72%)] opacity-0 blur-2xl will-change-transform"
+        className="pointer-events-none absolute size-1/2 rounded-full opacity-0 blur-2xl will-change-transform"
+        // Inline, not a bg-[...] utility: glowTint is a runtime prop, and
+        // Tailwind's arbitrary-value classes have to be static strings it
+        // can see at build time — a template string interpolated into
+        // one wouldn't be in the generated CSS at all.
+        style={{ backgroundImage: `radial-gradient(circle, ${glowTint}, transparent 72%)` }}
       />
 
       {items.map((item, i) => (

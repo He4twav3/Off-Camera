@@ -4,11 +4,10 @@
  * so they never drift out of sync with each other.
  *
  * TODO before going live: replace `url` with your real domain (also set it
- * as NEXT_PUBLIC_SITE_URL in your deploy env) and swap the placeholder
- * contact email for a real inbox.
+ * as NEXT_PUBLIC_SITE_URL in your deploy env).
  */
 export const siteConfig = {
-  name: "Off Camera",
+  name: "On Camera",
   tagline: "You don't need a following to get views.",
   description:
     "Real breakdowns of our own videos that reached millions of views, and the repeatable system behind them: hooks, retention, formats, volume, consistency, and iteration. On camera, not showing your face, silent, UGC, demo, or screen recording — the format is flexible, the formula isn't.",
@@ -19,13 +18,8 @@ export const siteConfig = {
    * (course-hero, marketplace card, structured data, checkout, payment
    * descriptions, emails, OG images). Every one of those now reads this.
    */
-  courseTitle: "Off Camera: The Content Formula",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://offcamera.example.com",
-  contactEmail: "support@offcamera.example.com",
-  creator: {
-    name: "Aron",
-    role: "Full-time faceless UGC creator",
-  },
+  courseTitle: "On Camera: The Content Formula",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://oncamera.example.com",
   price: {
     amount: 17.99,
     currency: "EUR",
@@ -51,9 +45,9 @@ export const siteConfig = {
     intro: "aqz-KE-bpKQ" as string | undefined,
     story: undefined as string | undefined,
   },
-  // Real community, once it exists: a Discord/Circle/Skool invite link.
-  // Until then, every "community" touchpoint on the site (dashboard
-  // resources, the pricing inclusion list) is honest about there being no
-  // live invite yet rather than linking somewhere fake.
-  communityUrl: undefined as string | undefined,
+  // Discord invite link — the site's one support/contact channel. Every
+  // "contact us" touchpoint (legal pages, About, footer, FAQ, dashboard
+  // resources) reads this via components/site/discord-link.tsx instead of
+  // an email address.
+  communityUrl: "https://discord.gg/2Wy5m9avX" as string | undefined,
 } as const;

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
+import { DiscordLink } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -13,13 +14,11 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      lastUpdated="[Month Day, Year]"
+      lastUpdated="August 31, 2026"
       intro={
         <>
-          This Privacy Policy explains what information {siteConfig.name}{" "}
-          collects and how it&apos;s used. This page is placeholder content
-          for a demo build. Replace the bracketed sections and have it
-          reviewed before going live.
+          This Privacy Policy explains what information {siteConfig.name},
+          operated by OnCamera DOO, collects and how it&apos;s used.
         </>
       }
     >
@@ -48,16 +47,15 @@ export default function PrivacyPage() {
       <h2>3. Third parties</h2>
       <p>
         We share data only with the services required to operate the
-        course, for example a payment processor and, if applicable, the
-        marketplace platform (e.g. Whop, Gumroad) you purchased through.
-        Each has its own privacy policy governing data it processes.
+        course, for example our payment processor. They have their own
+        privacy policy governing the data they process.
       </p>
 
       <h2>4. Cookies</h2>
       <p>
-        We use essential cookies to keep you signed in and, optionally,
-        analytics cookies to understand site usage. You can control cookies
-        through your browser settings.
+        We use essential cookies to keep you signed in. We don&apos;t
+        currently use analytics or tracking cookies; if that changes,
+        we&apos;ll update this policy first.
       </p>
 
       <h2>5. Data retention</h2>
@@ -75,11 +73,8 @@ export default function PrivacyPage() {
 
       <h2>7. Contact</h2>
       <p>
-        Questions about this policy can be sent to{" "}
-        <a href={`mailto:${siteConfig.contactEmail}`}>
-          {siteConfig.contactEmail}
-        </a>
-        .
+        Questions about this policy can be sent to us on{" "}
+        <DiscordLink>Discord</DiscordLink>.
       </p>
     </LegalPage>
   );

@@ -8,7 +8,7 @@ import {
 
 export function WelcomePurchaseEmail({ claimUrl }: { claimUrl: string }) {
   return (
-    <EmailLayout preview="You're in — sign in to start Off Camera">
+    <EmailLayout preview="You're in — sign in to start On Camera">
       <EmailHeading>You&apos;re in</EmailHeading>
       <EmailText>
         Your payment went through and your account is ready. This link

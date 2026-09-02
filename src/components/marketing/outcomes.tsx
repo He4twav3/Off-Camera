@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
 import { SectionHeader } from "@/components/marketing/section-frame";
@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
  * sentence to make sense, the fix is a better first sentence — the moment
  * these become paragraphs this is the old table again.
  *
- * COLOURED, ALWAYS. The crimson→maroon module ramp (MODULE_SHADES) runs
+ * COLOURED, ALWAYS. The accent's own module ramp (MODULE_SHADES) runs
  * at length here. This is one of only two places on the page where the
  * accent does that — the curriculum is the other — and it earns it the
  * same way: these are eight ordered stages of one system, and the ramp is
@@ -101,6 +101,39 @@ export function Outcomes() {
     activeRef.current = active;
   }, [active]);
 
+  // How much trailing space the row needs after the last chip so that
+  // chip can itself scroll all the way to the row's own start edge —
+  // `row.clientWidth - lastChip.offsetWidth`, the same gap chip 0 rests
+  // in at scrollLeft 0, mirrored onto the other end. Without this, the
+  // row's own scrollWidth runs out before the last chip's snap-start
+  // point (its own `left`) is reachable at all: on the beats list this
+  // codebase actually ships (8 chips, real widths), the row was falling
+  // 254px short of it, which meant chip 6 AND chip 7 could never
+  // actually reach the start edge — no amount of scrolling, real swipe
+  // or otherwise, ever made the true last chip (or the one before it)
+  // "nearest the start" the way pickNearest below needs it to. A fixed
+  // padding value can't fix this correctly since it depends on both the
+  // viewport width and each chip's own (text-driven, so unpredictable)
+  // rendered width — measured with a ResizeObserver instead, same
+  // "don't guess a geometry value that depends on real layout" approach
+  // hero-carousel.tsx's own useMeasuredWidth already uses.
+  const [trailingSpace, setTrailingSpace] = useState(0);
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+
+    function measure() {
+      const lastChip = chipRefs.current[beats.length - 1];
+      if (!row || !lastChip) return;
+      setTrailingSpace(Math.max(0, row.clientWidth - lastChip.offsetWidth));
+    }
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (taken) return;
     const el = sectionRef.current;
@@ -135,11 +168,26 @@ export function Outcomes() {
   }
 
   // The phone's answer to hover: there's no cursor to linger with, so
-  // whichever chip is nearest the scrollable row's own centre becomes
-  // active as you swipe, live, without a tap. Does nothing at `sm` and
-  // up, where the row switches to `overflow-visible` and wraps instead
-  // of scrolling — no scroll events ever fire there, so this never
-  // touches the desktop, hover-driven behaviour at all.
+  // whichever chip is nearest the scrollable row's own LEADING edge
+  // becomes active as you swipe, live, without a tap. Does nothing at
+  // `sm` and up, where the row switches to `overflow-visible` and wraps
+  // instead of scrolling — no scroll events ever fire there, so this
+  // never touches the desktop, hover-driven behaviour at all.
+  //
+  // Distance to the row's start edge, not its centre — this used to be
+  // centre-distance, which quietly broke both ends of the row: chips
+  // snap to their own START edge (`snap-start` below), not centred in
+  // the viewport, so the first and last chips can never actually reach
+  // the row's centre no matter how far you scroll. Measured effect: at
+  // true max scrollLeft — scrolled as far as the row physically goes —
+  // the chip nearest centre was still index 6 of 8, so the real last
+  // chip could never become active at all, and the same mismatch made
+  // chip 1 read as nearer centre than chip 0 at rest, so the row often
+  // opened already on the second chip instead of the first. Matching
+  // this to the same edge the scroll-snap itself aligns to fixes both:
+  // whichever chip has actually scrolled flush to the start edge is
+  // both the one snapped-to and the one activated, all the way to
+  // either end of the row.
   useEffect(() => {
     const row = rowRef.current;
     if (!row) return;
@@ -151,13 +199,13 @@ export function Outcomes() {
     function pickNearest() {
       pending = false;
       const rowRect = row!.getBoundingClientRect();
-      const centerX = rowRect.left + rowRect.width / 2;
+      const startX = rowRect.left;
       let nearest = 0;
       let nearestDist = Infinity;
       chipRefs.current.forEach((chip, i) => {
         if (!chip) return;
         const rect = chip.getBoundingClientRect();
-        const dist = Math.abs(rect.left + rect.width / 2 - centerX);
+        const dist = Math.abs(rect.left - startX);
         if (dist < nearestDist) {
           nearestDist = dist;
           nearest = i;
@@ -191,7 +239,7 @@ export function Outcomes() {
       className="relative mx-auto max-w-[1240px] px-5 py-20 sm:px-6 lg:px-8"
     >
       <SectionHeader
-        index="04"
+        index="03"
         eyebrow="What changes for you"
         title="It's only eight things"
         lede={`Everything that decides whether a video works comes down to ${TOTAL_MODULES} of them. Here they are, in plain English.`}
@@ -240,12 +288,18 @@ export function Outcomes() {
                     // reliably. The chips were 34px tall, which is fine
                     // for a cursor and a genuine miss-rate on a phone.
                     "focus-premium flex min-h-11 shrink-0 snap-start cursor-pointer items-center rounded-full border px-4 text-[0.8rem] font-semibold whitespace-nowrap transition-all duration-300 ease-[var(--ease-cinematic)] sm:min-h-0 sm:py-2",
+                    // Flat, deliberately: no inset sheen, no glow, just
+                    // the ramp's own solid fill and a transparent border —
+                    // the same "solid fill only" constraint the CTA
+                    // button follows (globals.css's own note on
+                    // btn-cta), applied here too rather than left as a
+                    // one-off glossy exception.
                     isActive
-                      ? "border-white/15 shadow-[inset_0_1px_0_0_oklch(1_0_0_/_0.16),0_10px_26px_-14px_oklch(0_0_0_/_0.9)]"
+                      ? "border-transparent"
                       : "border-hairline bg-surface-1/70 text-muted-foreground hover:border-hairline-strong hover:text-foreground"
                   )}
                   // The ramp, applied as a real fill on the selected chip.
-                  // Inactive chips stay neutral: eight filled crimson pills
+                  // Inactive chips stay neutral: eight filled accent pills
                   // at once would be a colour bar, and the accent stops
                   // meaning "this one" the moment everything has it.
                   style={
@@ -258,6 +312,15 @@ export function Outcomes() {
                 </button>
               );
             })}
+            {/* Trailing spacer, sm:hidden — the row only scrolls below
+                `sm` (it wraps and stops scrolling from `sm` up, per the
+                header note), so this has no reason to exist there. See
+                `trailingSpace`'s own note above on why its width is
+                measured rather than guessed: without it, the last chip
+                (and the one before it, on the real beats list) could
+                never scroll far enough to reach the row's own start
+                edge, the same edge pickNearest below now activates by. */}
+            <span aria-hidden className="shrink-0 sm:hidden" style={{ width: trailingSpace }} />
           </div>
         </Reveal>
 

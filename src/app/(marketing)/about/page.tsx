@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `About ${siteConfig.creator.name}, the creator behind ${siteConfig.name}.`,
+  description: `About ${siteConfig.name}.`,
   alternates: { canonical: "/about" },
 };
 
@@ -22,17 +22,18 @@ export default function AboutPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-sticker text-3xl font-semibold tracking-tight sm:text-4xl">
-        About {siteConfig.creator.name}
+        About {siteConfig.name}
       </h1>
-      <p className="mt-2 text-muted-foreground">{siteConfig.creator.role}</p>
+      <p className="mt-2 text-muted-foreground">{siteConfig.tagline}</p>
 
       <div className="card-premium mt-8 rounded-2xl bg-card p-6 sm:p-8">
         <p className="text-base leading-relaxed">
-          I&apos;m Aron. I noticed the creators getting huge reach weren&apos;t
+          We noticed the creators getting huge reach weren&apos;t
           necessarily the ones with the biggest audiences or the best
           cameras, they understood hooks, retention, format, volume,
-          consistency, and iteration. So I tested those principles myself,
-          on my own content, and some of it reached millions of views.
+          consistency, and iteration. So we tested those principles
+          ourselves, on our own content, and some of it reached millions of
+          views.
         </p>
         <p className="mt-4 text-base leading-relaxed">
           {siteConfig.name} breaks down that process so you can learn it
@@ -54,14 +55,22 @@ export default function AboutPage() {
         <Button nativeButton={false} render={<Link href="/#curriculum" />} className="btn-premium">
           See the course
         </Button>
-        <Button
-          variant="outline"
-          nativeButton={false}
-          render={<Link href={`mailto:${siteConfig.contactEmail}`} />}
-          className="btn-premium bg-card"
-        >
-          Get in touch
-        </Button>
+        {siteConfig.communityUrl && (
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={
+              <Link
+                href={siteConfig.communityUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            }
+            className="btn-premium bg-card"
+          >
+            Get in touch
+          </Button>
+        )}
       </div>
     </div>
   );

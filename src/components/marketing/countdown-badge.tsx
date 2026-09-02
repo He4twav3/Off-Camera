@@ -95,6 +95,14 @@ function Sep() {
  * Unit above for why that framing matters, and readOrStartWindow for
  * why the mechanic itself is honest — it is this browser's own window,
  * not a fake shared deadline and not a headcount).
+ *
+ * What it counts: how much of your free access is LEFT, not a claim
+ * that anything is about to cost money. "Free" here (COURSE_IS_FREE,
+ * see pricing.tsx's own note on why every caller of this component
+ * gates on that flag) is a real, unconditional state with no clock on
+ * it — this badge times the window you get to actually use it in, the
+ * same way a free trial has a real end date without the underlying
+ * price being fake.
  */
 export function CountdownBadge() {
   // null = not yet computed (server render + the instant before the

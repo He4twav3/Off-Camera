@@ -6,28 +6,38 @@ import { Constellation } from "@/components/marketing/constellation";
 import { cn } from "@/lib/utils";
 
 /**
- * One brand badge: a dark disc with the mark centred in it, monochrome.
+ * One brand badge: the mark centred in a disc, in its own real colour.
  *
  * Both halves of that are load-bearing.
  *
- * THE DISC. These marks come from five different companies with five
+ * THE DISC. These marks come from eight different companies with eight
  * different palettes, aspect ratios and background assumptions — dropped
- * straight onto the page they read as five unrelated stickers. A common
- * disc at a common size with a common edge is what makes them read as one
- * set, which is the entire point of a "brands we've worked with" section.
- * Every badge here is exactly the same size and exactly the same opacity,
- * with no depth scaling: five equal credentials, not a perspective trick.
+ * straight onto the page with no shared frame they'd read as eight
+ * unrelated stickers. A common disc at a common size with a common edge
+ * is what makes them read as one set, which is the entire point of a
+ * "brands we've worked with" section. Every badge here is exactly the
+ * same size and exactly the same opacity, with no depth scaling: eight
+ * equal credentials, not a perspective trick. Its colour is the one
+ * thing that isn't shared — see `tone` below.
  *
- * THE MONOCHROME. Colour here belongs to whoever owns each mark. A purple
- * logo, an orange tile and a blue wordmark next to each other are five
- * brands competing with each other and with the page's own single accent,
- * on a page whose whole palette discipline is that the only saturated
- * thing on it is the primary action. Desaturated, they become part of our
- * visual system instead of a sponsor board — and the page keeps its one
- * red thing.
+ * MONOCHROME, NOT REAL COLOUR. Eight different companies means eight
+ * competing palettes, and every one of them fights the page's own single
+ * accent colour — a logo bar is the one place on the page a visitor's
+ * eye should register "credibility," not get pulled toward whichever
+ * brand happened to ship the loudest hue. Grayscale (`grayscale` below)
+ * reads as restraint here, the same discipline the rest of the page
+ * already applies everywhere else in this palette (see dark-invert.css's
+ * own "one flat accent, and nothing else" rule) — the marks are still
+ * fully legible, just not competing with each other or with the page's
+ * own red. `tone` still exists and still does the same job it always
+ * did — picking a disc that lets a mark's shape actually read (a light
+ * wordmark is invisible on another light disc, a dark mark disappears on
+ * a dark one) — that's a lightness problem grayscale doesn't solve on
+ * its own, since desaturating a colour doesn't change how light or dark
+ * it already was.
  */
 function BrandBadge({ brand }: { brand: Brand }) {
-  const tone = brand.tone ?? "light";
+  const tone = brand.tone ?? "onDark";
   const isTile = tone === "tile";
 
   return (
@@ -35,13 +45,21 @@ function BrandBadge({ brand }: { brand: Brand }) {
       className={cn(
         "relative flex size-16 items-center justify-center overflow-hidden rounded-full border border-hairline sm:size-[5.25rem]",
         "shadow-[inset_0_1px_0_0_oklch(1_0_0_/_0.12),0_16px_40px_-14px_oklch(0_0_0_/_0.95)]",
-        // Every badge paints the same disc behind its mark, tiles
-        // included. A tile that happens to be opaque covers it and
-        // nothing changes; a tile with any transparency in it — or one
-        // that is nearly black, which two of these are once desaturated —
-        // then has a visible surface underneath instead of dissolving
-        // into a near-black page.
-        "bg-surface-2"
+        // Tiles bring their own background and fill the disc edge to
+        // edge. Free-standing marks need an actual disc colour behind
+        // them — "onLight" ones are marks that only read against a pale
+        // surface (dark ink, or real colour that needs a light ground);
+        // "onDark" ones are already light/white enough for this page's
+        // own dark surface (--surface-2, a dark charcoal); "onBlack" is
+        // the same case but on literal black instead, for a mark chosen
+        // to sit on true black specifically.
+        isTile
+          ? "bg-transparent"
+          : tone === "onLight"
+            ? "bg-white"
+            : tone === "onBlack"
+              ? "bg-black"
+              : "bg-surface-2"
       )}
     >
       {brand.logo ? (
@@ -50,29 +68,20 @@ function BrandBadge({ brand }: { brand: Brand }) {
           src={brand.logo}
           alt={brand.name}
           className={cn(
-            "object-contain",
+            // grayscale first (desaturate), then a much harder contrast
+            // push than a normal photo would ever want — the brief here
+            // is specifically black-and-white, not "muted grayscale":
+            // most of each mark's tonal range should snap to true black
+            // or true white, with mid-grey surviving only where a mark
+            // genuinely needs a third step to read as its own shape (the
+            // parakeet's shaded feathers, GPTZero's two-tone glyph) —
+            // gray as a minimal accent on top of black/white, not the
+            // dominant tone the old contrast-125 produced.
+            "object-contain grayscale contrast-[170%]",
             // Tiles fill the badge and are clipped to the circle by the
             // parent's overflow-hidden; free-standing marks are inset so
             // they have breathing room inside the disc.
-            isTile ? "size-full" : "size-[58%]",
-            // Desaturated, then contrast pushed back up. Removing chroma
-            // from a mark that relied on hue for separation flattens it
-            // toward mid-grey, and the contrast is what puts the shape
-            // back — without it the marks are technically present and
-            // effectively unreadable.
-            "grayscale contrast-[1.35]",
-            // Full brightness on both kinds of mark. Tiles used to be
-            // knocked back to 0.72 to stop them out-weighing the
-            // free-standing marks beside them, and since three of the
-            // five brands ship a tile, that quietly dimmed most of the
-            // logos on the page to level a difference nobody was
-            // complaining about. Legibility of the marks beats perfect
-            // evenness between them.
-            isTile ? "brightness-100" : "brightness-[1.15]",
-            // A dark-on-transparent mark is invisible on a near-black
-            // page. `invert` flips it to light; the extra brightness
-            // stops the inverted grey landing dull.
-            tone === "dark" && "brightness-[1.7] invert"
+            isTile ? "size-full" : "size-[62%]"
           )}
           loading="lazy"
           decoding="async"
@@ -140,6 +149,13 @@ export function Brands({ className }: { className?: string }) {
           items={BRANDS}
           keyOf={(brand) => brand.name}
           renderItem={(brand) => <BrandBadge brand={brand} />}
+          // The page's one accent, on the light every badge emerges from
+          // and settles around — see Constellation's own note on why
+          // this lives here as a prop rather than as that component's
+          // hardcoded default, and BrandBadge's note on why the marks
+          // themselves stay grayscale rather than getting this colour
+          // individually.
+          glowTint="color-mix(in oklch, var(--crimson) 42%, transparent) 0%, color-mix(in oklch, var(--crimson) 14%, transparent) 45%"
         />
       </div>
 

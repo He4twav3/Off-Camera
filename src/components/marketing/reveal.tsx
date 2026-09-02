@@ -32,6 +32,41 @@ const LOAD_STEP = 90;
 const LOAD_ANIMATION_CUTOFF = 2000;
 
 /**
+ * Below this width, every authored delay gets cut in half at the moment
+ * it's actually applied (see scaleDelayForViewport) — the wait before an
+ * element starts arriving, not just how long the arrival itself takes.
+ * A phone scrolls through a section in a fraction of the time a mouse
+ * wheel does on a desktop monitor, so the same 680ms stagger tail that
+ * reads as a deliberate cascade on a big screen reads as the page
+ * lagging behind a thumb that's already moved on. 640, not a real
+ * device breakpoint — this only needs to be "narrow enough that scroll
+ * outruns the wave," and Tailwind's own `sm` (640) already draws that
+ * line everywhere else in this file's neighboring components.
+ */
+const MOBILE_BREAKPOINT = 640;
+const MOBILE_DELAY_SCALE = 0.5;
+
+/**
+ * Applied only inside the two post-mount reveal callbacks below (the
+ * on-load cascade and the scroll watcher), never in the render body
+ * itself. `state.delay` starts out as the plain, unscaled `delay` prop
+ * on both the server and the client's first render — identical either
+ * way, since `window` doesn't exist on the server — so scaling it there
+ * instead would make the very first client render disagree with the
+ * server-rendered markup and trip a hydration mismatch on this file's
+ * one dynamic style attribute. Scaling it here instead, inside an
+ * effect-triggered callback that by definition only ever runs after
+ * mount, sidesteps that entirely: there is no server render to disagree
+ * with at this point.
+ */
+function scaleDelayForViewport(delay: number): number {
+  if (typeof window === "undefined") return delay;
+  return window.innerWidth < MOBILE_BREAKPOINT
+    ? Math.round(delay * MOBILE_DELAY_SCALE)
+    : delay;
+}
+
+/**
  * Every un-revealed Reveal on the page, sharing ONE observer and ONE
  * scroll/resize listener between them rather than one of each per
  * instance — the landing page mounts ~79 of these, and 79 observers plus
@@ -242,18 +277,29 @@ function scheduleLoadReveal(el: Element, show: (delay: number) => void) {
  * cubic-bezier(0.16, 1, 0.3, 1)) with no overshoot anywhere. Bounce is
  * the single most "playful" thing motion can do, so there is none of it.
  */
+/**
+ * `max-sm:duration-[...]` on each of these — a plain CSS media query, not
+ * a JS viewport check — knocks the arrival itself down by roughly the
+ * same ~30% below 640px, on top of scaleDelayForViewport's own cut to
+ * the wait beforehand. Deliberately done as a static class, not JS state
+ * threaded down from here: unlike the delay (an inline style, only ever
+ * touched post-mount — see scaleDelayForViewport's own note), a
+ * conditional class the browser resolves from its own media query can't
+ * disagree between server and client in the first place, so there's no
+ * hydration hazard here to design around.
+ */
 const VARIANTS = {
   rise: {
     hidden: "translate-y-4 opacity-0",
-    duration: "duration-[420ms]",
+    duration: "duration-[420ms] max-sm:duration-[300ms]",
   },
   lift: {
     hidden: "translate-y-5 scale-[0.99] opacity-0",
-    duration: "duration-[500ms]",
+    duration: "duration-[500ms] max-sm:duration-[350ms]",
   },
   fade: {
     hidden: "opacity-0",
-    duration: "duration-[450ms]",
+    duration: "duration-[450ms] max-sm:duration-[320ms]",
   },
 } as const;
 
@@ -305,11 +351,15 @@ export function Reveal({
     setState({ visible: false, delay: 0 });
 
     if (onFirstScreen) {
-      scheduleLoadReveal(el, (loadDelay) => setState({ visible: true, delay: loadDelay }));
+      scheduleLoadReveal(el, (loadDelay) =>
+        setState({ visible: true, delay: scaleDelayForViewport(loadDelay) })
+      );
       return;
     }
 
-    return watch(el, () => setState({ visible: true, delay: delayRef.current }));
+    return watch(el, () =>
+      setState({ visible: true, delay: scaleDelayForViewport(delayRef.current) })
+    );
   }, []);
 
   const motion = VARIANTS[variant];

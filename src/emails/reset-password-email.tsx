@@ -8,10 +8,10 @@ import {
 
 export function ResetPasswordEmail({ resetUrl }: { resetUrl: string }) {
   return (
-    <EmailLayout preview="Reset your Off Camera password">
+    <EmailLayout preview="Reset your On Camera password">
       <EmailHeading>Reset your password</EmailHeading>
       <EmailText>
-        We got a request to reset the password on your Off Camera account.
+        We got a request to reset the password on your On Camera account.
         If that was you, set a new one below.
       </EmailText>
       <EmailButton href={resetUrl}>Reset password</EmailButton>

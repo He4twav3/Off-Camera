@@ -8,7 +8,7 @@ const RIGHT_ARC = [25, 45, 65, 90, 115, 135, 155];
 const LEFT_ARC = RIGHT_ARC.map((deg) => -deg);
 
 /**
- * Off Camera's brand crest — a heraldic badge in the vein of a vintage
+ * On Camera's brand crest — a heraldic badge in the vein of a vintage
  * club/academy emblem: shield, laurel-tick wreath, a play mark at the
  * center, and a banner plaque. Monoline, flat-filled, ink-outlined — no
  * gradients, matching the "toybox sticker" illustration system.
@@ -81,7 +81,7 @@ export function CrestEmblem({ className }: { className?: string }) {
         fontWeight={700}
         letterSpacing="0.5"
       >
-        OFF CAMERA
+        ON CAMERA
       </text>
     </svg>
   );

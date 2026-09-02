@@ -64,7 +64,7 @@ export async function fulfillPurchase({
 
     await sendEmail({
       to: normalizedEmail,
-      subject: "You're in — Off Camera",
+      subject: "You're in — On Camera",
       react: WelcomePurchaseEmail({ claimUrl: data.properties.action_link }),
       text: `Your payment went through! Sign in and start the course:\n\n${data.properties.action_link}\n\nThis link expires in 24 hours.`,
     });

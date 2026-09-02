@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camera, PlayCircle, Music2 } from "lucide-react";
+import { DiscordLink } from "@/components/site/discord-link";
 import { FooterWordmark } from "@/components/site/footer-wordmark";
 import { Logo } from "@/components/site/logo";
 import { siteConfig } from "@/lib/site-config";
@@ -74,37 +74,20 @@ const columns = [
   },
 ];
 
-const socials = [
-  { href: siteConfig.social.instagram, label: "Instagram", icon: Camera },
-  { href: siteConfig.social.tiktok, label: "TikTok", icon: Music2 },
-  { href: siteConfig.social.youtube, label: "YouTube", icon: PlayCircle },
-];
-
 export function Footer() {
   return (
     <footer className="relative bg-surface-0/60 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1240px] flex-col gap-5 px-5 py-14 sm:px-6 lg:px-8">
         {/* ── ROW 1 · top ─────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-6">
+        {/* Used to also carry a "Social media" label + row of Instagram/
+            TikTok/YouTube icon buttons on the right. Removed — every one
+            of them pointed at siteConfig.social's placeholder "#" href
+            (see that file), not a real account, so the row was three
+            dead buttons dressed as a real presence. A wrong or fake link
+            is worse than no link at all, same standard the brand marks
+            elsewhere on the site already hold real logos to. */}
+        <div className="flex flex-wrap items-center gap-6">
           <Logo />
-
-          <div className="flex items-center gap-[19px]">
-            <p className="hidden text-xs text-muted-foreground sm:block">
-              Social media
-            </p>
-            <div className="flex items-center gap-2">
-              {socials.map((social) => (
-                <Link
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="focus-premium flex size-8 items-center justify-center rounded-[4px] border border-hairline bg-surface-1 text-muted-foreground transition-colors duration-300 hover:bg-surface-2 hover:text-foreground"
-                >
-                  <social.icon className="size-4" />
-                </Link>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* ── ROW 2 · links ───────────────────────────────────────── */}
@@ -145,7 +128,13 @@ export function Footer() {
 
         {/* Legally necessary, kept as quiet as their own small print. */}
         <p className="mt-6 border-t border-hairline pt-6 text-xs text-muted-foreground/70">
-          © 2026 {siteConfig.name} · {siteConfig.contactEmail}
+          © 2026 {siteConfig.name}
+          {siteConfig.communityUrl && (
+            <>
+              {" · "}
+              <DiscordLink>Discord</DiscordLink>
+            </>
+          )}
         </p>
       </div>
     </footer>

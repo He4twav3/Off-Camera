@@ -59,7 +59,7 @@ export function renderOgImage({
               color: COLORS.foreground,
             }}
           >
-            Off Camera
+            On Camera
           </span>
         </div>
 

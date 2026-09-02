@@ -1,4 +1,4 @@
-import { Download, Mail, MessageCircle, FileText } from "lucide-react";
+import { Download, MessageCircle, FileText } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,8 +60,8 @@ export async function SidebarCards() {
                 </a>
               </li>
             ))}
-            <li>
-              {siteConfig.communityUrl ? (
+            {siteConfig.communityUrl && (
+              <li>
                 <a
                   href={siteConfig.communityUrl}
                   target="_blank"
@@ -71,17 +71,8 @@ export async function SidebarCards() {
                   <MessageCircle className="size-4" />
                   Join the private community
                 </a>
-              ) : (
-                <a
-                  href={`mailto:${siteConfig.contactEmail}?subject=Private%20community%20access`}
-                  className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  title="No live invite link yet — this emails us to ask instead of pretending one exists"
-                >
-                  <Mail className="size-4" />
-                  Request community access
-                </a>
-              )}
-            </li>
+              </li>
+            )}
           </ul>
         </CardContent>
       </Card>

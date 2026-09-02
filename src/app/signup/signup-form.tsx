@@ -12,7 +12,7 @@ export function SignupForm() {
 
   if (state.sent) {
     return (
-      <div className="mt-7 rounded-lg border-2 border-ink bg-card p-5 text-left">
+      <div className="mt-4 rounded-lg border-2 border-ink bg-card p-5 text-left">
         <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <Mail className="size-4 shrink-0 text-primary" />
           Check your email
@@ -26,7 +26,7 @@ export function SignupForm() {
   }
 
   return (
-    <form action={formAction} className="mt-7 flex flex-col gap-3" aria-label="Save your spot">
+    <form action={formAction} className="mt-4 flex flex-col gap-3" aria-label="Save your spot">
       <label className="sr-only" htmlFor="signup-email">
         Email address
       </label>

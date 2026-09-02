@@ -62,7 +62,7 @@ export function WhoItsFor() {
   return (
     <section className="relative mx-auto max-w-[1240px] px-5 py-20 sm:px-6 lg:px-8">
       <SectionHeader
-        index="02"
+        index="01"
         eyebrow="What's actually stopping you"
         title="Maybe you don't need any of that"
         lede="These are the reasons people talk themselves out of starting. None of them are actually the thing that determines whether a video gets watched."

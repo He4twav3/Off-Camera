@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans, Geist } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans, Plus_Jakarta_Sans } from "next/font/google";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
@@ -14,41 +14,40 @@ import "./globals.css";
  * where this choice comes from — not a guess about what "premium" looks
  * like.
  *
- * Geist for body copy. This is the other half of the reference site's
- * pairing, measured off it rather than guessed: its headings render in
- * DM Sans and every paragraph, label and link in Geist — 16px/400 for
- * body, 14px/500 for column headings, 12px/400 for small print. Geist is
- * a modern neutral grotesque with a large x-height and open apertures,
- * which is what keeps 12–16px copy legible on a dark ground where a
- * tighter face would close up.
+ * Plus Jakarta Sans for body copy — every paragraph, label and link.
+ * Replaced Geist here deliberately: Geist paired fine with DM Sans, but
+ * once Bricolage Grotesque (below) stopped being wordmark-only and
+ * started carrying the hero claim and every chapter heading, the body
+ * face needed to sit *with* that voice instead of next to it — Plus
+ * Jakarta Sans shares Bricolage Grotesque's rounded, slightly warm
+ * geometric character (soft terminals, a friendly rather than clinical
+ * grotesque) at a register calm enough for 12–16px copy, where
+ * Bricolage's own quirks would be too much. Still a large x-height and
+ * open apertures, same reason Geist had them: dense copy stays legible
+ * on a dark ground.
  *
- * Bricolage Grotesque for the wordmark only — the name inside the logo,
- * and nowhere else. The reference site keeps a third face in reserve for
- * exactly one job: its own oversized "Parley" lettering at the bottom of
- * the page is not set in its heading face. It measures out to a
- * different letter — an x-height/cap-height ratio of 0.82, against DM
- * Sans's 0.74 — and Bricolage Grotesque is the Google-served face that
- * actually lands there (confirmed twice: the ratio matches to within a
- * point, and the family is already in this page's own font stack, set on
- * its promo-button label at the same -0.04em tracking used here). Their
- * navbar SVG is not that evidence — it turned out to be an unrelated
- * stock asset the template ships with (it reads "Cloudplex" under
- * inspection, nothing to do with their brand), which is why the giant
- * footer lettering, not the navbar mark, is what this was measured from.
+ * DM Sans stays the mid-tier: card titles, labels, anything that's a
+ * heading but not one of the two biggest statements per page.
+ *
+ * Bricolage Grotesque for the wordmark, the hero's own h1, and every
+ * numbered chapter heading (section-frame.tsx's SectionHeader) — three
+ * places, not one anymore. Originally measured off the reference site's
+ * own oversized footer lettering (x-height/cap-height ratio 0.82 against
+ * DM Sans's 0.74 — their navbar SVG is an unrelated stock asset the
+ * template ships with, not real evidence, which is why the footer
+ * lettering is what this was actually measured from) and kept
+ * deliberately confined to the logo at first. Extended since: the two
+ * biggest single statements on any page here (the hero's claim, each
+ * chapter's title) now speak in the same voice as the logo above them,
+ * which is what makes the whole page feel like one brand's voice at
+ * different volumes rather than a logo bolted onto a generic template.
  *
  * Two weights, for two very different sizes of the same word. 500 is
  * what the oversized footer lettering actually measures to — at that
  * scale the huge x-height alone reads as bold, so the stroke can stay
- * comparatively light. The small navbar/logo instance of the same word
- * doesn't have that scale to lean on, and 500 at 1.15rem reads thin
- * rather than confident — so it's set at 700 there instead, which is
- * both visibly closer to how their own small lettering actually looks
- * and the standard fix for the same face needing more weight in hand the
- * smaller it's set.
- *
- * Three faces, one of them in two weights, still isn't four: nothing
- * else on the page moves to Bricolage Grotesque, so the heading/body
- * hierarchy DM Sans and Geist establish stays exactly as it was.
+ * comparatively light. The small navbar/logo instance, and both of the
+ * newer big-statement uses, read thin at 500 without that scale to lean
+ * on — set at 700 (font-bold) everywhere else it appears.
  */
 const heading = DM_Sans({
   variable: "--font-heading",
@@ -56,7 +55,7 @@ const heading = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const body = Geist({
+const body = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
 });
@@ -84,8 +83,8 @@ export const metadata: Metadata = {
     "content creator course",
     "TikTok UGC",
   ],
-  authors: [{ name: siteConfig.creator.name }],
-  creator: siteConfig.creator.name,
+  authors: [{ name: siteConfig.name }],
+  creator: siteConfig.name,
   robots: {
     index: true,
     follow: true,
@@ -112,7 +111,26 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${heading.variable} ${body.variable} ${wordmark.variable} h-full antialiased`}
+      // A literal dark background here too, not just on <body> below —
+      // <html>'s own background is what shows through during a mobile
+      // browser's rubber-band overscroll bounce (dragging past the top/
+      // bottom edge), since that gesture reveals whatever's *behind*
+      // <body>, not <body> stretching to cover it. Left unset, that's
+      // the browser's own default (white), a flash of the wrong colour
+      // at the exact edges of the screen on every phone.
+      //
+      // A literal hex, not `dark-invert bg-background` (the token this
+      // color actually has everywhere else on the site): <html> IS
+      // `:root`, and globals.css's own light-theme `--background` is
+      // declared under `:root` *later* in the file than `dark-invert.css`
+      // gets @import-ed — same specificity, later source position wins,
+      // so putting the `dark-invert` class on the one element that's
+      // also `:root` doesn't override `:root`'s own light value the way
+      // it does on every other element, it loses to it. `<body>` doesn't
+      // have this problem (it's `.dark-invert` but never `:root`), which
+      // is exactly why this needed a second, different fix rather than
+      // just copying body's.
+      className={`${heading.variable} ${body.variable} ${wordmark.variable} h-full bg-[#16151a] antialiased`}
     >
       <body className="dark-invert min-h-full bg-background text-foreground">
         <div className="flex min-h-full flex-col">{children}</div>

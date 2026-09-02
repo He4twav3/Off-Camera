@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 type SessionState =
   | { status: "loading" }
@@ -96,12 +97,15 @@ export function AuthNavPill() {
  * enclosing sheet — this row triggers a route change either way
  * (client-side `router.push` on logout, or a plain Link on log in),
  * neither of which the sheet notices on its own. */
-export function AuthNavRow({ onNavigate }: { onNavigate?: () => void } = {}) {
+export function AuthNavRow({
+  onNavigate,
+  className,
+}: { onNavigate?: () => void; className?: string } = {}) {
   const { session, setSession } = useClientSession();
   const logout = useLogout(setSession);
 
   if (session.status === "loading") {
-    return <div className="h-[42px] rounded-full bg-secondary/60" aria-hidden />;
+    return <div className={cn("h-[42px] rounded-full bg-secondary/60", className)} aria-hidden />;
   }
 
   if (session.status === "authed") {
@@ -112,7 +116,10 @@ export function AuthNavRow({ onNavigate }: { onNavigate?: () => void } = {}) {
           onNavigate?.();
           logout();
         }}
-        className="pill-premium focus-premium flex items-center gap-2.5 rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
+        className={cn(
+          "pill-premium focus-premium flex items-center gap-2.5 rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground",
+          className
+        )}
       >
         <LogOut className="size-4" />
         Log out ({session.email})
@@ -124,7 +131,10 @@ export function AuthNavRow({ onNavigate }: { onNavigate?: () => void } = {}) {
     <Link
       href="/login"
       onClick={onNavigate}
-      className="pill-premium focus-premium rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
+      className={cn(
+        "pill-premium focus-premium rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground",
+        className
+      )}
     >
       Log in
     </Link>

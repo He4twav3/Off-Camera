@@ -2,7 +2,6 @@ import { Hero } from "@/components/marketing/hero";
 import { getProofPosters } from "@/lib/proof-thumbnails";
 import { Brands } from "@/components/marketing/brand-constellation";
 import { WhoItsFor } from "@/components/marketing/who-its-for";
-import { ProofWall } from "@/components/marketing/proof-wall";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { CourseIntro } from "@/components/marketing/course-intro";
 import { FullCurriculum } from "@/components/marketing/full-curriculum";
@@ -10,7 +9,6 @@ import { Outcomes } from "@/components/marketing/outcomes";
 import { Story } from "@/components/marketing/story";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
-import { FinalCTA } from "@/components/marketing/final-cta";
 import { ViewfinderFrame } from "@/components/site/viewfinder-frame";
 import { SectionSeam } from "@/components/marketing/section-frame";
 
@@ -22,8 +20,8 @@ import { SectionSeam } from "@/components/marketing/section-frame";
  * stranger is actually asking:
  *
  *   HERO         "What is this, and is it real?"          claim + the
- *                actual videos, with their actual view counts, side by
- *                side on the first screen
+ *                3D ring of real videos, with their actual view counts,
+ *                on the first screen
  *   BRANDS       "Has anyone else trusted them?"          third-party
  *                validation, while it is still worth something — before
  *                the reader has decided whether to keep going, not two
@@ -32,29 +30,46 @@ import { SectionSeam } from "@/components/marketing/section-frame";
  *                experience / my videos don't work."      the reasons
  *                people talk themselves out of starting, named before
  *                anything tries to answer them
- *   02 PROOF     "Prove it."                              the same real
- *                videos again, at full size, playable, with the
- *                breakdown behind each one — the answer to the beliefs
- *                just named, which is why it has to follow them
- *   03 PROCESS   "Okay — so what actually happens if I
+ *   02 PROCESS   "Okay — so what actually happens if I
  *                join?"                                   the three
  *                steps, stated explicitly for the majority who skim
- *   04 PLAIN     "Is any of this something I could
+ *   03 PLAIN     "Is any of this something I could
  *                actually do?"                           the eight
  *                things that decide whether a video works, named the way
  *                someone who has never posted would name them rather
  *                than in the industry's words — the beat where "they did
  *                this" turns into "I could do this too"
- *   05 COURSE    "What's in it?"                          the product,
+ *   04 COURSE    "What's in it?"                          the product,
  *                its real numbers, and every module with what you make
  *                in it and the lessons inside it
- *   06 STORY     "Who is teaching this?"
- *   07 PRICING   "What does it cost, and when do I have
- *                to decide?"                              the price and
- *                the live window, together, at the moment the question
- *                is actually being asked
- *   08 FAQ       "The last few things stopping me."
- *   CLOSE        the ask, once more, on its own.
+ *   05 STORY     "Who is teaching this?"
+ *   06 FAQ       "The last few things stopping me."       objections,
+ *                answered before the final ask, not after it
+ *   07 PRICING   "Okay — so what does it cost, and how do
+ *                I actually start?"                       the price and
+ *                the button, now doubling as the page's own close: the
+ *                last thing on the page is the offer itself, not a
+ *                second, separate card restating the same ask a few
+ *                hundred pixels later. A dedicated FinalCTA section used
+ *                to sit here instead, its own card with its own copy and
+ *                its own "Save your spot" — genuinely repetitive once it
+ *                followed Pricing this closely (same button, same fine
+ *                print, one section apart), and a page that closed on an
+ *                unresolved FAQ instead wasn't the fix either. Moving
+ *                Pricing itself to close the page (past FAQ, not before
+ *                it) is: the price is what FAQ's objections were about
+ *                in the first place, so answering them and then landing
+ *                immediately on the thing they were objections *to* is a
+ *                tighter close than a generic restatement of it would
+ *                have been.
+ *
+ * The evidence used to get its own numbered chapter (02 PROOF) below the
+ * beliefs — a second, flat carousel of the same real clips, separate
+ * from the hero's own ring. Removed: two carousels of the same videos
+ * was one idea built twice, and the hero's ring — draggable/spinnable,
+ * always in view on the first screen — already does that job better
+ * than a component someone had to scroll to reach. Every chapter after
+ * it renumbered down by one to close the gap.
  *
  * Two sections that used to be here are gone, both for the same reason —
  * they answered a question nobody was asking at that point:
@@ -97,10 +112,13 @@ export default async function Home() {
           it reads as a stray line rather than as a boundary — which is
           why the hero, ending in the reel's own controls, is the only
           block that opens straight into one. */}
-      {/* No seam between these two: the hero's claim and the wall of
-          videos backing it are one screen, not two sections. */}
-      <Hero />
-      <ProofWall posters={posters} />
+      {/* The hero's own 3D ring carousel (hero-carousel.tsx) is the
+          proof wall now — a separate, second carousel of the same real
+          clips directly underneath it was two things doing one job, so
+          that older section (proof-wall.tsx, a flat drag-panned wall) is
+          gone. Its drag-panned spin and per-card view counts live on
+          though, ported onto the ring itself. */}
+      <Hero posters={posters} />
       <SectionSeam />
       <Brands />
       <SectionSeam />
@@ -124,11 +142,9 @@ export default async function Home() {
       <SectionSeam />
       <Story />
       <SectionSeam />
-      <Pricing />
-      <SectionSeam />
       <FAQ />
       <SectionSeam />
-      <FinalCTA />
+      <Pricing />
     </>
   );
 }

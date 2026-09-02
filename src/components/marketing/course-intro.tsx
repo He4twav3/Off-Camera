@@ -31,7 +31,7 @@ export function CourseIntro() {
 
   return (
     <SectionHeader
-      index="05"
+      index="04"
       eyebrow="So how do you actually do this"
       title={siteConfig.courseTitle}
       lede="The system behind content that performs: hooks, retention, volume, consistency, timing, and iteration, across every format. No following required, and your face is optional."

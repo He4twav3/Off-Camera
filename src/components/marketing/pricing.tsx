@@ -6,8 +6,8 @@ import { TOTAL_MODULES, TOTAL_LESSONS } from "@/lib/curriculum";
 import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
 import { SectionHeader } from "@/components/marketing/section-frame";
-import { COURSE_IS_FREE } from "@/lib/feature-flags";
 import { CountdownBadge } from "@/components/marketing/countdown-badge";
+import { COURSE_IS_FREE } from "@/lib/feature-flags";
 
 const inclusions = [
   `${TOTAL_MODULES} core modules, ${TOTAL_LESSONS} lessons`,
@@ -25,22 +25,22 @@ const inclusions = [
  * said with light, and it can only be said once — which is why nothing
  * else on the page uses that treatment.
  *
- * The live countdown lives here now, not in the hero.
- *
- * It is the same mechanic it always was — a real, per-visitor five-day
- * window that starts on this browser's first visit and is stored
- * locally, not a fake shared deadline and not a headcount (see
- * countdown-badge.tsx). What changed is where it sits, and that was a
- * genuine problem rather than a preference: as the largest object on the
- * first screen, it asked for urgency before the page had established
- * that anything was worth being urgent about. Nobody hurries for an
- * offer they haven't decided is real yet, so all it did was spend the
- * hero's most valuable space arguing with a stranger.
- *
- * Directly above the price it is doing the job it was built for: the
- * reader has seen the proof, the system, and what changes for them, and
- * the only remaining question is when. It answers that one, honestly,
- * at exactly the moment it is being asked.
+ * Back to carrying a live countdown (CountdownBadge, the same component
+ * /signup uses) — removed once already for claiming free access would
+ * end and a paywall would kick in, which COURSE_IS_FREE genuinely
+ * doesn't back with any real clock. What's restored here is the honest
+ * version, not the dishonest one it used to be: this is the *preview
+ * window* countdown (a real, per-visitor 5 days from first visit — see
+ * countdown-badge.tsx's own readOrStartWindow), not a claim that the
+ * price is about to change. Gated on COURSE_IS_FREE for the same
+ * reason the price copy below already is — when the course isn't free,
+ * there's no free preview window to be counting down either, and
+ * showing one next to a real price would be the exact wrong claim in
+ * the other direction. Pricing is also the last section on the page
+ * now (see (marketing)/page.tsx's own note on why), which is what
+ * makes this genuinely the moment to show it — a countdown on a
+ * mid-page section that keeps scrolling past it did less work than one
+ * on the page's actual closing card.
  */
 export function Pricing() {
   return (
@@ -66,15 +66,21 @@ export function Pricing() {
       />
 
       <SectionHeader
-        index="07"
+        index="06"
         eyebrow="What it costs"
         title="One plan. Everything included."
         lede="No tiers to think about, just the full course, once."
       />
 
-      <Reveal delay={BEAT.body} className="mt-14">
-        <CountdownBadge />
-      </Reveal>
+      {/* The real, per-visitor preview-window countdown — see the header
+          note above on why this is honest where the old paywall-deadline
+          version wasn't, and why it's gated on COURSE_IS_FREE
+          specifically. Above the card, not inside it. */}
+      {COURSE_IS_FREE && (
+        <Reveal delay={BEAT.body} className="mt-14">
+          <CountdownBadge />
+        </Reveal>
+      )}
 
       <Reveal variant="lift" delay={BEAT.body + BEAT.step} className="mt-14">
         <div className="card-featured mx-auto max-w-md rounded-[20px] bg-surface-1 p-7 sm:p-8">
@@ -94,7 +100,7 @@ export function Pricing() {
           </p>
           <p className="mt-3 text-sm text-muted-foreground">
             {COURSE_IS_FREE
-              ? `Right now, during the preview window. ${siteConfig.price.formatted} one-time after that.`
+              ? `Free right now. ${siteConfig.price.formatted} one-time once that changes.`
               : "One-time payment. No subscription, no upsells."}
           </p>
 
@@ -115,12 +121,12 @@ export function Pricing() {
             size="lg"
             nativeButton={false}
             render={<Link href="/signup" />}
-            className="btn-cta mt-9 h-auto w-full rounded-full py-4 text-base font-bold tracking-tight text-cta-foreground"
+            className="btn-cta-glass mt-9 h-auto w-full rounded-full py-4 text-base font-bold tracking-tight text-cta-foreground"
           >
             Save your spot
           </Button>
           <p className="mt-4 text-center font-mono text-[0.65rem] tracking-[0.14em] text-muted-foreground uppercase">
-            Free for 5 days · No card required
+            No card required
           </p>
         </div>
       </Reveal>

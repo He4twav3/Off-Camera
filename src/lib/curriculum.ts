@@ -277,33 +277,23 @@ const RAW_CURRICULUM = [
 ] as const;
 
 /**
- * One 8-step ramp through the brand red, from a vivid crimson at module
- * one down into the deep maroon at module eight.
+ * One 8-step ramp through the single brand accent (#AC0216, flat
+ * crimson — see dark-invert.css), from that exact value at module
+ * one down into a near-black oxblood at module eight.
  *
  * The eight modules are a pipeline (hook → retention → volume → ...), and
  * the ramp is what makes a row of them read as a sequence going
- * somewhere rather than eight interchangeable chips. Lightness carries
- * the progression; hue drifts only 9° across the whole ramp (30° → 21°),
- * which is enough to deepen from red toward maroon without ever becoming
- * a different color.
+ * somewhere rather than eight interchangeable chips. Flat blend toward
+ * black carries the whole progression — no hue drift, no chroma tuning:
+ * this palette's hard constraint is one flat accent color and nothing
+ * glossy or gradient-lit, so the ramp is literally `color-mix(accent,
+ * black)` at increasing ratios, not a hand-tuned oklch curve.
  *
- * Two hard constraints on this ramp, both learned the hard way:
- *
- *   - It never goes light. The top step is L=0.50, not the L=0.68 it once
- *     was. Two reasons, and they happen to agree: above roughly L=0.55 a
- *     saturated red at this chroma stops reading as red and starts
- *     reading as peach/salmon, which is the pastel register this palette
- *     exists to avoid; and L=0.50 is also about where white text stops
- *     clearing 4.5:1, which these 12px semibold pill labels need. Chroma
- *     stays high (0.115–0.20) the whole way down — letting chroma fall
- *     away as it darkens is what turns a maroon into a brown.
- *   - Text stays light on every step. Because the ramp now tops out at
- *     L=0.50, white clears 4.5:1 on all eight, so there is no
- *     light-text/dark-text crossover to get wrong. That removes the
- *     entire class of bug this ramp used to have, where --ink resolving
- *     to near-white in dark mode put white text on the palest swatches.
- *     The literals below are theme-independent on purpose: --ink and
- *     --card flip meaning between the light theme and dark-invert.
+ * Text stays the same near-white on every step (SHADE_TEXT_LIGHT) — the
+ * top step is the accent color itself, which already clears ~4.7:1
+ * against white (verified), and every step below it is strictly darker,
+ * so contrast only improves going down the ramp. No light/dark
+ * crossover to get wrong.
  *
  * Shared source of truth for every place a module needs a shade-coded
  * index (full-curriculum.tsx's numbered badges, its pipeline strip, and
@@ -311,24 +301,19 @@ const RAW_CURRICULUM = [
  */
 const SHADE_TEXT_LIGHT = "oklch(0.98 0.01 25)";
 
-// Dimmed a step from the original ramp (each stop -0.015 to -0.04 L,
-// -0 to -0.005 C, tapering to nearly nothing by the bottom of the ramp
-// since that end was already a dim maroon) — the top of the ramp in
-// particular read as too vivid/glowing against the graphite page,
-// competing with the crimson CTA for "the one bright thing here"
-// instead of sitting in its own quieter register. Hue and the overall
-// shape of the progression are unchanged; the chroma floor at the
-// bottom step (0.115) is the same floor the original ramp documented,
-// so it still doesn't fade into brown.
+// color-mix(in srgb, #AC0216, black R%) at R = 0, 8, 16, 24, 33, 42, 52,
+// 62 — a flat blend toward black, literal hex so the top step matches
+// --cta/--crimson* exactly with zero drift between "the accent" and
+// "the first step of its own ramp".
 export const MODULE_SHADES = [
-  { bg: "oklch(0.46 0.195 30)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.425 0.19 29)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.395 0.185 27)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.36 0.175 26)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.33 0.165 25)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.30 0.15 23)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.265 0.13 22)", text: SHADE_TEXT_LIGHT },
-  { bg: "oklch(0.23 0.115 20)", text: SHADE_TEXT_LIGHT },
+  { bg: "#ac0216", text: SHADE_TEXT_LIGHT },
+  { bg: "#9e0214", text: SHADE_TEXT_LIGHT },
+  { bg: "#900212", text: SHADE_TEXT_LIGHT },
+  { bg: "#830211", text: SHADE_TEXT_LIGHT },
+  { bg: "#73010f", text: SHADE_TEXT_LIGHT },
+  { bg: "#64010d", text: SHADE_TEXT_LIGHT },
+  { bg: "#53010b", text: SHADE_TEXT_LIGHT },
+  { bg: "#410108", text: SHADE_TEXT_LIGHT },
 ] as const;
 
 /**

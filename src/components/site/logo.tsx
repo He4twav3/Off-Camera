@@ -50,7 +50,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      aria-label="Off Camera — home"
+      aria-label="On Camera — home"
       className={cn(
         "focus-premium group/logo inline-flex items-center gap-2 rounded-md",
         className
@@ -62,7 +62,7 @@ export function Logo({
       />
       {variant === "full" && (
         <span className="font-wordmark text-[1.15rem] leading-none font-bold lowercase tracking-[-0.04em] text-foreground">
-          off camera
+          on camera
         </span>
       )}
     </Link>

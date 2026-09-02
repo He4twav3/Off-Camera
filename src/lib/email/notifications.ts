@@ -29,7 +29,7 @@ export async function sendApplicantApprovedEmail(to: string, name: string) {
 export async function sendApplicantRejectedEmail(to: string, name: string) {
   return sendEmail({
     to,
-    subject: "Update on your Off Camera application",
+    subject: "Update on your On Camera application",
     react: ApplicantRejectedEmail({ name }),
     text: `Thanks for applying, ${name}. Your profile isn't a fit for the campaigns we're running right now — reply to this email if you'd like us to take another look.`,
   });

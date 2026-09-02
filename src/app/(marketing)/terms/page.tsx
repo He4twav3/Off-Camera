@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
+import { DiscordLink } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -13,15 +14,13 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Terms of Service"
-      lastUpdated="[Month Day, Year]"
+      lastUpdated="August 31, 2026"
       intro={
         <>
           These Terms of Service (&ldquo;Terms&rdquo;) govern access to and
           use of {siteConfig.name} (the &ldquo;Course&rdquo;), operated by
-          [Your Business Legal Name] (&ldquo;we&rdquo;, &ldquo;us&rdquo;).
-          By purchasing or accessing the Course, you agree to these Terms.
-          This page is placeholder content for a demo build. Replace the
-          bracketed sections and have it reviewed before going live.
+          OnCamera DOO (&ldquo;we&rdquo;, &ldquo;us&rdquo;). By purchasing
+          or accessing the Course, you agree to these Terms.
         </>
       }
     >
@@ -84,21 +83,18 @@ export default function TermsPage() {
 
       <h2>8. Limitation of liability</h2>
       <p>
-        To the maximum extent permitted by law, {"[Your Business Legal Name]"}{" "}
-        is not liable for indirect, incidental, or consequential damages
-        arising from use of the Course.
+        To the maximum extent permitted by law, OnCamera DOO is not liable
+        for indirect, incidental, or consequential damages arising from use
+        of the Course.
       </p>
 
       <h2>9. Governing law</h2>
-      <p>These Terms are governed by the laws of [Your Jurisdiction].</p>
+      <p>These Terms are governed by the laws of North Macedonia.</p>
 
       <h2>10. Contact</h2>
       <p>
-        Questions about these Terms can be sent to{" "}
-        <a href={`mailto:${siteConfig.contactEmail}`}>
-          {siteConfig.contactEmail}
-        </a>
-        .
+        Questions about these Terms can be sent to us on{" "}
+        <DiscordLink>Discord</DiscordLink>.
       </p>
     </LegalPage>
   );
