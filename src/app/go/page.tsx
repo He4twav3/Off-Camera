@@ -105,10 +105,10 @@ export default function GoPage() {
             <Button
               size="lg"
               nativeButton={false}
-              render={<Link href="/signup" />}
+              render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
               className="btn-sticker"
             >
-              Save your spot
+              Join free on Discord
             </Button>
             <p className="mt-3 text-sm text-muted-foreground">
               {COURSE_IS_FREE ? "Free right now · No card required" : "One-time payment · Lifetime access"}
@@ -219,10 +219,10 @@ export default function GoPage() {
               <Button
                 size="lg"
                 nativeButton={false}
-                render={<Link href="/signup" />}
+                render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
                 className="btn-sticker mt-8 w-full"
               >
-                Save your spot
+                Join free on Discord
               </Button>
             </div>
           </section>

@@ -6,6 +6,7 @@ import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
 import { HeroCarousel } from "@/components/marketing/hero-carousel";
 import { SectionEyebrow } from "@/components/marketing/section-frame";
+import { siteConfig } from "@/lib/site-config";
 import type { ProofPoster } from "@/lib/proof-thumbnails";
 
 /**
@@ -204,15 +205,21 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
             "Save your spot" CTA on the site (navbar, pricing, final CTA)
             uses this same treatment now too, not just this one: one
             action, one physical treatment, everywhere it appears — see
-            that utility's own header note in globals.css. */}
+            that utility's own header note in globals.css.
+
+            Points straight at the Discord invite now, not /signup — the
+            site's job is to be the hook that gets someone into the
+            community, not to collect an email first. Free to join, no
+            account, no card; the actual sell happens once they're
+            already in Discord. */}
         <Reveal delay={BEAT.body + BEAT.step * 2}>
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/signup" />}
+            render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
             className="btn-cta-glass mt-7 h-auto rounded-full px-10 py-4 text-base font-bold tracking-tight text-cta-foreground sm:px-12 sm:py-5 sm:text-lg"
           >
-            Save my free spot
+            Join free on Discord
           </Button>
         </Reveal>
       </div>

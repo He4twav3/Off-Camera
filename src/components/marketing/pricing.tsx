@@ -117,13 +117,17 @@ export function Pricing() {
             ))}
           </ul>
 
+          {/* Discord, not /signup — see hero.tsx's own note on why every
+              CTA on the site points there now: this section is still
+              free right now anyway (COURSE_IS_FREE above), so there's
+              no real checkout this button was ever routing to. */}
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/signup" />}
+            render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
             className="btn-cta-glass mt-9 h-auto w-full rounded-full py-4 text-base font-bold tracking-tight text-cta-foreground"
           >
-            Save your spot
+            Join free on Discord
           </Button>
           <p className="mt-4 text-center font-mono text-[0.65rem] tracking-[0.14em] text-muted-foreground uppercase">
             No card required

@@ -15,6 +15,7 @@ import { Logo } from "@/components/site/logo";
 import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { useScrolledPast } from "@/lib/use-scroll-y";
+import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 // Real in-page jumps, not decoration — the homepage defines all of these
@@ -102,23 +103,22 @@ export function Navbar() {
             reaches for right after it — not competing with it for first
             position. */}
         <div className="ml-auto hidden items-center gap-3 lg:flex">
-          {/* "Save my free spot", not "Enroll now": we're gathering the
-              free-preview list first, not pushing checkout — see
-              hero.tsx's own note on the same call. Enrollment isn't
-              gone, just not what this persistent, always-visible slot
-              pushes right now. btn-cta-glass, not the flat btn-cta —
-              same translucent-crimson-over-backdrop-blur treatment as
-              every other "Save your spot" CTA now (see globals.css's
-              own note on that utility): one action, one color, one
-              physical treatment, everywhere it appears — not just the
-              hero's own copy of it anymore. */}
+          {/* Points at the Discord invite, not /signup — see hero.tsx's
+              own note on the same call: the site's job is to be the
+              hook that gets someone into the community, the sell
+              happens once they're already there. btn-cta-glass, not the
+              flat btn-cta — same translucent-crimson-over-backdrop-blur
+              treatment as every other "Save your spot" CTA now (see
+              globals.css's own note on that utility): one action, one
+              color, one physical treatment, everywhere it appears — not
+              just the hero's own copy of it anymore. */}
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/signup" />}
+            render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
             className="btn-cta-glass rounded-full px-5 font-bold text-cta-foreground"
           >
-            Save my free spot
+            Join free on Discord
           </Button>
           <AuthNavPill />
         </div>
@@ -156,10 +156,17 @@ export function Navbar() {
               <Button
                 size="lg"
                 nativeButton={false}
-                render={<Link href="/signup" onClick={closeMobileNav} />}
+                render={
+                  <Link
+                    href={siteConfig.communityUrl ?? "/signup"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMobileNav}
+                  />
+                }
                 className="btn-cta-glass mt-3 rounded-full py-2.5 font-bold text-cta-foreground"
               >
-                Save my free spot
+                Join free on Discord
               </Button>
               {/* Same order as the desktop group above: CTA leads, log
                   in trails right after it. AuthNavRow, not AuthNavPill —
