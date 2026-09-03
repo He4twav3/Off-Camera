@@ -21,14 +21,14 @@ export const metadata: Metadata = {
  * itself. No pitch, no proof section, no curriculum list — anyone here
  * already saw all of that on the homepage.
  *
- * Free for a real, bounded 5-day window — the countdown (see
+ * Free for a real, bounded 7-day window — the countdown (see
  * hero.tsx's own copy of it) is the site's actual urgency mechanic,
  * genuinely per-visitor, not a fake deadline. It's also why the copy
- * here never promises "your first 5 days free" as a fresh grant: the
+ * here never promises "your first 7 days free" as a fresh grant: the
  * window starts on first VISIT (readOrStartWindow, countdown-badge.tsx),
  * not on signup, so by the time someone actually submits this form
- * there may only be hours of it left, not 5 fresh days — a badge
- * counting DOWN sitting directly under a headline promising a full 5
+ * there may only be hours of it left, not 7 fresh days — a badge
+ * counting DOWN sitting directly under a headline promising a full 7
  * days is telling two different stories about the same number. Every
  * line on this page describes the window as already open and running
  * out, matching what the countdown right above it is visibly doing.

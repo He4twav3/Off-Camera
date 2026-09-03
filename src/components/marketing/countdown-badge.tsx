@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "off-camera-launch-window-start";
-const WINDOW_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+const WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
  * Per-visitor, not shared — starts the first time THIS browser loads
  * the page, persisted in localStorage so leaving and coming back
  * doesn't reset it. Deliberately not a shared "everyone's deadline is
  * X" countdown and not a headcount: it's a real, honest mechanic (your
- * own personal 5-day window from your own first visit), not a claim
+ * own personal 7-day window from your own first visit), not a claim
  * about other people or a number nobody can verify.
  */
 function readOrStartWindow(): number {
@@ -90,7 +90,7 @@ function Sep() {
 }
 
 /**
- * The hero's centrepiece: a real, per-visitor 5-day window, rendered as
+ * The hero's centrepiece: a real, per-visitor 7-day window, rendered as
  * a physical count-down panel rather than as a marketing badge (see
  * Unit above for why that framing matters, and readOrStartWindow for
  * why the mechanic itself is honest — it is this browser's own window,
@@ -135,7 +135,7 @@ export function CountdownBadge() {
           )}
           <span className="relative inline-flex size-1.5 rounded-full bg-crimson-bright" />
         </span>
-        {time ? "Your free preview window" : "Free preview · your 5-day window starts now"}
+        {time ? "Your free preview window" : "Free preview · your 7-day window starts now"}
       </span>
 
       {time ? (

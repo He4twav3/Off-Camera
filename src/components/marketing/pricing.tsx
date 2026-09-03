@@ -30,7 +30,7 @@ const inclusions = [
  * end and a paywall would kick in, which COURSE_IS_FREE genuinely
  * doesn't back with any real clock. What's restored here is the honest
  * version, not the dishonest one it used to be: this is the *preview
- * window* countdown (a real, per-visitor 5 days from first visit — see
+ * window* countdown (a real, per-visitor 7 days from first visit — see
  * countdown-badge.tsx's own readOrStartWindow), not a claim that the
  * price is about to change. Gated on COURSE_IS_FREE for the same
  * reason the price copy below already is — when the course isn't free,

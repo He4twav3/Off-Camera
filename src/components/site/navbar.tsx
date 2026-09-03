@@ -118,7 +118,7 @@ export function Navbar() {
             render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
             className="btn-cta-glass rounded-full px-5 font-bold text-cta-foreground"
           >
-            Join free on Discord
+            Save my free spot
           </Button>
           <AuthNavPill />
         </div>
