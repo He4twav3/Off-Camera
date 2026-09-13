@@ -120,7 +120,6 @@ export default function GoPage() {
           <VideoPlayer
             src="/intro/aron-intro.mp4"
             aspect="video"
-            label="Intro from Aron"
             className="mx-auto h-[min(55vh,520px)] w-auto max-w-full"
             poster={
               <VideoPoster>

@@ -157,7 +157,6 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
           <VideoPlayer
             src="/intro/aron-intro.mp4"
             aspect="video"
-            label="Intro from Aron"
             frame="premium"
             poster={<VideoPoster />}
             className="mx-auto mt-9 w-full max-w-xl rounded-[22px] shadow-[0_20px_40px_-8px_oklch(0_0_0_/_0.4)]"

@@ -1,8 +1,18 @@
 "use client";
 
-import { useRef, useState, type ReactNode, type MouseEvent } from "react";
-import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode, type MouseEvent } from "react";
+import { Maximize2, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/**
+ * iOS Safari has no standard Fullscreen API for arbitrary elements — only
+ * the video element itself, and only through this webkit-prefixed method
+ * (not in the DOM lib types, hence the cast at the call site). Every other
+ * engine gets the standard `requestFullscreen`.
+ */
+type FullscreenVideo = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void;
+};
 
 const ASPECT_CLASSES = {
   video: "aspect-video",
@@ -78,10 +88,23 @@ export function VideoPlayer({
   const frameClass = FRAME_CLASSES[frame];
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playing, setPlaying] = useState(autoPlay);
   const [muted, setMuted] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [duration, setDuration] = useState(0);
+  // Whether the bottom bar (scrubber/mute/fullscreen) is showing. Only
+  // matters while playing — while paused the bar stays hidden regardless
+  // (see its data-visible below), the big centre play button is the only
+  // control needed there. While playing, this is what lets the bar fade
+  // out on its own instead of sitting on screen for the whole video: see
+  // `revealControls` below.
+  const [controlsVisible, setControlsVisible] = useState(true);
+
+  // Hooks must run unconditionally, ahead of the two early returns below
+  // (youtubeId embed / no-src placeholder) — this just clears any pending
+  // auto-hide timeout on unmount, so it's a no-op for both of those.
+  useEffect(() => clearHideTimer, []);
 
   // Real YouTube embed (works for unlisted videos) — youtube-nocookie.com
   // avoids setting tracking cookies until the visitor actually presses
@@ -154,7 +177,51 @@ export function VideoPlayer({
     if (videoRef.current) videoRef.current.currentTime = next;
   }
 
+  function clearHideTimer() {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = null;
+  }
+
+  // Shows the bar, then queues it to fade back out — called on play, and
+  // every time the video area is tapped while playing. Each call bumps
+  // the timer, so the bar stays up as long as someone keeps interacting.
+  function revealControls() {
+    setControlsVisible(true);
+    clearHideTimer();
+    hideTimer.current = setTimeout(() => setControlsVisible(false), 2500);
+  }
+
+  // Tapping the video itself is "play", or, once playing, "toggle the
+  // bar" — never "pause". Pausing now only happens through the small
+  // button inside the bar, so dismissing the bar and stopping playback
+  // are two different gestures instead of one tap doing both.
+  function handleOverlayTap() {
+    if (!playing) {
+      videoRef.current?.play();
+      return;
+    }
+    if (controlsVisible) {
+      clearHideTimer();
+      setControlsVisible(false);
+    } else {
+      revealControls();
+    }
+  }
+
+  function enterFullscreen(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    const video = videoRef.current as FullscreenVideo | null;
+    if (!video) return;
+    if (video.webkitEnterFullscreen) {
+      // iOS Safari: the only fullscreen entry point <video> has there.
+      video.webkitEnterFullscreen();
+    } else if (video.requestFullscreen) {
+      video.requestFullscreen().catch(() => {});
+    }
+  }
+
   const progress = duration ? Math.min(1, elapsed / duration) : 0;
+  const barVisible = playing && controlsVisible;
 
   return (
     <div
@@ -173,14 +240,20 @@ export function VideoPlayer({
         className="absolute inset-0 size-full object-cover"
         onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
+        onPlay={() => {
+          setPlaying(true);
+          revealControls();
+        }}
+        onPause={() => {
+          setPlaying(false);
+          clearHideTimer();
+        }}
       />
 
       <button
         type="button"
-        onClick={togglePlay}
-        aria-label={playing ? "Pause video" : "Play video"}
+        onClick={handleOverlayTap}
+        aria-label={playing ? "Toggle controls" : "Play video"}
         className="absolute inset-0 flex items-center justify-center"
       >
         {!playing && (
@@ -197,7 +270,7 @@ export function VideoPlayer({
       )}
 
       <div
-        data-visible={playing}
+        data-visible={barVisible}
         className="absolute inset-x-0 bottom-0 flex items-center gap-3 bg-gradient-to-t from-black/70 to-transparent px-4 pt-10 pb-3 opacity-0 transition-opacity group-hover:opacity-100 data-[visible=true]:opacity-100"
       >
         <button type="button" onClick={togglePlay} aria-label={playing ? "Pause" : "Play"} className="text-white">
@@ -227,6 +300,17 @@ export function VideoPlayer({
           className="text-white"
         >
           {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+        </button>
+        {/* Manual expand — iOS gets no automatic fullscreen from
+            `playsInline` (the whole point of that attribute), so this is
+            the only way to reach full-screen playback on iPhone. */}
+        <button
+          type="button"
+          onClick={enterFullscreen}
+          aria-label="Fullscreen"
+          className="text-white"
+        >
+          <Maximize2 className="size-4" />
         </button>
       </div>
     </div>
