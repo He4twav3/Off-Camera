@@ -1,23 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <!--
-    Theme-adaptive favicon: same viewfinder mark as brand-mark.tsx (four
-    corners + tally dot), but the corners can't inherit `currentColor` the
-    way the in-app component does — a favicon has no surrounding text
-    color to pick up — so they're pinned to black/white directly and
-    swapped with `prefers-color-scheme`, the same trick browsers already
-    use for adaptive favicons (matches how the mark looks against the
-    site's own light/dark chrome). The tally stays the fixed brand
-    crimson in both. Geometry is untouched from brand-mark.tsx: corners
-    span 3–21 on both axes, the dot sits at the exact center (12,12) of
-    the 24x24 grid, so nothing here is off-center.
+    Theme-adaptive favicon, inverted against the page: a filled square
+    badge rather than a transparent mark, so it reads as a solid block
+    regardless of the exact shade of whatever browser chrome it sits in
+    (relying on a transparent mark to contrast against an unknown tab-bar
+    color is what made the plain black/white version risky).
+
+    Light page  -> dark badge, white corners.
+    Dark page   -> white badge, dark corners.
+
+    "Dark" is the site's own charcoal ground (--background in
+    dark-invert.css), not flat #000 — same near-black the actual dark
+    theme uses everywhere else on the site, not a generic pure black.
+
+    Tally dot stays the fixed brand crimson in both — same geometry as
+    brand-mark.tsx (corners 3-21, dot centered at 12,12 of the 24x24
+    grid).
   -->
   <style>
-    .corners { stroke: #000000; }
+    .badge { fill: #16151a; }
+    .corners { stroke: #ffffff; }
     @media (prefers-color-scheme: dark) {
-      .corners { stroke: #ffffff; }
+      .badge { fill: #ffffff; }
+      .corners { stroke: #16151a; }
     }
   </style>
-  <g class="corners" stroke-width="2" stroke-linecap="square" opacity="0.9">
+  <rect class="badge" x="0" y="0" width="24" height="24" />
+  <g class="corners" fill="none" stroke-width="2" stroke-linecap="square" opacity="0.9">
     <path d="M3 8.5V3h5.5" />
     <path d="M15.5 3H21v5.5" />
     <path d="M21 15.5V21h-5.5" />
