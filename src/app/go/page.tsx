@@ -118,8 +118,10 @@ export default function GoPage() {
 
         <section className="mx-auto max-w-2xl px-4 pb-16 sm:px-6 lg:px-8">
           <VideoPlayer
-            aspect="video"
+            src="/intro/aron-intro.mp4"
+            aspect="portrait"
             label="Intro from Aron"
+            className="mx-auto h-[min(55vh,520px)] w-auto max-w-full"
             poster={
               <VideoPoster>
                 <p className="max-w-sm text-balance text-lg font-medium sm:text-xl">
