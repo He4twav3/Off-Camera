@@ -612,25 +612,24 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   SOFT/EMBOSSED BUTTONS
+   3D BUTTONS
 
-   Deliberately the "evolved soft UI" reading of neumorphism, not the
-   textbook version: classic neumorphism (one flat base color, a
-   near-invisible dual shadow) reads badly in dark mode and fails
-   boundary-contrast checks — the shadow is the *only* thing separating
-   a control from the page, and on a dark ground it has to stay so faint
-   it barely registers. btn-emboss instead keeps each variant's own fill
-   color (bg-primary, bg-secondary, etc. — already contrast-checked
-   against the page in globals/dark-invert) and adds the dual shadow only
-   as an *additional* depth cue on top of that, never as the sole one.
-
-   Light comes from the same corner every other lit surface on this page
-   already uses (card-premium, text-lit): above-left. One low-alpha
-   near-white shadow catches that light on the raised edge; one soft
-   black shadow pools underneath, toward the page's own darkness. Matte
-   on purpose — no gradient fill, no shine sweep — which is what tells
-   this apart from a "polished metal" look while speaking the same
-   lit-edge-plus-cast-shadow vocabulary card-premium already does.
+   Second pass — the first version paired a dark shadow on one corner
+   with a soft *light-colored* shadow on the opposite corner (the
+   classic neumorphism recipe). At the blur radius needed for it to
+   register at all, that light shadow stopped reading as "the edge
+   catching light" and started reading as a glow sitting outside the
+   button's own silhouette — on a dark page, any blurred light-colored
+   shadow does that, no matter how low its alpha. Gone entirely now:
+   every shadow here is dark, full stop. Depth instead comes from an
+   actual elevation change — the button really moves (translateY) on
+   hover, backed by a tight near shadow (defines the edge, grounds it)
+   plus a wider far shadow (ambient contact, still dark) that both grow
+   as it lifts — the same "elevation" cue a physical raised button gives
+   when you tilt it toward you, not a lit halo around it. Darker overall
+   too: the top-edge fill highlight and inset bevel are both toned down
+   a step from the first pass, in service of the same "premium, not
+   glowing" read.
 
    Baked directly into the shared Button primitive's own variant classes
    (see components/ui/button.tsx) rather than opt-in per caller, so every
@@ -639,47 +638,56 @@
    chrome-less. */
 @utility btn-emboss {
   position: relative;
-  /* The part a shadow alone can't do: the fill itself now falls off
-     from a lit top edge toward its own base tone instead of sitting as
-     one flat value — background-image, not background-color, so this
-     paints over whatever bg-secondary/bg-destructive/border-etc. a
-     variant already set rather than fighting it (card-premium already
-     uses this exact technique). One soft 2-stop falloff, restrained —
-     the hue never shifts, only its lightness — not the saturated
-     multi-stop gradient this file already tried and rejected once for
-     reading as "gaming" (see btn-cta's history below). Bumped up a
-     second pass after the first version read as "the same" — a 5%
-     highlight and a 3px shadow are both too quiet to clear the noise
-     of the page's own grain/vignette sitting behind every button. */
+  /* The part a shadow alone can't do: the fill itself falls off from a
+     lit top edge toward its own base tone instead of sitting as one
+     flat value — background-image, not background-color, so this
+     paints over whatever bg-secondary/bg-destructive/etc. a variant
+     already set rather than fighting it (card-premium already uses
+     this exact technique). One soft 2-stop falloff — the hue never
+     shifts, only its lightness — not the saturated multi-stop gradient
+     this file already tried and rejected once for reading as "gaming"
+     (see btn-cta's history below). */
   background-image: linear-gradient(
     180deg,
-    oklch(1 0 0 / 0.12) 0%,
-    transparent 58%
+    oklch(1 0 0 / 0.08) 0%,
+    transparent 55%
   );
   box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 0.2),
-    -4px -4px 10px 0 oklch(1 0 0 / 0.1),
-    6px 9px 20px 0 oklch(0 0 0 / 0.65);
+    inset 0 1px 0 0 oklch(1 0 0 / 0.14),
+    0 2px 4px 0 oklch(0 0 0 / 0.55),
+    0 8px 18px -6px oklch(0 0 0 / 0.75);
   transition:
     box-shadow 0.2s var(--ease-cinematic),
     transform 0.2s var(--ease-cinematic);
 
+  /* The lift: a real lift, not just a bigger shadow — translateY
+     actually raises the button off the page, and the shadow growing
+     underneath it is what a raised object's shadow does when the light
+     above it stays put and the object itself moves further from the
+     surface. */
   &:hover {
+    transform: translateY(-2px);
     box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.26),
-      -5px -5px 13px 0 oklch(1 0 0 / 0.13),
-      8px 12px 26px 0 oklch(0 0 0 / 0.72);
+      inset 0 1px 0 0 oklch(1 0 0 / 0.18),
+      0 4px 8px 0 oklch(0 0 0 / 0.6),
+      0 16px 32px -8px oklch(0 0 0 / 0.85);
   }
 
   /* Pairs with the shared Button primitive's own
-     `active:translate-y-px` — the shadow inverting to inset is what
-     turns that literal 1px nudge into a button that reads as pressed
-     *into* the surface, not just nudged down on top of it. */
+     `active:translate-y-px` — the shadow flattening into an inset is
+     what turns that literal 1px nudge into a button that reads as
+     pressed *into* the surface, not just nudged down on top of it. */
   &:active {
+    transform: translateY(1px);
     box-shadow:
-      inset 0 1px 2px 0 oklch(0 0 0 / 0.5),
-      inset 3px 3px 7px 0 oklch(0 0 0 / 0.45),
-      inset -3px -3px 6px 0 oklch(1 0 0 / 0.05);
+      inset 0 2px 5px 0 oklch(0 0 0 / 0.6),
+      inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
   }
 }
 
@@ -688,13 +696,7 @@
    utilities for one effect on opposite backgrounds rather than one
    utility parameterized for both. Needed because the shared Button
    primitive's `default` variant (bg-primary) resolves to this dark
-   theme's near-white primary token, not a dark surface: a light-on-top
-   highlight is invisible painted over an already-near-white fill, and
-   there's no ambient light source behind a bright object on a dark
-   page for an upper-left highlight shadow to be catching either — the
-   physically correct read for a light object sitting proud of a dark
-   page is a dark shadow grounding it from below plus its own crisp lit
-   edge on top, not a mirrored pair of colored shadows. */
+   theme's near-white primary token, not a dark surface. */
 @utility btn-emboss-on-light {
   position: relative;
   background-image: linear-gradient(
@@ -703,24 +705,32 @@
     oklch(0 0 0 / 0.07) 100%
   );
   box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 0.6),
-    0 8px 20px -6px oklch(0 0 0 / 0.5),
-    0 2px 6px 0 oklch(0 0 0 / 0.35);
+    inset 0 1px 0 0 oklch(1 0 0 / 0.55),
+    0 2px 4px 0 oklch(0 0 0 / 0.3),
+    0 8px 18px -6px oklch(0 0 0 / 0.5);
   transition:
     box-shadow 0.2s var(--ease-cinematic),
     transform 0.2s var(--ease-cinematic);
 
   &:hover {
+    transform: translateY(-2px);
     box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.7),
-      0 14px 30px -8px oklch(0 0 0 / 0.55),
-      0 3px 8px 0 oklch(0 0 0 / 0.4);
+      inset 0 1px 0 0 oklch(1 0 0 / 0.65),
+      0 4px 8px 0 oklch(0 0 0 / 0.35),
+      0 18px 34px -8px oklch(0 0 0 / 0.6);
   }
 
   &:active {
+    transform: translateY(1px);
     box-shadow:
       inset 0 1px 3px 0 oklch(0 0 0 / 0.25),
       inset 0 -1px 0 0 oklch(1 0 0 / 0.4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
   }
 }
 
@@ -729,11 +739,13 @@
    the cards, one order of magnitude smaller and faster.
 
    Shadow direction matches btn-emboss above (the treatment baked into
-   every plain <Button>): light above-left, dark below-right, soft and
-   layered. The animated light-sweep this utility used to run on hover
-   is gone — matte, dual-shadow depth reads as "raised surface"; a shine
-   sweeping across the face reads as polished metal, a different
-   material than the rest of the button system speaks now. */
+   every plain <Button>): dark only, no light-colored shadow on the
+   opposite corner — that read as a glow around the button rather than
+   a lit edge, so it's gone. The animated light-sweep this utility used
+   to run on hover is gone too — matte, dark-shadow depth reads as
+   "raised surface"; a shine sweeping across the face reads as polished
+   metal, a different material than the rest of the button system
+   speaks now. */
 @utility btn-premium {
   position: relative;
   isolation: isolate;
@@ -742,8 +754,8 @@
      use of this utility). */
   background-image: linear-gradient(
     180deg,
-    oklch(1 0 0 / 0.12) 0%,
-    transparent 58%
+    oklch(1 0 0 / 0.08) 0%,
+    transparent 55%
   );
   border-width: 1px !important;
   /* Reads from a variable, not a hardcoded color — and the variable has
@@ -759,8 +771,9 @@
      an arbitrary-value class: `[--btn-border:var(--crimson-bright)]`. */
   border-color: var(--btn-border, var(--hairline)) !important;
   box-shadow:
-    -3px -3px 8px 0 oklch(1 0 0 / 0.06),
-    5px 7px 16px 0 oklch(0 0 0 / 0.6) !important;
+    inset 0 1px 0 0 oklch(1 0 0 / 0.14),
+    0 2px 4px 0 oklch(0 0 0 / 0.55),
+    0 8px 18px -6px oklch(0 0 0 / 0.75) !important;
   transition:
     transform 0.25s var(--ease-cinematic),
     box-shadow 0.25s var(--ease-cinematic),
@@ -769,15 +782,16 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow:
-      -4px -4px 10px 0 oklch(1 0 0 / 0.09),
-      7px 10px 22px 0 oklch(0 0 0 / 0.7) !important;
+      inset 0 1px 0 0 oklch(1 0 0 / 0.18),
+      0 4px 8px 0 oklch(0 0 0 / 0.6),
+      0 16px 32px -8px oklch(0 0 0 / 0.85) !important;
   }
 
   &:active {
     transform: translateY(1px);
     box-shadow:
-      inset 2px 2px 6px 0 oklch(0 0 0 / 0.5),
-      inset -2px -2px 5px 0 oklch(1 0 0 / 0.05) !important;
+      inset 0 2px 5px 0 oklch(0 0 0 / 0.6),
+      inset 0 1px 0 0 oklch(1 0 0 / 0.04) !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -836,29 +850,36 @@
      cascade, not just coexist with it. */
   background-color: var(--cta) !important;
   box-shadow:
-    -3px -3px 8px 0 oklch(1 0 0 / 0.05),
-    5px 7px 16px 0 oklch(0 0 0 / 0.55) !important;
+    0 2px 4px 0 oklch(0 0 0 / 0.5),
+    0 8px 18px -6px oklch(0 0 0 / 0.7) !important;
   transition:
     background-color 0.2s var(--ease-cinematic),
-    box-shadow 0.2s var(--ease-cinematic);
+    box-shadow 0.2s var(--ease-cinematic),
+    transform 0.2s var(--ease-cinematic);
 
   &:hover {
+    transform: translateY(-2px);
     background-color: color-mix(in oklch, var(--cta), white 10%) !important;
     box-shadow:
-      -4px -4px 10px 0 oklch(1 0 0 / 0.07),
-      7px 9px 20px 0 oklch(0 0 0 / 0.65) !important;
+      0 4px 8px 0 oklch(0 0 0 / 0.55),
+      0 16px 32px -8px oklch(0 0 0 / 0.8) !important;
   }
 
   &:active {
+    transform: translateY(1px);
     background-color: color-mix(in oklch, var(--cta), black 8%) !important;
-    box-shadow:
-      inset 2px 2px 6px 0 oklch(0 0 0 / 0.4),
-      inset -2px -2px 5px 0 oklch(1 0 0 / 0.06) !important;
+    box-shadow: inset 0 2px 5px 0 oklch(0 0 0 / 0.5) !important;
   }
 
   &:focus-visible {
     outline: 2px solid var(--beam);
     outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
   }
 }
 
@@ -887,13 +908,13 @@
    not opaque — legibility can't assume a flat, fully-covering color
    underneath the label the way btn-cta could. */
 /* The translucent fill, backdrop blur, and hairline edge are untouched.
-   What changes is the shadow: the old single inset-highlight-plus-
-   outer-shadow pairing is now the same dual light-above/dark-below
-   shadow every other button on the site uses (btn-emboss, btn-premium,
-   btn-cta), so this reads as a raised piece of frosted glass sitting
-   proud of the page rather than a flat translucent panel — one physical
-   language for "is this pressable", whether the button underneath is
-   opaque or glass. */
+   The shadow is dark-only now, same as the rest of the button system —
+   no light-colored shadow on the opposite corner (that read as a glow
+   sitting around the button, not an edge catching light) — and it
+   lifts on hover instead of just deepening in place, so this reads as
+   a raised piece of frosted glass sitting proud of the page rather
+   than a flat translucent panel — one physical language for "is this
+   pressable", whether the button underneath is opaque or glass. */
 @utility btn-cta-glass {
   border-width: 1px !important;
   border-color: oklch(1 0 0 / 0.16) !important;
@@ -901,44 +922,51 @@
   /* Same lit-top-edge falloff as btn-emboss/btn-premium, painted over
      the translucent crimson fill above — a flat single-alpha wash was
      the one place left still reading as a plain color swatch instead
-     of a lit surface. */
+     of a lit surface. Toned down from the first pass, for a darker,
+     less "lit up" fill. */
   background-image: linear-gradient(
     180deg,
-    oklch(1 0 0 / 0.14) 0%,
-    transparent 60%
+    oklch(1 0 0 / 0.1) 0%,
+    transparent 58%
   );
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 0.24),
-    -4px -4px 10px 0 oklch(1 0 0 / 0.08),
-    7px 10px 22px 0 oklch(0 0 0 / 0.55) !important;
+    inset 0 1px 0 0 oklch(1 0 0 / 0.18),
+    0 2px 4px 0 oklch(0 0 0 / 0.5),
+    0 8px 18px -6px oklch(0 0 0 / 0.7) !important;
   text-shadow: 0 1px 6px oklch(0 0 0 / 0.35);
   transition:
     background-color 0.2s var(--ease-cinematic),
     border-color 0.2s var(--ease-cinematic),
-    box-shadow 0.2s var(--ease-cinematic);
+    box-shadow 0.2s var(--ease-cinematic),
+    transform 0.2s var(--ease-cinematic);
 
   &:hover {
+    transform: translateY(-2px);
     background-color: color-mix(in oklch, var(--cta) 72%, transparent) !important;
     border-color: oklch(1 0 0 / 0.26) !important;
     box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.3),
-      -5px -5px 13px 0 oklch(1 0 0 / 0.1),
-      9px 13px 28px 0 oklch(0 0 0 / 0.62) !important;
+      inset 0 1px 0 0 oklch(1 0 0 / 0.24),
+      0 4px 8px 0 oklch(0 0 0 / 0.55),
+      0 16px 32px -8px oklch(0 0 0 / 0.8) !important;
   }
 
   &:active {
+    transform: translateY(1px);
     background-color: color-mix(in oklch, var(--cta) 80%, transparent) !important;
-    box-shadow:
-      inset 0 1px 2px 0 oklch(0 0 0 / 0.4),
-      inset 3px 3px 7px 0 oklch(0 0 0 / 0.4),
-      inset -3px -3px 6px 0 oklch(1 0 0 / 0.08) !important;
+    box-shadow: inset 0 2px 5px 0 oklch(0 0 0 / 0.45) !important;
   }
 
   &:focus-visible {
     outline: 2px solid var(--beam);
     outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
   }
 }
 
