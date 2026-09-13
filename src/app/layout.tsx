@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans, Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans, Fjalla_One, Plus_Jakarta_Sans } from "next/font/google";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
@@ -66,6 +66,31 @@ const wordmark = Bricolage_Grotesque({
   weight: ["500", "700"],
 });
 
+/**
+ * Fjalla One — the literal brand name only ("ONCamera" in logo.tsx,
+ * brand-tag.tsx, footer-wordmark.tsx), swapped in from Bricolage
+ * Grotesque there. Bricolage/`--font-wordmark` above is untouched
+ * everywhere else it was already carrying: the hero's h1 and every
+ * numbered chapter heading keep speaking in that voice, unchanged. A
+ * separate variable rather than replacing `wordmark` outright, on
+ * purpose — swapping the shared one would have quietly changed those
+ * headings too.
+ *
+ * One weight requested, 400, because that's the only one Fjalla One
+ * actually ships on Google Fonts — there is no 500/700 file to load. A
+ * class asking for `font-bold` on a face with no bold cut gets a
+ * browser-synthesized (algorithmically thickened) fake bold instead,
+ * which reads rough, not heavier. Not a real loss: Fjalla One is a
+ * condensed display face that already reads bold/blocky at regular
+ * weight, which is the normal reason to reach for it over a face that
+ * needs an actual bold file to read that way.
+ */
+const brand = Fjalla_One({
+  variable: "--font-brand",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
@@ -130,7 +155,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // have this problem (it's `.dark-invert` but never `:root`), which
       // is exactly why this needed a second, different fix rather than
       // just copying body's.
-      className={`${heading.variable} ${body.variable} ${wordmark.variable} h-full bg-[#16151a] antialiased`}
+      className={`${heading.variable} ${body.variable} ${wordmark.variable} ${brand.variable} h-full bg-[#16151a] antialiased`}
     >
       <body className="dark-invert min-h-full bg-background text-foreground">
         <div className="flex min-h-full flex-col">{children}</div>

@@ -17,22 +17,18 @@ import { cn } from "@/lib/utils";
  * THE MARK IS OURS AND UNTOUCHED — see brand-mark.tsx. Everything below
  * is about the letters that follow it.
  *
- * THE WORDMARK. Lowercase, set tight, in Bricolage Grotesque — the same
- * face the reference site's own oversized "Parley" lettering measures out
- * to (see layout.tsx for how that was confirmed; it is not their heading
- * face). Tracking -0.04em is read off that same source. The weight is
- * not — 500 is what their oversized lettering measures to, but at this
- * size (1.15rem) that reads thin rather than confident, so this is set
- * at 700 instead, which is both closer to how their own small lettering
- * actually looks and the ordinary fix for a face needing more weight in
- * hand the smaller it's set. What made a plain lowercase wordmark read
- * as a mark instead of a line of text either way is less the weight than
- * the huge x-height this face has relative to its cap-height (0.82)
- * closing the gap between the capital-less lowercase letters and a
- * full-height line of text, plus tracking pulled tight enough that the
- * counters, not the gaps, carry the spacing. The name and the mark
- * beside it are ours; the letterforms are the one thing here that is
- * deliberately not.
+ * THE WORDMARK. "ONCamera", set in Fjalla One — a condensed display
+ * face, deliberately not the lowercase Bricolage Grotesque wordmark this
+ * used to be (see layout.tsx's `brand` font for why it's a separate
+ * variable from `--font-wordmark`, which still drives the hero h1 and
+ * chapter headings unchanged). One weight only — 400, the one file
+ * Fjalla One actually ships — which is not a compromise here: the face
+ * reads bold/blocky at regular weight on its own, unlike Bricolage,
+ * which needed 700 to hold up at this size. No tracking adjustment: this
+ * is a condensed face by design, and pulling it tighter the way
+ * Bricolage's wider proportions needed reads cramped rather than
+ * confident. The name and the mark beside it are ours; the letterforms
+ * are the one thing here that deliberately isn't.
  *
  * NO MOSAIC HERE. The oversized lettering in footer-wordmark.tsx carries
  * one; this doesn't. At 1.15rem there's barely a word to interrupt, and
@@ -50,7 +46,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      aria-label="On Camera — home"
+      aria-label="ONCamera — home"
       className={cn(
         "focus-premium group/logo inline-flex items-center gap-2 rounded-md",
         className
@@ -61,8 +57,8 @@ export function Logo({
         className="size-[1.35em] text-foreground/85 transition-colors duration-300 ease-[var(--ease-cinematic)] group-hover/logo:text-foreground"
       />
       {variant === "full" && (
-        <span className="font-wordmark text-[1.15rem] leading-none font-bold lowercase tracking-[-0.04em] text-foreground">
-          on camera
+        <span className="font-brand text-[1.15rem] leading-none text-foreground">
+          ONCamera
         </span>
       )}
     </Link>

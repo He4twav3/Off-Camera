@@ -103,7 +103,7 @@ export function BrandTag() {
               : "smooth",
           })
         }
-        aria-label="On Camera — back to top"
+        aria-label="ONCamera — back to top"
         className={cn(
           "focus-premium group/tag pointer-events-auto flex items-center gap-2 rounded-[8px]",
           "border border-hairline bg-surface-1/80 px-2.5 py-1.5 backdrop-blur-[10px]",
@@ -118,13 +118,11 @@ export function BrandTag() {
       >
         <BrandMark live className="size-4 text-foreground/80" />
         {/* Same wordmark treatment as logo.tsx — see that file and
-            layout.tsx for why Bricolage Grotesque, 700 (not the 500 the
-            oversized footer lettering measures to — that weight only
-            reads right at a size this small doesn't have), -0.04em. Two
-            different fonts or weights on the same three words in two
+            layout.tsx's `brand` font for why Fjalla One at its one real
+            weight (400). Two different fonts on the same name in two
             pieces of chrome would read as a mistake, not a variant. */}
-        <span className="font-wordmark text-xs leading-none font-bold lowercase tracking-[-0.04em] text-foreground/90">
-          on camera
+        <span className="font-brand text-xs leading-none text-foreground/90">
+          ONCamera
         </span>
       </button>
     </div>
