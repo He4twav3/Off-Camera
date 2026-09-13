@@ -156,6 +156,7 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
         <Reveal delay={BEAT.body} variant="lift">
           <VideoPlayer
             src="/intro/aron-intro.mp4"
+            posterImage="/intro/aron-intro-poster.png"
             aspect="video"
             frame="premium"
             poster={<VideoPoster />}

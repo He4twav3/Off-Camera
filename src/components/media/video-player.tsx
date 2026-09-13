@@ -32,8 +32,21 @@ export interface VideoPlayerProps {
    * too) — rendered as an actual youtube-nocookie.com embed.
    */
   youtubeId?: string;
-  /** Poster/placeholder content shown behind the controls (typically a gradient + icon). */
+  /**
+   * Placeholder content for when there's neither a real `src` nor a
+   * `youtubeId` yet — an honest "nothing here" state (see the component's
+   * own note on why that beats a real-looking player holding nothing).
+   * Unused once a real `src` is playing; that's what `posterImage` is for.
+   */
   poster: ReactNode;
+  /**
+   * A real image shown in place of the video before playback starts —
+   * the native `<video poster>`, so the browser handles showing and
+   * hiding it with no extra state. Only meaningful alongside `src`; the
+   * `poster` ReactNode above is what renders when there's no real video
+   * at all.
+   */
+  posterImage?: string;
   /** Small pill label shown top-left before playback starts, e.g. "Intro from Aron". */
   label?: string;
   aspect?: keyof typeof ASPECT_CLASSES;
@@ -79,6 +92,7 @@ export function VideoPlayer({
   src,
   youtubeId,
   poster,
+  posterImage,
   label,
   aspect = "video",
   className,
@@ -235,6 +249,7 @@ export function VideoPlayer({
       <video
         ref={videoRef}
         src={src}
+        poster={posterImage}
         muted={muted}
         playsInline
         className="absolute inset-0 size-full object-cover"
