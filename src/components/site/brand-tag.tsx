@@ -103,7 +103,7 @@ export function BrandTag() {
               : "smooth",
           })
         }
-        aria-label="ONCamera — back to top"
+        aria-label="ON Camera — back to top"
         className={cn(
           "focus-premium group/tag pointer-events-auto flex items-center gap-2 rounded-[8px]",
           "border border-hairline bg-surface-1/80 px-2.5 py-1.5 backdrop-blur-[10px]",
@@ -122,7 +122,7 @@ export function BrandTag() {
             weight (400). Two different fonts on the same name in two
             pieces of chrome would read as a mistake, not a variant. */}
         <span className="font-brand text-xs leading-none text-foreground/90">
-          ONCamera
+          ON Camera
         </span>
       </button>
     </div>

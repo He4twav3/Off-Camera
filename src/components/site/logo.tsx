@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  * THE MARK IS OURS AND UNTOUCHED — see brand-mark.tsx. Everything below
  * is about the letters that follow it.
  *
- * THE WORDMARK. "ONCamera", set in Fjalla One — a condensed display
+ * THE WORDMARK. "ON Camera", set in Fjalla One — a condensed display
  * face, deliberately not the lowercase Bricolage Grotesque wordmark this
  * used to be (see layout.tsx's `brand` font for why it's a separate
  * variable from `--font-wordmark`, which still drives the hero h1 and
@@ -46,7 +46,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      aria-label="ONCamera — home"
+      aria-label="ON Camera — home"
       className={cn(
         "focus-premium group/logo inline-flex items-center gap-2 rounded-md",
         className
@@ -58,7 +58,7 @@ export function Logo({
       />
       {variant === "full" && (
         <span className="font-brand text-[1.15rem] leading-none text-foreground">
-          ONCamera
+          ON Camera
         </span>
       )}
     </Link>
