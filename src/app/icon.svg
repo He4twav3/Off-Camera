@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+  <!--
+    Theme-adaptive favicon: same viewfinder mark as brand-mark.tsx (four
+    corners + tally dot), but the corners can't inherit `currentColor` the
+    way the in-app component does — a favicon has no surrounding text
+    color to pick up — so they're pinned to black/white directly and
+    swapped with `prefers-color-scheme`, the same trick browsers already
+    use for adaptive favicons (matches how the mark looks against the
+    site's own light/dark chrome). The tally stays the fixed brand
+    crimson in both. Geometry is untouched from brand-mark.tsx: corners
+    span 3–21 on both axes, the dot sits at the exact center (12,12) of
+    the 24x24 grid, so nothing here is off-center.
+  -->
+  <style>
+    .corners { stroke: #000000; }
+    @media (prefers-color-scheme: dark) {
+      .corners { stroke: #ffffff; }
+    }
+  </style>
+  <g class="corners" stroke-width="2" stroke-linecap="square" opacity="0.9">
+    <path d="M3 8.5V3h5.5" />
+    <path d="M15.5 3H21v5.5" />
+    <path d="M21 15.5V21h-5.5" />
+    <path d="M8.5 21H3v-5.5" />
+  </g>
+  <circle cx="12" cy="12" r="2.75" fill="#ac0216" />
+</svg>
