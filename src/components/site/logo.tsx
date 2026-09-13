@@ -17,16 +17,19 @@ import { cn } from "@/lib/utils";
  * THE MARK IS OURS AND UNTOUCHED — see brand-mark.tsx. Everything below
  * is about the letters that follow it.
  *
- * THE WORDMARK. "ON Camera", set in Fjalla One — a condensed display
+ * THE WORDMARK. "On Camera", set in Fjalla One — a condensed display
  * face, deliberately not the lowercase Bricolage Grotesque wordmark this
  * used to be (see layout.tsx's `brand` font for why it's a separate
  * variable from `--font-wordmark`, which still drives the hero h1 and
  * chapter headings unchanged). One weight only — 400, the one file
- * Fjalla One actually ships — which is not a compromise here: the face
- * reads bold/blocky at regular weight on its own, unlike Bricolage,
- * which needed 700 to hold up at this size. No tracking adjustment: this
- * is a condensed face by design, and pulling it tighter the way
- * Bricolage's wider proportions needed reads cramped rather than
+ * Fjalla One actually ships. Asking for `font-bold` on top of that would
+ * get a browser-synthesized fake bold (algorithmically thickened
+ * strokes, the exact thing this file avoided when it dropped Bricolage's
+ * true 700 cut) — so "thicker" here comes from a thin `text-stroke`
+ * traced around the real 400-weight letterforms instead, which fattens
+ * the strokes without the synthetic-bold artifacts. No tracking
+ * adjustment: this is a condensed face by design, and pulling it tighter
+ * the way Bricolage's wider proportions needed reads cramped rather than
  * confident. The name and the mark beside it are ours; the letterforms
  * are the one thing here that deliberately isn't.
  *
@@ -46,7 +49,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      aria-label="ON Camera — home"
+      aria-label="On Camera — home"
       className={cn(
         "focus-premium group/logo inline-flex items-center gap-2 rounded-md",
         className
@@ -57,8 +60,8 @@ export function Logo({
         className="size-[1.35em] text-foreground/85 transition-colors duration-300 ease-[var(--ease-cinematic)] group-hover/logo:text-foreground"
       />
       {variant === "full" && (
-        <span className="font-brand text-[1.15rem] leading-none text-foreground">
-          ON Camera
+        <span className="font-brand text-[1.15rem] leading-none text-foreground [-webkit-text-stroke:0.045em_currentColor]">
+          On Camera
         </span>
       )}
     </Link>
