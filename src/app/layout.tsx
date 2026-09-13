@@ -93,24 +93,29 @@ const brand = Fjalla_One({
 });
 
 /**
- * Bespoke Stencil (Medium) — a one-off try, for the main logo's
- * wordmark only (logo.tsx). Not on Google Fonts, so this is
- * `next/font/local` instead of `next/font/google`: the actual woff2
- * (Medium/500, from Fontshare — free for commercial use, no attribution
- * required) is checked in at fonts/BespokeStencil-Medium.woff2 and
- * self-hosted at build time exactly the way next/font/google
- * self-hosts every other face here, so this doesn't introduce a
- * runtime request to a third-party font CDN the way a plain <link>
- * to Fontshare would have.
+ * Bespoke Stencil (Bold) — a one-off try, for the main logo's wordmark
+ * only (logo.tsx). Not on Google Fonts, so this is `next/font/local`
+ * instead of `next/font/google`: the actual woff2 (Bold/700, from
+ * Fontshare — free for commercial use, no attribution required) is
+ * checked in at fonts/BespokeStencil-Bold.woff2 and self-hosted at
+ * build time exactly the way next/font/google self-hosts every other
+ * face here, so this doesn't introduce a runtime request to a
+ * third-party font CDN the way a plain <link> to Fontshare would have.
+ *
+ * Bold, not the Medium first tried: a logotype standing next to a
+ * graphic mark reads better carrying more visual weight than body-text
+ * weight would — Fontshare ships a real 700 cut of this family, so
+ * this is an actual heavier file, not a synthesized fake bold layered
+ * on top of Medium.
  *
  * `--font-brand` (Fjalla One, above) is untouched and still what
  * brand-tag.tsx and the footer's oversized lettering use — this is
  * purely a comparison for the one logo instance, not a replacement.
  */
 const stencil = localFont({
-  src: "./fonts/BespokeStencil-Medium.woff2",
+  src: "./fonts/BespokeStencil-Bold.woff2",
   variable: "--font-stencil",
-  weight: "500",
+  weight: "700",
   display: "swap",
 });
 

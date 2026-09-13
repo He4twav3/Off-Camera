@@ -17,16 +17,22 @@ import { cn } from "@/lib/utils";
  * THE MARK IS OURS AND UNTOUCHED — see brand-mark.tsx. Everything below
  * is about the letters that follow it.
  *
- * THE WORDMARK. "On Camera", currently trying Bespoke Stencil at its
- * real Medium (500) cut — see layout.tsx's `stencil` font for why this
- * is `next/font/local` (Bespoke isn't on Google Fonts) and why it's its
- * own `--font-stencil` variable rather than reusing `--font-brand`
- * (Fjalla One, still what brand-tag.tsx uses) or `--font-wordmark`
- * (Bricolage Grotesque, still the hero h1/chapter headings). A real
- * named weight this time, not a synthesized one — no text-stroke
- * workaround needed the way Fjalla One's single 400 cut required. The
- * name and the mark beside it are ours; the letterforms are the one
- * thing here that deliberately isn't.
+ * THE WORDMARK. "OnCamera" — one word, not "On Camera" — currently
+ * trying Bespoke Stencil at its real Bold (700) cut. See layout.tsx's
+ * `stencil` font for why this is `next/font/local` (Bespoke isn't on
+ * Google Fonts) and why it's its own `--font-stencil` variable rather
+ * than reusing `--font-brand` (Fjalla One, still what brand-tag.tsx
+ * uses) or `--font-wordmark` (Bricolage Grotesque, still the hero
+ * h1/chapter headings). A real named weight, not a synthesized one —
+ * no text-stroke workaround needed the way Fjalla One's single 400 cut
+ * required.
+ *
+ * One word rather than two: a logotype standing next to a mark reads
+ * as a single designed unit that way (YouTube, PayPal, GoPro) rather
+ * than a plain two-word label — the capital C still marks the word
+ * boundary clearly with no space needed. The name and the mark beside
+ * it are ours; the letterforms are the one thing here that
+ * deliberately isn't.
  *
  * NO MOSAIC HERE. The oversized lettering in footer-wordmark.tsx carries
  * one; this doesn't. At 1.15rem there's barely a word to interrupt, and
@@ -44,7 +50,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      aria-label="On Camera — home"
+      aria-label="OnCamera — home"
       className={cn(
         "focus-premium group/logo inline-flex items-center gap-2 rounded-md",
         className
@@ -56,7 +62,7 @@ export function Logo({
       />
       {variant === "full" && (
         <span className="font-stencil text-[1.15rem] leading-none text-foreground">
-          On Camera
+          OnCamera
         </span>
       )}
     </Link>
