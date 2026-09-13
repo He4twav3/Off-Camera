@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Sans, Fjalla_One, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
@@ -91,6 +92,28 @@ const brand = Fjalla_One({
   weight: "400",
 });
 
+/**
+ * Bespoke Stencil (Medium) — a one-off try, for the main logo's
+ * wordmark only (logo.tsx). Not on Google Fonts, so this is
+ * `next/font/local` instead of `next/font/google`: the actual woff2
+ * (Medium/500, from Fontshare — free for commercial use, no attribution
+ * required) is checked in at fonts/BespokeStencil-Medium.woff2 and
+ * self-hosted at build time exactly the way next/font/google
+ * self-hosts every other face here, so this doesn't introduce a
+ * runtime request to a third-party font CDN the way a plain <link>
+ * to Fontshare would have.
+ *
+ * `--font-brand` (Fjalla One, above) is untouched and still what
+ * brand-tag.tsx and the footer's oversized lettering use — this is
+ * purely a comparison for the one logo instance, not a replacement.
+ */
+const stencil = localFont({
+  src: "./fonts/BespokeStencil-Medium.woff2",
+  variable: "--font-stencil",
+  weight: "500",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
@@ -155,7 +178,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // have this problem (it's `.dark-invert` but never `:root`), which
       // is exactly why this needed a second, different fix rather than
       // just copying body's.
-      className={`${heading.variable} ${body.variable} ${wordmark.variable} ${brand.variable} h-full bg-[#16151a] antialiased`}
+      className={`${heading.variable} ${body.variable} ${wordmark.variable} ${brand.variable} ${stencil.variable} h-full bg-[#16151a] antialiased`}
     >
       <body className="dark-invert min-h-full bg-background text-foreground">
         <div className="flex min-h-full flex-col">{children}</div>

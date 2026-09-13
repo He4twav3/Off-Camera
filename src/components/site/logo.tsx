@@ -17,21 +17,16 @@ import { cn } from "@/lib/utils";
  * THE MARK IS OURS AND UNTOUCHED — see brand-mark.tsx. Everything below
  * is about the letters that follow it.
  *
- * THE WORDMARK. "On Camera", set in Fjalla One — a condensed display
- * face, deliberately not the lowercase Bricolage Grotesque wordmark this
- * used to be (see layout.tsx's `brand` font for why it's a separate
- * variable from `--font-wordmark`, which still drives the hero h1 and
- * chapter headings unchanged). One weight only — 400, the one file
- * Fjalla One actually ships. Asking for `font-bold` on top of that would
- * get a browser-synthesized fake bold (algorithmically thickened
- * strokes, the exact thing this file avoided when it dropped Bricolage's
- * true 700 cut) — so "thicker" here comes from a thin `text-stroke`
- * traced around the real 400-weight letterforms instead, which fattens
- * the strokes without the synthetic-bold artifacts. No tracking
- * adjustment: this is a condensed face by design, and pulling it tighter
- * the way Bricolage's wider proportions needed reads cramped rather than
- * confident. The name and the mark beside it are ours; the letterforms
- * are the one thing here that deliberately isn't.
+ * THE WORDMARK. "On Camera", currently trying Bespoke Stencil at its
+ * real Medium (500) cut — see layout.tsx's `stencil` font for why this
+ * is `next/font/local` (Bespoke isn't on Google Fonts) and why it's its
+ * own `--font-stencil` variable rather than reusing `--font-brand`
+ * (Fjalla One, still what brand-tag.tsx uses) or `--font-wordmark`
+ * (Bricolage Grotesque, still the hero h1/chapter headings). A real
+ * named weight this time, not a synthesized one — no text-stroke
+ * workaround needed the way Fjalla One's single 400 cut required. The
+ * name and the mark beside it are ours; the letterforms are the one
+ * thing here that deliberately isn't.
  *
  * NO MOSAIC HERE. The oversized lettering in footer-wordmark.tsx carries
  * one; this doesn't. At 1.15rem there's barely a word to interrupt, and
@@ -60,7 +55,7 @@ export function Logo({
         className="size-[1.35em] text-foreground/85 transition-colors duration-300 ease-[var(--ease-cinematic)] group-hover/logo:text-foreground"
       />
       {variant === "full" && (
-        <span className="font-brand text-[1.15rem] leading-none text-foreground [-webkit-text-stroke:0.045em_currentColor]">
+        <span className="font-stencil text-[1.15rem] leading-none text-foreground">
           On Camera
         </span>
       )}
