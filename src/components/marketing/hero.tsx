@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LitWords } from "@/components/marketing/lit-words";
 import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
 import { HeroCarousel } from "@/components/marketing/hero-carousel";
 import { SectionEyebrow } from "@/components/marketing/section-frame";
+import { VideoPlayer } from "@/components/media/video-player";
+import { VideoPoster } from "@/components/media/video-poster";
 import { siteConfig } from "@/lib/site-config";
 import type { ProofPoster } from "@/lib/proof-thumbnails";
 
@@ -53,19 +54,17 @@ import type { ProofPoster } from "@/lib/proof-thumbnails";
  * scrim needed — and the ring, no longer asked to host anything, goes
  * back to being exactly what it's for: real proof, drag to explore.
  *
- * THE INTRO-VIDEO SLOT IS AN EMPTY PLACEHOLDER, DELIBERATELY. This spot
- * used to hold a "Quick intro" YouTube embed, gated on
- * `siteConfig.videos.intro` — and that config value had been left
- * pointing at a stock Big Buck Bunny demo id nobody had ever swapped for
- * a real founder video, so the hero was quietly shipping stock footage
- * directly under copy promising "no stock footage, real results". That
- * slot got deleted rather than fixed at the time. This is the same slot
- * back, but built the opposite way round: an honestly-empty frame (no
- * `<video>`, no embed, no id to go stale) that renders as a placeholder
- * until a real clip is dropped in, rather than a real-looking player
- * quietly holding a fake video. The 3D ring below still carries every
- * bit of the actual evidence in the meantime — this slot adds nothing
- * false, it just reserves the room for something true later.
+ * THE INTRO-VIDEO SLOT NOW HOLDS THE REAL CLIP. This spot used to hold a
+ * "Quick intro" YouTube embed, gated on `siteConfig.videos.intro` — and
+ * that config value had been left pointing at a stock Big Buck Bunny
+ * demo id nobody had ever swapped for a real founder video, so the hero
+ * was quietly shipping stock footage directly under copy promising "no
+ * stock footage, real results". That slot got deleted rather than fixed
+ * at the time, and sat as an honestly-empty "coming soon" placeholder
+ * (no `<video>`, no embed, no id to go stale) until a real clip existed.
+ * It now does: `/intro/aron-intro.mp4`, the same file `/go` plays,
+ * through the same VideoPlayer component rather than a one-off embed.
+ * The 3D ring below still carries the rest of the proof.
  *
  * The eyebrow is the one piece of text above the headline, and it says
  * what the page is standing on rather than restating the numbers: the
@@ -148,28 +147,21 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
           </p>
         </Reveal>
 
-        {/* The intro-video placeholder — see the header note on why this
-            is deliberately empty (no `<video>`, no embed) rather than
-            wired to any real source yet. aspect-video + object-position
-            centred content, same rounded-[22px]/border-hairline/gradient
-            vocabulary CarouselCard's own no-thumbnail fallback tile uses
-            (hero-carousel.tsx), so an empty video slot and an empty
-            proof card read as the same kind of "nothing here yet" rather
-            than two different placeholder languages. */}
+        {/* The intro video — same file and component /go plays. Frame
+            overridden to the rounded-[22px]/shadow vocabulary
+            CarouselCard's own tile uses (hero-carousel.tsx), so this
+            still reads as part of the same set as the ring below it
+            rather than adopting VideoPlayer's generic "premium" corner
+            radius wholesale. */}
         <Reveal delay={BEAT.body} variant="lift">
-          <div className="relative mx-auto mt-9 aspect-video w-full max-w-xl overflow-hidden rounded-[22px] border border-hairline bg-gradient-to-b from-surface-3 to-surface-1 shadow-[0_20px_40px_-8px_oklch(0_0_0_/_0.4)]">
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <span
-                aria-hidden
-                className="flex size-14 items-center justify-center rounded-full bg-foreground/10 sm:size-16"
-              >
-                <Play className="size-6 fill-current text-foreground/70 sm:size-7" strokeWidth={1.5} />
-              </span>
-              <span className="font-mono text-[0.7rem] tracking-[0.14em] text-muted-foreground uppercase">
-                Intro video — coming soon
-              </span>
-            </div>
-          </div>
+          <VideoPlayer
+            src="/intro/aron-intro.mp4"
+            aspect="video"
+            label="Intro from Aron"
+            frame="premium"
+            poster={<VideoPoster />}
+            className="mx-auto mt-9 w-full max-w-xl rounded-[22px] shadow-[0_20px_40px_-8px_oklch(0_0_0_/_0.4)]"
+          />
         </Reveal>
 
         {/* The trust-line pair. Plain flow now, on the section's own
