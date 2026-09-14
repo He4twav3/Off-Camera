@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -27,6 +28,19 @@ import { siteConfig } from "@/lib/site-config";
  * that a shadow silently not rendering would just look like a mistake,
  * whereas a plain 2px ink border (used throughout) renders everywhere
  * and still reads as the same "chunky outline" identity.
+ *
+ * THE LOGO. `${siteConfig.url}/icon.svg` — the real viewfinder mark
+ * (brand-mark.tsx's shape, baked into the site's own favicon route by
+ * Next's file convention, so this is the actual production asset, not a
+ * copy that can drift out of sync with it), not the plain colored dot
+ * this used to be. Referenced by absolute URL rather than inlined:
+ * email clients need images hosted somewhere they can fetch, and an
+ * inline `<svg>` gets stripped by several of them entirely. SVG in an
+ * `<img>` renders fine in Gmail, Apple/iOS Mail and most mobile clients;
+ * Outlook desktop's older rendering engine is the one real holdout and
+ * falls back to the `alt` text instead of a broken-image icon — the
+ * same graceful-degradation approach the rest of this codebase already
+ * takes with unavailable features, not a special case invented for this.
  */
 const colors = {
   background: "#fdf9f4",
@@ -65,28 +79,37 @@ export function EmailLayout({
           <Section style={{ padding: "24px 32px", borderBottom: `1px solid ${colors.border}` }}>
             <table role="presentation" cellPadding={0} cellSpacing={0}>
               <tr>
-                <td style={{ paddingRight: 8 }}>
-                  <div
-                    style={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: 999,
-                      backgroundColor: colors.primary,
-                      border: `1px solid ${colors.ink}`,
-                    }}
+                <td style={{ paddingRight: 10 }}>
+                  <Img
+                    src={`${siteConfig.url}/icon.svg`}
+                    width={22}
+                    height={22}
+                    alt="OnCamera"
+                    style={{ display: "block", borderRadius: 5 }}
                   />
                 </td>
                 <td>
+                  {/* Bold system sans, not the site's own Bespoke
+                      Stencil wordmark face — @font-face support in email
+                      is unreliable enough (no Gmail/Outlook support at
+                      all) that shipping the real font would just mean
+                      most inboxes silently fall back anyway. A bold
+                      sans-serif fallback at least agrees with the site's
+                      actual identity on the one thing every client CAN
+                      render: this is a blocky, sans-serif brand, not a
+                      serif one — Georgia was never that, on any client. */}
                   <Text
                     style={{
                       margin: 0,
-                      fontFamily: "Georgia, 'Times New Roman', serif",
-                      fontWeight: 700,
-                      fontSize: 18,
+                      fontFamily:
+                        "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                      fontWeight: 800,
+                      fontSize: 17,
+                      letterSpacing: "-0.01em",
                       color: colors.ink,
                     }}
                   >
-                    On Camera
+                    OnCamera
                   </Text>
                 </td>
               </tr>
@@ -105,7 +128,13 @@ export function EmailLayout({
                 color: colors.mutedForeground,
               }}
             >
-              On Camera · The content system behind videos that perform.{" "}
+              {/* siteConfig.tagline, not a copy of it — this line had
+                  drifted to an old tagline ("The content system behind
+                  videos that perform.") the live site no longer uses
+                  anywhere, since it was hardcoded instead of reading the
+                  same single source of truth every other tagline
+                  mention on the site already does. */}
+              {siteConfig.name} · {siteConfig.tagline}{" "}
               <Link href={siteConfig.url} style={{ color: colors.mutedForeground }}>
                 {siteConfig.url.replace(/^https?:\/\//, "")}
               </Link>
@@ -122,7 +151,13 @@ export function EmailHeading({ children }: { children: ReactNode }) {
     <Heading
       style={{
         margin: "0 0 12px",
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        // The site's real body headings are DM Sans, not a serif — this
+        // was Georgia before, which put every email's biggest piece of
+        // text in the one typeface family (serif) nothing else on the
+        // site uses anywhere. System sans instead, same stack the body
+        // text below it already uses (see EmailText), just bolder —
+        // agrees with the actual site instead of inventing its own look.
+        fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
         fontWeight: 700,
         fontSize: 24,
         color: colors.ink,
