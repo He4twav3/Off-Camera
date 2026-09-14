@@ -252,6 +252,8 @@ export function VideoPlayer({
         poster={posterImage}
         muted={muted}
         playsInline
+        controlsList="nodownload noremoteplayback"
+        onContextMenu={(e) => e.preventDefault()}
         className="absolute inset-0 size-full object-cover"
         onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
@@ -318,12 +320,16 @@ export function VideoPlayer({
         </button>
         {/* Manual expand — iOS gets no automatic fullscreen from
             `playsInline` (the whole point of that attribute), so this is
-            the only way to reach full-screen playback on iPhone. */}
+            the only way to reach full-screen playback on iPhone. Hidden
+            on desktop on purpose: `hover:hover` is a mouse, `hover:none`
+            is a touch screen — a more reliable signal than screen width
+            for "is this actually a phone" (a touch laptop still has a
+            mouse; a real phone never has hover). */}
         <button
           type="button"
           onClick={enterFullscreen}
           aria-label="Fullscreen"
-          className="text-white"
+          className="hidden text-white [@media(hover:none)]:block"
         >
           <Maximize2 className="size-4" />
         </button>
