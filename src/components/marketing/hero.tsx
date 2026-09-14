@@ -8,6 +8,7 @@ import { SectionEyebrow } from "@/components/marketing/section-frame";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
 import { DiscordIcon } from "@/components/site/discord-link";
+import { INTRO_VIDEO_POSTER, INTRO_VIDEO_SRC } from "@/lib/intro-video";
 import { siteConfig } from "@/lib/site-config";
 import type { ProofPoster } from "@/lib/proof-thumbnails";
 
@@ -156,8 +157,8 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
             radius wholesale. */}
         <Reveal delay={BEAT.body} variant="lift">
           <VideoPlayer
-            src="/intro/aron-intro.mp4"
-            posterImage="/intro/aron-intro-poster.png"
+            src={INTRO_VIDEO_SRC}
+            posterImage={INTRO_VIDEO_POSTER}
             aspect="video"
             frame="premium"
             poster={<VideoPoster />}
