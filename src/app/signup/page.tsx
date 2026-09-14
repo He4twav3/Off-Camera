@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
-import { CountdownBadge } from "@/components/marketing/countdown-badge";
 import { SignupForm } from "./signup-form";
 import { siteConfig } from "@/lib/site-config";
 import "@/styles/dark-invert.css";
@@ -57,6 +56,16 @@ export const metadata: Metadata = {
  * letting it chain up to <html> — which now also carries a matching
  * dark background (see layout.tsx's own note) as a second layer under
  * that, in case it ever chains up anyway.
+ *
+ * SignupForm owns the entire swappable region below, not just the
+ * `<form>` — the countdown/urgency copy belongs to the capture pitch,
+ * and it disappears together with the form the moment someone actually
+ * signs up, replaced by one confirmation screen (with its own Discord
+ * CTA — see that component's own note on why immediately, not after a
+ * detour through email) rather than a success card left sitting under a
+ * countdown that's still ticking. Keeps this file the static shell
+ * (header/footer, the one-screen-no-scroll wrapper) and every stateful
+ * decision about what the visitor is looking at in one place.
  */
 export default function SignupPage() {
   return (
@@ -72,37 +81,7 @@ export default function SignupPage() {
       </header>
 
       <main className="ember-glow flex min-h-0 flex-1 items-center justify-center px-4 py-3 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-sm text-center">
-          <CountdownBadge />
-
-          <p className="mt-4 text-sm text-muted-foreground">
-            Real lessons from the course — hooks, retention, and the
-            mechanics behind our real videos.
-          </p>
-
-          <SignupForm />
-
-          <p className="mt-3 text-xs text-muted-foreground">
-            One link, sent once. No spam, no card required.
-          </p>
-
-          {/* Hidden on the shortest phones (a custom max-height variant,
-              not a width one — this is the one spot on the page where
-              the constraint is genuinely vertical room, not screen
-              width) rather than shrunk further: at some point another
-              round of smaller type stops being "compact" and starts
-              being illegible, and this block is the one true optional
-              in the stack — the capture form above it works completely
-              without it. */}
-          <div className="mt-4 hidden border-t border-border pt-3 text-left text-xs text-muted-foreground [@media(min-height:700px)]:block">
-            <p className="font-semibold text-foreground">What happens next</p>
-            <p className="mt-1.5">
-              You&apos;ll get one email with a sign-in link. Open it and
-              you&apos;re straight into the course — for whatever&apos;s
-              left of your window above.
-            </p>
-          </div>
-        </div>
+        <SignupForm />
       </main>
 
       <footer className="border-t border-border/70 px-4 py-3 text-center text-xs text-muted-foreground sm:px-6 lg:px-8">

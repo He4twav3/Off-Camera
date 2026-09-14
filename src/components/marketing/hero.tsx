@@ -7,6 +7,7 @@ import { HeroCarousel } from "@/components/marketing/hero-carousel";
 import { SectionEyebrow } from "@/components/marketing/section-frame";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
+import { DiscordIcon } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
 import type { ProofPoster } from "@/lib/proof-thumbnails";
 
@@ -211,6 +212,7 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
             render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
             className="btn-cta-glass mt-7 h-auto rounded-full px-10 py-4 text-base font-bold tracking-tight text-cta-foreground sm:px-12 sm:py-5 sm:text-lg"
           >
+            <DiscordIcon className="size-4 sm:size-5" />
             Join free on Discord
           </Button>
         </Reveal>
