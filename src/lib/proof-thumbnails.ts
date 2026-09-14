@@ -1,21 +1,7 @@
 import "server-only";
 
-import { statSync } from "node:fs";
-import { join } from "node:path";
 import { PROOF_CONTENT, type ProofEntry } from "@/lib/proof-content";
-
-/** The file's own last-modified time, as a cache-busting query value —
- * see its call site below for why this exists. Never throws: a file
- * that can't be stat'd (moved, permissions) just gets no version
- * suffix, which is exactly the previous unversioned behavior, not a
- * broken video. */
-function videoVersion(publicPath: string): number | "" {
-  try {
-    return statSync(join(process.cwd(), "public", publicPath)).mtimeMs;
-  } catch {
-    return "";
-  }
-}
+import { videoVersion } from "@/lib/video-version";
 
 /**
  * Real poster frames for the real videos, resolved on the server.

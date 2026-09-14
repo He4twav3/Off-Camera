@@ -9,6 +9,7 @@ import { Reveal } from "@/components/marketing/reveal";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
 import { CURRICULUM, TOTAL_LESSONS, TOTAL_MODULES, TOTAL_MINUTES } from "@/lib/curriculum";
+import { INTRO_VIDEO_POSTER, INTRO_VIDEO_SRC } from "@/lib/intro-video";
 import { PROOF_CONTENT } from "@/lib/proof-content";
 import { siteConfig } from "@/lib/site-config";
 import { COURSE_IS_FREE } from "@/lib/feature-flags";
@@ -118,8 +119,8 @@ export default function GoPage() {
 
         <section className="mx-auto max-w-2xl px-4 pb-16 sm:px-6 lg:px-8">
           <VideoPlayer
-            src="/intro/aron-intro.mp4"
-            posterImage="/intro/aron-intro-poster.png"
+            src={INTRO_VIDEO_SRC}
+            posterImage={INTRO_VIDEO_POSTER}
             aspect="video"
             className="mx-auto h-[min(55vh,520px)] w-auto max-w-full"
             poster={
