@@ -49,6 +49,10 @@ export const siteConfig = {
   // Discord invite link — the site's one support/contact channel. Every
   // "contact us" touchpoint (legal pages, About, footer, FAQ, dashboard
   // resources) reads this via components/site/discord-link.tsx instead of
-  // an email address.
-  communityUrl: "https://discord.gg/2Wy5m9avX" as string | undefined,
+  // an email address. A permanent (non-expiring) invite specifically —
+  // Discord invite links can be set to expire after a set time/use count,
+  // and this one is baked into every CTA on the site plus every already-
+  // sent signup-confirmation email, so a link that could quietly expire
+  // would silently 404 for anyone who hadn't clicked it yet.
+  communityUrl: "https://discord.gg/aKDUe7zrr" as string | undefined,
 } as const;
