@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DiscordIcon } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
 import { TOTAL_MODULES, TOTAL_LESSONS } from "@/lib/curriculum";
 import { Reveal } from "@/components/marketing/reveal";
@@ -127,6 +128,7 @@ export function Pricing() {
             render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
             className="btn-cta-glass mt-9 h-auto w-full rounded-full py-4 text-base font-bold tracking-tight text-cta-foreground"
           >
+            <DiscordIcon className="size-4" />
             Join free on Discord
           </Button>
           <p className="mt-4 text-center font-mono text-[0.65rem] tracking-[0.14em] text-muted-foreground uppercase">

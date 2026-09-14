@@ -31,7 +31,14 @@ import { cn } from "@/lib/utils";
  * keyframe — same damped-glide feel that component had:
  *
  *   Nothing moves on its own. No auto-advance, no drift. The ring sits
- *   still until someone actually grabs and turns it.
+ *   still until someone actually grabs and turns it. (A one-time
+ *   auto-spin intro lived here briefly — cut entirely, not just tuned
+ *   down: a continuous 3D-transform RAF loop plus the per-frame video
+ *   play/pause thrashing it caused was real, felt jank stacked directly
+ *   on top of the page's own on-load reveal cascade, and no amount of
+ *   trimming its duration or degrees got it below "noticeable" on a
+ *   mid-tier device. The ring is exactly as capable of spinning as it
+ *   was before this was ever added — someone just has to touch it.)
  *
  *   Damped, not direct. `position` doesn't jump straight to `target`;
  *   every frame it closes a fraction (DAMPING) of the remaining gap, so

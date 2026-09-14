@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
 import { SectionEyebrow } from "@/components/marketing/section-frame";
+import { DiscordIcon } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
 
 /**
@@ -66,6 +67,7 @@ export function FinalCTA() {
                 render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
                 className="btn-cta-glass group/cta h-auto rounded-full px-11 py-5 text-lg font-bold tracking-tight text-cta-foreground"
               >
+                <DiscordIcon className="size-4" />
                 Join free on Discord
                 <ArrowRight className="ml-1 size-4 transition-transform duration-300 ease-[var(--ease-cinematic)] group-hover/cta:translate-x-1" />
               </Button>

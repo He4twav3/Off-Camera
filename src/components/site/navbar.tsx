@@ -12,6 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/site/logo";
+import { DiscordIcon } from "@/components/site/discord-link";
 import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { useScrolledPast } from "@/lib/use-scroll-y";
@@ -103,19 +104,23 @@ export function Navbar() {
             reaches for right after it — not competing with it for first
             position. */}
         <div className="ml-auto hidden items-center gap-3 lg:flex">
-          {/* Points at the Discord invite, not /signup — see hero.tsx's
-              own note on the same call: the site's job is to be the
-              hook that gets someone into the community, the sell
-              happens once they're already there. btn-cta-glass, not the
-              flat btn-cta — same translucent-crimson-over-backdrop-blur
-              treatment as every other "Save your spot" CTA now (see
-              globals.css's own note on that utility): one action, one
-              color, one physical treatment, everywhere it appears — not
-              just the hero's own copy of it anymore. */}
+          {/* /signup, not the Discord invite — the one deliberate
+              exception to every other CTA on the site now pointing
+              straight at Discord (hero, pricing, final-cta all say "Join
+              free on Discord" and mean it). This one still says "Save my
+              free spot," and a button promising to save your spot that
+              actually opens Discord instead is a label lying about its
+              own action, not a funnel choice. The real email capture
+              happens here first — the confirmation screen it lands on
+              (signup-form.tsx) is what carries the Discord push now,
+              once there's an actual account to hand off from, not before
+              one exists. btn-cta-glass unchanged either way — same
+              translucent-crimson-over-backdrop-blur treatment as every
+              other CTA on the site, regardless of where each one leads. */}
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
+            render={<Link href="/signup" />}
             className="btn-cta-glass rounded-full px-5 font-bold text-cta-foreground"
           >
             Save my free spot
@@ -166,6 +171,7 @@ export function Navbar() {
                 }
                 className="btn-cta-glass mt-3 rounded-full py-2.5 font-bold text-cta-foreground"
               >
+                <DiscordIcon className="size-4" />
                 Join free on Discord
               </Button>
               {/* Same order as the desktop group above: CTA leads, log

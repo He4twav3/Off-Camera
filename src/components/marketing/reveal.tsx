@@ -256,26 +256,23 @@ function scheduleLoadReveal(el: Element, show: (delay: number) => void) {
  *           transforming a third-party embed mid-load makes it repaint
  *           and sometimes flicker, and it is not worth it.
  *
- * ON THE DURATIONS — these were retuned down, hard, and it is the single
- * biggest reason the page stopped reading as cheap. They used to be
- * 820ms (rise), 1000ms (lift) and 900ms (fade), with a 40px lift travel,
- * chosen to feel "cinematic". They did not read as cinematic; they read
- * as slow. Measured against the UI motion guidance this project checked
- * itself against, every one of them was two to three times over the
- * ceiling: micro-interactions want 150–300ms, UI transitions should not
- * exceed 500ms, and a standard scroll reveal is 400–600ms travelling
- * 16–24px. `duration-1000` is cited there, by name, as the anti-pattern.
+ * ON THE DURATIONS — these used to be tuned hard toward fast: 420ms
+ * (rise), 500ms (lift), 450ms (fade), against a pure expo-out with zero
+ * overshoot, on the theory that speed alone reads as "expensive." That
+ * held right up until --ease-cinematic itself picked up a back-out
+ * overshoot (see globals.css) — a curve that sails past its resting value
+ * and settles back needs enough runway for the eye to actually catch the
+ * "settle back" half, and the old fast timings clipped it, reading as a
+ * twitch instead of a landing. Nudged up accordingly, still nowhere near
+ * the old 820/1000/900 that read as slow rather than cinematic: fast
+ * commitment, then a beat of genuine, visible give at the end.
  *
- * That is the actual mechanism behind "expensive" motion: it is fast and
- * precise, not slow and floaty. A long ease-out spends most of its
- * runtime almost-but-not-quite arrived, which the eye reads as the page
- * struggling. Halving the durations and cutting the travel roughly in
- * half with them keeps every entrance legible while making the whole
- * page feel like it responds instantly.
- *
- * Every one of them uses the same expo-out curve (--ease-cinematic,
- * cubic-bezier(0.16, 1, 0.3, 1)) with no overshoot anywhere. Bounce is
- * the single most "playful" thing motion can do, so there is none of it.
+ * Every one of them uses the same curve (--ease-cinematic). `fade` is the
+ * one exception to "the bounce reads everywhere": it's opacity-only by
+ * design (see its own note below), and opacity clamps to 1 — an overshoot
+ * curve has nothing to visibly overshoot into on a property with a
+ * ceiling, so fade is inherently the calmest of the three regardless of
+ * which curve drives it.
  */
 /**
  * `max-sm:duration-[...]` on each of these — a plain CSS media query, not
@@ -291,15 +288,15 @@ function scheduleLoadReveal(el: Element, show: (delay: number) => void) {
 const VARIANTS = {
   rise: {
     hidden: "translate-y-4 opacity-0",
-    duration: "duration-[420ms] max-sm:duration-[300ms]",
+    duration: "duration-[520ms] max-sm:duration-[380ms]",
   },
   lift: {
     hidden: "translate-y-5 scale-[0.99] opacity-0",
-    duration: "duration-[500ms] max-sm:duration-[350ms]",
+    duration: "duration-[620ms] max-sm:duration-[440ms]",
   },
   fade: {
     hidden: "opacity-0",
-    duration: "duration-[450ms] max-sm:duration-[320ms]",
+    duration: "duration-[480ms] max-sm:duration-[340ms]",
   },
 } as const;
 
