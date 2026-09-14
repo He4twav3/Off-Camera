@@ -92,8 +92,11 @@ export function LitWords({
   // the old letter-by-letter-vs-word-by-word split encoded (see the
   // header note) — reserved for the single biggest statement on the
   // page, not something a heading further down should also get at the
-  // same intensity.
-  const duration = Tag === "h1" ? 650 : 480;
+  // same intensity. Both nudged up from 650/480: --ease-cinematic now
+  // carries a back-out overshoot (see globals.css), and a clip-path wipe
+  // needs enough runway for the "settle back" half of that curve to read
+  // on the last sliver of text rather than snapping shut on it.
+  const duration = Tag === "h1" ? 760 : 560;
 
   return (
     <Tag

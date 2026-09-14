@@ -215,12 +215,19 @@
   --hairline: oklch(0 0 0 / 0.1);
   --hairline-strong: oklch(0 0 0 / 0.18);
 
-  /* Motion constants. One easing curve for every entrance on the site
-     (expo-out: fast commitment, long soft settle, zero overshoot) so the
-     page reads as one choreographed system rather than a dozen components
-     each easing slightly differently. Bounce/back curves are deliberately
-     absent — they're what makes motion read as playful. */
-  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Motion constants. One easing curve for every entrance on the site so
+     the page reads as one choreographed system rather than a dozen
+     components each easing slightly differently — a component that wants
+     a different feel changes duration or travel distance, never the curve.
+     This used to be a pure expo-out with zero overshoot, on the theory
+     that bounce reads as "playful" rather than "premium." Reversed on
+     purpose: overshoot is what makes an arrival read as it landed rather
+     than as it merely stopped moving. `back-out` — commits fast, sails
+     past the resting value by ~12%, settles into it from the other side —
+     paired with the slightly longer durations in reveal.tsx/lit-words.tsx
+     that give the overshoot room to actually read instead of getting
+     clipped. */
+  --ease-cinematic: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-glide: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
