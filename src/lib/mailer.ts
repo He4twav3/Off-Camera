@@ -28,8 +28,30 @@ import { Resend } from "resend";
  * If RESEND_API_KEY isn't set at all, this silently falls back to
  * outbox-only (the original demo behavior) instead of throwing — so the
  * app still runs for anyone who clones this without setting up email.
+ *
+ * The outbox write itself is best-effort, wrapped in its own try/catch
+ * below (see writeOutbox) — Vercel's serverless functions run on a
+ * read-only filesystem outside /tmp, so `mkdir(process.cwd() + "/data")`
+ * throws ENOENT on every single invocation in production, unconditionally
+ * killing the real send that follows it. This was live and silently
+ * breaking every signup/purchase/password-reset email on Vercel: the
+ * local debug log crashing the actual thing it was only ever meant to be
+ * a convenience on top of. Local dev (a real, writable cwd) is unaffected
+ * either way.
  */
 const OUTBOX_FILE = path.join(process.cwd(), "data", "outbox.jsonl");
+
+/** Best-effort only — see this file's header note on why. Never lets a
+ * filesystem failure (read-only in production, permissions, anything)
+ * take down the actual email send happening around it. */
+async function writeOutbox(line: string) {
+  try {
+    await mkdir(path.dirname(OUTBOX_FILE), { recursive: true });
+    await appendFile(OUTBOX_FILE, line + "\n", "utf8");
+  } catch (err) {
+    console.warn("mailer: could not write local outbox log (non-fatal):", err);
+  }
+}
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.RESEND_FROM ?? "On Camera <onboarding@resend.dev>";
@@ -43,8 +65,6 @@ export async function sendEmail(message: {
    * stores the rendered HTML. */
   text: string;
 }) {
-  await mkdir(path.dirname(OUTBOX_FILE), { recursive: true });
-
   let delivery: "sent" | "outbox-only" | "failed" = "outbox-only";
   let deliveryError: string | undefined;
 
@@ -71,15 +91,16 @@ export async function sendEmail(message: {
     }
   }
 
-  const line = JSON.stringify({
-    to: message.to,
-    subject: message.subject,
-    bodyText: message.text,
-    sentAt: new Date().toISOString(),
-    delivery,
-    ...(deliveryError && { deliveryError }),
-  });
-  await appendFile(OUTBOX_FILE, line + "\n", "utf8");
+  await writeOutbox(
+    JSON.stringify({
+      to: message.to,
+      subject: message.subject,
+      bodyText: message.text,
+      sentAt: new Date().toISOString(),
+      delivery,
+      ...(deliveryError && { deliveryError }),
+    })
+  );
 
   return { delivery };
 }

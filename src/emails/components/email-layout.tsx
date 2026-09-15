@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -15,27 +16,60 @@ import { siteConfig } from "@/lib/site-config";
 
 /**
  * Shared branded shell for every transactional email this site sends
- * (see lib/mailer.ts) — same palette as the live site's :root tokens in
- * globals.css, resolved to plain hex since email clients don't
- * understand oklch()/CSS variables at all. Built with @react-email
- * components specifically because hand-rolled email HTML is a real
- * minefield (Outlook's Word rendering engine, Gmail stripping <style>
- * blocks, etc.) — this handles that instead of guessing at it.
+ * (see lib/mailer.ts). Built with @react-email components specifically
+ * because hand-rolled email HTML is a real minefield (Outlook's Word
+ * rendering engine, Gmail stripping <style> blocks, etc.) — this handles
+ * that instead of guessing at it.
+ *
+ * THE PALETTE IS dark-invert.css's, NOT globals.css's :root — the first
+ * version of this file matched the light-theme tokens instead, which
+ * looked reasonable in isolation but is not what the site actually shows
+ * anyone: every real visit renders through `.dark-invert` (see
+ * layout.tsx), so the light `:root` values are colors nobody has ever
+ * seen on this site. Literal hex, copied straight from dark-invert.css's
+ * own agreed literals (not re-derived), so there's no drift between what
+ * that file says the brand looks like and what this one renders:
+ *   background #16151A · card #1D1C22 · ink/border #EDEAE4 (cream, flips
+ *   light-on-dark same as dark-invert.css's own --ink note) · accent
+ *   #AC0216 (flat crimson — "the only chroma on the page" there, and the
+ *   only one here) · muted text #706C68.
  *
  * Deliberately not trying to replicate the site's hard-shadow "sticker"
  * look here: box-shadow support in email clients is unreliable enough
  * that a shadow silently not rendering would just look like a mistake,
- * whereas a plain 2px ink border (used throughout) renders everywhere
- * and still reads as the same "chunky outline" identity.
+ * whereas a plain 2px ink-colored border (used throughout) renders
+ * everywhere and still reads as the same "chunky outline" identity —
+ * same reasoning dark-invert.css's own header note gives for why --ink
+ * has to flip to cream on a dark ground rather than staying near-black:
+ * an outline has to out-contrast the surface it's outlining.
+ *
+ * THE LOGO. A fixed production URL (EMAIL_ASSET_BASE_URL below), not
+ * `siteConfig.url` — that value tracks NEXT_PUBLIC_SITE_URL, which is
+ * `http://localhost:3000` while testing locally, and Gmail's own servers
+ * physically cannot fetch an image off someone's laptop. A decorative
+ * brand asset has no reason to depend on wherever the send happened to
+ * be triggered from; the actual sign-in/reset LINKS still correctly use
+ * the request's real host (see request-url.ts) since those genuinely do
+ * need to match wherever the visitor is testing from. SVG in an `<img>`
+ * renders fine in Gmail, Apple/iOS Mail and most mobile clients;
+ * Outlook desktop's older rendering engine is the one real holdout and
+ * falls back to the `alt` text instead of a broken-image icon.
  */
+// www, not the bare domain — oncameraugc.com 308-redirects to
+// www.oncameraugc.com at the DNS/hosting level, and email image proxies
+// (some more than others) aren't guaranteed to follow that redirect the
+// way a browser would. Pointing at the canonical URL directly skips the
+// hop entirely instead of hoping every client chases it.
+const EMAIL_ASSET_BASE_URL = "https://www.oncameraugc.com";
+
 const colors = {
-  background: "#fdf9f4",
-  card: "#fffffc",
-  ink: "#120c09",
-  primary: "#e14d28",
-  primaryForeground: "#fefbf8",
-  border: "#e2d5cb",
-  mutedForeground: "#675b54",
+  background: "#16151a",
+  card: "#1d1c22",
+  ink: "#edeae4",
+  accent: "#ac0216",
+  accentForeground: "#ffffff",
+  border: "#2d2b32",
+  mutedForeground: "#706c68",
 };
 
 export function EmailLayout({
@@ -65,28 +99,37 @@ export function EmailLayout({
           <Section style={{ padding: "24px 32px", borderBottom: `1px solid ${colors.border}` }}>
             <table role="presentation" cellPadding={0} cellSpacing={0}>
               <tr>
-                <td style={{ paddingRight: 8 }}>
-                  <div
-                    style={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: 999,
-                      backgroundColor: colors.primary,
-                      border: `1px solid ${colors.ink}`,
-                    }}
+                <td style={{ paddingRight: 10 }}>
+                  <Img
+                    src={`${EMAIL_ASSET_BASE_URL}/icon.svg`}
+                    width={22}
+                    height={22}
+                    alt="OnCamera"
+                    style={{ display: "block", borderRadius: 5 }}
                   />
                 </td>
                 <td>
+                  {/* Bold system sans, not the site's own Bespoke
+                      Stencil wordmark face — @font-face support in email
+                      is unreliable enough (no Gmail/Outlook support at
+                      all) that shipping the real font would just mean
+                      most inboxes silently fall back anyway. A bold
+                      sans-serif fallback at least agrees with the site's
+                      actual identity on the one thing every client CAN
+                      render: this is a blocky, sans-serif brand, not a
+                      serif one — Georgia was never that, on any client. */}
                   <Text
                     style={{
                       margin: 0,
-                      fontFamily: "Georgia, 'Times New Roman', serif",
-                      fontWeight: 700,
-                      fontSize: 18,
+                      fontFamily:
+                        "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                      fontWeight: 800,
+                      fontSize: 17,
+                      letterSpacing: "-0.01em",
                       color: colors.ink,
                     }}
                   >
-                    On Camera
+                    OnCamera
                   </Text>
                 </td>
               </tr>
@@ -105,7 +148,13 @@ export function EmailLayout({
                 color: colors.mutedForeground,
               }}
             >
-              On Camera · The content system behind videos that perform.{" "}
+              {/* siteConfig.tagline, not a copy of it — this line had
+                  drifted to an old tagline ("The content system behind
+                  videos that perform.") the live site no longer uses
+                  anywhere, since it was hardcoded instead of reading the
+                  same single source of truth every other tagline
+                  mention on the site already does. */}
+              {siteConfig.name} · {siteConfig.tagline}{" "}
               <Link href={siteConfig.url} style={{ color: colors.mutedForeground }}>
                 {siteConfig.url.replace(/^https?:\/\//, "")}
               </Link>
@@ -122,7 +171,13 @@ export function EmailHeading({ children }: { children: ReactNode }) {
     <Heading
       style={{
         margin: "0 0 12px",
-        fontFamily: "Georgia, 'Times New Roman', serif",
+        // The site's real body headings are DM Sans, not a serif — this
+        // was Georgia before, which put every email's biggest piece of
+        // text in the one typeface family (serif) nothing else on the
+        // site uses anywhere. System sans instead, same stack the body
+        // text below it already uses (see EmailText), just bolder —
+        // agrees with the actual site instead of inventing its own look.
+        fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
         fontWeight: 700,
         fontSize: 24,
         color: colors.ink,
@@ -155,7 +210,7 @@ export function EmailButton({ href, children }: { href: string; children: ReactN
       <tr>
         <td
           style={{
-            backgroundColor: colors.primary,
+            backgroundColor: colors.accent,
             border: `2px solid ${colors.ink}`,
             borderRadius: 999,
           }}
@@ -168,7 +223,7 @@ export function EmailButton({ href, children }: { href: string; children: ReactN
               fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
               fontWeight: 700,
               fontSize: 15,
-              color: colors.primaryForeground,
+              color: colors.accentForeground,
               textDecoration: "none",
             }}
           >
