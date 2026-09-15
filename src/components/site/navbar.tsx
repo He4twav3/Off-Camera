@@ -12,11 +12,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/site/logo";
-import { DiscordIcon } from "@/components/site/discord-link";
 import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { useScrolledPast } from "@/lib/use-scroll-y";
-import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 // Real in-page jumps, not decoration — the homepage defines all of these
@@ -104,19 +102,20 @@ export function Navbar() {
             reaches for right after it — not competing with it for first
             position. */}
         <div className="ml-auto hidden items-center gap-3 lg:flex">
-          {/* /signup, not the Discord invite — the one deliberate
-              exception to every other CTA on the site now pointing
-              straight at Discord (hero, pricing, final-cta all say "Join
-              free on Discord" and mean it). This one still says "Save my
-              free spot," and a button promising to save your spot that
-              actually opens Discord instead is a label lying about its
-              own action, not a funnel choice. The real email capture
-              happens here first — the confirmation screen it lands on
-              (signup-form.tsx) is what carries the Discord push now,
-              once there's an actual account to hand off from, not before
-              one exists. btn-cta-glass unchanged either way — same
-              translucent-crimson-over-backdrop-blur treatment as every
-              other CTA on the site, regardless of where each one leads. */}
+          {/* /signup — this was briefly the one exception while every
+              other CTA on the site pointed straight at Discord instead
+              (hero, pricing, final-cta, this same mobile menu below).
+              That was the real problem, not this button: two competing
+              funnels live on one page, this one honestly labeled "Save
+              my free spot" leading to /signup, the others labeled "Join
+              free on Discord" leading straight there. Every one of them
+              points here now — the real email capture happens first, the
+              confirmation screen it lands on (signup-form.tsx) is what
+              carries the Discord push, once there's an actual account to
+              hand off from rather than before one exists. btn-cta-glass
+              unchanged either way — same translucent-crimson-over-
+              backdrop-blur treatment every CTA on the site already used,
+              regardless of where each one used to lead. */}
           <Button
             size="lg"
             nativeButton={false}
@@ -158,21 +157,16 @@ export function Navbar() {
                   {section.label}
                 </Link>
               ))}
+              {/* Same one CTA the desktop group above uses now — see its
+                  own note on why every "Join free on Discord" shortcut
+                  on the site went back to leading with /signup instead. */}
               <Button
                 size="lg"
                 nativeButton={false}
-                render={
-                  <Link
-                    href={siteConfig.communityUrl ?? "/signup"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeMobileNav}
-                  />
-                }
+                render={<Link href="/signup" onClick={closeMobileNav} />}
                 className="btn-cta-glass mt-3 rounded-full py-2.5 font-bold text-cta-foreground"
               >
-                <DiscordIcon className="size-4" />
-                Join free on Discord
+                Save my free spot
               </Button>
               {/* Same order as the desktop group above: CTA leads, log
                   in trails right after it. AuthNavRow, not AuthNavPill —

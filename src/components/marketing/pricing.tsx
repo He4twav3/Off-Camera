@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DiscordIcon } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
 import { TOTAL_MODULES, TOTAL_LESSONS } from "@/lib/curriculum";
 import { Reveal } from "@/components/marketing/reveal";
@@ -118,18 +117,20 @@ export function Pricing() {
             ))}
           </ul>
 
-          {/* Discord, not /signup — see hero.tsx's own note on why every
-              CTA on the site points there now: this section is still
-              free right now anyway (COURSE_IS_FREE above), so there's
-              no real checkout this button was ever routing to. */}
+          {/* /signup, not straight to Discord — see hero.tsx's own note
+              on why every CTA on the site went back to leading with
+              email capture instead: one funnel, not two competing ones,
+              with the Discord push living on the confirmation screen
+              signup leads to. This section is still free right now
+              anyway (COURSE_IS_FREE above), so there's no real checkout
+              this button is routing around. */}
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
+            render={<Link href="/signup" />}
             className="btn-cta-glass mt-9 h-auto w-full rounded-full py-4 text-base font-bold tracking-tight text-cta-foreground"
           >
-            <DiscordIcon className="size-4" />
-            Join free on Discord
+            Save my free spot
           </Button>
           <p className="mt-4 text-center font-mono text-[0.65rem] tracking-[0.14em] text-muted-foreground uppercase">
             No card required
