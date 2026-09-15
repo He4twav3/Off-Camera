@@ -6,7 +6,24 @@
  * `url` falls back to the real domain below, but production should still
  * set NEXT_PUBLIC_SITE_URL explicitly in Vercel — see the Supabase Auth
  * redirect-URL note this drives (getBaseUrl() in lib/request-url.ts).
+ *
+ * That env var has shipped to production pointed at `localhost:3000`
+ * before — harmless for anything rendered client-side (nobody notices a
+ * wrong canonical URL by looking at the page), but it silently breaks
+ * `metadataBase`: every og:image/twitter:image/og:url this drives
+ * resolves to an address no outside crawler (iMessage, Discord, X, …)
+ * can ever reach, so they fall back to scraping *something* off the
+ * page instead of the real share card. `resolveSiteUrl` refuses a
+ * configured value that's obviously not a real public domain rather
+ * than trusting it blindly — a legitimate custom value still wins,
+ * this only catches the one value that can never be correct here.
  */
+function resolveSiteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured && !configured.includes("localhost")) return configured;
+  return "https://oncameraugc.com";
+}
+
 export const siteConfig = {
   name: "On Camera",
   tagline: "Learn the craft. Build the career.",
@@ -20,7 +37,7 @@ export const siteConfig = {
    * descriptions, emails, OG images). Every one of those now reads this.
    */
   courseTitle: "On Camera: The Content Formula",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://oncameraugc.com",
+  url: resolveSiteUrl(),
   price: {
     amount: 17.99,
     currency: "EUR",

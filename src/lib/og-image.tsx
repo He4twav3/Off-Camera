@@ -2,15 +2,19 @@ import { ImageResponse } from "next/og";
 
 export const OG_IMAGE_SIZE = { width: 1200, height: 630 };
 
-// Same light theme as the site's CSS, hardcoded as static hex since
+// The site's actual dark theme (dark-invert.css's --background/--primary/
+// --crimson-bright/--muted-foreground), hardcoded as static hex since
 // ImageResponse renders in an isolated Satori context that can't read
-// globals.css custom properties. Keep these in sync with globals.css's
-// :root tokens by eye if that palette changes.
+// globals.css custom properties. Keep these in sync with dark-invert.css's
+// literals by eye if that palette changes — this is the same "flat
+// crimson-on-charcoal, no second hue anywhere" system, not a separate
+// light-theme card living on to describe a site that no longer looks
+// like it (see that file's own header note on the palette itself).
 const COLORS = {
-  bg: "#fbf6ee",
-  primary: "#c8552a",
-  foreground: "#2a2318",
-  muted: "#7d7266",
+  bg: "#16151a",
+  primary: "#ac0216",
+  foreground: "#edeae4",
+  muted: "#706c68",
 };
 
 /**
@@ -38,20 +42,26 @@ export function renderOgImage({
           justifyContent: "center",
           padding: "80px",
           backgroundColor: COLORS.bg,
-          border: `4px solid ${COLORS.foreground}`,
+          border: "1px solid rgba(237,234,228,0.12)",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              backgroundColor: COLORS.primary,
-              display: "flex",
-            }}
-          />
+        {/* The real mark (brand-mark.tsx's four corners + tally dot),
+            not a generic dot standing in for it — this card is the
+            logo, so it should show the actual logo. currentColor isn't
+            available in this isolated Satori context the way the live
+            component gets it from its parent, so the stroke is the
+            card's own foreground literal instead. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <svg width={40} height={40} viewBox="0 0 24 24" fill="none">
+            <g stroke={COLORS.foreground} strokeWidth={2} strokeLinecap="square">
+              <path d="M3 8.5V3h5.5" />
+              <path d="M15.5 3H21v5.5" />
+              <path d="M21 15.5V21h-5.5" />
+              <path d="M8.5 21H3v-5.5" />
+            </g>
+            <circle cx={12} cy={12} r={2.75} fill={COLORS.primary} />
+          </svg>
           <span
             style={{
               fontSize: 32,
@@ -59,7 +69,7 @@ export function renderOgImage({
               color: COLORS.foreground,
             }}
           >
-            On Camera
+            OnCamera
           </span>
         </div>
 
