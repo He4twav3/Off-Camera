@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
+import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site-config";
 import "@/styles/dark-invert.css";
+
+const CAMPAIGN_FORM_URL = "https://interfaces.zapier.com/interfaces/cmuqtgxqb000qryi4pjgzim8t";
 
 export const metadata: Metadata = {
   title: "Join a campaign",
@@ -14,11 +17,23 @@ export const metadata: Metadata = {
 };
 
 /**
- * Campaign signup — a thin wrapper around a Zapier Interfaces embed, not a
- * page built from scratch here. The form itself (fields, validation,
- * where submissions land/get tracked) all lives on Zapier's side; this
- * page's only job is to present it inside the site's own chrome instead
- * of sending people off to a bare interfaces.zapier.com URL.
+ * Campaign signup — a link out to the Zapier Interfaces form, not an embed.
+ * It WAS an iframe here, but Zapier's own Interfaces pages send
+ * `Content-Security-Policy: frame-ancestors 'self' zapier.com
+ * zapier-staging.com ...` — a header on *their* response that the browser
+ * enforces, blocking the page from being framed on any outside domain.
+ * No change on this site's end can work around that (it's not our CSP);
+ * confirmed live — the embed rendered as a blank "refused to connect" box
+ * for every visitor. A direct link sidesteps it entirely: no framing, no
+ * CSP to violate.
+ *
+ * If a same-site-feeling embed matters enough to pursue further, the real
+ * fix is one of: (a) check the Interface's own Share/Embed settings in
+ * the Zapier dashboard for an allowed-domains option (plan-dependent, not
+ * something visible or controllable from here), or (b) drop the hosted
+ * Interface for this page and build the fields natively here instead,
+ * posting to a Zapier webhook trigger — more work, but fully sidesteps
+ * the CSP wall and keeps the site's own styling throughout.
  *
  * Standalone outside the marketing route group, same as /login, /signup
  * and /go — a focused link with no nav/search/section-pill chrome to
@@ -33,32 +48,24 @@ export default function CampaignPage() {
         <Logo />
       </div>
 
-      <div className="w-full max-w-2xl text-center">
+      <div className="w-full max-w-md text-center">
         <h1 className="text-sticker text-3xl font-semibold tracking-tight sm:text-4xl">
           Join a campaign
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground sm:text-base">
-          Drop your handles below and we&apos;ll be in touch about current
-          and upcoming campaigns.
+          Drop your handles in and we&apos;ll be in touch about current and
+          upcoming campaigns.
         </p>
-      </div>
 
-      {/* card-sticker, not card-premium — matches the other standalone
-          pages this one sits alongside (login, signup, go), all of which
-          use the toybox sticker system rather than the homepage's premium
-          surface language. Padding is tighter than those cards (p-2
-          instead of p-6+) since the content here is an iframe that brings
-          its own internal padding — stacking the site's card padding on
-          top of Zapier's own would just double it up. */}
-      <div className="card-sticker mt-8 w-full max-w-2xl overflow-hidden rounded-2xl bg-card p-2">
-        <iframe
-          src="https://interfaces.zapier.com/interfaces/cmuqtgxqb000qryi4pjgzim8t"
-          title="Campaign signup"
-          width="100%"
-          height="600"
-          loading="lazy"
-          style={{ border: "none", borderRadius: "12px", display: "block" }}
-        />
+        <Button
+          size="lg"
+          nativeButton={false}
+          render={<Link href={CAMPAIGN_FORM_URL} target="_blank" rel="noopener noreferrer" />}
+          className="btn-sticker mt-8"
+        >
+          Open the signup form →
+        </Button>
+        <p className="mt-3 text-xs text-muted-foreground">Opens in a new tab</p>
       </div>
 
       <Link
