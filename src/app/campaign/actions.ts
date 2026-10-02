@@ -95,8 +95,12 @@ export async function submitCampaignSignup(
     return { status: "error", message: "Add at least one social handle." };
   }
 
-  // Tolerate quotes / stray whitespace pasted into the env var.
-  const hook = process.env.CAMPAIGN_WEBHOOK_URL?.trim().replace(/^["']|["']$/g, "").trim();
+  // Tolerate a messy env value: quotes, whitespace, a pasted "NAME=" prefix,
+  // or a missing https:// — pull out the Zapier hook URL itself.
+  const rawHook = process.env.CAMPAIGN_WEBHOOK_URL ?? "";
+  const hook =
+    rawHook.match(/https?:\/\/[^\s"']+/)?.[0] ??
+    rawHook.match(/hooks\.zapier\.com\/[^\s"']+/)?.[0]?.replace(/^/, "https://");
   if (!hook) {
     console.error("CAMPAIGN_WEBHOOK_URL is not set");
     return { status: "error", message: "Signups are temporarily unavailable." };
