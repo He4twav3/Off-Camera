@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/marketing/reveal";
 import { BEAT } from "@/components/marketing/motion";
 import { SectionEyebrow } from "@/components/marketing/section-frame";
-import { DiscordIcon } from "@/components/site/discord-link";
-import { siteConfig } from "@/lib/site-config";
 
 /**
  * The close.
@@ -61,14 +59,17 @@ export function FinalCTA() {
               </h2>
             </Reveal>
             <Reveal delay={BEAT.body} className="mt-9 flex justify-center">
+              {/* /signup, not straight to Discord — see hero.tsx's own
+                  note on why every CTA on the site leads with email
+                  capture again, Discord push living on the confirmation
+                  screen instead of a second, competing entry point. */}
               <Button
                 size="lg"
                 nativeButton={false}
-                render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
+                render={<Link href="/signup" />}
                 className="btn-cta-glass group/cta h-auto rounded-full px-11 py-5 text-lg font-bold tracking-tight text-cta-foreground"
               >
-                <DiscordIcon className="size-4" />
-                Join free on Discord
+                Save my free spot
                 <ArrowRight className="ml-1 size-4 transition-transform duration-300 ease-[var(--ease-cinematic)] group-hover/cta:translate-x-1" />
               </Button>
             </Reveal>

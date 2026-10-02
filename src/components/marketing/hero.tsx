@@ -7,9 +7,7 @@ import { HeroCarousel } from "@/components/marketing/hero-carousel";
 import { SectionEyebrow } from "@/components/marketing/section-frame";
 import { VideoPlayer } from "@/components/media/video-player";
 import { VideoPoster } from "@/components/media/video-poster";
-import { DiscordIcon } from "@/components/site/discord-link";
 import { INTRO_VIDEO_POSTER, INTRO_VIDEO_SRC } from "@/lib/intro-video";
-import { siteConfig } from "@/lib/site-config";
 import type { ProofPoster } from "@/lib/proof-thumbnails";
 
 /**
@@ -201,20 +199,26 @@ export function Hero({ posters }: { posters: ProofPoster[] }) {
             action, one physical treatment, everywhere it appears — see
             that utility's own header note in globals.css.
 
-            Points straight at the Discord invite now, not /signup — the
-            site's job is to be the hook that gets someone into the
-            community, not to collect an email first. Free to join, no
-            account, no card; the actual sell happens once they're
-            already in Discord. */}
+            /signup, not straight to the Discord invite — reversed from
+            an earlier version of this note that argued the opposite
+            (skip email capture, let Discord itself be the hook). That
+            put two different, competing funnels live on the same site at
+            once: this button jumping straight to Discord while the
+            navbar's identically-styled "Save my free spot" led to
+            /signup instead — the exact label-lying-about-its-own-action
+            problem that navbar button itself was fixed for, just via a
+            second CTA instead of a second label. One funnel now: /signup
+            first, with the Discord push living on the confirmation
+            screen it leads to (signup-form.tsx) once a real account
+            actually exists. */}
         <Reveal delay={BEAT.body + BEAT.step * 2}>
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href={siteConfig.communityUrl ?? "/signup"} target="_blank" rel="noopener noreferrer" />}
+            render={<Link href="/signup" />}
             className="btn-cta-glass mt-7 h-auto rounded-full px-10 py-4 text-base font-bold tracking-tight text-cta-foreground sm:px-12 sm:py-5 sm:text-lg"
           >
-            <DiscordIcon className="size-4 sm:size-5" />
-            Join free on Discord
+            Save my free spot
           </Button>
         </Reveal>
       </div>
