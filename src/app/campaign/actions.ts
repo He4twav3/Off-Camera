@@ -95,7 +95,8 @@ export async function submitCampaignSignup(
     return { status: "error", message: "Add at least one social handle." };
   }
 
-  const hook = process.env.CAMPAIGN_WEBHOOK_URL;
+  // Tolerate quotes / stray whitespace pasted into the env var.
+  const hook = process.env.CAMPAIGN_WEBHOOK_URL?.trim().replace(/^["']|["']$/g, "").trim();
   if (!hook) {
     console.error("CAMPAIGN_WEBHOOK_URL is not set");
     return { status: "error", message: "Signups are temporarily unavailable." };
@@ -110,7 +111,7 @@ export async function submitCampaignSignup(
     });
     if (!res.ok) throw new Error(`webhook responded ${res.status}`);
   } catch (err) {
-    console.error("Campaign signup webhook failed", err);
+    console.error("Campaign signup webhook failed", err, { hostOk: /^https:\/\/hooks\.zapier\.com\//.test(hook) });
     return { status: "error", message: "Something went wrong. Please try again." };
   }
 
