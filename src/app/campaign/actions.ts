@@ -102,6 +102,9 @@ export async function submitCampaignSignup(
     return { status: "error", message: "Signups are temporarily unavailable." };
   }
 
+  // The code in the message ("hook-404", "net-TypeError" ...) says why the
+  // call failed without exposing the URL — enough to debug from the page.
+  let failure: string | null = null;
   try {
     const res = await fetch(hook, {
       method: "POST",
@@ -109,10 +112,13 @@ export async function submitCampaignSignup(
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(10_000),
     });
-    if (!res.ok) throw new Error(`webhook responded ${res.status}`);
+    if (!res.ok) failure = `hook-${res.status}`;
   } catch (err) {
-    console.error("Campaign signup webhook failed", err, { hostOk: /^https:\/\/hooks\.zapier\.com\//.test(hook) });
-    return { status: "error", message: "Something went wrong. Please try again." };
+    failure = `net-${err instanceof Error ? err.name : "unknown"}`;
+    console.error("Campaign signup webhook failed", err);
+  }
+  if (failure) {
+    return { status: "error", message: `Something went wrong (${failure}). Please try again.` };
   }
 
   return { status: "success", message: "You're in. We'll be in touch." };
