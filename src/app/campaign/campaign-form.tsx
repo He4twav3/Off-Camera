@@ -16,7 +16,13 @@ const FIELDS = [
   { name: "youtube_handle", label: "YouTube", placeholder: "@yourchannel" },
 ];
 
-export function CampaignForm({ campaign }: { campaign: string }) {
+export function CampaignForm({
+  campaign,
+  hashtag,
+}: {
+  campaign: string;
+  hashtag: string;
+}) {
   const [state, formAction, pending] = useActionState(
     submitCampaignSignup,
     initialState
@@ -64,8 +70,15 @@ export function CampaignForm({ campaign }: { campaign: string }) {
         </div>
       ))}
 
+      {hashtag && (
+        <p className="rounded-lg border-2 border-ink bg-card px-3 py-2 text-sm">
+          Put <strong>{hashtag}</strong> in the caption of every post you make
+          for this campaign. That&apos;s how we find and count them.
+        </p>
+      )}
+
       <div className="space-y-1.5">
-        <Label htmlFor="post_links">Campaign post links</Label>
+        <Label htmlFor="post_links">Post links (optional)</Label>
         <textarea
           id="post_links"
           name="post_links"
@@ -76,8 +89,8 @@ export function CampaignForm({ campaign }: { campaign: string }) {
           className={`${inputClass} h-auto py-2`}
         />
         <p className="text-xs text-muted-foreground">
-          Links to the posts you made for this campaign. We count views on
-          these. You can send them later too.
+          Optional. If you paste links we count exactly those posts;
+          otherwise we find your posts by the hashtag above.
         </p>
       </div>
 

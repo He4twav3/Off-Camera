@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
 import { CampaignForm } from "./campaign-form";
+import { campaignHashtag } from "./hashtag";
 import { siteConfig } from "@/lib/site-config";
 import "@/styles/dark-invert.css";
 
@@ -56,7 +57,7 @@ export default async function CampaignPage({
         </p>
 
         <div className="card-sticker mt-8 rounded-2xl bg-card p-6 sm:p-8">
-          <CampaignForm campaign={campaign} />
+          <CampaignForm campaign={campaign} hashtag={campaignHashtag(campaign)} />
         </div>
       </div>
 
