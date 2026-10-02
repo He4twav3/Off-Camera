@@ -64,6 +64,23 @@ export function CampaignForm({ campaign }: { campaign: string }) {
         </div>
       ))}
 
+      <div className="space-y-1.5">
+        <Label htmlFor="post_links">Campaign post links</Label>
+        <textarea
+          id="post_links"
+          name="post_links"
+          rows={3}
+          autoComplete="off"
+          spellCheck={false}
+          placeholder={"https://www.tiktok.com/@you/video/…\nOne link per line"}
+          className={`${inputClass} h-auto py-2`}
+        />
+        <p className="text-xs text-muted-foreground">
+          Links to the posts you made for this campaign. We count views on
+          these. You can send them later too.
+        </p>
+      </div>
+
       {/* Honeypot — hidden from people and assistive tech, bots fill it. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label htmlFor="website">Website</label>

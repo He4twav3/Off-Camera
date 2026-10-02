@@ -337,6 +337,26 @@ export interface Database {
           },
         ];
       };
+      campaign_views: {
+        Row: {
+          id: string;
+          campaign: string;
+          platform: PlatformEnum;
+          handle: string;
+          views: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          campaign?: string;
+          platform: PlatformEnum;
+          handle: string;
+          views?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["campaign_views"]["Insert"]>;
+        Relationships: [];
+      };
       admin_emails: {
         Row: { email: string };
         Insert: { email: string };
