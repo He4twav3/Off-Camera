@@ -16,7 +16,7 @@ const FIELDS = [
   { name: "youtube_handle", label: "YouTube", placeholder: "@yourchannel" },
 ];
 
-export function CampaignForm() {
+export function CampaignForm({ campaign }: { campaign: string }) {
   const [state, formAction, pending] = useActionState(
     submitCampaignSignup,
     initialState
@@ -32,6 +32,22 @@ export function CampaignForm() {
 
   return (
     <form action={formAction} className="space-y-4 text-left">
+      <input type="hidden" name="campaign" value={campaign} />
+
+      <div className="space-y-1.5">
+        <Label htmlFor="creator_name">Your name</Label>
+        <input
+          id="creator_name"
+          name="creator_name"
+          type="text"
+          autoComplete="name"
+          required
+          maxLength={100}
+          placeholder="First and last name"
+          className={inputClass}
+        />
+      </div>
+
       {FIELDS.map((f) => (
         <div key={f.name} className="space-y-1.5">
           <Label htmlFor={f.name}>{f.label}</Label>

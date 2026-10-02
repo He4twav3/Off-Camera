@@ -17,9 +17,9 @@ const FIELDS: { name: string; platform: PlatformEnum; label: string }[] = [
  * row. Server-side so the hook URL (anyone holding it can post to the Zap)
  * never reaches the browser, and so there's no CORS to deal with.
  *
- * The payload keys match what the view-tracking Zap reads
- * (instagram_handle / tiktok_handle / youtube_handle); a platform the
- * person skipped is sent as an empty string.
+ * Payload: creator_name, campaign (from /campaign?c=..., may be empty) and
+ * the keys the view-tracking Zap reads (instagram_handle / tiktok_handle /
+ * youtube_handle); a platform the person skipped is sent as an empty string.
  */
 export async function submitCampaignSignup(
   _prevState: CampaignState,
@@ -31,7 +31,15 @@ export async function submitCampaignSignup(
     return { status: "success", message: "You're in. We'll be in touch." };
   }
 
-  const payload: Record<string, string> = {};
+  const creatorName = String(formData.get("creator_name") ?? "").trim().slice(0, 100);
+  if (!creatorName) {
+    return { status: "error", message: "Enter your name." };
+  }
+
+  const payload: Record<string, string> = {
+    creator_name: creatorName,
+    campaign: String(formData.get("campaign") ?? "").trim().slice(0, 100),
+  };
   for (const { name, platform, label } of FIELDS) {
     const raw = String(formData.get(name) ?? "").trim();
     if (!raw) {
@@ -45,7 +53,7 @@ export async function submitCampaignSignup(
     payload[name] = result.handle;
   }
 
-  if (!Object.values(payload).some(Boolean)) {
+  if (!FIELDS.some(({ name }) => payload[name])) {
     return { status: "error", message: "Add at least one social handle." };
   }
 

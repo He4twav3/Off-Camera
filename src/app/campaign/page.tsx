@@ -29,7 +29,17 @@ export const metadata: Metadata = {
  * applied directly rather than relying only on the body-level class for
  * the same reason those pages do (see login/page.tsx's own note).
  */
-export default function CampaignPage() {
+export default async function CampaignPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // One link per campaign: /campaign?c=<Campaign name>. Passed through to
+  // the form as a hidden field; it has to match a Campaign option in the
+  // Creator Submissions table exactly (the Zap leaves it blank otherwise).
+  const c = (await searchParams).c;
+  const campaign = (Array.isArray(c) ? c[0] : c)?.trim().slice(0, 100) ?? "";
+
   return (
     <div className="dark-invert flex min-h-screen flex-col items-center bg-background px-4 py-12 text-foreground sm:py-16">
       <div className="mb-8">
@@ -46,7 +56,7 @@ export default function CampaignPage() {
         </p>
 
         <div className="card-sticker mt-8 rounded-2xl bg-card p-6 sm:p-8">
-          <CampaignForm />
+          <CampaignForm campaign={campaign} />
         </div>
       </div>
 
