@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
 import { LoginForm } from "./login-form";
+import { LoginLinkForm } from "./login-link-form";
 import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
@@ -30,6 +31,14 @@ export default function LoginPage() {
 
         <div className="mt-6">
           <LoginForm />
+        </div>
+
+        <div className="mt-6 border-t border-border pt-6">
+          <h2 className="text-sm font-semibold">No password?</h2>
+          <p className="mt-1 mb-4 text-sm text-muted-foreground">
+            If you signed up with just your email, get a sign-in link instead.
+          </p>
+          <LoginLinkForm />
         </div>
       </div>
 
