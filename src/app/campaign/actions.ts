@@ -1,6 +1,7 @@
 "use server";
 
 import { normaliseHandle } from "@/lib/handles";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { PlatformEnum } from "@/lib/database.types";
 
 export type CampaignState = { status?: "success" | "error"; message?: string };
@@ -43,15 +44,10 @@ function parsePostLinks(raw: string): { links: string[] } | { error: string } {
 }
 
 /**
- * Campaign signup — validates the handles and forwards them to the Zapier
- * catch-hook in CAMPAIGN_WEBHOOK_URL, which creates the Creator Submissions
- * row. Server-side so the hook URL (anyone holding it can post to the Zap)
- * never reaches the browser, and so there's no CORS to deal with.
- *
- * Payload: creator_name, campaign (from /campaign?c=..., may be empty),
- * post_links (newline-separated URLs of the campaign posts, may be empty) and
- * the keys the view-tracking Zap reads (instagram_handle / tiktok_handle /
- * youtube_handle); a platform the person skipped is sent as an empty string.
+ * Campaign signup — validates the handles and saves a pending row in
+ * `campaign_signups` (service role: the table has no public policies). An
+ * admin approves it at /admin/campaigns, which triggers the view count — see
+ * lib/campaign-views.ts. No third-party services involved.
  */
 export async function submitCampaignSignup(
   _prevState: CampaignState,
@@ -95,34 +91,19 @@ export async function submitCampaignSignup(
     return { status: "error", message: "Add at least one social handle." };
   }
 
-  // Tolerate a messy env value: quotes, whitespace, a pasted "NAME=" prefix,
-  // or a missing https:// — pull out the Zapier hook URL itself.
-  const rawHook = process.env.CAMPAIGN_WEBHOOK_URL ?? "";
-  const hook =
-    rawHook.match(/https?:\/\/[^\s"']+/)?.[0] ??
-    rawHook.match(/hooks\.zapier\.com\/[^\s"']+/)?.[0]?.replace(/^/, "https://");
-  if (!hook) {
-    console.error("CAMPAIGN_WEBHOOK_URL is not set");
-    return { status: "error", message: "Signups are temporarily unavailable." };
-  }
-
-  // The code in the message ("hook-404", "net-TypeError" ...) says why the
-  // call failed without exposing the URL — enough to debug from the page.
-  let failure: string | null = null;
-  try {
-    const res = await fetch(hook, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(10_000),
+  const { error } = await createAdminClient()
+    .from("campaign_signups")
+    .insert({
+      creator_name: payload.creator_name,
+      campaign: payload.campaign,
+      instagram_handle: payload.instagram_handle,
+      tiktok_handle: payload.tiktok_handle,
+      youtube_handle: payload.youtube_handle,
+      post_links: payload.post_links,
     });
-    if (!res.ok) failure = `hook-${res.status}`;
-  } catch (err) {
-    failure = `net-${err instanceof Error ? err.name : "unknown"}`;
-    console.error("Campaign signup webhook failed", err);
-  }
-  if (failure) {
-    return { status: "error", message: `Something went wrong (${failure}). Please try again.` };
+  if (error) {
+    console.error("Campaign signup insert failed:", error.message);
+    return { status: "error", message: "Something went wrong. Please try again." };
   }
 
   return { status: "success", message: "You're in. We'll be in touch." };

@@ -337,6 +337,38 @@ export interface Database {
           },
         ];
       };
+      campaign_signups: {
+        Row: {
+          id: string;
+          creator_name: string;
+          campaign: string;
+          instagram_handle: string;
+          tiktok_handle: string;
+          youtube_handle: string;
+          post_links: string;
+          status: "pending" | "approved" | "rejected";
+          approved_at: string | null;
+          last_counted_at: string | null;
+          count_error: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          creator_name: string;
+          campaign?: string;
+          instagram_handle?: string;
+          tiktok_handle?: string;
+          youtube_handle?: string;
+          post_links?: string;
+          status?: "pending" | "approved" | "rejected";
+          approved_at?: string | null;
+          last_counted_at?: string | null;
+          count_error?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["campaign_signups"]["Insert"]>;
+        Relationships: [];
+      };
       campaign_views: {
         Row: {
           id: string;

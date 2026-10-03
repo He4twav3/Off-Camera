@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 const ADMIN_LINKS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/applications", label: "Applications" },
+  { href: "/admin/campaigns", label: "Campaigns" },
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/applicants", label: "Creators" },
   { href: "/admin/payouts", label: "Payouts" },
