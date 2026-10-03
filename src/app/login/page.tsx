@@ -43,6 +43,14 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
+        New here?{" "}
+        <Link
+          href="/create-account"
+          className="font-medium text-foreground underline underline-offset-2"
+        >
+          Create an account
+        </Link>
+        {" · "}
         Not enrolled yet?{" "}
         <Link
           href="/#pricing"

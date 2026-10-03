@@ -50,7 +50,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Already signed in — /login and /signup don't make sense to revisit.
-  if (user && (path === "/login" || path === "/signup")) {
+  if (user && (path === "/login" || path === "/signup" || path === "/create-account")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
