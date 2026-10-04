@@ -74,6 +74,16 @@ export default async function DashboardPage(props: {
         .order("assigned_at", { ascending: false }),
     ]);
 
+  // Views on each campaign's post(s), keyed by campaign title. RLS limits this
+  // to rows for this creator's own handles (campaign_views_select_own).
+  const { data: viewRows } = await supabase
+    .from("campaign_views")
+    .select("campaign, views");
+  const viewsByCampaign = new Map<string, number>();
+  for (const v of viewRows ?? []) {
+    viewsByCampaign.set(v.campaign, (viewsByCampaign.get(v.campaign) ?? 0) + v.views);
+  }
+
   const active = assignments ?? [];
   const apps = (applications ?? []) as ApplicationRow[];
   const completeness = profileCompleteness(applicant, handles ?? []);
@@ -219,6 +229,11 @@ export default async function DashboardPage(props: {
                           <p className="mt-0.5 font-heading text-2xl font-semibold text-primary">
                             {formatCurrency(a.applicant_payout_amount)}
                           </p>
+                          {job?.title && viewsByCampaign.has(job.title) && (
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {(viewsByCampaign.get(job.title) ?? 0).toLocaleString()} views on your post
+                            </p>
+                          )}
                           {a.status === "paid" && a.paid_at && (
                             <p className="mt-1 text-sm font-semibold text-toy-soft-foreground">
                               Paid {formatDate(a.paid_at)}
