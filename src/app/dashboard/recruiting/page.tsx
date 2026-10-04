@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ProofForm } from "./ProofForm";
 import { ApplicationsList, type ApplicationRow } from "./ApplicationsList";
 import { ProfileCard } from "@/components/ProfileCard";
+import { AccountsCard } from "@/components/app/AccountsCard";
 import { ProfileStrength } from "@/components/app/ProfileStrength";
 import { profileCompleteness } from "@/lib/profile-completeness";
 import { formatCurrency, formatDate, PLATFORM_LABELS } from "@/lib/utils";
@@ -295,6 +296,8 @@ export default async function DashboardPage(props: {
         {/* ---- Side rail ---- */}
         <aside className="flex flex-col gap-6">
           <ProfileStrength completeness={completeness} />
+
+          <AccountsCard applicantId={applicant.id} handles={handles ?? []} />
 
           <div>
             <div className="mb-3 flex items-center justify-between gap-3">

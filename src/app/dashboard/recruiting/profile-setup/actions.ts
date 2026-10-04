@@ -262,14 +262,45 @@ export async function saveProfileAction(
     return { error: "We couldn't save your profile. Please try again." };
   }
 
-  // Replace the handle set wholesale. Simpler than diffing, and safe because
-  // verified_at is re-derived by you rather than being creator-owned data
-  // worth preserving across an edit.
-  await supabase.from("applicant_handles").delete().eq("applicant_id", saved.id);
-
-  const { error: handlesError } = await supabase
+  // Merge the handle set rather than replacing it: a handle that is unchanged
+  // keeps its row — and with it its verification (verified_at) — while removed
+  // ones are deleted and new ones inserted. Deleting and re-inserting
+  // everything would wipe verification on every profile edit.
+  const key = (platform: string, handle: string) => `${platform}:${handle.toLowerCase()}`;
+  const { data: current } = await supabase
     .from("applicant_handles")
-    .insert(handles.map((h) => ({ ...h, applicant_id: saved.id })));
+    .select("id, platform, handle")
+    .eq("applicant_id", saved.id);
+  const wanted = new Set(handles.map((h) => key(h.platform, h.handle)));
+  const existingByKey = new Map((current ?? []).map((c) => [key(c.platform, c.handle), c]));
+
+  const removedIds = (current ?? [])
+    .filter((c) => !wanted.has(key(c.platform, c.handle)))
+    .map((c) => c.id);
+  if (removedIds.length > 0) {
+    await supabase.from("applicant_handles").delete().in("id", removedIds);
+  }
+  // Clear the primary flag first so moving it can't trip the one-primary index.
+  await supabase
+    .from("applicant_handles")
+    .update({ is_primary: false })
+    .eq("applicant_id", saved.id);
+
+  let handlesError = null;
+  for (const h of handles) {
+    const kept = existingByKey.get(key(h.platform, h.handle));
+    const { error: writeError } = kept
+      ? await supabase
+          .from("applicant_handles")
+          .update({
+            profile_url: h.profile_url,
+            follower_count: h.follower_count,
+            is_primary: h.is_primary,
+          })
+          .eq("id", kept.id)
+      : await supabase.from("applicant_handles").insert({ ...h, applicant_id: saved.id });
+    if (writeError) handlesError = writeError;
+  }
 
   if (handlesError) {
     return {
