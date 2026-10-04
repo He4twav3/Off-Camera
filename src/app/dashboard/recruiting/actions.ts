@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchBio, verificationCode } from "@/lib/handle-verification";
+import { refreshAssignmentViews } from "@/lib/campaign-views";
 
 export interface ProofFormState {
   error?: string;
@@ -51,6 +53,18 @@ export async function submitProofAction(
   if (error) {
     return { error: "We couldn't save that link. Please try again." };
   }
+
+  // Count the post's views once the response is on its way — it calls
+  // YouTube/Apify and can take a while, and a failure must never affect the
+  // creator's submission. The daily cron retries.
+  const assignmentId = parsed.data.assignment_id;
+  after(async () => {
+    try {
+      await refreshAssignmentViews(assignmentId);
+    } catch (err) {
+      console.error("refreshAssignmentViews failed:", err);
+    }
+  });
 
   revalidatePath("/dashboard/recruiting");
   return { success: "Thanks — we'll review your post and release payment." };

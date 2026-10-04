@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { refreshSignupViews } from "@/lib/campaign-views";
+import { refreshAssignmentViews, refreshSignupViews } from "@/lib/campaign-views";
 
 // Daily refresh of every approved signup's view counts (see vercel.json).
 // Vercel sends `Authorization: Bearer $CRON_SECRET` on cron invocations; with
@@ -28,5 +28,25 @@ export async function GET(request: Request) {
     await refreshSignupViews(id);
     done++;
   }
-  return NextResponse.json({ refreshed: done, total: signups?.length ?? 0 });
+
+  // Then the posts creators submitted as proof on assigned campaigns — that is
+  // what the brand dashboard's view counts are built from.
+  const { data: proofs } = await createAdminClient()
+    .from("assignments")
+    .select("id")
+    .not("proof_url", "is", null)
+    .in("status", ["submitted", "paid"]);
+  let posts = 0;
+  for (const { id } of proofs ?? []) {
+    if (Date.now() > deadline) break;
+    await refreshAssignmentViews(id);
+    posts++;
+  }
+
+  return NextResponse.json({
+    refreshed: done,
+    total: signups?.length ?? 0,
+    posts,
+    postsTotal: proofs?.length ?? 0,
+  });
 }

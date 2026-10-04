@@ -203,3 +203,76 @@ export async function refreshSignupViews(signupId: string) {
 
   return { ok: errors.length === 0, error: errors.join("; ") || undefined };
 }
+
+const PLATFORM_FOR_HOST: Record<string, PlatformEnum> = {
+  "instagram.com": "instagram",
+  "tiktok.com": "tiktok",
+  "youtube.com": "youtube_shorts",
+  "youtu.be": "youtube_shorts",
+};
+
+/** Which platform a post URL belongs to, or null if it isn't one we count. */
+export function platformForUrl(url: string): PlatformEnum | null {
+  return PLATFORM_FOR_HOST[host(url)] ?? null;
+}
+
+/**
+ * Counts the views on the post a creator submitted as proof for an assigned
+ * campaign and stores them in `campaign_views` under the job's title and the
+ * creator's handle on that platform — which is where the brand dashboard and
+ * the creator's own view totals read from. A failed count never overwrites an
+ * earlier number with zero.
+ */
+export async function refreshAssignmentViews(assignmentId: string) {
+  const db = createAdminClient();
+  const { data: assignment } = await db
+    .from("assignments")
+    .select("id, job_id, applicant_id, proof_url")
+    .eq("id", assignmentId)
+    .maybeSingle();
+  if (!assignment?.proof_url) return { ok: false as const, error: "No post to count." };
+
+  const platform = platformForUrl(assignment.proof_url);
+  if (!platform) return { ok: false as const, error: "Unsupported post link." };
+
+  const [{ data: job }, { data: applicant }, { data: handles }] = await Promise.all([
+    db.from("jobs").select("title").eq("id", assignment.job_id).single(),
+    db.from("applicants").select("handle").eq("id", assignment.applicant_id).single(),
+    db
+      .from("applicant_handles")
+      .select("handle, is_primary")
+      .eq("applicant_id", assignment.applicant_id)
+      .eq("platform", platform)
+      .order("is_primary", { ascending: false }),
+  ]);
+  if (!job) return { ok: false as const, error: "Campaign not found." };
+
+  const handle = clean(handles?.[0]?.handle ?? applicant?.handle ?? "").toLowerCase();
+  if (!handle) return { ok: false as const, error: "Creator has no handle." };
+
+  const { counts, errors } = await countViews({
+    id: assignment.id,
+    creator_name: "",
+    campaign: job.title,
+    instagram_handle: "",
+    tiktok_handle: "",
+    youtube_handle: "",
+    post_links: assignment.proof_url,
+    status: "approved",
+    approved_at: null,
+    last_counted_at: null,
+    count_error: null,
+    created_at: "",
+  });
+  if (errors.length > 0) return { ok: false as const, error: errors.join("; ") };
+
+  const views = platform === "instagram" ? counts.instagram : platform === "tiktok" ? counts.tiktok : counts.youtube;
+  const { error } = await db
+    .from("campaign_views")
+    .upsert(
+      [{ campaign: job.title, platform, handle, views, updated_at: new Date().toISOString() }],
+      { onConflict: "campaign,platform,handle" },
+    );
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
+}
