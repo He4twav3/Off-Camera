@@ -6,7 +6,7 @@ import type { Database } from "@/lib/database.types";
 // (profile-setup, jobs, applications) lands under /dashboard/recruiting/*
 // once it exists (see the merge plan's Phase 3), so this one prefix
 // already covers it — no separate top-level entries needed.
-const PROTECTED_PREFIXES = ["/dashboard"];
+const PROTECTED_PREFIXES = ["/dashboard", "/brand"];
 const ADMIN_PREFIX = "/admin";
 
 export async function updateSession(request: NextRequest) {

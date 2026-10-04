@@ -12,11 +12,14 @@ const plain =
   "h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50";
 const withIcon = `${plain} pl-9`;
 
-export function CreateAccountForm() {
+export function CreateAccountForm({ accountType }: { accountType: "creator" | "brand" }) {
   const [state, formAction, pending] = useActionState(createAccount, initialState);
+  const isBrand = accountType === "brand";
 
   return (
     <form action={formAction} className="space-y-4">
+      <input type="hidden" name="account_type" value={accountType} />
+
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="first_name">First name</Label>
@@ -28,11 +31,24 @@ export function CreateAccountForm() {
         </div>
       </div>
 
+      {isBrand && (
+        <>
+          <div className="space-y-1.5">
+            <Label htmlFor="company_name">Company name</Label>
+            <input id="company_name" name="company_name" autoComplete="organization" required maxLength={120} className={plain} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="website">Website (optional)</Label>
+            <input id="website" name="website" inputMode="url" autoComplete="url" placeholder="yourbrand.com" maxLength={200} className={plain} />
+          </div>
+        </>
+      )}
+
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{isBrand ? "Work email" : "Email"}</Label>
         <div className="relative">
           <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required className={withIcon} />
+          <input id="email" name="email" type="email" autoComplete="email" placeholder={isBrand ? "you@yourbrand.com" : "you@example.com"} required className={withIcon} />
         </div>
       </div>
 
@@ -45,12 +61,7 @@ export function CreateAccountForm() {
       </div>
 
       <label className="flex items-start gap-2.5 text-sm text-muted-foreground">
-        <input
-          type="checkbox"
-          name="terms"
-          required
-          className="mt-0.5 size-4 shrink-0 accent-[#ac0216]"
-        />
+        <input type="checkbox" name="terms" required className="mt-0.5 size-4 shrink-0 accent-[#ac0216]" />
         <span>
           I agree to the{" "}
           <Link href="/terms" target="_blank" className="font-medium text-foreground underline underline-offset-2">

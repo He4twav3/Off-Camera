@@ -20,10 +20,11 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
 
 interface JobFormProps {
   niches: { id: string; label: string }[];
+  brands?: { id: string; company_name: string }[];
   job?: Job;
 }
 
-export function JobForm({ niches, job }: JobFormProps) {
+export function JobForm({ niches, brands = [], job }: JobFormProps) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<JobFormState, FormData>(
     saveJobAction,
@@ -122,6 +123,21 @@ export function JobForm({ niches, job }: JobFormProps) {
               {niches.map((n) => (
                 <option key={n.id} value={n.id}>
                   {n.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field label="Brand (optional)" htmlFor={`brand-${job?.id ?? "new"}`}>
+            <Select
+              id={`brand-${job?.id ?? "new"}`}
+              name="brand_account_id"
+              defaultValue={job?.brand_account_id ?? ""}
+            >
+              <option value="">No brand</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.company_name}
                 </option>
               ))}
             </Select>

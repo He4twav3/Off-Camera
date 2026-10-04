@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendVerificationCode, verifyCode } from "@/lib/email-code";
+import { createBrandAccount } from "@/lib/brand-signup";
 
 export type VerifyState = { error?: string; message?: string };
 
@@ -20,6 +21,11 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
 
   const result = await verifyCode(email, code);
   if (!result.ok) return { error: result.error };
+
+  // A brand signup becomes a brand account (pending approval) and lands on /brand.
+  const { data: signedUp } = await createAdminClient().auth.admin.getUserById(result.userId);
+  const isBrand = signedUp.user?.user_metadata?.account_type === "brand";
+  if (isBrand) await createBrandAccount(result.userId);
 
   const { data, error } = await createAdminClient().auth.admin.generateLink({
     type: "magiclink",
@@ -38,7 +44,7 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
     return { error: "You're verified — sign in with your email and password." };
   }
 
-  redirect("/dashboard/recruiting/profile-setup");
+  redirect(isBrand ? "/brand" : "/dashboard/recruiting/profile-setup");
 }
 
 export async function resendCode(_prev: VerifyState, formData: FormData): Promise<VerifyState> {

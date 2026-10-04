@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendVerificationCode } from "@/lib/email-code";
 import { parseCreatorSignup, signupMetadata } from "@/lib/creator-signup";
+import { brandMetadata, parseBrandSignup } from "@/lib/brand-signup";
 
 export type CreateAccountState = { error?: string };
 
@@ -25,9 +26,13 @@ export async function createAccount(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  const parsed = parseCreatorSignup(formData);
+  // One form, two kinds of account: a brand (company side) or a creator.
+  const isBrand = formData.get("account_type") === "brand";
+  const parsed = isBrand ? parseBrandSignup(formData) : parseCreatorSignup(formData);
   if (!parsed.ok) return { error: parsed.error };
-  const metadata = signupMetadata(parsed.value);
+  const metadata = isBrand
+    ? brandMetadata(parsed.value as Parameters<typeof brandMetadata>[0])
+    : signupMetadata(parsed.value as Parameters<typeof signupMetadata>[0]);
 
   if (!email || !email.includes("@")) {
     return { error: "Enter a valid email address." };

@@ -43,6 +43,7 @@ export async function login(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (user?.user_metadata?.account_type === "brand") redirect("/brand");
   const { data: applicant } = user
     ? await supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle()
     : { data: null };
