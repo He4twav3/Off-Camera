@@ -39,6 +39,10 @@ export function CodeEmail({ code }: { code: string }) {
         </tr>
       </table>
       <EmailText align="center">This code expires in 10 minutes.</EmailText>
+      <EmailText align="center">
+        Never share this code with anyone — we will never ask for it. If you
+        didn&apos;t request it, you can safely ignore this email.
+      </EmailText>
     </EmailLayout>
   );
 }

@@ -83,7 +83,7 @@ export async function sendVerificationCode(email: string): Promise<{ ok: boolean
     to: email,
     subject: `${code} is your On Camera code`,
     react: CodeEmail({ code }),
-    text: `Your On Camera verification code is ${code}. It expires in 10 minutes.`,
+    text: `Your On Camera verification code is ${code}. It expires in 10 minutes.\n\nNever share this code with anyone — we will never ask for it. If you didn't request it, you can safely ignore this email.`,
   });
   await createAdminClient().auth.admin.updateUserById(user.id, {
     user_metadata: { ...user.user_metadata, otp_sent_at: Date.now() },
