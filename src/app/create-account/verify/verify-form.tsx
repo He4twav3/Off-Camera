@@ -26,7 +26,7 @@ export function VerifyForm({ email }: { email: string }) {
             maxLength={7}
             required
             autoFocus
-            placeholder="000000"
+            placeholder="––––––"
             className="h-12 w-full rounded-lg border-2 border-ink bg-card text-center font-mono text-2xl tracking-[0.35em] outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
