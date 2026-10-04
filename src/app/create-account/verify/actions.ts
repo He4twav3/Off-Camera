@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendVerificationCode, verifyCode } from "@/lib/email-code";
-import { createCreatorProfile } from "@/lib/creator-signup";
 
 export type VerifyState = { error?: string; message?: string };
 
@@ -21,9 +20,6 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
 
   const result = await verifyCode(email, code);
   if (!result.ok) return { error: result.error };
-
-  // The email is proven — turn the signup details into the creator's profile.
-  await createCreatorProfile(result.userId);
 
   const { data, error } = await createAdminClient().auth.admin.generateLink({
     type: "magiclink",
@@ -42,7 +38,7 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
     return { error: "You're verified — sign in with your email and password." };
   }
 
-  redirect("/dashboard/recruiting?welcome=1");
+  redirect("/dashboard/recruiting/profile-setup");
 }
 
 export async function resendCode(_prev: VerifyState, formData: FormData): Promise<VerifyState> {

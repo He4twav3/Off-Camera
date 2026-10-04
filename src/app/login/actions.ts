@@ -46,5 +46,8 @@ export async function login(
   const { data: applicant } = user
     ? await supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle()
     : { data: null };
-  redirect(applicant ? "/dashboard/recruiting" : "/dashboard");
+  if (applicant) redirect("/dashboard/recruiting");
+  // Signed up as a creator but never finished the profile wizard.
+  if (user?.user_metadata?.first_name) redirect("/dashboard/recruiting/profile-setup");
+  redirect("/dashboard");
 }

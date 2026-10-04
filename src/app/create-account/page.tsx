@@ -21,7 +21,7 @@ export default function CreateAccountPage() {
       <div className="card-sticker w-full max-w-md rounded-2xl bg-card p-6 sm:p-8">
         <h1 className="text-xl font-semibold tracking-tight">Join as a creator</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tell us who you are and where you post. We&apos;ll email you a code to confirm it.
+          Create your account, then we&apos;ll ask about your content. We&apos;ll email you a code to confirm it.
         </p>
         <div className="mt-6">
           <CreateAccountForm />

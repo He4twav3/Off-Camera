@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,12 +11,6 @@ const initialState: CreateAccountState = {};
 const plain =
   "h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50";
 const withIcon = `${plain} pl-9`;
-
-const HANDLES = [
-  { name: "instagram_handle", label: "Instagram", placeholder: "@yourhandle" },
-  { name: "tiktok_handle", label: "TikTok", placeholder: "@yourhandle" },
-  { name: "youtube_handle", label: "YouTube", placeholder: "@yourchannel" },
-];
 
 export function CreateAccountForm() {
   const [state, formAction, pending] = useActionState(createAccount, initialState);
@@ -49,25 +44,25 @@ export function CreateAccountForm() {
         </div>
       </div>
 
-      <fieldset className="space-y-3 border-t border-border pt-4">
-        <legend className="-mt-[1.45rem] bg-card pr-2 text-xs font-medium text-muted-foreground">
-          Your social handles (at least one)
-        </legend>
-        {HANDLES.map((h) => (
-          <div key={h.name} className="space-y-1.5">
-            <Label htmlFor={h.name}>{h.label}</Label>
-            <input
-              id={h.name}
-              name={h.name}
-              autoComplete="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder={h.placeholder}
-              className={plain}
-            />
-          </div>
-        ))}
-      </fieldset>
+      <label className="flex items-start gap-2.5 text-sm text-muted-foreground">
+        <input
+          type="checkbox"
+          name="terms"
+          required
+          className="mt-0.5 size-4 shrink-0 accent-[#ac0216]"
+        />
+        <span>
+          I agree to the{" "}
+          <Link href="/terms" target="_blank" className="font-medium text-foreground underline underline-offset-2">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" target="_blank" className="font-medium text-foreground underline underline-offset-2">
+            Privacy Policy
+          </Link>
+          .
+        </span>
+      </label>
 
       {state.error && <p className="text-sm font-medium text-destructive">{state.error}</p>}
       <Button type="submit" size="lg" disabled={pending} className="btn-sticker w-full">
