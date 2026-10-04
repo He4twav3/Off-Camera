@@ -261,3 +261,27 @@ export function EmailLinkFallback({ href }: { href: string }) {
     </Text>
   );
 }
+
+/** Small print — disclaimers and "why you got this" lines. 12px, muted. */
+export function EmailFinePrint({
+  children,
+  align = "left",
+}: {
+  children: ReactNode;
+  align?: "left" | "center";
+}) {
+  return (
+    <Text
+      style={{
+        margin: "0 0 10px",
+        fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
+        fontSize: 12,
+        lineHeight: "1.6",
+        color: colors.mutedForeground,
+        textAlign: align,
+      }}
+    >
+      {children}
+    </Text>
+  );
+}

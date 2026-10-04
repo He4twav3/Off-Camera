@@ -81,9 +81,20 @@ export async function sendVerificationCode(email: string): Promise<{ ok: boolean
   const code = currentCode(email);
   await sendEmail({
     to: email,
-    subject: `${code} is your On Camera code`,
+    subject: `${code} is your On Camera verification code`,
     react: CodeEmail({ code }),
-    text: `Your On Camera verification code is ${code}. It expires in 10 minutes.\n\nNever share this code with anyone — we will never ask for it. If you didn't request it, you can safely ignore this email.`,
+    text: [
+      "Verify your email address",
+      "",
+      `Use this verification code to finish creating your On Camera account: ${code}`,
+      "This code expires in 10 minutes.",
+      "",
+      "If you didn't request this code, you can safely ignore this email. Someone may have entered your email address by mistake, and no account will be created without this code.",
+      "",
+      "For your security, never share this code with anyone. On Camera will never ask you for it, by email, phone or message.",
+      "",
+      "This is an automated message, so please don't reply to it.",
+    ].join("\n"),
   });
   await createAdminClient().auth.admin.updateUserById(user.id, {
     user_metadata: { ...user.user_metadata, otp_sent_at: Date.now() },

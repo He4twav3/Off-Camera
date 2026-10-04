@@ -1,18 +1,26 @@
 import { Text } from "@react-email/components";
-import { EmailLayout, EmailHeading, EmailText } from "./components/email-layout";
+import {
+  EmailLayout,
+  EmailHeading,
+  EmailText,
+  EmailFinePrint,
+} from "./components/email-layout";
 
 /**
  * The sign-up verification code (see lib/email-code.ts). Same card as every
- * other email; the code sits where the button would.
+ * other email; the code sits where the button would. Wording follows the
+ * usual verification-email pattern: what it's for, the code, expiry, then
+ * small-print security and "why you're getting this" lines.
  */
 export function CodeEmail({ code }: { code: string }) {
   return (
-    <EmailLayout preview={`${code} is your On Camera code`}>
-      <EmailHeading align="center">Your code</EmailHeading>
+    <EmailLayout preview={`${code} is your On Camera verification code`}>
+      <EmailHeading align="center">Verify your email address</EmailHeading>
       <EmailText align="center">
-        Enter this code to confirm it&apos;s really you — no password needed.
+        Use the verification code below to finish creating your On Camera
+        account. This code expires in 10 minutes.
       </EmailText>
-      <table role="presentation" align="center" cellPadding={0} cellSpacing={0} style={{ margin: "4px auto 20px" }}>
+      <table role="presentation" align="center" cellPadding={0} cellSpacing={0} style={{ margin: "4px auto 24px" }}>
         <tr>
           <td
             style={{
@@ -38,11 +46,18 @@ export function CodeEmail({ code }: { code: string }) {
           </td>
         </tr>
       </table>
-      <EmailText align="center">This code expires in 10 minutes.</EmailText>
-      <EmailText align="center">
-        Never share this code with anyone — we will never ask for it. If you
-        didn&apos;t request it, you can safely ignore this email.
-      </EmailText>
+      <EmailFinePrint align="center">
+        If you didn&apos;t request this code, you can safely ignore this
+        email. Someone may have entered your email address by mistake, and no
+        account will be created without this code.
+      </EmailFinePrint>
+      <EmailFinePrint align="center">
+        For your security, never share this code with anyone. On Camera will
+        never ask you for it, by email, phone or message.
+      </EmailFinePrint>
+      <EmailFinePrint align="center">
+        This is an automated message, so please don&apos;t reply to it.
+      </EmailFinePrint>
     </EmailLayout>
   );
 }
