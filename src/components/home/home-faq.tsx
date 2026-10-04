@@ -6,8 +6,6 @@ import {
 } from "@/components/ui/accordion";
 import { Reveal } from "@/components/marketing/reveal";
 import { stagger } from "@/components/marketing/motion";
-import { SectionHeader } from "@/components/marketing/section-frame";
-import { cn } from "@/lib/utils";
 
 const faqs = [
   {
@@ -42,17 +40,20 @@ const faqs = [
 
 export function HomeFAQ() {
   return (
-    <section id="faq" className="relative scroll-mt-20 lg:scroll-mt-32">
+    <section id="faq" className="relative scroll-mt-28">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:px-6 lg:px-8">
-        <SectionHeader eyebrow="Good to know" title="Frequently asked questions" />
-        <Accordion className="mt-14">
+        <Reveal>
+          <h2 className="font-wordmark text-center text-3xl leading-tight font-bold tracking-[-0.02em] text-balance sm:text-5xl">
+            Frequently asked questions
+          </h2>
+        </Reveal>
+        <Accordion className="mt-12 flex flex-col gap-3">
           {faqs.map((faq, i) => (
-            <Reveal
-              key={faq.question}
-              delay={stagger(i, { cap: 2 })}
-              className={cn(i < faqs.length - 1 && "border-b border-hairline")}
-            >
-              <AccordionItem value={`item-${i}`} className="border-b-0">
+            <Reveal key={faq.question} delay={stagger(i, { cap: 2 })}>
+              <AccordionItem
+                value={`item-${i}`}
+                className="rounded-2xl border border-hairline bg-surface-2 px-5 not-last:border-b"
+              >
                 <AccordionTrigger className="py-5 text-left text-[0.95rem] font-semibold no-underline hover:no-underline sm:text-base">
                   {faq.question}
                 </AccordionTrigger>

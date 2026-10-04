@@ -1,60 +1,64 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/marketing/reveal";
-import { LitWords } from "@/components/marketing/lit-words";
-import { BEAT } from "@/components/marketing/motion";
+import { TikTokIcon, InstagramIcon, YouTubeIcon } from "@/components/marketing/platform-icons";
 
 export function HomeHero() {
   return (
-    <section className="relative mx-auto max-w-[1240px] px-5 pt-32 pb-16 text-center sm:px-6 sm:pt-40 lg:px-8">
+    <section className="mx-auto max-w-[1100px] px-5 pt-36 pb-12 text-center sm:px-6 sm:pt-44 lg:px-8">
       <Reveal>
-        <p className="mx-auto inline-flex items-center gap-2 rounded-full border border-hairline bg-surface-2 px-3.5 py-1.5 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-          <span className="size-1.5 animate-pulse rounded-full bg-crimson-bright" aria-hidden />
-          The UGC agency for brands and creators
-        </p>
+        <h1 className="font-wordmark mx-auto max-w-3xl text-[2.6rem] leading-[1.06] font-bold tracking-[-0.025em] text-balance sm:text-6xl lg:text-[4.25rem]">
+          UGC campaigns, without the chaos
+        </h1>
       </Reveal>
 
-      <Reveal delay={BEAT.title}>
-        <LitWords
-          as="h1"
-          className="text-lit font-wordmark mx-auto mt-7 max-w-4xl text-[2.7rem] leading-[1.08] font-bold tracking-[-0.022em] text-balance sm:text-6xl md:text-[4.5rem] lg:text-[5rem]"
-        >
-          UGC that performs. Creators who deliver.
-        </LitWords>
-      </Reveal>
-
-      <Reveal delay={BEAT.lede}>
+      <Reveal delay={120}>
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
-          We match brands with vetted creators, then track every post&rsquo;s
-          views, so you can see what&rsquo;s working.
+          Brands find vetted creators and see every result. Creators find
+          campaigns and keep every post, view and payment in one place.
         </p>
       </Reveal>
 
-      <Reveal delay={BEAT.body}>
+      <Reveal delay={220}>
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/create-account?type=brand" />}
-            className="btn-cta-glass h-12 rounded-full px-7 text-base font-bold text-cta-foreground"
+            render={<Link href="/create-account" />}
+            className="btn-cta-glass h-12 rounded-full px-8 text-base font-bold text-cta-foreground"
           >
-            I&rsquo;m a brand
-            <ArrowRight className="size-4" />
+            Get started
           </Button>
           <Button
             size="lg"
             variant="outline"
             nativeButton={false}
-            render={<Link href="/create-account" />}
-            className="h-12 rounded-full px-7 text-base font-bold"
+            render={<Link href="/create-account?type=brand" />}
+            className="h-12 rounded-full px-8 text-base font-bold"
           >
-            I&rsquo;m a creator
+            For brands
           </Button>
         </div>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Free to join. No card required.
-        </p>
+        <p className="mt-4 text-sm text-muted-foreground">Free to join. Every creator hand-reviewed.</p>
+      </Reveal>
+
+      <Reveal delay={320}>
+        <div className="mt-14 flex flex-col items-center gap-4">
+          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+            Tracks views on
+          </p>
+          <ul className="flex items-center gap-7 text-foreground/80">
+            <li className="flex items-center gap-2 text-sm font-semibold">
+              <TikTokIcon className="size-5" /> TikTok
+            </li>
+            <li className="flex items-center gap-2 text-sm font-semibold">
+              <InstagramIcon className="size-5" /> Instagram
+            </li>
+            <li className="flex items-center gap-2 text-sm font-semibold">
+              <YouTubeIcon className="size-5" /> YouTube
+            </li>
+          </ul>
+        </div>
       </Reveal>
     </section>
   );

@@ -1,26 +1,25 @@
-import { BadgeCheck, Clock3 } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { Reveal } from "@/components/marketing/reveal";
 import { stagger } from "@/components/marketing/motion";
-import { SectionHeader } from "@/components/marketing/section-frame";
-import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { CountUp } from "./count-up";
 
 /**
- * Four feature cards, each holding a small picture of the thing it describes
- * (the pattern UGC platforms like Kora use). Every number and name inside is
- * labelled "Example" — they illustrate the dashboards, they are not real
- * results. Motion is all driven by Reveal's `data-revealed` flag, so it plays
- * once as each card scrolls in, and by prefers-reduced-motion it just shows.
+ * Four plain cards, each holding a small picture of the thing it describes.
+ * Every name and number inside is labelled "Example" — they illustrate the
+ * dashboards, they are not real results. Motion is driven by Reveal's
+ * `data-revealed` flag (plays once as a card scrolls in) and respects
+ * prefers-reduced-motion.
  */
 
-const card = "flex h-full flex-col rounded-[14px] p-6 sm:p-7";
-const example = (
+const card = "flex h-full flex-col rounded-2xl border border-hairline bg-surface-2 p-6 sm:p-7";
+const tag = (
   <span className="rounded-full border border-hairline px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
     Example
   </span>
 );
+const panel = "mt-6 rounded-xl border border-hairline bg-background/60 p-4";
 
-function CardCopy({ title, body }: { title: string; body: string }) {
+function Copy({ title, body }: { title: string; body: string }) {
   return (
     <>
       <h3 className="font-heading text-xl font-semibold text-foreground">{title}</h3>
@@ -30,42 +29,45 @@ function CardCopy({ title, body }: { title: string; body: string }) {
 }
 
 export function Bento() {
-  const rows = [
-    { who: "Creator A", where: "TikTok · Post submitted", views: 48210 },
-    { who: "Creator B", where: "Instagram · In progress", views: 12904 },
-    { who: "Creator C", where: "YouTube · Completed", views: 91377 },
-  ];
-
   return (
-    <section className="relative mx-auto max-w-[1240px] px-5 py-20 sm:px-6 lg:px-8">
-      <SectionHeader
-        eyebrow="What you get"
-        title="One place to run it, and to see it working"
-        lede="Every creator, post and view in a dashboard, for brands and for creators."
-      />
+    <section className="mx-auto max-w-[1100px] px-5 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl text-center">
+        <Reveal>
+          <h2 className="font-wordmark text-3xl leading-tight font-bold tracking-[-0.02em] text-balance sm:text-5xl">
+            One workspace for every campaign
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Creators, posts, views and payouts together. No more tabs and spreadsheets.
+          </p>
+        </Reveal>
+      </div>
 
       <div className="mt-14 grid gap-4 md:grid-cols-5">
         {/* Brands: campaign tracker */}
         <Reveal variant="lift" delay={stagger(0)} className="md:col-span-3">
-          <SpotlightCard size={420} className={card}>
-            <CardCopy
+          <div className={card}>
+            <Copy
               title="Every creator, post and view in one place"
-              body="See who&rsquo;s on each campaign, where they are, and how their post is performing."
+              body="See who is on each campaign, where they are, and how their post is performing."
             />
-            <div className="mt-6 rounded-xl border border-hairline bg-surface-2 p-4">
-              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+            <div className={panel}>
+              <div className="mb-3 flex items-center justify-between text-xs">
                 <span className="font-semibold text-foreground">Your campaign</span>
-                {example}
+                {tag}
               </div>
               <ul className="divide-y divide-hairline">
-                {rows.map((r) => (
-                  <li key={r.who} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                {[
+                  ["Creator A", "TikTok · Post submitted", 48210],
+                  ["Creator B", "Instagram · In progress", 12904],
+                  ["Creator C", "YouTube · Completed", 91377],
+                ].map(([who, where, views]) => (
+                  <li key={who as string} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <span>
-                      <span className="font-semibold text-foreground">{r.who}</span>
-                      <span className="block text-xs text-muted-foreground">{r.where}</span>
+                      <span className="font-semibold text-foreground">{who}</span>
+                      <span className="block text-xs text-muted-foreground">{where}</span>
                     </span>
-                    <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
-                      <CountUp to={r.views} />
+                    <span className="font-mono text-sm font-semibold tabular-nums">
+                      <CountUp to={views as number} />
                     </span>
                   </li>
                 ))}
@@ -78,22 +80,56 @@ export function Bento() {
                 views
               </p>
             </div>
-          </SpotlightCard>
+          </div>
+        </Reveal>
+
+        {/* Creators: campaign board */}
+        <Reveal variant="lift" delay={stagger(1)} className="md:col-span-2">
+          <div className={card}>
+            <Copy title="Campaigns, on one board" body="Browse open campaigns from brands and apply in a click." />
+            <div className={panel}>
+              <div className="mb-3 flex items-center justify-between text-xs">
+                <span className="font-semibold text-foreground">Open campaigns</span>
+                {tag}
+              </div>
+              <ul className="flex flex-col gap-2">
+                {[
+                  ["Skincare UGC", "TikTok · 3 videos", false],
+                  ["App launch", "Instagram · 2 reels", true],
+                  ["Fitness gear", "YouTube Shorts · 1 video", false],
+                ].map(([name, meta, applied]) => (
+                  <li
+                    key={name as string}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-surface-2 px-3 py-2.5 text-sm"
+                  >
+                    <span>
+                      <span className="font-semibold text-foreground">{name}</span>
+                      <span className="block text-xs text-muted-foreground">{meta}</span>
+                    </span>
+                    {applied ? (
+                      <span className="inline-flex origin-center scale-[1.5] items-center gap-1 text-xs font-semibold text-toy-soft-foreground opacity-0 transition-[transform,opacity] duration-500 ease-[var(--ease-cinematic)] [transition-delay:600ms] group-data-[revealed=true]/reveal:scale-100 group-data-[revealed=true]/reveal:opacity-100 motion-reduce:scale-100 motion-reduce:opacity-100 motion-reduce:transition-none">
+                        <BadgeCheck size={14} /> Applied
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-crimson-bright">Apply</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </Reveal>
 
         {/* Creators: earnings */}
-        <Reveal variant="lift" delay={stagger(1)} className="md:col-span-2">
-          <SpotlightCard size={360} className={card}>
-            <CardCopy
-              title="See your earnings build"
-              body="Pending and paid, per campaign, so you always know where you stand."
-            />
-            <div className="mt-6 rounded-xl border border-hairline bg-surface-2 p-4">
-              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+        <Reveal variant="lift" delay={stagger(2)} className="md:col-span-2">
+          <div className={card}>
+            <Copy title="See your earnings build" body="Pending and paid, per campaign, so you always know where you stand." />
+            <div className={panel}>
+              <div className="mb-3 flex items-center justify-between text-xs">
                 <span className="font-semibold text-foreground">Earnings</span>
-                {example}
+                {tag}
               </div>
-              <p className="font-heading text-3xl font-semibold tabular-nums text-foreground">
+              <p className="font-heading text-3xl font-semibold tabular-nums">
                 $<CountUp to={1240} />
               </p>
               <p className="text-xs text-muted-foreground">paid to date</p>
@@ -105,56 +141,40 @@ export function Bento() {
               </div>
               <p className="mt-2 text-xs text-muted-foreground">$480 pending</p>
             </div>
-          </SpotlightCard>
+          </div>
         </Reveal>
 
         {/* Verified accounts */}
-        <Reveal variant="lift" delay={stagger(2)} className="md:col-span-2">
-          <SpotlightCard size={360} className={card}>
-            <CardCopy
-              title="Accounts that are really theirs"
-              body="Creators prove each handle is their own, so brands can trust who they&rsquo;re working with."
-            />
-            <div className="mt-6 rounded-xl border border-hairline bg-surface-2 p-4">
-              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">Your accounts</span>
-                {example}
-              </div>
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="font-semibold text-foreground">
-                  TikTok <span className="font-normal text-muted-foreground">@yourhandle</span>
-                </span>
-                <span
-                  className="inline-flex origin-center scale-[1.7] items-center gap-1 text-sm font-semibold text-toy-soft-foreground opacity-0 transition-[transform,opacity] duration-500 ease-[var(--ease-cinematic)] [transition-delay:500ms] group-data-[revealed=true]/reveal:scale-100 group-data-[revealed=true]/reveal:opacity-100 motion-reduce:scale-100 motion-reduce:opacity-100 motion-reduce:transition-none"
-                >
-                  <BadgeCheck size={16} />
-                  Verified
-                </span>
-              </div>
-            </div>
-          </SpotlightCard>
-        </Reveal>
-
-        {/* Hand-reviewed */}
         <Reveal variant="lift" delay={stagger(3)} className="md:col-span-3">
-          <SpotlightCard size={420} className={card}>
-            <CardCopy
-              title="Hand-reviewed on both sides"
-              body="We approve every creator and every brand by hand before they start, so campaigns begin with people we&rsquo;ve actually vetted."
+          <div className={card}>
+            <Copy
+              title="Accounts that are really theirs"
+              body="Creators prove each handle is their own, so brands know exactly who they are working with."
             />
-            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-hairline bg-surface-2 p-4 text-sm">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-3 py-1 text-muted-foreground">
-                <Clock3 size={14} />
-                Under review
-              </span>
-              <span aria-hidden className="text-muted-foreground">→</span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-3 py-1 text-muted-foreground transition-colors duration-500 [transition-delay:700ms] group-data-[revealed=true]/reveal:border-toy-soft-foreground/50 group-data-[revealed=true]/reveal:text-toy-soft-foreground motion-reduce:transition-none">
-                <BadgeCheck size={14} />
-                Approved
-              </span>
-              <span className="ml-auto">{example}</span>
+            <div className={panel}>
+              <div className="mb-3 flex items-center justify-between text-xs">
+                <span className="font-semibold text-foreground">Your accounts</span>
+                {tag}
+              </div>
+              {[
+                ["TikTok", "@yourhandle", true],
+                ["Instagram", "@yourhandle", false],
+              ].map(([platform, handle, verified]) => (
+                <div key={platform as string} className="flex items-center justify-between gap-3 border-t border-hairline py-2.5 text-sm first:border-t-0">
+                  <span className="font-semibold text-foreground">
+                    {platform} <span className="font-normal text-muted-foreground">{handle}</span>
+                  </span>
+                  {verified ? (
+                    <span className="inline-flex origin-center scale-[1.7] items-center gap-1 text-sm font-semibold text-toy-soft-foreground opacity-0 transition-[transform,opacity] duration-500 ease-[var(--ease-cinematic)] [transition-delay:500ms] group-data-[revealed=true]/reveal:scale-100 group-data-[revealed=true]/reveal:opacity-100 motion-reduce:scale-100 motion-reduce:opacity-100 motion-reduce:transition-none">
+                      <BadgeCheck size={16} /> Verified
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Not verified</span>
+                  )}
+                </div>
+              ))}
             </div>
-          </SpotlightCard>
+          </div>
         </Reveal>
       </div>
     </section>
