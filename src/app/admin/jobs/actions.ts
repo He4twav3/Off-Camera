@@ -20,6 +20,7 @@ const jobSchema = z.object({
   payout_notes: z.string().trim().max(500).optional(),
   account_requirement: z.enum(["new_ok", "established_required"]),
   status: z.enum(["open", "filled", "closed"]),
+  brand_account_id: z.string().uuid().optional().or(z.literal("")),
   notion_sop_url: z
     .string()
     .trim()
@@ -43,6 +44,7 @@ export async function saveJobAction(
     payout_notes: formData.get("payout_notes") ?? "",
     account_requirement: formData.get("account_requirement"),
     status: formData.get("status"),
+    brand_account_id: (formData.get("brand_account_id") as string) || "",
     notion_sop_url: formData.get("notion_sop_url") ?? "",
   });
 
@@ -58,6 +60,7 @@ export async function saveJobAction(
     description: values.description ?? "",
     payout_notes: values.payout_notes || null,
     notion_sop_url: values.notion_sop_url || null,
+    brand_account_id: values.brand_account_id || null,
   };
 
   // RLS restricts writes to admins; this runs as the signed-in admin, not
@@ -72,6 +75,7 @@ export async function saveJobAction(
 
   revalidatePath("/admin/jobs");
   revalidatePath("/dashboard/recruiting/jobs");
+  revalidatePath("/brand");
   return { success: id ? "Job updated." : "Job created." };
 }
 

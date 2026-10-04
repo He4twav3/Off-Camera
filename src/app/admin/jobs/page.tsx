@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Jobs · Admin" };
 export default async function AdminJobsPage() {
   const supabase = await createClient();
 
-  const [{ data: jobs }, { data: niches }] = await Promise.all([
+  const [{ data: jobs }, { data: niches }, { data: brands }] = await Promise.all([
     supabase
       .from("jobs")
       .select("*, niches(label)")
@@ -26,6 +26,11 @@ export default async function AdminJobsPage() {
       .select("id, label")
       .eq("is_active", true)
       .order("label"),
+    supabase
+      .from("brand_accounts")
+      .select("id, company_name")
+      .eq("status", "approved")
+      .order("company_name"),
   ]);
 
   return (
@@ -40,7 +45,7 @@ export default async function AdminJobsPage() {
             anywhere.
           </p>
         </div>
-        <JobForm niches={niches ?? []} />
+        <JobForm niches={niches ?? []} brands={brands ?? []} />
       </header>
 
       {!jobs || jobs.length === 0 ? (
@@ -88,7 +93,7 @@ export default async function AdminJobsPage() {
                   </div>
 
                   <div className="flex shrink-0 gap-3">
-                    <JobForm niches={niches ?? []} job={job} />
+                    <JobForm niches={niches ?? []} brands={brands ?? []} job={job} />
                     <form action={deleteJobAction}>
                       <input type="hidden" name="id" value={job.id} />
                       <button

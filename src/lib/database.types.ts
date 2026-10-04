@@ -50,6 +50,7 @@ export interface Database {
           account_requirement: AccountRequirementEnum;
           status: JobStatusEnum;
           notion_sop_url: string | null;
+          brand_account_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -64,6 +65,7 @@ export interface Database {
           account_requirement?: AccountRequirementEnum;
           status?: JobStatusEnum;
           notion_sop_url?: string | null;
+          brand_account_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["jobs"]["Insert"]>;
@@ -336,6 +338,28 @@ export interface Database {
             referencedColumns: ["id"];
           },
         ];
+      };
+      brand_accounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          company_name: string;
+          website: string | null;
+          contact_name: string;
+          status: "pending" | "approved" | "rejected";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          company_name: string;
+          website?: string | null;
+          contact_name: string;
+          status?: "pending" | "approved" | "rejected";
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["brand_accounts"]["Insert"]>;
+        Relationships: [];
       };
       campaign_signups: {
         Row: {
