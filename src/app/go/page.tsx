@@ -172,7 +172,7 @@ export default function GoPage() {
               ))}
             </ol>
             <Link
-              href="/#curriculum"
+              href="/course#curriculum"
               className="mt-4 inline-block text-sm font-medium underline underline-offset-2 hover:text-primary"
             >
               See the full lesson-by-lesson breakdown →
@@ -191,7 +191,7 @@ export default function GoPage() {
                 what we learned, live on the main site.
               </p>
               <Link
-                href="/#proof"
+                href="/course#proof"
                 className="mt-4 inline-block text-sm font-medium underline underline-offset-2 hover:text-primary"
               >
                 Watch the breakdowns →
@@ -245,7 +245,7 @@ export default function GoPage() {
               ))}
             </div>
             <Link
-              href="/#faq"
+              href="/course#faq"
               className="mt-6 inline-block text-sm font-medium underline underline-offset-2 hover:text-primary"
             >
               See all questions →

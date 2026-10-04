@@ -48,12 +48,21 @@ import { siteConfig } from "@/lib/site-config";
  */
 const columns = [
   {
-    title: "Course",
+    title: "Get started",
     links: [
-      { href: "/#proof", label: "Proof" },
-      { href: "/#curriculum", label: "Curriculum" },
-      { href: "/#pricing", label: "Pricing" },
-      { href: "/#faq", label: "FAQ" },
+      { href: "/create-account?type=brand", label: "For brands" },
+      { href: "/create-account", label: "For creators" },
+      { href: "/login", label: "Log in" },
+    ],
+  },
+  {
+    title: "Academy",
+    links: [
+      { href: "/course", label: "The course" },
+      { href: "/course#proof", label: "Proof" },
+      { href: "/course#curriculum", label: "Curriculum" },
+      { href: "/course#pricing", label: "Pricing" },
+      { href: "/course#faq", label: "FAQ" },
     ],
   },
   {

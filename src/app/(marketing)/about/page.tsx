@@ -52,7 +52,7 @@ export default function AboutPage() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button nativeButton={false} render={<Link href="/#curriculum" />} className="btn-premium">
+        <Button nativeButton={false} render={<Link href="/course#curriculum" />} className="btn-premium">
           See the course
         </Button>
         {siteConfig.communityUrl && (

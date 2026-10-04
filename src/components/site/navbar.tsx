@@ -28,11 +28,11 @@ import { cn } from "@/lib/utils";
 // links, no fill, no border: a premium site's nav doesn't need five
 // colors to prove five things are clickable.
 const sections = [
-  { href: "/#proof", label: "Proof" },
-  { href: "/#curriculum", label: "Curriculum" },
-  { href: "/#story", label: "Story" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/#brands", label: "For brands" },
+  { href: "/#creators", label: "For creators" },
+  { href: "/#how-it-works", label: "How it works" },
   { href: "/#faq", label: "FAQ" },
+  { href: "/course", label: "Academy" },
 ];
 
 // Deliberately not async / no getSession() call here: this navbar is shared
@@ -91,7 +91,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
 
-        {/* Save my free spot, then Log in — in that order, both pinned to
+        {/* Get started, then Log in — in that order, both pinned to
             the far right. This used to be a separate "Dashboard" pill
             (dead weight: a marketing nav pointing at a logged-in-only
             route almost nobody hitting this page has a reason to click)
@@ -119,10 +119,10 @@ export function Navbar() {
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/signup" />}
+            render={<Link href="/create-account" />}
             className="btn-cta-glass rounded-full px-5 font-bold text-cta-foreground"
           >
-            Save my free spot
+            Get started
           </Button>
           <AuthNavPill />
         </div>
@@ -163,10 +163,10 @@ export function Navbar() {
               <Button
                 size="lg"
                 nativeButton={false}
-                render={<Link href="/signup" onClick={closeMobileNav} />}
+                render={<Link href="/create-account" onClick={closeMobileNav} />}
                 className="btn-cta-glass mt-3 rounded-full py-2.5 font-bold text-cta-foreground"
               >
-                Save my free spot
+                Get started
               </Button>
               {/* Same order as the desktop group above: CTA leads, log
                   in trails right after it. AuthNavRow, not AuthNavPill —

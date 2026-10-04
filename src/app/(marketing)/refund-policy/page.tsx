@@ -35,7 +35,7 @@ export default function RefundPolicyPage() {
       <h2>Before you buy</h2>
       <p>
         The intro video and full curriculum are on the{" "}
-        <Link href="/#curriculum">main site</Link> so you can take a proper
+        <Link href="/course#curriculum">main site</Link> so you can take a proper
         look before you enroll — the refund window is a safety net, not a
         replacement for checking the course is right for you first.
       </p>
