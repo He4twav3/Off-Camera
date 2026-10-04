@@ -31,10 +31,6 @@ export function Hero({
       />
       <div className="relative mx-auto max-w-[1100px] text-center">
         <FadeIn>
-          <p className="mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-[#1d1c22] px-4 py-1.5 text-[0.8rem] font-medium text-[#a39e98]">
-            <span className="size-1.5 animate-pulse rounded-full bg-[#e0556a]" aria-hidden />
-            Hand-reviewed creators and brands
-          </p>
           <h1 className="text-[clamp(2.7rem,8.4vw,5.9rem)] leading-[0.98] font-bold tracking-[-0.035em] text-balance">
             {line1}
             <br />
