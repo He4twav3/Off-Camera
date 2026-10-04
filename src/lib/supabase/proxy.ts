@@ -39,7 +39,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isProtected = PROTECTED_PREFIXES.some((p) => path.startsWith(p));
+  // Whole path segments only: "/brand" must not also catch the public "/brands".
+  const isProtected = PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
   const isAdminRoute = path.startsWith(ADMIN_PREFIX);
 
   if (!user && (isProtected || isAdminRoute)) {

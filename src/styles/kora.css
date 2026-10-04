@@ -1,0 +1,66 @@
+/* Motion for the creators / brands pages (see components/kora). Small looping
+   "demo" animations inside the example cards, in the OnCamera palette:
+   ground #16151a, panel #1d1c22, cream #edeae4, crimson #ac0216. Everything
+   settles into its final, readable state under prefers-reduced-motion. */
+
+/* A slow highlight sweeping across the accent line of the headline. */
+@keyframes ko-sheen {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.ko-sheen {
+  background-image: linear-gradient(90deg, #ac0216 0%, #e0556a 45%, #ac0216 90%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ko-sheen 7s linear infinite;
+}
+
+/* A stamp / badge landing, holding, then resetting. */
+@keyframes ko-pop {
+  0%, 12% { opacity: 0; transform: scale(1.7); }
+  22%, 82% { opacity: 1; transform: scale(1); }
+  96%, 100% { opacity: 0; transform: scale(1); }
+}
+.ko-pop { animation: ko-pop 6s ease-out infinite; }
+
+/* Deliverable dots ticking on one after another. */
+@keyframes ko-dot {
+  0%, 8% { background-color: transparent; border-color: #3a3840; }
+  18%, 80% { background-color: #ac0216; border-color: #ac0216; }
+  95%, 100% { background-color: transparent; border-color: #3a3840; }
+}
+.ko-dot { animation: ko-dot 6s ease-out infinite; }
+
+/* A progress bar filling, then resetting. */
+@keyframes ko-fill {
+  0%, 6% { width: 0%; }
+  40%, 85% { width: var(--ko-to, 72%); }
+  100% { width: 0%; }
+}
+.ko-fill { animation: ko-fill 6s ease-in-out infinite; }
+
+/* A row sliding in. */
+@keyframes ko-slide {
+  0%, 10% { opacity: 0; transform: translateY(8px); }
+  25%, 85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+.ko-slide { animation: ko-slide 6s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ko-sheen { animation: none; }
+  .ko-pop, .ko-slide { animation: none; opacity: 1; transform: none; }
+  .ko-dot { animation: none; background-color: #ac0216; border-color: #ac0216; }
+  .ko-fill { animation: none; width: var(--ko-to, 72%); }
+}
+
+/* The site sets its own heading face globally; on these pages every heading
+   uses the page's typeface (Geist) instead. */
+.ko-root h1,
+.ko-root h2,
+.ko-root h3,
+.ko-root h4 {
+  font-family: inherit;
+}

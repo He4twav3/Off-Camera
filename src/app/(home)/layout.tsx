@@ -1,20 +1,22 @@
 import type { ReactNode } from "react";
-import { HomeNav } from "@/components/home/home-nav";
-import { HomeFooter } from "@/components/home/home-footer";
+import { Geist } from "next/font/google";
+import { Nav } from "@/components/kora/nav";
+import { Footer } from "@/components/kora/footer";
+import "@/styles/kora.css";
+
+const geist = Geist({ subsets: ["latin"], display: "swap" });
 
 /**
- * The homepage's own shell. Deliberately NOT the marketing group's layout: that
- * one carries the course page's cinematic dressing (film atmosphere, the
- * bottom name tag, the navbar with its section row and scroll progress). The
- * agency homepage is cleaner — flat dark ground, a floating pill nav, a simple
- * footer — in the same colours.
+ * The creators (/) and brands (/brands) pages: their own shell, their own
+ * typeface (Geist) and a flat, airy layout — nothing from the course page's
+ * look. Colours are the OnCamera palette.
  */
 export default function HomeLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
-      <HomeNav />
+    <div className={`${geist.className} ko-root relative flex min-h-screen flex-col bg-[#16151a] text-[#edeae4] antialiased`}>
+      <Nav />
       <main className="flex-1">{children}</main>
-      <HomeFooter />
+      <Footer />
     </div>
   );
 }

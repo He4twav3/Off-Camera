@@ -2,12 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-/**
- * A number that counts up from 0 the first time it scrolls into view. Renders
- * the final value on the server (so it reads correctly without JavaScript) and
- * writes to the DOM directly while animating, so there's no re-render per
- * frame. Honors prefers-reduced-motion by just showing the number.
- */
+/** A number that counts up from 0 once it scrolls into view. The server renders
+ * the final value; the DOM is written directly while animating (no re-render per
+ * frame). Under prefers-reduced-motion it just shows the number. */
 export function CountUp({ to, duration = 1400 }: { to: number; duration?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
 
@@ -15,12 +12,10 @@ export function CountUp({ to, duration = 1400 }: { to: number; duration?: number
     const el = ref.current;
     if (!el) return;
     const format = (n: number) => Math.round(n).toLocaleString("en-US");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || typeof IntersectionObserver === "undefined") {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined") {
       el.textContent = format(to);
       return;
     }
-
     el.textContent = "0";
     let raf = 0;
     const io = new IntersectionObserver(
