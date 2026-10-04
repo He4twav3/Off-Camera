@@ -23,9 +23,9 @@ export function CodeEmail({ code }: { code: string }) {
       <table role="presentation" align="center" cellPadding={0} cellSpacing={0} style={{ margin: "4px auto 24px" }}>
         <tr>
           <td
+            {...{ bgcolor: "#1d1c22" }}
             style={{
-              backgroundColor: "#16151a",
-              border: "2px solid #edeae4",
+              backgroundColor: "#1d1c22",
               borderRadius: 14,
               padding: "16px 28px",
             }}

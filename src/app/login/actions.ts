@@ -34,5 +34,17 @@ export async function login(
     return { error: "Incorrect email or password." };
   }
 
-  redirect("/dashboard");
+  // Go where they were headed (same-site paths only — an absolute URL here
+  // would be an open redirect), otherwise to their own dashboard: creators
+  // to the creator dashboard, everyone else to the main one.
+  const next = String(formData.get("next") ?? "");
+  if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: applicant } = user
+    ? await supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle()
+    : { data: null };
+  redirect(applicant ? "/dashboard/recruiting" : "/dashboard");
 }

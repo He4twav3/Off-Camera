@@ -15,7 +15,10 @@ export const metadata: Metadata = {
 // route outside the marketing layout, and min-h-full's percentage-height
 // chain doesn't reliably resolve all the way up through the root layout
 // for a page like this (see the same fix already applied to /signup).
-export default function LoginPage() {
+export default async function LoginPage(props: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await props.searchParams;
   return (
     <div className="dark-invert flex min-h-screen flex-col items-center justify-center bg-background px-4 py-16 text-foreground">
       <div className="mb-8">
@@ -24,30 +27,19 @@ export default function LoginPage() {
 
       <div className="card-sticker w-full max-w-sm rounded-2xl bg-card p-6 sm:p-8">
         <h1 className="text-xl font-semibold tracking-tight">Sign in</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Pick up right where you left off.
-        </p>
 
         <div className="mt-6">
-          <LoginForm />
+          <LoginForm next={next} />
         </div>
       </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        New here?{" "}
+        Don&apos;t have an account?{" "}
         <Link
           href="/create-account"
           className="font-medium text-foreground underline underline-offset-2"
         >
-          Create an account
-        </Link>
-        {" · "}
-        Not enrolled yet?{" "}
-        <Link
-          href="/#pricing"
-          className="font-medium text-foreground underline underline-offset-2"
-        >
-          See the course
+          Create account
         </Link>
       </p>
     </div>

@@ -82,7 +82,7 @@ export function EmailLayout({
   children: ReactNode;
 }) {
   return (
-    <Html>
+    <Html style={{ backgroundColor: colors.background }}>
       <Head>
         {/* Tell iOS Mail / Apple Mail this email already handles dark mode
             so it doesn't re-colour it, and give clients that ignore the
@@ -102,22 +102,22 @@ export function EmailLayout({
             maxWidth: 480,
             margin: "0 auto",
             backgroundColor: colors.card,
-            border: `2px solid ${colors.ink}`,
             borderRadius: 20,
             overflow: "hidden",
           }}
         >
-          <Section {...{ bgcolor: colors.card }} style={{ padding: "40px 32px 8px", textAlign: "center", backgroundColor: colors.card }}>
-            {/* The site's real lockup — viewfinder mark + "OnCamera" in
-                Bespoke Stencil Bold — rendered to a transparent white PNG,
-                because email clients can't load the web font. Drawn 3x
-                and shown at 180x31 so it stays sharp on retina phones.
-                Regenerate public/email/logo-lockup.png if the logo or
-                font ever changes. */}
+          <Section {...{ bgcolor: colors.card }} style={{ padding: "36px 32px 0", textAlign: "center", backgroundColor: colors.card }}>
+            {/* The viewfinder mark only, white with the crimson tally.
+                Drawn 4x (336px) and shown at 84px so it stays sharp on
+                retina phones. The PNG has the same solid #16151a as the
+                card behind it — invisible on the dark card, and if a mail
+                client drops the card colour it still reads as a dark tile
+                instead of vanishing into white. Regenerate
+                public/email/logo-mark.png if the mark ever changes. */}
             <Img
-              src={`${EMAIL_ASSET_BASE_URL}/email/logo-lockup.png`}
-              width={180}
-              height={31}
+              src={`${EMAIL_ASSET_BASE_URL}/email/logo-mark.png`}
+              width={84}
+              height={84}
               alt="OnCamera"
               style={{ display: "block", margin: "0 auto" }}
             />
