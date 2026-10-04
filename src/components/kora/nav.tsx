@@ -17,9 +17,17 @@ export function Nav() {
     <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
       <nav
         aria-label="Main"
-        className="flex w-full max-w-[1000px] items-center justify-between gap-3 rounded-full border border-white/[0.08] bg-[#1d1c22]/85 py-3.5 pr-6 pl-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+        className="grid w-full max-w-[1000px] grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-full border border-white/[0.08] bg-[#1d1c22]/85 py-3.5 pr-6 pl-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl"
       >
-        <Logo />
+        <div className="justify-self-start">
+          {/* just the mark on phones, so the two labels fit on one line */}
+          <span className="sm:hidden">
+            <Logo variant="compact" />
+          </span>
+          <span className="hidden sm:inline-flex">
+            <Logo />
+          </span>
+        </div>
         <div className="flex items-center gap-6 sm:gap-9">
           {links.map((l) => (
             <Link
@@ -27,7 +35,7 @@ export function Nav() {
               href={l.href}
               aria-current={path === l.href ? "page" : undefined}
               className={cn(
-                "text-[0.75rem] font-bold tracking-[0.16em] uppercase transition-colors",
+                "text-[0.7rem] font-bold tracking-[0.12em] whitespace-nowrap uppercase transition-colors sm:text-[0.75rem] sm:tracking-[0.16em]",
                 path === l.href ? "text-[#e0556a]" : "text-[#a39e98] hover:text-[#edeae4]",
               )}
             >
@@ -35,6 +43,8 @@ export function Nav() {
             </Link>
           ))}
         </div>
+        {/* empty right column keeps the links truly centred */}
+        <div aria-hidden />
       </nav>
     </header>
   );
