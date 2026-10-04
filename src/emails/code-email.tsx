@@ -25,7 +25,7 @@ export function CodeEmail({ code }: { code: string }) {
           <td
             style={{
               backgroundColor: "#16151a",
-              border: "1px solid #2d2b32",
+              border: "2px solid #edeae4",
               borderRadius: 14,
               padding: "16px 28px",
             }}

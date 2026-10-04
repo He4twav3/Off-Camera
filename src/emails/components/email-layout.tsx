@@ -64,7 +64,7 @@ const EMAIL_ASSET_BASE_URL = "https://www.oncameraugc.com";
 
 const colors = {
   background: "#16151a",
-  card: "#1d1c22",
+  card: "#16151a",
   ink: "#edeae4",
   accent: "#ac0216",
   accentForeground: "#ffffff",
@@ -102,36 +102,25 @@ export function EmailLayout({
             maxWidth: 480,
             margin: "0 auto",
             backgroundColor: colors.card,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 24,
+            border: `2px solid ${colors.ink}`,
+            borderRadius: 20,
             overflow: "hidden",
           }}
         >
           <Section {...{ bgcolor: colors.card }} style={{ padding: "40px 32px 8px", textAlign: "center", backgroundColor: colors.card }}>
-            {/* PNG, not the site's icon.svg: Gmail doesn't render SVG in
-                <img>, and icon.svg also adapts to prefers-color-scheme,
-                which an inbox can't be trusted to match. public/email/
-                logo.png is the same viewfinder mark in cream + crimson on
-                a transparent ground, drawn for this dark card. */}
+            {/* The site's real lockup — viewfinder mark + "OnCamera" in
+                Bespoke Stencil Bold — rendered to a transparent white PNG,
+                because email clients can't load the web font. Drawn 3x
+                and shown at 180x31 so it stays sharp on retina phones.
+                Regenerate public/email/logo-lockup.png if the logo or
+                font ever changes. */}
             <Img
-              src={`${EMAIL_ASSET_BASE_URL}/email/logo.png`}
-              width={56}
-              height={56}
+              src={`${EMAIL_ASSET_BASE_URL}/email/logo-lockup.png`}
+              width={180}
+              height={31}
               alt="OnCamera"
               style={{ display: "block", margin: "0 auto" }}
             />
-            <Text
-              style={{
-                margin: "12px 0 0",
-                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                fontWeight: 800,
-                fontSize: 18,
-                letterSpacing: "0.02em",
-                color: colors.ink,
-              }}
-            >
-              OnCamera
-            </Text>
           </Section>
 
           <Section {...{ bgcolor: colors.card }} style={{ padding: "24px 40px 40px", backgroundColor: colors.card }}>{children}</Section>
