@@ -83,10 +83,21 @@ export function EmailLayout({
 }) {
   return (
     <Html>
-      <Head />
+      <Head>
+        {/* Tell iOS Mail / Apple Mail this email already handles dark mode
+            so it doesn't re-colour it, and give clients that ignore the
+            meta tags the same hint in CSS. */}
+        <meta name="color-scheme" content="dark light" />
+        <meta name="supported-color-schemes" content="dark light" />
+        <style>{`:root{color-scheme:dark light;supported-color-schemes:dark light;}`}</style>
+      </Head>
       <Preview>{preview}</Preview>
-      <Body style={{ backgroundColor: colors.background, margin: 0, padding: "40px 16px" }}>
+      <Body
+        {...{ bgcolor: colors.background }}
+        style={{ backgroundColor: colors.background, margin: 0, padding: "40px 16px" }}
+      >
         <Container
+          {...{ bgcolor: colors.card }}
           style={{
             maxWidth: 480,
             margin: "0 auto",
@@ -96,7 +107,7 @@ export function EmailLayout({
             overflow: "hidden",
           }}
         >
-          <Section style={{ padding: "40px 32px 8px", textAlign: "center" }}>
+          <Section {...{ bgcolor: colors.card }} style={{ padding: "40px 32px 8px", textAlign: "center", backgroundColor: colors.card }}>
             {/* PNG, not the site's icon.svg: Gmail doesn't render SVG in
                 <img>, and icon.svg also adapts to prefers-color-scheme,
                 which an inbox can't be trusted to match. public/email/
@@ -123,10 +134,10 @@ export function EmailLayout({
             </Text>
           </Section>
 
-          <Section style={{ padding: "24px 40px 40px" }}>{children}</Section>
+          <Section {...{ bgcolor: colors.card }} style={{ padding: "24px 40px 40px", backgroundColor: colors.card }}>{children}</Section>
 
           <Hr style={{ borderColor: colors.border, margin: 0 }} />
-          <Section style={{ padding: "18px 32px", textAlign: "center" }}>
+          <Section {...{ bgcolor: colors.card }} style={{ padding: "18px 32px", textAlign: "center", backgroundColor: colors.card }}>
             <Text
               style={{
                 margin: 0,
