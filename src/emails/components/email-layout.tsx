@@ -91,55 +91,42 @@ export function EmailLayout({
             maxWidth: 480,
             margin: "0 auto",
             backgroundColor: colors.card,
-            border: `2px solid ${colors.ink}`,
-            borderRadius: 20,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 24,
             overflow: "hidden",
           }}
         >
-          <Section style={{ padding: "24px 32px", borderBottom: `1px solid ${colors.border}` }}>
-            <table role="presentation" cellPadding={0} cellSpacing={0}>
-              <tr>
-                <td style={{ paddingRight: 10 }}>
-                  <Img
-                    src={`${EMAIL_ASSET_BASE_URL}/icon.svg`}
-                    width={22}
-                    height={22}
-                    alt="OnCamera"
-                    style={{ display: "block", borderRadius: 5 }}
-                  />
-                </td>
-                <td>
-                  {/* Bold system sans, not the site's own Bespoke
-                      Stencil wordmark face — @font-face support in email
-                      is unreliable enough (no Gmail/Outlook support at
-                      all) that shipping the real font would just mean
-                      most inboxes silently fall back anyway. A bold
-                      sans-serif fallback at least agrees with the site's
-                      actual identity on the one thing every client CAN
-                      render: this is a blocky, sans-serif brand, not a
-                      serif one — Georgia was never that, on any client. */}
-                  <Text
-                    style={{
-                      margin: 0,
-                      fontFamily:
-                        "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                      fontWeight: 800,
-                      fontSize: 17,
-                      letterSpacing: "-0.01em",
-                      color: colors.ink,
-                    }}
-                  >
-                    OnCamera
-                  </Text>
-                </td>
-              </tr>
-            </table>
+          <Section style={{ padding: "40px 32px 8px", textAlign: "center" }}>
+            {/* PNG, not the site's icon.svg: Gmail doesn't render SVG in
+                <img>, and icon.svg also adapts to prefers-color-scheme,
+                which an inbox can't be trusted to match. public/email/
+                logo.png is the same viewfinder mark in cream + crimson on
+                a transparent ground, drawn for this dark card. */}
+            <Img
+              src={`${EMAIL_ASSET_BASE_URL}/email/logo.png`}
+              width={56}
+              height={56}
+              alt="OnCamera"
+              style={{ display: "block", margin: "0 auto" }}
+            />
+            <Text
+              style={{
+                margin: "12px 0 0",
+                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                fontWeight: 800,
+                fontSize: 18,
+                letterSpacing: "0.02em",
+                color: colors.ink,
+              }}
+            >
+              OnCamera
+            </Text>
           </Section>
 
-          <Section style={{ padding: "32px" }}>{children}</Section>
+          <Section style={{ padding: "24px 40px 40px" }}>{children}</Section>
 
           <Hr style={{ borderColor: colors.border, margin: 0 }} />
-          <Section style={{ padding: "20px 32px" }}>
+          <Section style={{ padding: "18px 32px", textAlign: "center" }}>
             <Text
               style={{
                 margin: 0,
@@ -148,13 +135,6 @@ export function EmailLayout({
                 color: colors.mutedForeground,
               }}
             >
-              {/* siteConfig.tagline, not a copy of it — this line had
-                  drifted to an old tagline ("The content system behind
-                  videos that perform.") the live site no longer uses
-                  anywhere, since it was hardcoded instead of reading the
-                  same single source of truth every other tagline
-                  mention on the site already does. */}
-              {siteConfig.name} · {siteConfig.tagline}{" "}
               <Link href={siteConfig.url} style={{ color: colors.mutedForeground }}>
                 {siteConfig.url.replace(/^https?:\/\//, "")}
               </Link>
@@ -166,7 +146,13 @@ export function EmailLayout({
   );
 }
 
-export function EmailHeading({ children }: { children: ReactNode }) {
+export function EmailHeading({
+  children,
+  align = "left",
+}: {
+  children: ReactNode;
+  align?: "left" | "center";
+}) {
   return (
     <Heading
       style={{
@@ -181,6 +167,7 @@ export function EmailHeading({ children }: { children: ReactNode }) {
         fontWeight: 700,
         fontSize: 24,
         color: colors.ink,
+        textAlign: align,
       }}
     >
       {children}
@@ -204,9 +191,23 @@ export function EmailText({ children }: { children: ReactNode }) {
   );
 }
 
-export function EmailButton({ href, children }: { href: string; children: ReactNode }) {
+export function EmailButton({
+  href,
+  children,
+  align = "left",
+}: {
+  href: string;
+  children: ReactNode;
+  align?: "left" | "center";
+}) {
   return (
-    <table role="presentation" cellPadding={0} cellSpacing={0} style={{ margin: "4px 0 24px" }}>
+    <table
+      role="presentation"
+      cellPadding={0}
+      cellSpacing={0}
+      align={align}
+      style={{ margin: align === "center" ? "4px auto 8px" : "4px 0 24px" }}
+    >
       <tr>
         <td
           style={{
