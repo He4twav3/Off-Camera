@@ -4,13 +4,15 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendVerificationCode, verifyCode } from "@/lib/email-code";
+import { createCreatorProfile } from "@/lib/creator-signup";
 
 export type VerifyState = { error?: string; message?: string };
 
 /**
  * Step 2: check the emailed code, confirm the account, and sign the person in
  * with a one-time session minted server-side (no password needed here — the
- * code itself was the proof). Lands on the dashboard.
+ * code itself was the proof). Creates the creator profile and lands on their
+ * dashboard, which greets them by name.
  */
 export async function verifyAccount(_prev: VerifyState, formData: FormData): Promise<VerifyState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -19,6 +21,9 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
 
   const result = await verifyCode(email, code);
   if (!result.ok) return { error: result.error };
+
+  // The email is proven — turn the signup details into the creator's profile.
+  await createCreatorProfile(result.userId);
 
   const { data, error } = await createAdminClient().auth.admin.generateLink({
     type: "magiclink",
@@ -37,7 +42,7 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
     return { error: "You're verified — sign in with your email and password." };
   }
 
-  redirect("/dashboard");
+  redirect("/dashboard/recruiting?welcome=1");
 }
 
 export async function resendCode(_prev: VerifyState, formData: FormData): Promise<VerifyState> {

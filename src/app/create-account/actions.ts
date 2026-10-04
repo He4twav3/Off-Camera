@@ -3,16 +3,12 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendVerificationCode } from "@/lib/email-code";
+import { parseCreatorSignup, signupMetadata } from "@/lib/creator-signup";
 
 export type CreateAccountState = { error?: string };
 
-function displayName(email: string) {
-  const part = email.split("@")[0] ?? "student";
-  return part.charAt(0).toUpperCase() + part.slice(1).replace(/[._-]/g, " ");
-}
-
 /**
- * Step 1 of signup: email + password. The account is created UNCONFIRMED and
+ * Step 1 of signup: name, email, handles and password. The account is created UNCONFIRMED and
  * a 6-digit code is emailed (see lib/email-code.ts); it can't be used until
  * the code is entered on /create-account/verify, which confirms it and signs
  * the person in.
@@ -29,6 +25,10 @@ export async function createAccount(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
+  const parsed = parseCreatorSignup(formData);
+  if (!parsed.ok) return { error: parsed.error };
+  const metadata = signupMetadata(parsed.value);
+
   if (!email || !email.includes("@")) {
     return { error: "Enter a valid email address." };
   }
@@ -41,7 +41,7 @@ export async function createAccount(
     email,
     password,
     email_confirm: false,
-    user_metadata: { display_name: displayName(email) },
+    user_metadata: metadata,
   });
 
   if (error) {
@@ -61,7 +61,10 @@ export async function createAccount(
     if (existing.email_confirmed_at) {
       return { error: "That email already has an account. Sign in instead." };
     }
-    await admin.auth.admin.updateUserById(existing.id, { password });
+    await admin.auth.admin.updateUserById(existing.id, {
+      password,
+      user_metadata: { ...existing.user_metadata, ...metadata },
+    });
   }
 
   const sent = await sendVerificationCode(email);
