@@ -175,7 +175,13 @@ export function EmailHeading({
   );
 }
 
-export function EmailText({ children }: { children: ReactNode }) {
+export function EmailText({
+  children,
+  align = "left",
+}: {
+  children: ReactNode;
+  align?: "left" | "center";
+}) {
   return (
     <Text
       style={{
@@ -184,6 +190,7 @@ export function EmailText({ children }: { children: ReactNode }) {
         fontSize: 15,
         lineHeight: "1.6",
         color: colors.mutedForeground,
+        textAlign: align,
       }}
     >
       {children}
