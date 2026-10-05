@@ -12,6 +12,8 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
+import { ProvenReach, postName } from "@/components/kora/reach";
+import { compactViews, getProofReel } from "@/lib/proof-reel";
 
 export const metadata: Metadata = {
   title: "For brands",
@@ -34,9 +36,13 @@ const faqs: [string, string][] = [
   ["Which platforms do you track?", "TikTok, Instagram and YouTube."],
 ];
 
-/** Brands page. Names and numbers in the example windows are illustrative and
- * labelled "Example data". */
-export default function BrandsPage() {
+/** Brands page. The figures, accounts and posts shown are real: they come from
+ * our own posts (lib/proof-reel.ts), with view counts shown as minimums. */
+export default async function BrandsPage() {
+  const reel = await getProofReel();
+  const top = reel.posts.slice(0, 3);
+  const platforms = new Set(reel.posts.map((p) => p.platform)).size;
+
   return (
     <>
       <Hero
@@ -48,6 +54,7 @@ export default function BrandsPage() {
       >
         <BrowserFrame
           url="oncameraugc.com/brand"
+          badge="Real posts"
           sidebar={[
             { icon: Megaphone, label: "Campaigns", active: true },
             { icon: Users, label: "Creators" },
@@ -55,34 +62,36 @@ export default function BrandsPage() {
           ]}
         >
           <div className="mb-4 flex items-center justify-between">
-            <p className="font-semibold">App launch campaign</p>
-            <Chip tone="good">Active</Chip>
+            <p className="font-semibold">Our own content</p>
+            <Chip tone="good">Live</Chip>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Creators" value={<CountUp to={3} />} />
-            <StatTile label="Posts" value={<CountUp to={3} />} />
-            <StatTile label="Views" value={<CountUp to={152491} duration={1800} />} accent />
+            <StatTile label="Posts" value={<CountUp to={Math.max(reel.posts.length, 1)} />} />
+            <StatTile label="Platforms" value={<CountUp to={Math.max(platforms, 1)} />} />
+            <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} />+</>} accent />
           </div>
           <ul className="mt-4 flex flex-col gap-2">
-            {[
-              ["Creator A", "TikTok", "Post submitted", 48210],
-              ["Creator B", "Instagram", "In progress", 12904],
-              ["Creator C", "YouTube", "Completed", 91377],
-            ].map(([who, platform, status, views]) => (
-              <li key={who as string} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] px-4 py-3 text-sm">
-                <span>
-                  <span className="font-semibold">{who}</span>
-                  <span className="block text-xs text-[#a39e98]">{platform}</span>
-                </span>
-                <span className="flex items-center gap-4">
-                  <Chip tone="accent">{status}</Chip>
-                  <span className="font-semibold tabular-nums">{(views as number).toLocaleString("en-US")}</span>
-                </span>
+            {top.map((p) => (
+              <li key={p.id}>
+                <a
+                  href={p.postUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] px-4 py-3 text-sm transition-colors hover:bg-white/[0.03]"
+                >
+                  <span>
+                    <span className="font-semibold">{postName(p)}</span>
+                    <span className="block text-xs text-[#a39e98]">{p.platform}</span>
+                  </span>
+                  <span className="font-semibold tabular-nums">{p.views} views</span>
+                </a>
               </li>
             ))}
           </ul>
         </BrowserFrame>
       </Hero>
+
+      <ProvenReach reel={reel} />
 
       <section id="features" className="mx-auto mt-24 max-w-[1100px] scroll-mt-28 px-5">
         <SectionTitle title="What makes this work" sub="Vetted creators, results you can see, and a team that sets it up with you." />
@@ -116,14 +125,14 @@ export default function BrandsPage() {
             title="Reach you can see"
             body="Every post's views, updated daily across TikTok, Instagram and YouTube."
           >
-            <p className="text-4xl font-bold tabular-nums"><CountUp to={152491} duration={1800} /></p>
-            <p className="text-xs text-[#a39e98]">views on this campaign</p>
+            <p className="text-4xl font-bold tabular-nums"><CountUp to={reel.totalViews} duration={2000} />+</p>
+            <p className="text-xs text-[#a39e98]">views across our own posts</p>
             <div className="mt-4 flex flex-col gap-2">
-              {[["TikTok", "62%"], ["Instagram", "24%"], ["YouTube", "14%"]].map(([p, w]) => (
-                <div key={p} className="flex items-center gap-3 text-xs text-[#a39e98]">
-                  <span className="w-16">{p}</span>
+              {reel.platformViews.map((x) => (
+                <div key={x.platform} className="flex items-center gap-3 text-xs text-[#a39e98]">
+                  <span className="w-16">{x.platform}</span>
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#2d2b32]">
-                    <span className="ko-fill block h-full rounded-full bg-[#ac0216]" style={{ "--ko-to": w } as React.CSSProperties} />
+                    <span className="ko-fill block h-full rounded-full bg-[#ac0216]" style={{ "--ko-to": `${Math.max(2, Math.round(x.share * 100))}%` } as React.CSSProperties} />
                   </span>
                 </div>
               ))}
@@ -138,10 +147,10 @@ export default function BrandsPage() {
             body="Your campaigns, the creators on each, their posts and where they are."
           >
             <ul className="flex flex-col gap-2 text-sm">
-              {[["App launch", "3 creators"], ["Summer collection", "5 creators"]].map(([n, c], i) => (
-                <li key={n} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="font-semibold">{n}</span>
-                  <span className="text-xs text-[#a39e98]">{c}</span>
+              {top.slice(0, 2).map((p, i) => (
+                <li key={p.id} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                  <span className="font-semibold">{postName(p)}</span>
+                  <span className="text-xs text-[#a39e98]">{p.views} views</span>
                 </li>
               ))}
             </ul>
@@ -168,7 +177,7 @@ export default function BrandsPage() {
 
       <StatsBand
         stats={[
-          { value: <CountUp to={3} />, label: "platforms tracked" },
+          { value: <>{compactViews(reel.totalViews)}+</>, label: "views on our own posts" },
           { value: <><CountUp to={100} />%</>, label: "of creators hand-reviewed" },
           { value: "Daily", label: "view updates" },
         ]}

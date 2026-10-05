@@ -59,8 +59,10 @@ export function BrowserFrame({
   url,
   sidebar,
   children,
+  badge = "Example data",
 }: {
   url: string;
+  badge?: string;
   sidebar: { icon: LucideIcon; label: string; active?: boolean }[];
   children: ReactNode;
 }) {
@@ -75,7 +77,7 @@ export function BrowserFrame({
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="ml-3 text-xs text-[#a39e98]">{url}</span>
         <span className="ml-auto rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
-          Example data
+          {badge}
         </span>
       </div>
       <div className="grid sm:grid-cols-[190px_1fr]">
