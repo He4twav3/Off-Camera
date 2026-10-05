@@ -17,9 +17,9 @@ export function Nav() {
     <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
       <nav
         aria-label="Main"
-        className="inline-flex w-fit max-w-full items-center gap-5 rounded-full border border-white/[0.08] bg-[#1d1c22]/85 px-6 py-3.5 sm:gap-12 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+        className="grid w-full max-w-[1000px] grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-full border border-white/[0.08] bg-[#1d1c22]/85 py-3.5 pr-6 pl-6 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl"
       >
-        <div>
+        <div className="justify-self-start">
           {/* just the mark on phones, so the two labels fit on one line */}
           <span className="sm:hidden">
             <Logo variant="compact" />
@@ -43,6 +43,8 @@ export function Nav() {
             </Link>
           ))}
         </div>
+        {/* empty right column keeps the links truly centred */}
+        <div aria-hidden />
       </nav>
     </header>
   );
