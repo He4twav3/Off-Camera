@@ -199,6 +199,8 @@ export interface Database {
           gross_amount: number;
           applicant_payout_amount: number;
           paid_at: string | null;
+          brand_paid_at: string | null;
+          brand_payment_ref: string | null;
           notes: string | null;
           created_at: string;
         };
@@ -208,6 +210,8 @@ export interface Database {
           gross_amount: number;
           applicant_payout_amount: number;
           paid_at?: string | null;
+          brand_paid_at?: string | null;
+          brand_payment_ref?: string | null;
           notes?: string | null;
           created_at?: string;
         };

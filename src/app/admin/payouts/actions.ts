@@ -16,6 +16,8 @@ const schema = z.object({
   // never rendered in, or joined into, any applicant-facing query.
   gross_amount: z.coerce.number().min(0, "Gross can't be negative."),
   notes: z.string().trim().max(1000).optional(),
+  brand_paid: z.string().optional(),
+  brand_payment_ref: z.string().trim().max(200).optional(),
   mark_paid: z.string().optional(),
 });
 
@@ -27,6 +29,8 @@ export async function savePayoutAction(
     assignment_id: formData.get("assignment_id"),
     gross_amount: formData.get("gross_amount"),
     notes: formData.get("notes") ?? "",
+    brand_paid: formData.get("brand_paid") ?? undefined,
+    brand_payment_ref: formData.get("brand_payment_ref") ?? "",
     mark_paid: formData.get("mark_paid") ?? undefined,
   });
 
@@ -37,6 +41,27 @@ export async function savePayoutAction(
   const supabase = await createClient();
   const markPaid = parsed.data.mark_paid === "on";
   const paidAt = markPaid ? new Date().toISOString() : null;
+
+  // When the brand's money arrived: keep the date already on record, or set it
+  // now if the box was just ticked. Unticking clears it.
+  const { data: existingPayout } = await supabase
+    .from("payouts")
+    .select("brand_paid_at")
+    .eq("assignment_id", parsed.data.assignment_id)
+    .maybeSingle();
+  const brandPaidAt =
+    parsed.data.brand_paid === "on"
+      ? (existingPayout?.brand_paid_at ?? new Date().toISOString())
+      : null;
+
+  // Funded before payable: a creator can't be marked paid until the brand's
+  // payment has arrived (the database enforces this too).
+  if (markPaid && !brandPaidAt) {
+    return { error: "Tick “brand's payment has arrived” before marking the creator paid." };
+  }
+  if (markPaid && parsed.data.gross_amount <= 0) {
+    return { error: "Enter the amount the brand paid before marking the creator paid." };
+  }
 
   const { data: assignment } = await supabase
     .from("assignments")
@@ -56,6 +81,8 @@ export async function savePayoutAction(
       gross_amount: parsed.data.gross_amount,
       applicant_payout_amount: assignment.applicant_payout_amount,
       paid_at: paidAt,
+      brand_paid_at: brandPaidAt,
+      brand_payment_ref: parsed.data.brand_payment_ref || null,
       notes: parsed.data.notes || null,
     },
     { onConflict: "assignment_id" },

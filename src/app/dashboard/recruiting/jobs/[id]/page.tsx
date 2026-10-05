@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
 import { DisclosureNotice } from "@/components/app/DisclosureNotice";
+import { CommissionNote } from "@/components/app/CommissionNote";
 import {
   PLATFORM_LABELS,
   PAYOUT_TYPE_LABELS,
@@ -153,6 +154,7 @@ export default async function JobDetailPage(props: {
             assigned to this campaign.
           </p>
           <DisclosureNotice className="mt-4" />
+          <CommissionNote className="mt-3" />
         </section>
       )}
 

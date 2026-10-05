@@ -23,7 +23,7 @@ export default async function AdminPayoutsPage() {
   const { data: assignments } = await supabase
     .from("assignments")
     .select(
-      "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, applicants(name, email, handle), jobs(title), payouts(gross_amount, notes, paid_at)",
+      "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, applicants(name, email, handle), jobs(title), payouts(gross_amount, notes, paid_at, brand_paid_at, brand_payment_ref)",
     )
     .order("assigned_at", { ascending: false });
 
@@ -93,6 +93,8 @@ type AssignmentRow = {
     gross_amount: number;
     notes: string | null;
     paid_at: string | null;
+    brand_paid_at: string | null;
+    brand_payment_ref: string | null;
   } | null;
 };
 
@@ -115,9 +117,14 @@ function Section({ title, items }: { title: string; items: AssignmentRow[] }) {
                 <CardContent>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <StatusBadge tone={assignmentStatusTone(a.status)}>
-                      {STATUS_LABELS[a.status]}
-                    </StatusBadge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge tone={assignmentStatusTone(a.status)}>
+                        {STATUS_LABELS[a.status]}
+                      </StatusBadge>
+                      <StatusBadge tone={payout?.brand_paid_at ? "success" : "neutral"}>
+                        {payout?.brand_paid_at ? "Brand paid" : "Not funded yet"}
+                      </StatusBadge>
+                    </div>
                     <h3 className="mt-3 font-heading text-lg font-semibold text-foreground">
                       {a.jobs?.title ?? "Campaign"}
                     </h3>
@@ -169,11 +176,14 @@ function Section({ title, items }: { title: string; items: AssignmentRow[] }) {
                   <PayoutForm
                     assignmentId={a.id}
                     alreadyPaid={a.status === "paid"}
+                    creatorPayout={Number(a.applicant_payout_amount)}
                     existing={
                       payout
                         ? {
                             gross_amount: payout.gross_amount,
                             notes: payout.notes,
+                            brand_paid_at: payout.brand_paid_at,
+                            brand_payment_ref: payout.brand_payment_ref,
                           }
                         : null
                     }
