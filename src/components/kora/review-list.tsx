@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,8 +6,7 @@ import { cn } from "@/lib/utils";
 export type ReviewItem = {
   id: string;
   name: string;
-  meta: string; // e.g. "TikTok · 15.1M+ views"
-  thumbnail: string | null;
+  meta: string; // e.g. "8.7M views"
 };
 
 const VISIBLE = 4;
@@ -60,13 +58,6 @@ export function ReviewList({ items }: { items: ReviewItem[] }) {
             )}
           >
             <div className="mb-2 flex items-center gap-3.5 rounded-xl border border-white/[0.08] px-3.5 py-3">
-              {item.thumbnail ? (
-                <img src={item.thumbnail} alt="" loading="lazy" className="size-11 shrink-0 rounded-full object-cover object-top" />
-              ) : (
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/[0.07] text-sm font-bold text-[#a39e98]">
-                  {item.name.replace("@", "").charAt(0).toUpperCase()}
-                </span>
-              )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.95rem] font-semibold">{item.name}</span>
                 <span className="block truncate text-xs text-[#a39e98]">▶ {item.meta}</span>

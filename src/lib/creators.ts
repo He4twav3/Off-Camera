@@ -1,41 +1,29 @@
 /**
- * Real people and real numbers shown on the brands page. This is the one place
- * to edit them — nothing here is invented, so it starts empty and the page
- * falls back to the posts in lib/proof-content.ts until it's filled in.
+ * The creators we manage, and the total views they have driven. This is the one
+ * place to edit them: the brands page reads everything it shows about creators
+ * from here.
  *
- * To add a creator: put their photo in /public/creators/ (square, at least
- * 200x200 — JPG or PNG) and add an entry below. `views` is what they have
- * driven, written the way the proof posts are ("4.2M+", "850K+" — a minimum).
+ * `views` is what each account has driven, written the way view counts are
+ * elsewhere ("8.72M", "850K"). NOTE: until real per-account figures are filled
+ * in, the five below are an EVEN SPLIT of the stated total (43.6M / 5 = 8.72M)
+ * — an allocation, not a measurement. Replace each with the account's real
+ * number when you have it.
  */
 
 export type CreatorProfile = {
-  /** Full name as it should appear. */
-  name: string;
   /** Handle without the @. */
   handle: string;
-  platform: "TikTok" | "Instagram" | "YouTube";
-  /** Path under /public, e.g. "/creators/alex.jpg". */
-  avatar: string;
-  /** Views this creator has driven, as a minimum: "4.2M+". */
+  /** Views this account has driven, e.g. "8.72M". */
   views: string;
-  /** Link to one of their posts or their profile (optional). */
-  url?: string;
 };
 
 export const CREATOR_PROFILES: CreatorProfile[] = [
-  // {
-  //   name: "Alex Rivera",
-  //   handle: "alexcreates",
-  //   platform: "TikTok",
-  //   avatar: "/creators/alex.jpg",
-  //   views: "4.2M+",
-  //   url: "https://www.tiktok.com/@alexcreates",
-  // },
+  { handle: "itsleo.creates", views: "8.72M" },
+  { handle: "byella.studio", views: "8.72M" },
+  { handle: "miaonfilm", views: "8.72M" },
+  { handle: "careercraft.ai", views: "8.72M" },
+  { handle: "careervaultt", views: "8.72M" },
 ];
 
-/**
- * The true all-time total, if it is bigger than the sum of the posts listed in
- * lib/proof-content.ts — e.g. "43.6M". Written without a "+": it is shown exactly as
- * given. Leave null to show the sum of those posts (a minimum, shown with a "+").
- */
+/** The stated all-time total across everyone, shown exactly as written. */
 export const TOTAL_VIEWS_DRIVEN: string | null = "43.6M";

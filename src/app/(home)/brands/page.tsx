@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BadgeCheck, BarChart3, Eye, LayoutDashboard, LineChart, Megaphone, Rocket, ShieldCheck, Users } from "lucide-react";
+import { BadgeCheck, BarChart3, Eye, LayoutDashboard, Megaphone, Rocket, ShieldCheck, Users } from "lucide-react";
 import {
   BrowserFrame,
   Chip,
@@ -12,7 +12,7 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
-import { ProvenReach, postName } from "@/components/kora/reach";
+import { ProvenReach } from "@/components/kora/reach";
 import { ReviewList } from "@/components/kora/review-list";
 import { compactViews } from "@/lib/format";
 import { getProofReel } from "@/lib/proof-reel";
@@ -38,19 +38,13 @@ const faqs: [string, string][] = [
   ["Which platforms do you track?", "TikTok, Instagram and YouTube."],
 ];
 
-/** Brands page. The figures, accounts and posts shown are real: they come from
- * our own posts (lib/proof-reel.ts), with view counts shown as minimums. The
- * review list in the hero is a picture of how reviewing creators looks. */
+/** Brands page. The creators shown are the accounts in lib/creators.ts and the
+ * total is the stated one; the content wall uses real posts (lib/proof-reel.ts). */
 export default async function BrandsPage() {
   const reel = await getProofReel();
-  const top = reel.posts.slice(0, 3);
-  const postsTotal = reel.posts.reduce((n, p) => n + p.viewsNum, 0);
-  const avg = reel.posts.length ? Math.round(postsTotal / reel.posts.length) : 0;
-  const hasProfiles = reel.profiles.length > 0;
-  // A stated total is shown exactly; a sum of posts is a minimum, so it gets a "+".
+  const creators = reel.profiles;
   const plus = reel.totalIsStated ? "" : "+";
-  const best = reel.posts[0];
-  const topPlatform = [...reel.platformViews].sort((a, b) => b.views - a.views)[0];
+  const avg = creators.length ? Math.round(reel.totalViews / creators.length) : 0;
 
   return (
     <>
@@ -63,41 +57,25 @@ export default async function BrandsPage() {
       >
         <BrowserFrame
           url="oncameraugc.com/brand"
-          badge="Real posts"
+          badge="Live"
           sidebar={[
             { icon: Megaphone, label: "Campaigns" },
             { icon: Users, label: "Creators", active: true },
             { icon: BarChart3, label: "Results" },
           ]}
         >
-          <div className="mb-4 flex items-center justify-between">
-            <p className="font-semibold">{hasProfiles ? "Our creators" : "Our own content"}</p>
-            <Chip tone="good">Live</Chip>
-          </div>
+          <p className="mb-4 font-semibold">Our creators</p>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile
-              label={hasProfiles ? "Creators" : "Posts"}
-              value={<CountUp to={Math.max(hasProfiles ? reel.profiles.length : reel.posts.length, 1)} />}
-            />
-            <StatTile label="Avg views" value={<><CountUp to={avg} compact />+</>} />
+            <StatTile label="Creators" value={<CountUp to={Math.max(creators.length, 1)} />} />
+            <StatTile label="Avg views" value={<><CountUp to={avg} compact />{plus}</>} />
             <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
           </div>
           <ReviewList
-            items={
-              hasProfiles
-                ? reel.profiles.map((c) => ({
-                    id: c.handle + c.platform,
-                    name: c.name,
-                    meta: `@${c.handle} · ${c.platform} · ${c.views} views`,
-                    thumbnail: c.avatar,
-                  }))
-                : reel.posts.map((p) => ({
-                    id: p.id,
-                    name: postName(p),
-                    meta: `${p.platform} · ${p.views} views`,
-                    thumbnail: p.thumbnail,
-                  }))
-            }
+            items={creators.map((c) => ({
+              id: c.handle,
+              name: c.handle,
+              meta: `${compactViews(c.viewsNum)} views`,
+            }))}
           />
         </BrowserFrame>
       </Hero>
@@ -141,7 +119,7 @@ export default async function BrandsPage() {
           >
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">TikTok <span className="font-normal text-[#a39e98]">@yourhandle</span></span>
+                <span className="font-semibold">@yourhandle</span>
                 <span className="ko-pop inline-flex items-center gap-1 font-semibold text-emerald-300">
                   <BadgeCheck className="size-4" /> Verified
                 </span>
@@ -157,16 +135,19 @@ export default async function BrandsPage() {
             className="md:col-span-2"
             icon={Eye}
             title="Reach you can see"
-            body="Every post's views, updated daily across TikTok, Instagram and YouTube."
+            body="Every post's views, updated daily, rolled up per creator and per campaign."
           >
             <p className="text-4xl font-bold tabular-nums"><CountUp to={reel.totalViews} duration={2000} compact />{plus}</p>
-            <p className="text-xs text-[#a39e98]">{reel.totalIsStated ? "views driven" : "views across our own posts"}</p>
+            <p className="text-xs text-[#a39e98]">views driven across our creators</p>
             <div className="mt-4 flex flex-col gap-2">
-              {reel.platformViews.map((x) => (
-                <div key={x.platform} className="flex items-center gap-3 text-xs text-[#a39e98]">
-                  <span className="w-16">{x.platform}</span>
+              {creators.slice(0, 3).map((c, i) => (
+                <div key={c.handle} className="flex items-center gap-3 text-xs text-[#a39e98]">
+                  <span className="w-24 truncate">@{c.handle}</span>
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#2d2b32]">
-                    <span className="ko-fill block h-full rounded-full bg-[#ac0216]" style={{ "--ko-to": `${Math.max(2, Math.round(x.share * 100))}%` } as React.CSSProperties} />
+                    <span
+                      className="ko-fill block h-full rounded-full bg-[#ac0216]"
+                      style={{ "--ko-to": `${Math.round((c.viewsNum / Math.max(...creators.map((x) => x.viewsNum))) * 100)}%`, animationDelay: `${i * 0.2}s` } as React.CSSProperties}
+                    />
                   </span>
                 </div>
               ))}
@@ -176,55 +157,28 @@ export default async function BrandsPage() {
           <FeatureCard
             className="md:col-span-2"
             delay={80}
-            icon={LineChart}
-            title="Know what's working"
-            body="See your best post, your average, and which platform delivers."
-          >
-            <ul className="flex flex-col gap-2 text-sm">
-              {best && (
-                <li className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="text-[#a39e98]">Best post</span>
-                  <span className="font-semibold tabular-nums">{compactViews(best.viewsNum)}+</span>
-                </li>
-              )}
-              <li className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                <span className="text-[#a39e98]">Average per post</span>
-                <span className="font-semibold tabular-nums">{compactViews(avg)}+</span>
-              </li>
-              {topPlatform && (
-                <li className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="text-[#a39e98]">Top platform</span>
-                  <span className="font-semibold">{topPlatform.platform} · {Math.round(topPlatform.share * 100)}%</span>
-                </li>
-              )}
-            </ul>
-          </FeatureCard>
-
-          <FeatureCard
-            className="md:col-span-2"
-            delay={160}
             icon={LayoutDashboard}
             title="One dashboard"
             body="Your campaigns, the creators on each, their posts and where they are."
           >
             <ul className="flex flex-col gap-2 text-sm">
-              {top.slice(0, 3).map((p, i) => (
-                <li key={p.id} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="font-semibold">{postName(p)}</span>
-                  <span className="text-xs text-[#a39e98]">{p.views}</span>
+              {creators.slice(0, 3).map((c, i) => (
+                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                  <span className="font-semibold">@{c.handle}</span>
+                  <span className="text-xs text-[#a39e98]">{compactViews(c.viewsNum)} views</span>
                 </li>
               ))}
             </ul>
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-6"
-            delay={80}
+            className="md:col-span-2"
+            delay={160}
             icon={Rocket}
             title="We set it up with you"
-            body="Share your brief and we set up the campaign and match the right creators. You don't have to chase anyone."
+            body="Share your brief and we set up the campaign and match the right creators."
           >
-            <ol className="grid gap-2 text-sm sm:grid-cols-3">
+            <ol className="flex flex-col gap-2 text-sm">
               {["Your brief", "Creators matched", "Campaign live"].map((s, i) => (
                 <li key={s} className="flex items-center gap-3 rounded-lg bg-[#1d1c22] px-3 py-2.5">
                   <span style={{ animationDelay: `${i * 0.7}s` }} className="ko-dot size-4 rounded-full border-2" />
@@ -238,7 +192,7 @@ export default async function BrandsPage() {
 
       <StatsBand
         stats={[
-          { value: <>{compactViews(reel.totalViews)}{plus}</>, label: reel.totalIsStated ? "views driven" : "views on our own posts" },
+          { value: <>{compactViews(reel.totalViews)}{plus}</>, label: "views driven by our creators" },
           { value: <><CountUp to={100} />%</>, label: "of creators hand-reviewed" },
           { value: "Daily", label: "view updates" },
         ]}
