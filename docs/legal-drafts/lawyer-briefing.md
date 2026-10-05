@@ -5,6 +5,11 @@
 ## The business in one paragraph
 OnCamera is a UGC agency platform. Brands run campaigns; creators (independent contractors) make short-form videos from their own social accounts; OnCamera matches them, manages the work, counts post views, and handles payment. **Planned money flow:** the brand pays the creator's rate to OnCamera; OnCamera keeps a commission **out of the creator's share**; the creator is paid after the brand has paid and the post is approved. Brands pay **no separate agency fee** at launch. Creators must label posts as paid partnerships.
 
+## Known facts about the founders (added)
+- The founders are connected to **Greece and North Macedonia**; the company is **not registered yet** and the choice of entity/country is open.
+- Brands and creators will be located **all over the world**, so the payment stack must work across many countries.
+- Open question for the lawyer and accountant: which country is best to register in so that (a) a business bank account and licensed payment providers are available, (b) EU VAT and platform-reporting rules (DAC7) are handled, and (c) the founders' own tax residency doesn't create problems. Candidates discussed: a **Greek** company, a company in another **EU** country (for example Estonia via e-Residency), or a **US LLC**. A company in North Macedonia may have limited access to some payment providers. **Please confirm current availability.**
+
 ## What we need to know from the founders (to answer properly)
 1. Where is the company (or will it be) registered? Where do the founders live?
 2. In which countries will brands and creators be located (EU, UK, US, other)?
