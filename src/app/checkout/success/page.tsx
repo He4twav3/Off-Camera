@@ -29,18 +29,17 @@ export default async function CheckoutSuccessPage() {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {session
-            ? `Signed in as ${session.email}. `
-            : ""}
-          Your course is unlocked. Head to your dashboard to start module 1.
+            ? `Signed in as ${session.email}. Your course is unlocked. Head to your dashboard to start module 1.`
+            : "Your payment went through. If you\u2019re new, we\u2019ve emailed you a link to sign in. Otherwise, log in to start module 1."}
         </p>
 
         <Button
           size="lg"
           nativeButton={false}
-          render={<Link href="/dashboard" />}
+          render={<Link href={session ? "/dashboard" : "/login?next=/dashboard"} />}
           className="btn-sticker mt-6 w-full"
         >
-          Go to your dashboard
+          {session ? "Go to your dashboard" : "Log in"}
         </Button>
       </div>
     </div>

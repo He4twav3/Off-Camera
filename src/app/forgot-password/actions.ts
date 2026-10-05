@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getBaseUrl } from "@/lib/request-url";
+import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 
 export type ForgotPasswordState = {
   error?: string;
@@ -28,6 +29,8 @@ export async function requestReset(
   _prevState: ForgotPasswordState,
   formData: FormData
 ): Promise<ForgotPasswordState> {
+  if (!rateLimit(`reset:${await clientIp()}`, 6, 10 * 60_000)) return { error: TOO_MANY };
+
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
 
   if (!email || !email.includes("@")) {

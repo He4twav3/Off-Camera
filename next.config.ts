@@ -1,28 +1,42 @@
 import { networkInterfaces } from "node:os";
 import type { NextConfig } from "next";
 
-// Every LAN IPv4 address this machine currently has, so testing the dev
-// server from a phone on the same wifi (http://<lan-ip>:3000) isn't
-// silently 403'd by Next's cross-origin dev-resource protection. Computed
-// at server startup rather than hardcoded: this address already changed
-// once this session (wifi reconnect), and hardcoding it here just moves
-// the exact same "nothing loads and there's no visible reason why" failure
-// from the JS-chunk layer to the config layer the next time it changes.
 const lanDevOrigins = Object.values(networkInterfaces())
   .flat()
   .filter((iface): iface is NonNullable<typeof iface> => !!iface && iface.family === "IPv4" && !iface.internal)
   .map((iface) => iface.address);
 
+/**
+ * Security headers on every response.
+ *
+ * - X-Frame-Options / frame-ancestors: nobody can put this site in a frame
+ *   (clickjacking).
+ * - nosniff, Referrer-Policy, Permissions-Policy: stop type-guessing, limit what
+ *   is leaked in referrers, and switch off camera/mic/location the site never uses.
+ * - HSTS: browsers only ever use https for this domain.
+ * - A deliberately small Content-Security-Policy: base-uri, object-src and
+ *   form-action are locked down. script-src/style-src are NOT restricted — a
+ *   full CSP needs per-request nonces for Next's inline scripts and would break
+ *   the pages if guessed; add that as its own, tested step.
+ */
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
+  },
+];
+
 const nextConfig: NextConfig = {
-  // LiquidMetalCanvas (src/components/site/liquid-metal-canvas.tsx) sets up
-  // a real WebGL context/program/buffers imperatively in an effect. React
-  // 18 strict mode's dev-only mount→cleanup→mount double-invoke reliably
-  // left it rendering a visibly fainter pattern in testing (reproduced
-  // across repeated loads, not just animation-phase noise) — production
-  // never double-invokes regardless of this flag, so this only affects
-  // the dev experience, not what ships.
   reactStrictMode: false,
   allowedDevOrigins: lanDevOrigins,
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
 };
 
 export default nextConfig;

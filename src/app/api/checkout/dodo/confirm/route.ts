@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { dodo } from "@/lib/dodo";
 import { fulfillPurchase } from "@/lib/fulfillment";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { getBaseUrl } from "@/lib/request-url";
 
 /**
  * Where Dodo's hosted checkout sends the browser back after payment
@@ -11,13 +9,13 @@ import { getBaseUrl } from "@/lib/request-url";
  * hint from the browser — the actual authority is re-fetching the
  * payment from Dodo's own API and checking what it says.
  *
- * Signing the browser in is now a redirect to a real Supabase magic
- * link (generateLink) rather than hand-setting a cookie — Supabase
- * sessions are real signed GoTrue JWTs, not something this route can
- * construct itself. Lands on /auth/confirm (a client component), not
- * /auth/callback — admin.generateLink() always produces an
- * implicit-flow link, incompatible with /auth/callback's PKCE-only
- * `?code=` handling. See auth/confirm/page.tsx's own comment.
+ * This route deliberately does NOT sign the browser in. It used to redirect
+ * to a magic link for the payment's email, which meant anyone who obtained a
+ * payment id (from a receipt, a shared URL, browser history) could be signed
+ * in as the buyer. Now it only records the purchase and sends the browser to
+ * /checkout/success; a brand-new buyer gets their sign-in link by EMAIL from
+ * fulfillPurchase (lib/fulfillment.ts), and an existing account logs in
+ * normally.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -27,7 +25,13 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/checkout?error=missing_payment", request.url));
   }
 
-  const payment = await dodo.payments.retrieve(paymentId);
+  let payment;
+  try {
+    payment = await dodo.payments.retrieve(paymentId);
+  } catch (err) {
+    console.error("Dodo confirm: could not retrieve payment:", err);
+    return NextResponse.redirect(new URL("/checkout?error=missing_payment", request.url));
+  }
   if (payment.status !== "succeeded") {
     return NextResponse.redirect(new URL("/checkout?error=payment_incomplete", request.url));
   }
@@ -44,24 +48,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/checkout?error=fulfillment_failed", request.url));
   }
 
-  const baseUrl = await getBaseUrl();
-  const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "magiclink",
-    email: email.toLowerCase(),
-    options: { redirectTo: `${baseUrl}/auth/confirm?next=/checkout/success` },
-  });
-
-  if (error || !data.properties?.action_link) {
-    // Payment + account are still real even if this specific redirect
-    // can't be built — send them to sign in manually instead of
-    // stranding them on an error page for something that isn't really
-    // a failure.
-    console.error("Dodo confirm: could not generate sign-in link:", error);
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("email", email);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return NextResponse.redirect(data.properties.action_link);
+  return NextResponse.redirect(new URL("/checkout/success", request.url));
 }

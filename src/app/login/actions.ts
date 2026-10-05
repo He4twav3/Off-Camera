@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 
 export type LoginState = { error?: string };
 
@@ -18,6 +19,9 @@ export async function login(
   _prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
+  // Brute-force guard (Supabase also rate-limits sign-ins on its side).
+  if (!rateLimit(`login:${await clientIp()}`, 15, 10 * 60_000)) return { error: TOO_MANY };
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 

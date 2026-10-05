@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendVerificationCode, verifyCode } from "@/lib/email-code";
 import { createBrandAccount } from "@/lib/brand-signup";
+import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 
 export type VerifyState = { error?: string; message?: string };
 
@@ -18,6 +19,8 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
   if (!email) return { error: "Start again from the sign-up page." };
+  // (Wrong codes are also locked out per account; this caps a visitor overall.)
+  if (!rateLimit(`verify:${await clientIp()}`, 25, 10 * 60_000)) return { error: TOO_MANY };
 
   const result = await verifyCode(email, code);
   if (!result.ok) return { error: result.error };
@@ -50,6 +53,7 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
 export async function resendCode(_prev: VerifyState, formData: FormData): Promise<VerifyState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email) return { error: "Start again from the sign-up page." };
+  if (!rateLimit(`resend:${await clientIp()}`, 10, 10 * 60_000)) return { error: TOO_MANY };
   const sent = await sendVerificationCode(email);
   if (sent.throttled) return { message: "Wait a few seconds, then try again." };
   return sent.ok ? { message: "New code sent." } : { error: "Couldn't send a code for that email." };

@@ -2,6 +2,7 @@
 
 import { normaliseHandle } from "@/lib/handles";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 import type { PlatformEnum } from "@/lib/database.types";
 
 export type CampaignState = { status?: "success" | "error"; message?: string };
@@ -57,6 +58,10 @@ export async function submitCampaignSignup(
   // don't learn they were filtered.
   if (String(formData.get("website") ?? "")) {
     return { status: "success", message: "You're in. We'll be in touch." };
+  }
+
+  if (!rateLimit(`campaign:${await clientIp()}`, 6, 10 * 60_000)) {
+    return { status: "error", message: TOO_MANY };
   }
 
   const creatorName = String(formData.get("creator_name") ?? "").trim().slice(0, 100);

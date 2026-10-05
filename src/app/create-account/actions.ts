@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendVerificationCode } from "@/lib/email-code";
+import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 import { parseCreatorSignup, signupMetadata } from "@/lib/creator-signup";
 import { brandMetadata, parseBrandSignup } from "@/lib/brand-signup";
 
@@ -39,6 +40,14 @@ export async function createAccount(
   }
   if (password.length < 8) {
     return { error: "Use a password of at least 8 characters." };
+  }
+
+  // Each signup sends an email, so cap it per address and per visitor.
+  if (
+    !rateLimit(`signup:ip:${await clientIp()}`, 8, 10 * 60_000) ||
+    !rateLimit(`signup:email:${email}`, 4, 60 * 60_000)
+  ) {
+    return { error: TOO_MANY };
   }
 
   const admin = createAdminClient();
