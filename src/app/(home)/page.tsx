@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Briefcase, BadgeCheck, Home as HomeIcon, LineChart, ShieldCheck, Store, Wallet } from "lucide-react";
+import { BadgeCheck, BarChart3, Briefcase, Home as HomeIcon, LineChart, ShieldCheck, Store, Wallet } from "lucide-react";
 import {
   BrowserFrame,
   Chip,
@@ -12,6 +12,7 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
+import { AnalyticsPanel } from "@/components/kora/analytics";
 
 export const metadata: Metadata = {
   title: { absolute: "OnCamera · Your UGC work, all in one place" },
@@ -51,39 +52,24 @@ export default function CreatorsPage() {
       >
         <BrowserFrame
           url="oncameraugc.com/dashboard"
-          sidebar={[
-            { icon: HomeIcon, label: "Home", active: true },
+          tabs={[
+            { icon: HomeIcon, label: "Home" },
+            { icon: BarChart3, label: "Analytics", active: true },
             { icon: Briefcase, label: "Campaigns" },
-            { icon: BadgeCheck, label: "Accounts" },
             { icon: Wallet, label: "Earnings" },
+            { icon: BadgeCheck, label: "Accounts" },
           ]}
         >
           <div className="mb-4 flex items-center justify-between">
-            <p className="font-semibold">Your dashboard</p>
-            <Chip>Last 30 days</Chip>
+            <p className="text-lg font-semibold">Analytics</p>
+            <Chip>Last 7 days</Chip>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Active campaigns" value={<CountUp to={3} />} />
-            <StatTile label="Pending" value={<>$<CountUp to={480} /></>} />
-            <StatTile label="Paid to date" value={<>$<CountUp to={1240} /></>} accent />
+            <StatTile label="Active campaigns" value={<CountUp to={12} />} />
+            <StatTile label="Pending" value={<>$<CountUp to={8240} /></>} />
+            <StatTile label="Earned" value={<>$<CountUp to={84600} /></>} accent />
           </div>
-          <ul className="mt-4 flex flex-col gap-2">
-            {[
-              ["Skincare UGC", "TikTok", "In progress", "$180"],
-              ["App launch", "Instagram", "Post submitted", "$300"],
-            ].map(([name, platform, status, pay]) => (
-              <li key={name} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] px-4 py-3 text-sm">
-                <span>
-                  <span className="font-semibold">{name}</span>
-                  <span className="block text-xs text-[#a39e98]">{platform}</span>
-                </span>
-                <span className="flex items-center gap-4">
-                  <Chip tone="accent">{status}</Chip>
-                  <span className="font-semibold tabular-nums">{pay}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
+          <AnalyticsPanel />
         </BrowserFrame>
       </Hero>
 
@@ -101,10 +87,10 @@ export default function CreatorsPage() {
           >
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                Skincare UGC <Chip tone="good">Active</Chip>
+                Posts in progress <Chip tone="good">Active</Chip>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                App launch <Chip tone="accent">Post submitted</Chip>
+                Waiting on review <Chip tone="accent">Post submitted</Chip>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
                 <span className="text-[#a39e98]">Deliverables</span>
@@ -171,9 +157,9 @@ export default function CreatorsPage() {
           >
             <ul className="flex flex-col gap-2 text-sm">
               {[
-                ["Skincare UGC", "TikTok · 3 videos", false, 0],
-                ["App launch", "Instagram · 2 reels", true, 0.5],
-                ["Fitness gear", "YouTube Shorts · 1 video", false, 1],
+                ["3 videos", "TikTok", false, 0],
+                ["2 reels", "Instagram", true, 0.5],
+                ["1 video", "YouTube Shorts", false, 1],
               ].map(([name, meta, applied, d]) => (
                 <li
                   key={name as string}

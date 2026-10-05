@@ -58,12 +58,16 @@ export function Hero({
 export function BrowserFrame({
   url,
   sidebar,
+  tabs,
   children,
   badge = "Example data",
 }: {
   url: string;
   badge?: string;
-  sidebar: { icon: LucideIcon; label: string; active?: boolean }[];
+  /** Left-hand navigation. */
+  sidebar?: { icon: LucideIcon; label: string; active?: boolean }[];
+  /** Or a tab bar across the top instead of a sidebar. */
+  tabs?: { icon: LucideIcon; label: string; active?: boolean }[];
   children: ReactNode;
 }) {
   return (
@@ -80,7 +84,24 @@ export function BrowserFrame({
           {badge}
         </span>
       </div>
-      <div className="grid sm:grid-cols-[190px_1fr]">
+      {tabs && (
+        <nav className="flex gap-1 overflow-x-auto border-b border-white/[0.07] px-4 py-3">
+          {tabs.map(({ icon: Icon, label, active }) => (
+            <span
+              key={label}
+              className={cn(
+                "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm",
+                active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
+              )}
+            >
+              <Icon className="size-4" />
+              {label}
+            </span>
+          ))}
+        </nav>
+      )}
+      <div className={cn("grid", sidebar && "sm:grid-cols-[190px_1fr]")}>
+        {sidebar && (
         <aside className="hidden border-r border-white/[0.07] p-4 sm:block">
           <ul className="flex flex-col gap-1">
             {sidebar.map(({ icon: Icon, label, active }) => (
@@ -97,6 +118,7 @@ export function BrowserFrame({
             ))}
           </ul>
         </aside>
+        )}
         <div className="p-5 sm:p-6">{children}</div>
       </div>
     </div>
