@@ -64,3 +64,9 @@
 .ko-root h4 {
   font-family: inherit;
 }
+
+/* A new row arriving at the bottom of the review list. */
+@keyframes ko-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

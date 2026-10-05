@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BadgeCheck, BarChart3, Eye, LayoutDashboard, Megaphone, Rocket, ShieldCheck, Users } from "lucide-react";
+import { BadgeCheck, BarChart3, Eye, LayoutDashboard, LineChart, Megaphone, Rocket, ShieldCheck, Users } from "lucide-react";
 import {
   BrowserFrame,
   Chip,
@@ -13,7 +13,9 @@ import {
   Steps,
 } from "@/components/kora/blocks";
 import { ProvenReach, postName } from "@/components/kora/reach";
-import { compactViews, getProofReel } from "@/lib/proof-reel";
+import { ReviewList } from "@/components/kora/review-list";
+import { compactViews } from "@/lib/format";
+import { getProofReel } from "@/lib/proof-reel";
 
 export const metadata: Metadata = {
   title: "For brands",
@@ -37,11 +39,14 @@ const faqs: [string, string][] = [
 ];
 
 /** Brands page. The figures, accounts and posts shown are real: they come from
- * our own posts (lib/proof-reel.ts), with view counts shown as minimums. */
+ * our own posts (lib/proof-reel.ts), with view counts shown as minimums. The
+ * review list in the hero is a picture of how reviewing creators looks. */
 export default async function BrandsPage() {
   const reel = await getProofReel();
   const top = reel.posts.slice(0, 3);
-  const platforms = new Set(reel.posts.map((p) => p.platform)).size;
+  const avg = reel.posts.length ? Math.round(reel.totalViews / reel.posts.length) : 0;
+  const best = reel.posts[0];
+  const topPlatform = [...reel.platformViews].sort((a, b) => b.views - a.views)[0];
 
   return (
     <>
@@ -56,8 +61,8 @@ export default async function BrandsPage() {
           url="oncameraugc.com/brand"
           badge="Real posts"
           sidebar={[
-            { icon: Megaphone, label: "Campaigns", active: true },
-            { icon: Users, label: "Creators" },
+            { icon: Megaphone, label: "Campaigns" },
+            { icon: Users, label: "Creators", active: true },
             { icon: BarChart3, label: "Results" },
           ]}
         >
@@ -67,40 +72,33 @@ export default async function BrandsPage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <StatTile label="Posts" value={<CountUp to={Math.max(reel.posts.length, 1)} />} />
-            <StatTile label="Platforms" value={<CountUp to={Math.max(platforms, 1)} />} />
-            <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} />+</>} accent />
+            <StatTile label="Avg views" value={<><CountUp to={avg} compact />+</>} />
+            <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />+</>} accent />
           </div>
-          <ul className="mt-4 flex flex-col gap-2">
-            {top.map((p) => (
-              <li key={p.id}>
-                <a
-                  href={p.postUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] px-4 py-3 text-sm transition-colors hover:bg-white/[0.03]"
-                >
-                  <span>
-                    <span className="font-semibold">{postName(p)}</span>
-                    <span className="block text-xs text-[#a39e98]">{p.platform}</span>
-                  </span>
-                  <span className="font-semibold tabular-nums">{p.views} views</span>
-                </a>
-              </li>
-            ))}
-          </ul>
+          <ReviewList
+            items={reel.posts.map((p) => ({
+              id: p.id,
+              name: postName(p),
+              meta: `${p.platform} · ${p.views} views`,
+              thumbnail: p.thumbnail,
+            }))}
+          />
         </BrowserFrame>
       </Hero>
 
       <ProvenReach reel={reel} />
 
       <section id="features" className="mx-auto mt-24 max-w-[1100px] scroll-mt-28 px-5">
-        <SectionTitle title="What makes this work" sub="Vetted creators, results you can see, and a team that sets it up with you." />
-        <div className="mt-14 grid gap-4 md:grid-cols-5">
+        <SectionTitle
+          title="What makes this work"
+          sub="Vetted creators, results you can see, and a team that sets it up with you."
+        />
+        <div className="mt-14 grid gap-4 md:grid-cols-6">
           <FeatureCard
             className="md:col-span-3"
             icon={ShieldCheck}
             title="Hand-reviewed creators"
-            body="Every creator is reviewed by our team before they can join a campaign, and their accounts are verified."
+            body="Every creator is reviewed by our team before they can join a campaign."
           >
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
@@ -119,13 +117,33 @@ export default async function BrandsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-2"
+            className="md:col-span-3"
             delay={80}
+            icon={BadgeCheck}
+            title="Accounts that are really theirs"
+            body="Creators prove each handle is their own with a short code in their bio, so you know who you are working with."
+          >
+            <div className="flex flex-col gap-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">TikTok <span className="font-normal text-[#a39e98]">@yourhandle</span></span>
+                <span className="ko-pop inline-flex items-center gap-1 font-semibold text-emerald-300">
+                  <BadgeCheck className="size-4" /> Verified
+                </span>
+              </div>
+              <div className="rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                <p className="text-xs text-[#a39e98]">Code in their bio</p>
+                <p className="mt-1 font-mono font-semibold tracking-wide">oncamera-6C4253</p>
+              </div>
+            </div>
+          </FeatureCard>
+
+          <FeatureCard
+            className="md:col-span-2"
             icon={Eye}
             title="Reach you can see"
             body="Every post's views, updated daily across TikTok, Instagram and YouTube."
           >
-            <p className="text-4xl font-bold tabular-nums"><CountUp to={reel.totalViews} duration={2000} />+</p>
+            <p className="text-4xl font-bold tabular-nums"><CountUp to={reel.totalViews} duration={2000} compact />+</p>
             <p className="text-xs text-[#a39e98]">views across our own posts</p>
             <div className="mt-4 flex flex-col gap-2">
               {reel.platformViews.map((x) => (
@@ -142,28 +160,55 @@ export default async function BrandsPage() {
           <FeatureCard
             className="md:col-span-2"
             delay={80}
+            icon={LineChart}
+            title="Know what's working"
+            body="See your best post, your average, and which platform delivers."
+          >
+            <ul className="flex flex-col gap-2 text-sm">
+              {best && (
+                <li className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                  <span className="text-[#a39e98]">Best post</span>
+                  <span className="font-semibold tabular-nums">{compactViews(best.viewsNum)}+</span>
+                </li>
+              )}
+              <li className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                <span className="text-[#a39e98]">Average per post</span>
+                <span className="font-semibold tabular-nums">{compactViews(avg)}+</span>
+              </li>
+              {topPlatform && (
+                <li className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                  <span className="text-[#a39e98]">Top platform</span>
+                  <span className="font-semibold">{topPlatform.platform} · {Math.round(topPlatform.share * 100)}%</span>
+                </li>
+              )}
+            </ul>
+          </FeatureCard>
+
+          <FeatureCard
+            className="md:col-span-2"
+            delay={160}
             icon={LayoutDashboard}
             title="One dashboard"
             body="Your campaigns, the creators on each, their posts and where they are."
           >
             <ul className="flex flex-col gap-2 text-sm">
-              {top.slice(0, 2).map((p, i) => (
+              {top.slice(0, 3).map((p, i) => (
                 <li key={p.id} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
                   <span className="font-semibold">{postName(p)}</span>
-                  <span className="text-xs text-[#a39e98]">{p.views} views</span>
+                  <span className="text-xs text-[#a39e98]">{p.views}</span>
                 </li>
               ))}
             </ul>
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-3"
-            delay={160}
+            className="md:col-span-6"
+            delay={80}
             icon={Rocket}
             title="We set it up with you"
-            body="Share your brief and we set up the campaign and match the right creators."
+            body="Share your brief and we set up the campaign and match the right creators. You don't have to chase anyone."
           >
-            <ol className="flex flex-col gap-2 text-sm">
+            <ol className="grid gap-2 text-sm sm:grid-cols-3">
               {["Your brief", "Creators matched", "Campaign live"].map((s, i) => (
                 <li key={s} className="flex items-center gap-3 rounded-lg bg-[#1d1c22] px-3 py-2.5">
                   <span style={{ animationDelay: `${i * 0.7}s` }} className="ko-dot size-4 rounded-full border-2" />

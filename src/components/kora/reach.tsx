@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { ArrowUpRight, Play } from "lucide-react";
-import { compactViews, type ProofReel, type ReelPost } from "@/lib/proof-reel";
+import { compactViews } from "@/lib/format";
+import type { ProofReel, ReelPost } from "@/lib/proof-reel";
 import { CountUp } from "./count-up";
 import { FadeIn } from "./fade-in";
 import { cn } from "@/lib/utils";
@@ -30,9 +31,9 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
       <FadeIn delay={80} className="mt-12">
         <div className="grid gap-px overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.08] sm:grid-cols-4">
           {[
-            { label: "Total views", value: <><CountUp to={reel.totalViews} duration={2000} />+</>, big: true },
+            { label: "Total views", value: <><CountUp to={reel.totalViews} duration={2000} compact />+</>, big: true },
             { label: "Posts tracked", value: <CountUp to={reel.posts.length} /> },
-            { label: "Average per post", value: <><CountUp to={avg} duration={1600} />+</> },
+            { label: "Average per post", value: <><CountUp to={avg} duration={1600} compact />+</> },
             { label: "Best post", value: `${compactViews(best.viewsNum)}+` },
           ].map((s) => (
             <div key={s.label} className="bg-[#1d1c22] px-6 py-7 text-center">

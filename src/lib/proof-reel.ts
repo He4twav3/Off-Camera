@@ -1,5 +1,8 @@
 import "server-only";
 import { getProofPosters } from "@/lib/proof-thumbnails";
+import { compactViews } from "@/lib/format";
+
+export { compactViews };
 
 /**
  * The real posts behind the brands page: our own TikTok and Instagram content,
@@ -37,13 +40,6 @@ export function parseViews(text: string | undefined): number | null {
   if (!m) return null;
   const n = Number(m[1]) * (m[2]?.toUpperCase() === "M" ? 1_000_000 : m[2]?.toUpperCase() === "K" ? 1_000 : 1);
   return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-}
-
-/** 26_200_000 -> "26.2M" */
-export function compactViews(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 1 : 2).replace(/\.?0+$/, "")}M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
-  return String(n);
 }
 
 async function resolveHandle(platform: "TikTok" | "Instagram", postUrl: string): Promise<string | null> {
