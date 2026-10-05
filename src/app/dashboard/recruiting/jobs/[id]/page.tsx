@@ -6,6 +6,7 @@ import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
+import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import {
   PLATFORM_LABELS,
   PAYOUT_TYPE_LABELS,
@@ -151,6 +152,7 @@ export default async function JobDetailPage(props: {
             The brand name and full brief are shared with you once you&apos;re
             assigned to this campaign.
           </p>
+          <DisclosureNotice className="mt-4" />
         </section>
       )}
 

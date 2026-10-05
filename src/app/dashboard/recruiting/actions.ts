@@ -33,6 +33,9 @@ export async function submitProofAction(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Check the link." };
   }
+  if (formData.get("disclosed") !== "on") {
+    return { error: "Confirm the post is labelled as a paid partnership before submitting." };
+  }
 
   const supabase = await createClient();
   const {

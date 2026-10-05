@@ -1,11 +1,11 @@
 -- ============================================================================
 -- 0008_campaign_views.sql
 --
--- Per-campaign view counts, pushed in by the view-tracking Zap (v3.0) via
--- POST /api/campaign-views. One row per (campaign, platform, handle); the Zap
+-- Per-campaign view counts, written by the in-house view counter
+-- (lib/campaign-views.ts). One row per (campaign, platform, handle); the counter
 -- upserts so a re-run refreshes the number instead of adding a duplicate.
 --
--- Writes: service role only (the route handler) — there is deliberately no
+-- Writes: service role only (server-side code) — there is deliberately no
 -- insert/update policy, so nothing signed-in or anonymous can write here.
 -- Reads: a creator sees only rows for handles on their own applicant profile;
 -- admins see everything. `handle` is stored lowercase so the match and the

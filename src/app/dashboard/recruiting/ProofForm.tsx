@@ -48,6 +48,13 @@ export function ProofForm({
         />
       </Field>
 
+      <label className="flex items-start gap-3 text-sm text-muted-foreground">
+        <input type="checkbox" name="disclosed" required className="mt-0.5 size-4 shrink-0" />
+        <span>
+          I confirm this post is labelled as a paid partnership (the platform&apos;s label or #ad).
+        </span>
+      </label>
+
       {state.error && (
         <p
           role="alert"

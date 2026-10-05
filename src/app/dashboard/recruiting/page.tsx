@@ -10,6 +10,7 @@ import { ProofForm } from "./ProofForm";
 import { ApplicationsList, type ApplicationRow } from "./ApplicationsList";
 import { ProfileCard } from "@/components/ProfileCard";
 import { AccountsCard } from "@/components/app/AccountsCard";
+import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import { ProfileStrength } from "@/components/app/ProfileStrength";
 import { profileCompleteness } from "@/lib/profile-completeness";
 import { formatCurrency, formatDate, PLATFORM_LABELS } from "@/lib/utils";
@@ -246,6 +247,8 @@ export default async function DashboardPage(props: {
                             {job.description}
                           </p>
                         )}
+
+                        {a.status === "active" && <DisclosureNotice className="mt-4" />}
 
                         {job?.notion_sop_url && (
                           <a
