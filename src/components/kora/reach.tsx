@@ -13,7 +13,8 @@ export const postName = (p: ReelPost) => (p.handle ? `@${p.handle}` : `${p.platf
 export function ProvenReach({ reel }: { reel: ProofReel }) {
   if (reel.posts.length === 0) return null;
   const best = reel.posts[0];
-  const avg = Math.round(reel.totalViews / reel.posts.length);
+  const postsTotal = reel.posts.reduce((n, p) => n + p.viewsNum, 0);
+  const avg = Math.round(postsTotal / reel.posts.length);
   const handles = new Set(reel.posts.map((p) => p.handle).filter(Boolean));
 
   return (
@@ -24,14 +25,16 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
           Views we&rsquo;ve already driven
         </h2>
         <p className="mt-4 text-lg leading-relaxed text-[#a39e98]">
-          Real posts from our own accounts, with the view counts they actually earned.
+          {reel.profiles.length > 0
+            ? "Real creators and real posts, with the view counts they actually earned."
+            : "Real posts from our own accounts, with the view counts they actually earned."}
         </p>
       </FadeIn>
 
       <FadeIn delay={80} className="mt-12">
         <div className="grid gap-px overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.08] sm:grid-cols-4">
           {[
-            { label: "Total views", value: <><CountUp to={reel.totalViews} duration={2000} compact />+</>, big: true },
+            { label: "Total views", value: <><CountUp to={reel.totalViews} duration={2000} compact />{reel.totalIsStated ? "" : "+"}</>, big: true },
             { label: "Posts tracked", value: <CountUp to={reel.posts.length} /> },
             { label: "Average per post", value: <><CountUp to={avg} duration={1600} compact />+</> },
             { label: "Best post", value: `${compactViews(best.viewsNum)}+` },
@@ -44,9 +47,47 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
         </div>
       </FadeIn>
 
+      {reel.profiles.length > 0 && (
+        <FadeIn delay={110} className="mt-4">
+          <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            {reel.profiles.map((c) => {
+              const inner = (
+                <>
+                  <img src={c.avatar} alt={c.name} loading="lazy" className="size-16 shrink-0 rounded-full border border-white/[0.1] object-cover" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-lg font-semibold tracking-[-0.01em]">{c.name}</span>
+                    <span className="block truncate text-sm text-[#a39e98]">
+                      @{c.handle} · {c.platform}
+                    </span>
+                  </span>
+                  <span className="text-right">
+                    <span className="block text-2xl font-bold tracking-[-0.02em] tabular-nums">{c.views}</span>
+                    <span className="block text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">views</span>
+                  </span>
+                </>
+              );
+              const cls = "flex items-center gap-4 rounded-2xl border border-white/[0.08] bg-[#1d1c22] p-4 transition-colors";
+              return (
+                <li key={c.handle + c.platform} className="list-none">
+                  {c.url ? (
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" className={cn(cls, "hover:bg-[#201f25]")}>
+                      {inner}
+                    </a>
+                  ) : (
+                    <div className={cls}>{inner}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </FadeIn>
+      )}
+
       <FadeIn delay={140} className="mt-4">
         <div className="rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-6">
-          <p className="text-[0.7rem] font-bold tracking-[0.14em] text-[#a39e98] uppercase">Where the views come from</p>
+          <p className="text-[0.7rem] font-bold tracking-[0.14em] text-[#a39e98] uppercase">
+            Where the views come from{reel.totalIsStated ? " (across the posts shown below)" : ""}
+          </p>
           <div className="mt-4 flex flex-col gap-3">
             {reel.platformViews.map((x) => (
               <div key={x.platform} className="flex items-center gap-4 text-sm">

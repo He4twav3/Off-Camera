@@ -44,7 +44,11 @@ const faqs: [string, string][] = [
 export default async function BrandsPage() {
   const reel = await getProofReel();
   const top = reel.posts.slice(0, 3);
-  const avg = reel.posts.length ? Math.round(reel.totalViews / reel.posts.length) : 0;
+  const postsTotal = reel.posts.reduce((n, p) => n + p.viewsNum, 0);
+  const avg = reel.posts.length ? Math.round(postsTotal / reel.posts.length) : 0;
+  const hasProfiles = reel.profiles.length > 0;
+  // A stated total is shown exactly; a sum of posts is a minimum, so it gets a "+".
+  const plus = reel.totalIsStated ? "" : "+";
   const best = reel.posts[0];
   const topPlatform = [...reel.platformViews].sort((a, b) => b.views - a.views)[0];
 
@@ -67,21 +71,33 @@ export default async function BrandsPage() {
           ]}
         >
           <div className="mb-4 flex items-center justify-between">
-            <p className="font-semibold">Our own content</p>
+            <p className="font-semibold">{hasProfiles ? "Our creators" : "Our own content"}</p>
             <Chip tone="good">Live</Chip>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Posts" value={<CountUp to={Math.max(reel.posts.length, 1)} />} />
+            <StatTile
+              label={hasProfiles ? "Creators" : "Posts"}
+              value={<CountUp to={Math.max(hasProfiles ? reel.profiles.length : reel.posts.length, 1)} />}
+            />
             <StatTile label="Avg views" value={<><CountUp to={avg} compact />+</>} />
-            <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />+</>} accent />
+            <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
           </div>
           <ReviewList
-            items={reel.posts.map((p) => ({
-              id: p.id,
-              name: postName(p),
-              meta: `${p.platform} · ${p.views} views`,
-              thumbnail: p.thumbnail,
-            }))}
+            items={
+              hasProfiles
+                ? reel.profiles.map((c) => ({
+                    id: c.handle + c.platform,
+                    name: c.name,
+                    meta: `@${c.handle} · ${c.platform} · ${c.views} views`,
+                    thumbnail: c.avatar,
+                  }))
+                : reel.posts.map((p) => ({
+                    id: p.id,
+                    name: postName(p),
+                    meta: `${p.platform} · ${p.views} views`,
+                    thumbnail: p.thumbnail,
+                  }))
+            }
           />
         </BrowserFrame>
       </Hero>
@@ -143,8 +159,8 @@ export default async function BrandsPage() {
             title="Reach you can see"
             body="Every post's views, updated daily across TikTok, Instagram and YouTube."
           >
-            <p className="text-4xl font-bold tabular-nums"><CountUp to={reel.totalViews} duration={2000} compact />+</p>
-            <p className="text-xs text-[#a39e98]">views across our own posts</p>
+            <p className="text-4xl font-bold tabular-nums"><CountUp to={reel.totalViews} duration={2000} compact />{plus}</p>
+            <p className="text-xs text-[#a39e98]">{reel.totalIsStated ? "views driven" : "views across our own posts"}</p>
             <div className="mt-4 flex flex-col gap-2">
               {reel.platformViews.map((x) => (
                 <div key={x.platform} className="flex items-center gap-3 text-xs text-[#a39e98]">
@@ -222,7 +238,7 @@ export default async function BrandsPage() {
 
       <StatsBand
         stats={[
-          { value: <>{compactViews(reel.totalViews)}+</>, label: "views on our own posts" },
+          { value: <>{compactViews(reel.totalViews)}{plus}</>, label: reel.totalIsStated ? "views driven" : "views on our own posts" },
           { value: <><CountUp to={100} />%</>, label: "of creators hand-reviewed" },
           { value: "Daily", label: "view updates" },
         ]}

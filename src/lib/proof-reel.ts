@@ -1,6 +1,7 @@
 import "server-only";
 import { getProofPosters } from "@/lib/proof-thumbnails";
 import { compactViews } from "@/lib/format";
+import { CREATOR_PROFILES, TOTAL_VIEWS_DRIVEN, type CreatorProfile } from "@/lib/creators";
 
 export { compactViews };
 
@@ -28,9 +29,16 @@ export type ReelPost = {
   postUrl: string;
 };
 
+export type ReelProfile = CreatorProfile & { viewsNum: number };
+
 export type ProofReel = {
   posts: ReelPost[]; // most-viewed first
+  /** Real creators with photos (lib/creators.ts), most-viewed first. Empty until filled in. */
+  profiles: ReelProfile[];
+  /** The headline total: the stated all-time total if given, else the sum of the posts. */
   totalViews: number;
+  /** True when totalViews is the stated figure and is larger than the posts' sum. */
+  totalIsStated: boolean;
   platformViews: { platform: "TikTok" | "Instagram"; views: number; share: number }[];
 };
 
@@ -91,13 +99,22 @@ export async function getProofReel(): Promise<ProofReel> {
   );
   posts.sort((a, b) => b.viewsNum - a.viewsNum);
 
-  const totalViews = posts.reduce((n, p) => n + p.viewsNum, 0);
+  const postsTotal = posts.reduce((n, p) => n + p.viewsNum, 0);
+  const stated = parseViews(TOTAL_VIEWS_DRIVEN ?? undefined);
+  const totalIsStated = stated !== null && stated > postsTotal;
+  const totalViews = totalIsStated ? stated : postsTotal;
+
+  const profiles: ReelProfile[] = CREATOR_PROFILES.flatMap((c) => {
+    const viewsNum = parseViews(c.views);
+    return viewsNum === null ? [] : [{ ...c, viewsNum }];
+  }).sort((a, b) => b.viewsNum - a.viewsNum);
   const platformViews = (["TikTok", "Instagram"] as const)
     .map((platform) => {
       const views = posts.filter((p) => p.platform === platform).reduce((n, p) => n + p.viewsNum, 0);
-      return { platform, views, share: totalViews ? views / totalViews : 0 };
+      // The split is across the listed posts only, even when the headline total is larger.
+      return { platform, views, share: postsTotal ? views / postsTotal : 0 };
     })
     .filter((x) => x.views > 0);
 
-  return { posts, totalViews, platformViews };
+  return { posts, profiles, totalViews, totalIsStated, platformViews };
 }
