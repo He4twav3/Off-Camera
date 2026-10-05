@@ -7,6 +7,12 @@ import { CodeEmail } from "@/emails/code-email";
 /**
  * Email verification codes — the "second factor" for a new account.
  *
+ * BOUND TO ONE SIGNUP ATTEMPT. Each signup stores a random `otp_nonce` on the
+ * account (and in an httpOnly cookie in the signing-up browser), and the code is
+ * derived from email + nonce + time. A later signup for the same address
+ * replaces the nonce, so a code emailed for someone else's attempt can never
+ * confirm this account, and the cookie must match before any code is checked.
+ *
  * STATELESS CODES. The 6-digit code is HMAC(key, "email|time-bucket"), so no
  * table is needed: the server can recompute what it should have sent. A code
  * is accepted for the current and the previous 10-minute bucket (so it lives
@@ -31,20 +37,20 @@ function key() {
     .digest();
 }
 
-export function codeFor(email: string, bucket: number): string {
-  const mac = createHmac("sha256", key()).update(`${email.toLowerCase()}|${bucket}`).digest();
+export function codeFor(email: string, nonce: string, bucket: number): string {
+  const mac = createHmac("sha256", key()).update(`${email.toLowerCase()}|${nonce}|${bucket}`).digest();
   return String(mac.readUInt32BE(0) % 1_000_000).padStart(6, "0");
 }
 
-export function currentCode(email: string, now = Date.now()) {
-  return codeFor(email, Math.floor(now / BUCKET_MS));
+export function currentCode(email: string, nonce: string, now = Date.now()) {
+  return codeFor(email, nonce, Math.floor(now / BUCKET_MS));
 }
 
-export function codeIsValid(email: string, input: string, now = Date.now()): boolean {
+export function codeIsValid(email: string, nonce: string, input: string, now = Date.now()): boolean {
   if (!/^\d{6}$/.test(input)) return false;
   const bucket = Math.floor(now / BUCKET_MS);
   return [bucket, bucket - 1].some((b) => {
-    const expected = Buffer.from(codeFor(email, b));
+    const expected = Buffer.from(codeFor(email, nonce, b));
     const given = Buffer.from(input);
     return expected.length === given.length && timingSafeEqual(expected, given);
   });
@@ -59,7 +65,7 @@ async function findUserId(email: string): Promise<string | null> {
   return data?.user_id ?? null;
 }
 
-type Meta = { otp_attempts?: number; otp_locked_until?: number; otp_sent_at?: number };
+type Meta = { otp_attempts?: number; otp_locked_until?: number; otp_sent_at?: number; otp_nonce?: string };
 
 async function loadUser(email: string) {
   const id = await findUserId(email);
@@ -69,16 +75,18 @@ async function loadUser(email: string) {
 }
 
 /** Emails the current code. Returns false if throttled or the user is gone. */
-export async function sendVerificationCode(email: string): Promise<{ ok: boolean; throttled?: boolean }> {
+export async function sendVerificationCode(email: string, nonce: string): Promise<{ ok: boolean; throttled?: boolean }> {
   const user = await loadUser(email);
   if (!user || user.email_confirmed_at) return { ok: false };
 
   const meta = (user.user_metadata ?? {}) as Meta;
+  // Only the signup attempt that currently owns the account may request codes.
+  if (!nonce || meta.otp_nonce !== nonce) return { ok: false };
   if (meta.otp_sent_at && Date.now() - meta.otp_sent_at < RESEND_MS) {
     return { ok: false, throttled: true };
   }
 
-  const code = currentCode(email);
+  const code = currentCode(email, nonce);
   await sendEmail({
     to: email,
     subject: `${code} is your On Camera verification code`,
@@ -107,7 +115,7 @@ export type VerifyResult =
   | { ok: false; error: string };
 
 /** Checks a code for an unconfirmed account and, on success, confirms it. */
-export async function verifyCode(email: string, input: string): Promise<VerifyResult> {
+export async function verifyCode(email: string, nonce: string, input: string): Promise<VerifyResult> {
   const user = await loadUser(email);
   if (!user || user.email_confirmed_at) {
     return { ok: false, error: "That code didn't work. Request a new one." };
@@ -115,11 +123,16 @@ export async function verifyCode(email: string, input: string): Promise<VerifyRe
 
   const admin = createAdminClient();
   const meta = (user.user_metadata ?? {}) as Meta;
+  // The code must belong to THIS browser's signup attempt. If the address was
+  // signed up again by someone else, the nonce changed and this is refused.
+  if (!nonce || meta.otp_nonce !== nonce) {
+    return { ok: false, error: "This sign-up was restarted. Please start again from the sign-up page." };
+  }
   if (meta.otp_locked_until && meta.otp_locked_until > Date.now()) {
     return { ok: false, error: "Too many attempts. Try again in a few minutes." };
   }
 
-  if (!codeIsValid(email, input.trim())) {
+  if (!codeIsValid(email, nonce, input.trim())) {
     const attempts = (meta.otp_attempts ?? 0) + 1;
     const locked = attempts >= MAX_ATTEMPTS;
     await admin.auth.admin.updateUserById(user.id, {

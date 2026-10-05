@@ -1,8 +1,11 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendVerificationCode } from "@/lib/email-code";
+import { SIGNUP_COOKIE } from "./constants";
 import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 import { parseCreatorSignup, signupMetadata } from "@/lib/creator-signup";
 import { brandMetadata, parseBrandSignup } from "@/lib/brand-signup";
@@ -50,12 +53,16 @@ export async function createAccount(
     return { error: TOO_MANY };
   }
 
+  // One random id per signup attempt: stored on the account and in this
+  // browser only. See lib/email-code.ts.
+  const nonce = randomBytes(16).toString("hex");
+
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: false,
-    user_metadata: metadata,
+    user_metadata: { ...metadata, otp_nonce: nonce },
   });
 
   if (error) {
@@ -77,14 +84,22 @@ export async function createAccount(
     }
     await admin.auth.admin.updateUserById(existing.id, {
       password,
-      user_metadata: { ...existing.user_metadata, ...metadata },
+      user_metadata: { ...existing.user_metadata, ...metadata, otp_nonce: nonce },
     });
   }
 
-  const sent = await sendVerificationCode(email);
+  const sent = await sendVerificationCode(email, nonce);
   if (!sent.ok && !sent.throttled) {
     return { error: "Couldn't send the code. Try again in a moment." };
   }
+
+  (await cookies()).set(SIGNUP_COOKIE, nonce, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/create-account",
+    maxAge: 60 * 30,
+  });
 
   redirect(`/create-account/verify?email=${encodeURIComponent(email)}`);
 }

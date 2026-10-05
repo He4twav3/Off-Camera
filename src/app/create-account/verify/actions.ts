@@ -1,11 +1,13 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendVerificationCode, verifyCode } from "@/lib/email-code";
 import { createBrandAccount } from "@/lib/brand-signup";
 import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
+import { SIGNUP_COOKIE } from "../constants";
 
 export type VerifyState = { error?: string; message?: string };
 
@@ -22,7 +24,9 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
   // (Wrong codes are also locked out per account; this caps a visitor overall.)
   if (!rateLimit(`verify:${await clientIp()}`, 25, 10 * 60_000)) return { error: TOO_MANY };
 
-  const result = await verifyCode(email, code);
+  // The code only counts for the browser that started this signup attempt.
+  const nonce = (await cookies()).get(SIGNUP_COOKIE)?.value ?? "";
+  const result = await verifyCode(email, nonce, code);
   if (!result.ok) return { error: result.error };
 
   // A brand signup becomes a brand account (pending approval) and lands on /brand.
@@ -47,6 +51,7 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
     return { error: "You're verified — sign in with your email and password." };
   }
 
+  (await cookies()).delete(SIGNUP_COOKIE);
   redirect(isBrand ? "/brand" : "/dashboard/recruiting/profile-setup");
 }
 
@@ -54,7 +59,8 @@ export async function resendCode(_prev: VerifyState, formData: FormData): Promis
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email) return { error: "Start again from the sign-up page." };
   if (!rateLimit(`resend:${await clientIp()}`, 10, 10 * 60_000)) return { error: TOO_MANY };
-  const sent = await sendVerificationCode(email);
+  const nonce = (await cookies()).get(SIGNUP_COOKIE)?.value ?? "";
+  const sent = await sendVerificationCode(email, nonce);
   if (sent.throttled) return { message: "Wait a few seconds, then try again." };
   return sent.ok ? { message: "New code sent." } : { error: "Couldn't send a code for that email." };
 }
