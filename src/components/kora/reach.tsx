@@ -2,6 +2,7 @@
 import { Play } from "lucide-react";
 import { compactViews } from "@/lib/format";
 import type { ProofReel } from "@/lib/proof-reel";
+import { AtHandle } from "./blocks";
 import { CountUp } from "./count-up";
 import { FadeIn } from "./fade-in";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,9 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
           {creators.map((c, i) => (
             <FadeIn key={c.handle} delay={Math.min(i, 5) * 60}>
               <li className="flex list-none items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-[#1d1c22] px-5 py-4">
-                <span className="min-w-0 truncate text-lg font-semibold tracking-[-0.01em]">@{c.handle}</span>
+                <span className="min-w-0 truncate text-lg font-semibold tracking-[-0.01em]">
+                  <AtHandle handle={c.handle} />
+                </span>
                 <span className="text-right">
                   <span className="block text-2xl font-bold tracking-[-0.02em] tabular-nums">{compactViews(c.viewsNum)}</span>
                   <span className="block text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">views</span>

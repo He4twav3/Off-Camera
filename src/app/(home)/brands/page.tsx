@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BadgeCheck, BarChart3, Eye, LayoutDashboard, Megaphone, Rocket, ShieldCheck, Users } from "lucide-react";
 import {
+  AtHandle,
   BrowserFrame,
   Chip,
   CountUp,
@@ -73,7 +74,7 @@ export default async function BrandsPage() {
           <ReviewList
             items={creators.map((c) => ({
               id: c.handle,
-              name: c.handle,
+              name: `@${c.handle}`,
               meta: `${compactViews(c.viewsNum)} views`,
             }))}
           />
@@ -142,7 +143,7 @@ export default async function BrandsPage() {
             <div className="mt-4 flex flex-col gap-2">
               {creators.slice(0, 3).map((c, i) => (
                 <div key={c.handle} className="flex items-center gap-3 text-xs text-[#a39e98]">
-                  <span className="w-24 truncate">@{c.handle}</span>
+                  <span className="w-24 truncate"><AtHandle handle={c.handle} /></span>
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#2d2b32]">
                     <span
                       className="ko-fill block h-full rounded-full bg-[#ac0216]"
@@ -164,7 +165,7 @@ export default async function BrandsPage() {
             <ul className="flex flex-col gap-2 text-sm">
               {creators.slice(0, 3).map((c, i) => (
                 <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="font-semibold">@{c.handle}</span>
+                  <span className="font-semibold"><AtHandle handle={c.handle} /></span>
                   <span className="text-xs text-[#a39e98]">{compactViews(c.viewsNum)} views</span>
                 </li>
               ))}

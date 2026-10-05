@@ -59,7 +59,16 @@ export function ReviewList({ items }: { items: ReviewItem[] }) {
           >
             <div className="mb-2 flex items-center gap-3.5 rounded-xl border border-white/[0.08] px-3.5 py-3">
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[0.95rem] font-semibold">{item.name}</span>
+                <span className="block truncate text-[0.95rem] font-semibold">
+                  {item.name.startsWith("@") ? (
+                    <>
+                      <span className="text-[#a39e98]">@</span>
+                      {item.name.slice(1)}
+                    </>
+                  ) : (
+                    item.name
+                  )}
+                </span>
                 <span className="block truncate text-xs text-[#a39e98]">▶ {item.meta}</span>
               </span>
               <span

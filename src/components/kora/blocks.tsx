@@ -231,3 +231,13 @@ export function Faq({ title, items }: { title: string; items: [string, string][]
 }
 
 export { CountUp };
+
+/** A creator's username with a gray "@" in front. */
+export function AtHandle({ handle }: { handle: string }) {
+  return (
+    <>
+      <span className="text-[#a39e98]">@</span>
+      {handle}
+    </>
+  );
+}
