@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { payoutTermsSchema } from "@/lib/payout-terms";
 
 export interface JobFormState {
   error?: string;
@@ -29,6 +30,60 @@ const jobSchema = z.object({
     .or(z.literal("")),
 });
 
+
+/** Reads the payout-formula fields of the job form. Returns null terms when none
+ * of the parts are filled in (the campaign then uses the plain payout fields). */
+function readPayoutTerms(formData: FormData): { terms: Record<string, unknown> | null; error?: string } {
+  const text = (k: string) => String(formData.get(k) ?? "").trim();
+  const num = (k: string): number | null | "bad" => {
+    const t = text(k);
+    if (t === "") return null;
+    const n = Number(t);
+    return Number.isFinite(n) ? n : "bad";
+  };
+  const read = (k: string, label: string) => {
+    const n = num(k);
+    if (n === "bad") throw new Error(`${label} must be a number.`);
+    return n;
+  };
+
+  try {
+    const fixed = read("fixed_per_video", "Fixed fee") ?? 0;
+    const videos = read("videos", "Videos") ?? 1;
+    const cpmRate = read("cpm_rate", "Rate per 1,000 views");
+    const cpmStart = read("cpm_starts_at", "Views before the rate starts") ?? 0;
+    const cap = read("cap_per_creator", "Maximum payout");
+    const days = read("measure_days", "Measurement days") ?? 30;
+
+    const bonuses: { views: number; amount: number }[] = [];
+    for (const i of [1, 2, 3]) {
+      const views = read(`bonus${i}_views`, `Bonus ${i} views`);
+      const amount = read(`bonus${i}_amount`, `Bonus ${i} amount`);
+      if (views === null && amount === null) continue;
+      if (views === null || amount === null) throw new Error(`Fill in both the views and the amount for bonus ${i}, or leave both empty.`);
+      bonuses.push({ views, amount });
+    }
+
+    const any = fixed > 0 || (cpmRate !== null && cpmRate > 0) || bonuses.length > 0;
+    if (!any) return { terms: null };
+
+    const parsed = payoutTermsSchema.safeParse({
+      v: 1,
+      videos,
+      fixedPerVideo: fixed,
+      cpm: cpmRate !== null && cpmRate > 0 ? { ratePer1000: cpmRate, startsAt: Math.max(0, Math.floor(cpmStart)) } : null,
+      bonuses,
+      capPerCreator: cap !== null && cap > 0 ? cap : null,
+      measureDays: days,
+      fixedPaidOn: text("fixed_paid_on") === "end" ? "end" : "approval",
+    });
+    if (!parsed.success) return { terms: null, error: parsed.error.issues[0]?.message ?? "Check the payout formula." };
+    return { terms: parsed.data };
+  } catch (e) {
+    return { terms: null, error: (e as Error).message };
+  }
+}
+
 export async function saveJobAction(
   _prev: JobFormState,
   formData: FormData,
@@ -52,6 +107,9 @@ export async function saveJobAction(
     return { error: parsed.error.issues[0]?.message ?? "Check the job fields." };
   }
 
+  const formula = readPayoutTerms(formData);
+  if (formula.error) return { error: formula.error };
+
   const supabase = await createClient();
   const { id, ...values } = parsed.data;
 
@@ -61,6 +119,7 @@ export async function saveJobAction(
     payout_notes: values.payout_notes || null,
     notion_sop_url: values.notion_sop_url || null,
     brand_account_id: values.brand_account_id || null,
+    payout_terms: formula.terms,
   };
 
   // RLS restricts writes to admins; this runs as the signed-in admin, not

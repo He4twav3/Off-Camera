@@ -51,6 +51,7 @@ export interface Database {
           status: JobStatusEnum;
           notion_sop_url: string | null;
           brand_account_id: string | null;
+          payout_terms: Record<string, unknown> | null;
           created_at: string;
         };
         Insert: {
@@ -66,6 +67,7 @@ export interface Database {
           status?: JobStatusEnum;
           notion_sop_url?: string | null;
           brand_account_id?: string | null;
+          payout_terms?: Record<string, unknown> | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["jobs"]["Insert"]>;

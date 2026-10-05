@@ -8,6 +8,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Card, CardContent } from "@/components/ui/card";
 import { saveJobAction, type JobFormState } from "./actions";
 import type { Job } from "@/lib/database.types";
+import { parsePayoutTerms } from "@/lib/payout-terms";
 
 function SubmitButton({ isEdit }: { isEdit: boolean }) {
   const { pending } = useFormStatus();
@@ -32,6 +33,8 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
   );
 
   const isEdit = Boolean(job);
+  const terms = job ? parsePayoutTerms(job.payout_terms) : null;
+  const k = job?.id ?? "new";
 
   if (!open) {
     return (
@@ -212,6 +215,54 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
             defaultValue={job?.payout_notes ?? ""}
           />
         </Field>
+
+        <fieldset className="flex flex-col gap-5 rounded-md border border-border/70 p-4">
+          <legend className="px-2 text-sm font-semibold text-foreground">
+            Payout formula (optional)
+          </legend>
+          <p className="text-sm text-muted-foreground">
+            Set what this brand pays per creator. Use any mix: a fixed fee, a
+            rate per 1,000 views, milestone bonuses. Leave a part empty to skip
+            it. Payouts are suggested from this and the contract is generated
+            from it.
+          </p>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Field label="Videos per creator" htmlFor={`videos-${k}`}>
+              <Input id={`videos-${k}`} name="videos" type="number" min={1} max={50} defaultValue={terms?.videos ?? 1} />
+            </Field>
+            <Field label="Fixed fee per video ($)" htmlFor={`fixed-${k}`}>
+              <Input id={`fixed-${k}`} name="fixed_per_video" type="number" min={0} step="0.01" defaultValue={terms?.fixedPerVideo || ""} />
+            </Field>
+            <Field label="Rate per 1,000 views ($)" htmlFor={`cpm-${k}`}>
+              <Input id={`cpm-${k}`} name="cpm_rate" type="number" min={0} step="0.01" defaultValue={terms?.cpm?.ratePer1000 ?? ""} />
+            </Field>
+            <Field label="Rate starts after (views)" htmlFor={`cpmstart-${k}`} hint="0 = counts from the first view.">
+              <Input id={`cpmstart-${k}`} name="cpm_starts_at" type="number" min={0} step="1" defaultValue={terms?.cpm?.startsAt ?? ""} />
+            </Field>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="grid grid-cols-2 gap-3 sm:col-span-2">
+                <Field label={`Bonus ${i + 1}: at views`} htmlFor={`b${i}v-${k}`}>
+                  <Input id={`b${i}v-${k}`} name={`bonus${i + 1}_views`} type="number" min={0} step="1" defaultValue={terms?.bonuses[i]?.views ?? ""} />
+                </Field>
+                <Field label={`Bonus ${i + 1}: amount ($)`} htmlFor={`b${i}a-${k}`}>
+                  <Input id={`b${i}a-${k}`} name={`bonus${i + 1}_amount`} type="number" min={0} step="0.01" defaultValue={terms?.bonuses[i]?.amount ?? ""} />
+                </Field>
+              </div>
+            ))}
+            <Field label="Max payout per creator ($)" htmlFor={`cap-${k}`} hint="Optional cap.">
+              <Input id={`cap-${k}`} name="cap_per_creator" type="number" min={0} step="0.01" defaultValue={terms?.capPerCreator ?? ""} />
+            </Field>
+            <Field label="Views counted for (days)" htmlFor={`days-${k}`}>
+              <Input id={`days-${k}`} name="measure_days" type="number" min={1} max={365} defaultValue={terms?.measureDays ?? 30} />
+            </Field>
+            <Field label="Fixed fee paid" htmlFor={`paidon-${k}`}>
+              <Select id={`paidon-${k}`} name="fixed_paid_on" defaultValue={terms?.fixedPaidOn ?? "approval"}>
+                <option value="approval">When the video is approved</option>
+                <option value="end">At the end of the campaign</option>
+              </Select>
+            </Field>
+          </div>
+        </fieldset>
 
         <Field
           label="Notion SOP link"

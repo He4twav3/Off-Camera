@@ -5,6 +5,7 @@ import { StatusBadge, assignmentStatusTone } from "@/components/ui/status-badge"
 import { PayoutForm } from "./PayoutForm";
 import { setAssignmentStatusAction } from "./actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
 
 export const metadata: Metadata = { title: "Payouts · Admin" };
 
@@ -23,9 +24,29 @@ export default async function AdminPayoutsPage() {
   const { data: assignments } = await supabase
     .from("assignments")
     .select(
-      "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, applicants(name, email, handle), jobs(title), payouts(gross_amount, notes, paid_at, brand_paid_at, brand_payment_ref)",
+      "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, applicants(name, email, handle), jobs(title, payout_terms), payouts(gross_amount, notes, paid_at, brand_paid_at, brand_payment_ref)",
     )
     .order("assigned_at", { ascending: false });
+
+  const { data: viewRows } = await supabase
+    .from("campaign_views")
+    .select("campaign, handle, views");
+  const norm = (v: string) => v.trim().replace(/^@+/, "").toLowerCase();
+  const viewsByKey = new Map<string, number>();
+  for (const r of viewRows ?? []) {
+    const key = `${norm(r.campaign)}|${norm(r.handle)}`;
+    viewsByKey.set(key, (viewsByKey.get(key) ?? 0) + Number(r.views));
+  }
+  // Suggested payout per assignment from the campaign's formula and the views
+  // counted for the creator's handle. A suggestion only; the admin still enters
+  // the real amounts below.
+  const suggestions = new Map<string, Suggestion>();
+  for (const a of assignments ?? []) {
+    const terms = parsePayoutTerms(a.jobs?.payout_terms);
+    if (!terms || !a.jobs || !a.applicants) continue;
+    const views = viewsByKey.get(`${norm(a.jobs.title)}|${norm(a.applicants.handle)}`) ?? 0;
+    suggestions.set(a.id, { views, breakdown: calculatePayout(terms, views) });
+  }
 
   const all = assignments ?? [];
   const awaiting = all.filter((a) => a.status === "submitted");
@@ -68,10 +89,10 @@ export default async function AdminPayoutsPage() {
       ) : (
         <div className="flex flex-col gap-10">
           {awaiting.length > 0 && (
-            <Section title="Awaiting payout" items={awaiting} />
+            <Section title="Awaiting payout" items={awaiting} suggestions={suggestions} />
           )}
-          {disputed.length > 0 && <Section title="Disputed" items={disputed} />}
-          {others.length > 0 && <Section title="Everything else" items={others} />}
+          {disputed.length > 0 && <Section title="Disputed" items={disputed} suggestions={suggestions} />}
+          {others.length > 0 && <Section title="Everything else" items={others} suggestions={suggestions} />}
         </div>
       )}
     </div>
@@ -86,7 +107,7 @@ type AssignmentRow = {
   assigned_at: string;
   paid_at: string | null;
   applicants: { name: string; email: string; handle: string } | null;
-  jobs: { title: string } | null;
+  jobs: { title: string; payout_terms: Record<string, unknown> | null } | null;
   // `payouts.assignment_id` is a unique FK, so PostgREST embeds this as a
   // single object (or null) rather than an array.
   payouts: {
@@ -98,7 +119,17 @@ type AssignmentRow = {
   } | null;
 };
 
-function Section({ title, items }: { title: string; items: AssignmentRow[] }) {
+type Suggestion = { views: number; breakdown: ReturnType<typeof calculatePayout> };
+
+function Section({
+  title,
+  items,
+  suggestions,
+}: {
+  title: string;
+  items: AssignmentRow[];
+  suggestions: Map<string, Suggestion>;
+}) {
   return (
     <section>
       <h2 className="mb-4 font-heading text-xl font-semibold text-foreground">
@@ -145,6 +176,15 @@ function Section({ title, items }: { title: string; items: AssignmentRow[] }) {
                     <p className="font-heading text-xl font-semibold text-primary">
                       {formatCurrency(a.applicant_payout_amount)}
                     </p>
+                    {suggestions.get(a.id) && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Formula: brand pays{" "}
+                        <span className="font-semibold text-foreground">
+                          {formatCurrency(suggestions.get(a.id)!.breakdown.total)}
+                        </span>{" "}
+                        at {suggestions.get(a.id)!.views.toLocaleString()} views
+                      </p>
+                    )}
                     {margin !== null && (
                       <p className="mt-1 text-sm text-muted-foreground">
                         Margin{" "}
