@@ -88,10 +88,10 @@ export default function CreatorsPage() {
           >
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                Posts in progress <Chip tone="good">Active</Chip>
+                Posts in progress <Chip tone="panel">Active</Chip>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                Waiting on review <Chip tone="accent">Post submitted</Chip>
+                Waiting on review <Chip tone="panel">Post submitted</Chip>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
                 <span className="text-[#a39e98]">Deliverables</span>
@@ -139,7 +139,7 @@ export default function CreatorsPage() {
             className="md:col-span-2"
             delay={80}
             icon={Wallet}
-            tone="ink"
+            tone="panel"
             title="See your earnings build"
             body="Pending and paid, per campaign, so you always know where you stand."
           >
@@ -155,7 +155,7 @@ export default function CreatorsPage() {
             className="md:col-span-3"
             delay={160}
             icon={Store}
-            tone="crimson"
+            tone="panel"
             title="A board of open campaigns"
             body="Browse campaigns from brands and apply in a click."
           >

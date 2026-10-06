@@ -107,7 +107,7 @@ export default async function BrandsPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                Ready for campaigns <Chip tone="good">Approved</Chip>
+                Ready for campaigns <Chip tone="panel">Approved</Chip>
               </div>
             </div>
           </FeatureCard>
@@ -137,7 +137,7 @@ export default async function BrandsPage() {
           <FeatureCard
             className="md:col-span-2"
             icon={Eye}
-            tone="ink"
+            tone="panel"
             title="Reach you can see"
             body="Every post's views, updated daily, rolled up per creator and per campaign."
           >
@@ -162,7 +162,7 @@ export default async function BrandsPage() {
             className="md:col-span-2"
             delay={80}
             icon={LayoutDashboard}
-            tone="crimson"
+            tone="panel"
             title="One dashboard"
             body="Your campaigns, the creators on each, their posts and where they are."
           >
