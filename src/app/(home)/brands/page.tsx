@@ -107,7 +107,7 @@ export default async function BrandsPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                Ready for campaigns <Chip tone="panel">Approved</Chip>
+                Ready for campaigns <Chip tone="good">Approved</Chip>
               </div>
             </div>
           </FeatureCard>
