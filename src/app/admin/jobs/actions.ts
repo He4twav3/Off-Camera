@@ -22,6 +22,7 @@ const jobSchema = z.object({
   account_requirement: z.enum(["new_ok", "established_required"]),
   status: z.enum(["open", "filled", "closed"]),
   brand_account_id: z.string().uuid().optional().or(z.literal("")),
+  sample_criteria: z.string().trim().max(1000).optional(),
   notion_sop_url: z
     .string()
     .trim()
@@ -120,6 +121,9 @@ export async function saveJobAction(
     notion_sop_url: values.notion_sop_url || null,
     brand_account_id: values.brand_account_id || null,
     payout_terms: formula.terms,
+    // Off unless the box is ticked: most campaigns are a normal application.
+    sample_required: formData.get("sample_required") === "on",
+    sample_criteria: values.sample_criteria || null,
   };
 
   // RLS restricts writes to admins; this runs as the signed-in admin, not

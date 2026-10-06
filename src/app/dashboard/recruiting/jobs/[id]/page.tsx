@@ -309,7 +309,11 @@ export default async function JobDetailPage(props: {
             />
 
             <div className="mt-6">
-              <ApplyForm jobId={job.id} />
+              <ApplyForm
+                jobId={job.id}
+                sampleRequired={job.sample_required}
+                sampleCriteria={job.sample_criteria}
+              />
             </div>
           </>
         )}

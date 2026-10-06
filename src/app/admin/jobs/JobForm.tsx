@@ -264,6 +264,39 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
           </div>
         </fieldset>
 
+        <fieldset className="flex flex-col gap-4 rounded-md border border-border/70 p-4">
+          <legend className="px-2 text-sm font-semibold text-foreground">
+            Sample video (optional)
+          </legend>
+          <label className="flex cursor-pointer items-start gap-3 text-[15px] text-foreground">
+            <input
+              type="checkbox"
+              name="sample_required"
+              defaultChecked={job?.sample_required ?? false}
+              className="mt-1 size-4 accent-[var(--color-primary)]"
+            />
+            <span>
+              Ask applicants for a sample video
+              <span className="block text-sm text-muted-foreground">
+                Leave this off for a normal application. When it is on, creators
+                must attach a Google Drive link to apply.
+              </span>
+            </span>
+          </label>
+          <Field
+            label="What should the sample show?"
+            htmlFor={`sample-criteria-${k}`}
+            hint="Shown to creators when they apply. e.g. '30 seconds, show the app on screen, talk to camera'."
+          >
+            <Textarea
+              id={`sample-criteria-${k}`}
+              name="sample_criteria"
+              defaultValue={job?.sample_criteria ?? ""}
+              maxLength={1000}
+            />
+          </Field>
+        </fieldset>
+
         <Field
           label="Notion SOP link"
           htmlFor={`notion-${job?.id ?? "new"}`}

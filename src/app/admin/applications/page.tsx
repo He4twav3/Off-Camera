@@ -30,7 +30,7 @@ export default async function AdminApplicationsPage() {
   const { data: applications } = await supabase
     .from("applications")
     .select(
-      "id, status, cover_note, created_at, decided_at, jobs(id, title, platform, payout_type, payout_amount), applicants(*, niches(label))",
+      "id, status, cover_note, sample_url, created_at, decided_at, jobs(id, title, platform, payout_type, payout_amount), applicants(*, niches(label))",
     )
     .order("created_at", { ascending: false });
 
@@ -132,6 +132,7 @@ interface RowProps {
     id: string;
     status: string;
     cover_note: string | null;
+    sample_url: string | null;
     created_at: string;
     decided_at: string | null;
     jobs: {
@@ -187,6 +188,23 @@ function ApplicationRow({ app, handles }: RowProps) {
         <blockquote className="border-l-2 border-primary pl-4 text-[15px] leading-relaxed text-foreground">
           {app.cover_note}
         </blockquote>
+      )}
+
+      {app.sample_url && (
+        <p className="text-[15px]">
+          <span className="font-semibold text-foreground">Sample video: </span>
+          <a
+            href={app.sample_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline underline-offset-2"
+          >
+            Open in Google Drive
+          </a>
+          <span className="ml-2 text-sm text-muted-foreground">
+            If it asks for access, the creator didn&apos;t set sharing to &quot;Anyone with the link&quot;.
+          </span>
+        </p>
       )}
 
       {person && (
