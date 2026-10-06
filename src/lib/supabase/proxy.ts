@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
+import { adminNeedsMfa } from "@/lib/admin-mfa-gate";
 
 // Routes that require a signed-in user. Everything recruiting-related
 // (profile-setup, jobs, applications) lands under /dashboard/recruiting/*
@@ -66,6 +67,17 @@ export async function updateSession(request: NextRequest) {
     if (!isAdmin) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+
+    // Every admin page needs the two-step code (see lib/admin-mfa-gate.ts); the
+    // Security page itself is exempt so an admin can always set it up.
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (adminNeedsMfa(path, aal?.currentLevel, process.env.ADMIN_REQUIRE_MFA)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/security";
+      url.search = "";
+      url.searchParams.set("next", path);
       return NextResponse.redirect(url);
     }
   }

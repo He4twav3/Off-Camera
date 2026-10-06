@@ -23,8 +23,9 @@ export default async function AdminSecurityPage(props: {
     <div className="mx-auto max-w-xl px-5 py-10">
       <h1 className="font-heading text-3xl font-semibold text-foreground">Two-step sign-in</h1>
       <p className="mt-2 text-[15px] text-muted-foreground">
-        Payouts and withdrawals move real money, so they need a six-digit code from an authenticator app (Google
-        Authenticator, 1Password, Authy…) on top of your password. Everything else in Admin works without it.
+        Admin pages show creators&apos; personal details and move real money, so they need a six-digit code from an
+        authenticator app (Google Authenticator, 1Password, Authy…) on top of your password. This page is the
+        only admin page that works without it, so you can set it up or enter your code.
       </p>
 
       <Card className="mt-6 border-border/70">
