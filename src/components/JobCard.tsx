@@ -7,6 +7,8 @@ import {
   formatPayoutSummary,
 } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
+import { PayStrip } from "@/components/app/PayStrip";
+import { parsePayoutTerms } from "@/lib/payout-terms";
 
 interface JobCardProps {
   job: Job & { niches: { label: string } | null };
@@ -17,6 +19,7 @@ interface JobCardProps {
 // specifics live in `description`, which is intentionally NOT rendered here —
 // those are only shared with an applicant once they're assigned.
 export function JobCard({ job, href }: JobCardProps) {
+  const terms = parsePayoutTerms(job.payout_terms);
   return (
     <Link href={href} className="block h-full">
       <Card className="flex h-full flex-col border-border/70 transition-colors hover:bg-muted/40">
@@ -37,9 +40,13 @@ export function JobCard({ job, href }: JobCardProps) {
           {job.title}
         </h3>
 
-        <p className="mt-3 font-heading text-xl font-semibold text-primary">
-          {formatPayoutSummary(job.payout_type, job.payout_amount)}
-        </p>
+        {terms ? (
+          <PayStrip terms={terms} className="mt-3" />
+        ) : (
+          <p className="mt-3 font-heading text-xl font-semibold text-primary">
+            {formatPayoutSummary(job.payout_type, job.payout_amount)}
+          </p>
+        )}
         {job.payout_notes && (
           <p className="mt-1 text-sm text-muted-foreground">
             {job.payout_notes}

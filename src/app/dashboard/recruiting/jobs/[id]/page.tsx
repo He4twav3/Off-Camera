@@ -9,6 +9,7 @@ import { ApplyForm } from "./ApplyForm";
 import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import { CommissionNote } from "@/components/app/CommissionNote";
 import { describeTerms, parsePayoutTerms } from "@/lib/payout-terms";
+import { PayStrip } from "@/components/app/PayStrip";
 import {
   PLATFORM_LABELS,
   PAYOUT_TYPE_LABELS,
@@ -110,7 +111,11 @@ export default async function JobDetailPage(props: {
               Payout
             </dt>
             <dd className="mt-1 font-heading text-2xl font-semibold text-primary">
-              {formatPayoutSummary(job.payout_type, job.payout_amount)}
+              {terms ? (
+                <PayStrip terms={terms} />
+              ) : (
+                formatPayoutSummary(job.payout_type, job.payout_amount)
+              )}
             </dd>
           </div>
           <div>

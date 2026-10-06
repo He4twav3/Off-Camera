@@ -1,3 +1,4 @@
+import { compactViews } from "@/lib/format";
 import { z } from "zod";
 
 /**
@@ -107,4 +108,32 @@ export function describeTerms(terms: PayoutTerms, cur = "$"): string[] {
     `Views are counted for ${terms.measureDays} days after the post goes live, using OnCamera's view tracking. Performance-based amounts are calculated and paid when that period ends.`,
   );
   return lines;
+}
+
+/**
+ * The formula as a few short labels for a one-line strip, in the order a
+ * creator cares about: the fixed fee, the rate per views, bonuses, the cap.
+ * The full wording (and the measurement window) stays in describeTerms().
+ */
+export function termsChips(terms: PayoutTerms, cur = "$"): string[] {
+  const chips: string[] = [];
+  if (terms.fixedPerVideo > 0) {
+    chips.push(
+      terms.videos > 1
+        ? `${money(terms.fixedPerVideo, cur)} per video × ${terms.videos}`
+        : `${money(terms.fixedPerVideo, cur)} per video`,
+    );
+  }
+  if (terms.cpm) {
+    chips.push(
+      terms.cpm.startsAt > 0
+        ? `${money(terms.cpm.ratePer1000, cur)} per 1K views after ${compactViews(terms.cpm.startsAt)}`
+        : `${money(terms.cpm.ratePer1000, cur)} per 1K views`,
+    );
+  }
+  for (const b of [...terms.bonuses].sort((a, c) => a.views - c.views)) {
+    chips.push(`+${money(b.amount, cur)} at ${compactViews(b.views)} views`);
+  }
+  if (terms.capPerCreator !== null) chips.push(`Max ${money(terms.capPerCreator, cur)}`);
+  return chips;
 }
