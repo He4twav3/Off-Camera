@@ -1,19 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 import { Play } from "lucide-react";
-import { compactViews } from "@/lib/format";
 import type { ProofReel } from "@/lib/proof-reel";
-import { AtHandle } from "./blocks";
-import { CountUp } from "./count-up";
 import { FadeIn } from "./fade-in";
-import { cn } from "@/lib/utils";
 
-/** Kora's "proven reach" block: a headline total with a few supporting figures,
- * the creators behind it, and a wall of their content with its view counts. */
+/** Kora's "proven reach" block: a heading and a wall of real creator content
+ * with its view counts. The totals and handles live in the page's dashboard
+ * window above, so they aren't repeated here. */
 export function ProvenReach({ reel }: { reel: ProofReel }) {
   const creators = reel.profiles;
   if (creators.length === 0 && reel.posts.length === 0) return null;
-  const plus = reel.totalIsStated ? "" : "+";
-  const avg = creators.length ? Math.round(reel.totalViews / creators.length) : 0;
 
   return (
     <section className="mx-auto mt-24 max-w-[1100px] px-5">
@@ -26,39 +21,6 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
           The reach across the creators we work with, and the content behind it.
         </p>
       </FadeIn>
-
-      <FadeIn delay={80} className="mt-12">
-        <div className="grid gap-px overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.08] grid-cols-3">
-          {[
-            { label: "Views driven", value: <><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>, big: true },
-            { label: "Creators", value: <CountUp to={creators.length} /> },
-            { label: "Average per creator", value: <><CountUp to={avg} duration={1600} compact />{plus}</> },
-          ].map((s) => (
-            <div key={s.label} className="min-w-0 bg-[#1d1c22] px-2 py-4 text-center sm:px-6 sm:py-7">
-              <p className={cn("font-bold tracking-[-0.03em] tabular-nums", s.big ? "text-2xl text-[#e0556a] sm:text-4xl" : "text-xl sm:text-3xl")}>{s.value}</p>
-              <p className="mt-1.5 text-[0.5rem] font-bold tracking-[0.06em] text-[#a39e98] uppercase sm:mt-2 sm:text-[0.7rem] sm:tracking-[0.14em]">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </FadeIn>
-
-      {creators.length > 0 && (
-        <ul className="-mx-5 mt-4 flex scroll-px-5 snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-3">
-          {creators.map((c, i) => (
-            <FadeIn key={c.handle} delay={Math.min(i, 5) * 60} className="w-[78%] shrink-0 snap-start sm:w-auto">
-              <li className="flex list-none items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-[#1d1c22] px-5 py-4">
-                <span className="min-w-0 truncate text-lg font-semibold tracking-[-0.01em]">
-                  <AtHandle handle={c.handle} />
-                </span>
-                <span className="text-right">
-                  <span className="block text-2xl font-bold tracking-[-0.02em] tabular-nums">{compactViews(c.viewsNum)}</span>
-                  <span className="block text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">views</span>
-                </span>
-              </li>
-            </FadeIn>
-          ))}
-        </ul>
-      )}
 
       {reel.posts.length > 0 && (
         <>
