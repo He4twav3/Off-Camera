@@ -127,9 +127,9 @@ export function BrowserFrame({
 
 export function StatTile({ label, value, accent }: { label: string; value: ReactNode; accent?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/[0.08] px-4 py-3.5">
-      <p className="text-[0.65rem] font-bold tracking-[0.14em] text-[#a39e98] uppercase">{label}</p>
-      <p className={cn("mt-1 text-2xl font-bold tabular-nums", accent && "text-[#e0556a]")}>{value}</p>
+    <div className="min-w-0 rounded-xl border border-white/[0.08] px-2.5 py-2.5 sm:px-4 sm:py-3.5">
+      <p className="text-[0.5rem] font-bold tracking-[0.06em] text-[#a39e98] uppercase sm:text-[0.65rem] sm:tracking-[0.14em]">{label}</p>
+      <p className={cn("mt-1 text-lg font-bold tabular-nums sm:text-2xl", accent && "text-[#e0556a]")}>{value}</p>
     </div>
   );
 }
@@ -195,11 +195,11 @@ export function FeatureCard({
 export function StatsBand({ stats }: { stats: { value: ReactNode; label: string }[] }) {
   return (
     <section className="mt-24 border-y border-white/[0.07] bg-[#1a191e]">
-      <dl className={cn("mx-auto grid max-w-[1000px] gap-10 px-6 py-14 text-center", stats.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-4")}>
+      <dl className={cn("mx-auto grid max-w-[1000px] gap-3 px-4 py-10 text-center sm:gap-10 sm:px-6 sm:py-14", stats.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4")}>
         {stats.map((s) => (
           <FadeIn key={s.label}>
-            <dd className="text-5xl font-bold tracking-[-0.03em] tabular-nums">{s.value}</dd>
-            <dt className="mt-2 text-sm text-[#a39e98]">{s.label}</dt>
+            <dd className="text-3xl font-bold tracking-[-0.03em] tabular-nums sm:text-5xl">{s.value}</dd>
+            <dt className="mt-2 text-[0.7rem] leading-tight text-[#a39e98] sm:text-sm">{s.label}</dt>
           </FadeIn>
         ))}
       </dl>
@@ -215,13 +215,13 @@ export function Steps({ eyebrow, title, steps }: { eyebrow: string; title: strin
         <p className="text-[0.75rem] font-bold tracking-[0.18em] text-[#e0556a] uppercase">{eyebrow}</p>
         <h2 className="mt-3 text-[clamp(1.9rem,4.6vw,3.1rem)] leading-[1.08] font-bold tracking-[-0.03em] text-balance">{title}</h2>
       </FadeIn>
-      <ol className="mt-14 grid gap-4 md:grid-cols-3">
+      <ol className="mt-10 grid grid-cols-3 gap-2 sm:mt-14 md:gap-4">
         {steps.map(([head, body], i) => (
           <FadeIn key={head} delay={i * 90}>
-            <li className="h-full rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-7">
-              <span className="font-mono text-sm font-bold text-[#e0556a]">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="mt-4 text-xl font-semibold tracking-[-0.01em]">{head}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
+            <li className="h-full rounded-2xl border border-white/[0.08] bg-[#1d1c22] p-3 sm:rounded-3xl sm:p-7">
+              <span className="font-mono text-xs font-bold text-[#e0556a] sm:text-sm">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="mt-2 text-[0.8rem] leading-tight font-semibold tracking-[-0.01em] sm:mt-4 sm:text-xl">{head}</h3>
+              <p className="mt-1.5 text-[0.65rem] leading-snug text-[#a39e98] sm:mt-2 sm:text-[15px] sm:leading-relaxed">{body}</p>
             </li>
           </FadeIn>
         ))}

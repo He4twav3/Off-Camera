@@ -64,7 +64,7 @@ export default function CreatorsPage() {
             <p className="text-lg font-semibold">Analytics</p>
             <Chip>Last 7 days</Chip>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <StatTile label="Active campaigns" value={<CountUp to={2} />} />
             <StatTile label="Earned" value={<>$<CountUp to={2578} /></>} />
             <StatTile label="Pending" value={<>$<CountUp to={1847} /></>} accent />

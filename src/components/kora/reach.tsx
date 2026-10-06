@@ -28,15 +28,15 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
       </FadeIn>
 
       <FadeIn delay={80} className="mt-12">
-        <div className="grid gap-px overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.08] sm:grid-cols-3">
+        <div className="grid gap-px overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.08] grid-cols-3">
           {[
             { label: "Views driven", value: <><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>, big: true },
             { label: "Creators", value: <CountUp to={creators.length} /> },
             { label: "Average per creator", value: <><CountUp to={avg} duration={1600} compact />{plus}</> },
           ].map((s) => (
-            <div key={s.label} className="bg-[#1d1c22] px-6 py-7 text-center">
-              <p className={cn("font-bold tracking-[-0.03em] tabular-nums", s.big ? "text-4xl text-[#e0556a]" : "text-3xl")}>{s.value}</p>
-              <p className="mt-2 text-[0.7rem] font-bold tracking-[0.14em] text-[#a39e98] uppercase">{s.label}</p>
+            <div key={s.label} className="min-w-0 bg-[#1d1c22] px-2 py-4 text-center sm:px-6 sm:py-7">
+              <p className={cn("font-bold tracking-[-0.03em] tabular-nums", s.big ? "text-2xl text-[#e0556a] sm:text-4xl" : "text-xl sm:text-3xl")}>{s.value}</p>
+              <p className="mt-1.5 text-[0.5rem] font-bold tracking-[0.06em] text-[#a39e98] uppercase sm:mt-2 sm:text-[0.7rem] sm:tracking-[0.14em]">{s.label}</p>
             </div>
           ))}
         </div>

@@ -66,7 +66,7 @@ export default async function BrandsPage() {
           ]}
         >
           <p className="mb-4 font-semibold">Our creators</p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <StatTile label="Creators" value={<CountUp to={Math.max(creators.length, 1)} />} />
             <StatTile label="Avg views" value={<><CountUp to={avg} compact />{plus}</>} />
             <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
