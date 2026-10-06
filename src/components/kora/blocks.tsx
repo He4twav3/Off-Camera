@@ -60,7 +60,7 @@ export function BrowserFrame({
   sidebar,
   tabs,
   children,
-  badge = "Example data",
+  badge,
 }: {
   url: string;
   badge?: string;
@@ -80,9 +80,11 @@ export function BrowserFrame({
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="ml-2 min-w-0 truncate text-xs text-[#a39e98] sm:ml-3">{url}</span>
-        <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
-          {badge}
-        </span>
+        {badge && (
+          <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
+            {badge}
+          </span>
+        )}
       </div>
       {tabs && (
         <nav className="flex gap-0.5 overflow-x-auto border-b border-white/[0.07] px-3 py-3 sm:gap-1 sm:px-4">
@@ -95,7 +97,7 @@ export function BrowserFrame({
               )}
             >
               <Icon className="size-4" />
-              {label}
+              <span className={active ? undefined : "hidden sm:inline"}>{label}</span>
             </span>
           ))}
         </nav>

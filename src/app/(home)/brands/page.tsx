@@ -122,7 +122,7 @@ export default async function BrandsPage() {
           >
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">@yourhandle</span>
+                <span className="font-semibold">@careercraft.ai</span>
                 <span className="ko-pop inline-flex items-center gap-1 font-semibold text-emerald-300">
                   <BadgeCheck className="size-4" /> Verified
                 </span>

@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
  * change figure. It cycles through the tabs on its own (click one to take
  * over); under prefers-reduced-motion it stays on "All".
  *
- * ALL FIGURES HERE ARE EXAMPLE DATA for the dashboard preview — the window
- * around it is labelled "Example data". They are internally consistent
- * (All = TikTok + Instagram + YouTube) but are not real results.
+ * ALL FIGURES HERE ARE EXAMPLE DATA for the dashboard preview. They are
+ * internally consistent (All = TikTok + Instagram + YouTube) but are not real
+ * results, so keep them out of anything that claims to be real.
  */
 const TABS = [
   { id: "all", label: "All", Icon: null, views: 2_847_310, change: 18, bars: [52, 61, 48, 70, 66, 58, 84] },

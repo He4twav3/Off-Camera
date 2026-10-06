@@ -56,7 +56,7 @@ export function Leaderboard({ items }: { items: LeaderboardItem[] }) {
         <div
           key={it.id}
           style={{ height: CARD, transform: `translateY(${(slotOf.get(i) ?? i) * ROW}px)` }}
-          className="absolute inset-x-0 top-0 flex items-center gap-3.5 rounded-xl border border-white/[0.08] bg-[#1d1c22] px-3.5 transition-transform duration-[900ms] ease-in-out"
+          className="absolute inset-x-0 top-0 flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-[#1d1c22] px-3 transition sm:gap-3.5 sm:px-3.5-transform duration-[900ms] ease-in-out"
         >
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[0.95rem] font-semibold">
@@ -71,8 +71,8 @@ export function Leaderboard({ items }: { items: LeaderboardItem[] }) {
             </span>
             <span className="block truncate text-xs text-[#a39e98]">▶ {compactViews(it.views)} views</span>
           </span>
-          <span className="rounded-lg bg-[#ac0216] px-4 py-2 text-sm font-semibold text-white">Accept</span>
-          <span className="rounded-lg border border-white/[0.14] px-4 py-2 text-sm font-semibold text-[#edeae4]">Pass</span>
+          <span className="rounded-lg bg-[#ac0216] px-2.5 py-1.5 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm">Accept</span>
+          <span className="rounded-lg border border-white/[0.14] px-2.5 py-1.5 text-xs font-semibold text-[#edeae4] sm:px-4 sm:py-2 sm:text-sm">Pass</span>
         </div>
       ))}
     </div>

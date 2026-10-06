@@ -38,8 +38,8 @@ const faqs: [string, string][] = [
   ],
 ];
 
-/** Creators page. The numbers inside the example windows are labelled
- * "Example data" and aren't real results. */
+/** Creators page. The numbers inside the example windows are example figures,
+ * not real results. */
 export default function CreatorsPage() {
   return (
     <>
@@ -123,7 +123,7 @@ export default function CreatorsPage() {
           >
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">TikTok <span className="font-normal text-[#a39e98]">@yourhandle</span></span>
+                <span className="font-semibold">TikTok <span className="font-normal text-[#a39e98]">@careercraft.ai</span></span>
                 <span className="ko-pop inline-flex items-center gap-1 font-semibold text-emerald-300">
                   <BadgeCheck className="size-4" /> Verified
                 </span>
