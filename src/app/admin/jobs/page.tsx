@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
+import Link from "next/link";
 import { JobForm } from "./JobForm";
 import { deleteJobAction } from "./actions";
 import {
@@ -94,6 +95,12 @@ export default async function AdminJobsPage() {
 
                   <div className="flex shrink-0 gap-3">
                     <JobForm niches={niches ?? []} brands={brands ?? []} job={job} />
+                    <Link
+                      href={`/admin/jobs/${job.id}/contract`}
+                      className="flex min-h-9 items-center text-sm font-semibold text-primary underline underline-offset-2"
+                    >
+                      Contract
+                    </Link>
                     <form action={deleteJobAction}>
                       <input type="hidden" name="id" value={job.id} />
                       <button

@@ -51,6 +51,9 @@ export interface Database {
           status: JobStatusEnum;
           notion_sop_url: string | null;
           brand_account_id: string | null;
+          payout_terms: Record<string, unknown> | null;
+          sample_required: boolean;
+          sample_criteria: string | null;
           created_at: string;
         };
         Insert: {
@@ -66,6 +69,9 @@ export interface Database {
           status?: JobStatusEnum;
           notion_sop_url?: string | null;
           brand_account_id?: string | null;
+          payout_terms?: Record<string, unknown> | null;
+          sample_required?: boolean;
+          sample_criteria?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["jobs"]["Insert"]>;
@@ -199,6 +205,8 @@ export interface Database {
           gross_amount: number;
           applicant_payout_amount: number;
           paid_at: string | null;
+          brand_paid_at: string | null;
+          brand_payment_ref: string | null;
           notes: string | null;
           created_at: string;
         };
@@ -208,6 +216,8 @@ export interface Database {
           gross_amount: number;
           applicant_payout_amount: number;
           paid_at?: string | null;
+          brand_paid_at?: string | null;
+          brand_payment_ref?: string | null;
           notes?: string | null;
           created_at?: string;
         };
@@ -265,6 +275,7 @@ export interface Database {
           applicant_id: string;
           status: ApplicationStatusEnum;
           cover_note: string | null;
+          sample_url: string | null;
           created_at: string;
           decided_at: string | null;
         };
@@ -274,6 +285,7 @@ export interface Database {
           applicant_id: string;
           status?: ApplicationStatusEnum;
           cover_note?: string | null;
+          sample_url?: string | null;
           created_at?: string;
           decided_at?: string | null;
         };

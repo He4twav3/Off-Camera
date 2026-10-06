@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { sendApplicationReceivedEmail } from "@/lib/email/notifications";
+import { parseDriveLink } from "@/lib/drive-link";
 
 export interface ApplyState {
   error?: string;
@@ -13,6 +14,7 @@ export interface ApplyState {
 const applySchema = z.object({
   job_id: z.string().uuid(),
   cover_note: z.string().trim().max(1000).optional(),
+  sample_url: z.string().trim().max(500).optional(),
 });
 
 export async function applyToJobAction(
@@ -22,6 +24,7 @@ export async function applyToJobAction(
   const parsed = applySchema.safeParse({
     job_id: formData.get("job_id"),
     cover_note: formData.get("cover_note") ?? "",
+    sample_url: formData.get("sample_url") ?? "",
   });
 
   if (!parsed.success) {
@@ -54,7 +57,7 @@ export async function applyToJobAction(
   // Don't let people apply to something that's already gone.
   const { data: job } = await supabase
     .from("jobs")
-    .select("id, title, status")
+    .select("id, title, status, sample_required")
     .eq("id", parsed.data.job_id)
     .maybeSingle();
 
@@ -63,10 +66,20 @@ export async function applyToJobAction(
     return { error: "This campaign isn't taking applications any more." };
   }
 
+  // The sample video is only asked for when the campaign turns it on. If the
+  // creator pastes one anyway it still has to be a real Google Drive link.
+  let sampleUrl: string | null = null;
+  if (job.sample_required || parsed.data.sample_url) {
+    const link = parseDriveLink(parsed.data.sample_url ?? "");
+    if (!link.ok) return { error: link.error };
+    sampleUrl = link.url;
+  }
+
   const { error } = await supabase.from("applications").insert({
     job_id: parsed.data.job_id,
     applicant_id: applicant.id,
     cover_note: parsed.data.cover_note || null,
+    sample_url: sampleUrl,
   });
 
   if (error) {

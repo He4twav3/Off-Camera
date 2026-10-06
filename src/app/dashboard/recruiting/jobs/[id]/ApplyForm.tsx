@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Field, Textarea } from "@/components/ui/field";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import { applyToJobAction, type ApplyState } from "./actions";
 
 function SubmitButton() {
@@ -18,7 +18,15 @@ function SubmitButton() {
   );
 }
 
-export function ApplyForm({ jobId }: { jobId: string }) {
+export function ApplyForm({
+  jobId,
+  sampleRequired = false,
+  sampleCriteria = null,
+}: {
+  jobId: string;
+  sampleRequired?: boolean;
+  sampleCriteria?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<ApplyState, FormData>(
     applyToJobAction,
@@ -51,7 +59,9 @@ export function ApplyForm({ jobId }: { jobId: string }) {
           Apply with my profile
         </Button>
         <p className="text-sm text-muted-foreground">
-          Your profile card gets sent as your application — no CV needed.
+          {sampleRequired
+            ? "Your profile card plus a short sample video (a Google Drive link) gets sent as your application."
+            : "Your profile card gets sent as your application — no CV needed."}
         </p>
       </div>
     );
@@ -60,6 +70,41 @@ export function ApplyForm({ jobId }: { jobId: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="job_id" value={jobId} />
+
+      {sampleRequired && (
+        <div className="rounded-lg border border-border/70 bg-muted/40 p-4">
+          <p className="font-heading font-semibold text-foreground">
+            This brand wants a sample video
+          </p>
+          {sampleCriteria && (
+            <p className="mt-1 whitespace-pre-line text-[15px] text-muted-foreground">
+              {sampleCriteria}
+            </p>
+          )}
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+            <li>Upload your video to Google Drive.</li>
+            <li>
+              Click Share and set access to <strong>Anyone with the link</strong>{" "}
+              (viewer). If it is private, the brand can&apos;t watch it.
+            </li>
+            <li>Copy the link and paste it below.</li>
+          </ol>
+          <div className="mt-4">
+            <Field label="Sample video link" htmlFor="sample_url">
+              <Input
+                id="sample_url"
+                name="sample_url"
+                type="url"
+                inputMode="url"
+                autoComplete="off"
+                required
+                maxLength={500}
+                placeholder="https://drive.google.com/file/d/…"
+              />
+            </Field>
+          </div>
+        </div>
+      )}
 
       <Field
         label="Anything you want to add?"

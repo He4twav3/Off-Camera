@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
 import { DisclosureNotice } from "@/components/app/DisclosureNotice";
+import { CommissionNote } from "@/components/app/CommissionNote";
+import { describeTerms, parsePayoutTerms } from "@/lib/payout-terms";
 import {
   PLATFORM_LABELS,
   PAYOUT_TYPE_LABELS,
@@ -43,6 +45,7 @@ export default async function JobDetailPage(props: {
     .maybeSingle();
 
   if (!job) notFound();
+  const terms = parsePayoutTerms(job.payout_terms);
 
   const { data: applicant } = await supabase
     .from("applicants")
@@ -126,6 +129,20 @@ export default async function JobDetailPage(props: {
               {ACCOUNT_REQUIREMENT_LABELS[job.account_requirement]}
             </dd>
           </div>
+          {terms && (
+            <div className="sm:col-span-2">
+              <dt className="text-sm font-semibold text-muted-foreground">
+                How you&apos;re paid
+              </dt>
+              <dd className="mt-1">
+                <ul className="list-disc space-y-1 pl-5 text-[15px] text-foreground">
+                  {describeTerms(terms).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
           {job.payout_notes && (
             <div>
               <dt className="text-sm font-semibold text-muted-foreground">
@@ -153,6 +170,7 @@ export default async function JobDetailPage(props: {
             assigned to this campaign.
           </p>
           <DisclosureNotice className="mt-4" />
+          <CommissionNote className="mt-3" />
         </section>
       )}
 
@@ -291,7 +309,11 @@ export default async function JobDetailPage(props: {
             />
 
             <div className="mt-6">
-              <ApplyForm jobId={job.id} />
+              <ApplyForm
+                jobId={job.id}
+                sampleRequired={job.sample_required}
+                sampleCriteria={job.sample_criteria}
+              />
             </div>
           </>
         )}
