@@ -54,6 +54,7 @@ export interface Database {
           payout_terms: Record<string, unknown> | null;
           sample_required: boolean;
           sample_criteria: string | null;
+          affiliate_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -72,6 +73,7 @@ export interface Database {
           payout_terms?: Record<string, unknown> | null;
           sample_required?: boolean;
           sample_criteria?: string | null;
+          affiliate_url?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["jobs"]["Insert"]>;

@@ -23,6 +23,14 @@ const jobSchema = z.object({
   status: z.enum(["open", "filled", "closed"]),
   brand_account_id: z.string().uuid().optional().or(z.literal("")),
   sample_criteria: z.string().trim().max(1000).optional(),
+  // Optional affiliate link from the brand (most make theirs in Dub). Any https
+  // link, so Dub's own domains and brands' custom domains both work.
+  affiliate_url: z
+    .string()
+    .trim()
+    .max(500)
+    .refine((v) => v === "" || /^https:\/\/[^\s]+$/i.test(v), "Affiliate link must be a full URL starting with https://")
+    .optional(),
   notion_sop_url: z
     .string()
     .trim()
@@ -124,6 +132,7 @@ export async function saveJobAction(
     // Off unless the box is ticked: most campaigns are a normal application.
     sample_required: formData.get("sample_required") === "on",
     sample_criteria: values.sample_criteria || null,
+    affiliate_url: values.affiliate_url || null,
   };
 
   // RLS restricts writes to admins; this runs as the signed-in admin, not
