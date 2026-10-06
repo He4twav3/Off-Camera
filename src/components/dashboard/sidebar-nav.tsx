@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Settings, Briefcase, Search, UserCircle, Lock, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Settings, Briefcase, Search, UserCircle, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const COURSE_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/account", label: "Account", icon: Settings },
-];
+const COURSE_ITEMS = [{ href: "/dashboard", label: "Course", icon: LayoutDashboard }];
+
+const ACCOUNT_ITEMS = [{ href: "/dashboard/account", label: "Account", icon: Settings }];
 
 const RECRUITING_ITEMS = [
   { href: "/dashboard/recruiting", label: "Recruiting home", icon: Briefcase, countKey: "applications" as const },
@@ -64,11 +63,9 @@ function NavLink({
 }
 
 export function SidebarNav({
-  courseComplete,
   recruitingCounts,
   isAdmin,
 }: {
-  courseComplete: boolean;
   recruitingCounts: { applications: number; campaigns: number };
   isAdmin: boolean;
 }) {
@@ -78,7 +75,24 @@ export function SidebarNav({
     <nav aria-label="Main" className="flex flex-col gap-6">
       <div>
         <p className="mb-1.5 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Course
+          Recruiting
+        </p>
+        <div className="flex flex-col gap-0.5">
+          {RECRUITING_ITEMS.map((item) => (
+            <NavLink
+              key={item.href}
+              {...item}
+              active={isActive(pathname, item.href)}
+              count={item.countKey ? recruitingCounts[item.countKey] : undefined}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* The course is optional: nothing in Recruiting waits on it. */}
+      <div>
+        <p className="mb-1.5 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          Course <span className="font-normal normal-case">· optional</span>
         </p>
         <div className="flex flex-col gap-0.5">
           {COURSE_ITEMS.map((item) => (
@@ -87,38 +101,10 @@ export function SidebarNav({
         </div>
       </div>
 
-      <div>
-        <p className="mb-1.5 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Recruiting
-        </p>
-        {courseComplete ? (
-          <div className="flex flex-col gap-0.5">
-            {RECRUITING_ITEMS.map((item) => (
-              <NavLink
-                key={item.href}
-                {...item}
-                active={isActive(pathname, item.href)}
-                count={item.countKey ? recruitingCounts[item.countKey] : undefined}
-              />
-            ))}
-          </div>
-        ) : (
-          // Not a dead end — just not a Link, since there's nowhere useful
-          // to land yet (the route itself would only bounce back to
-          // /dashboard). Matches the same fact dashboard/recruiting/layout.tsx
-          // gates on, so this can never show "unlocked" when the route
-          // itself would disagree.
-          <div className="rounded-lg border border-dashed border-border px-3 py-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Lock className="size-4 shrink-0" />
-              Locked for now
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Finish every lesson to become eligible for campaigns and brand
-              opportunities — earned, not automatic.
-            </p>
-          </div>
-        )}
+      <div className="flex flex-col gap-0.5">
+        {ACCOUNT_ITEMS.map((item) => (
+          <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />
+        ))}
       </div>
 
       {isAdmin && (

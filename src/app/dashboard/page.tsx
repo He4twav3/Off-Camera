@@ -12,10 +12,7 @@ import { siteConfig } from "@/lib/site-config";
 import { TOTAL_LESSONS, TOTAL_MODULES } from "@/lib/curriculum";
 import { COURSE_IS_FREE } from "@/lib/feature-flags";
 
-export default async function DashboardPage(props: {
-  searchParams: Promise<{ reason?: string }>;
-}) {
-  const { reason } = await props.searchParams;
+export default async function DashboardPage() {
   const session = await getSession();
   const firstName = session?.displayName.split(" ")[0] ?? "Creator";
 
@@ -79,19 +76,16 @@ export default async function DashboardPage(props: {
         <VerifyEmailBanner />
       </div>
 
-      {reason === "finish_course_first" && (
-        <p className="mt-6 rounded-lg border-2 border-ink bg-accent px-4 py-3 text-sm font-medium text-accent-foreground">
-          Finish every lesson to unlock recruiting — you&apos;re at {percent}%
-          right now.
-        </p>
-      )}
+      {/* The course is optional. Campaigns are open to approved creators
+          whether or not any lesson has been done. */}
+      <p className="mt-6 rounded-lg border border-border/70 bg-card px-4 py-3 text-sm text-muted-foreground">
+        The course is optional. You can{" "}
+        <Link href="/dashboard/recruiting/jobs" className="font-semibold text-primary underline underline-offset-2">
+          browse and apply to campaigns
+        </Link>{" "}
+        at any time.
+      </p>
 
-      {/* The training->recruiting handoff — only appears once every lesson
-          is done. This is the moment the product becomes more than a course:
-          the same account now unlocks paid brand placements. The route
-          itself is gated too (dashboard/recruiting/layout.tsx), so this is
-          a real unlock, not just a UI nudge someone could ignore by typing
-          the URL directly. */}
       {isComplete && (
         <div className="card-sticker mt-6 flex flex-col items-start gap-4 rounded-2xl bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
@@ -102,9 +96,6 @@ export default async function DashboardPage(props: {
               <h2 className="text-lg font-semibold">You&apos;ve completed the course</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Set up your creator profile and start browsing campaigns.
-                Strong creators who demonstrate their ability may be
-                introduced to real brand opportunities through the network —
-                earned, not automatic.
               </p>
             </div>
           </div>

@@ -46,7 +46,6 @@ export default async function DashboardLayout({
           </div>
           <div className="flex-1">
             <SidebarNav
-              courseComplete={shell.courseComplete}
               recruitingCounts={shell.recruiting}
               isAdmin={shell.isAdmin}
             />

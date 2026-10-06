@@ -33,7 +33,6 @@ export function MobileNav({ shell }: { shell: ShellData }) {
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-3 py-4" onClick={() => setOpen(false)}>
           <SidebarNav
-            courseComplete={shell.courseComplete}
             recruitingCounts={shell.recruiting}
             isAdmin={shell.isAdmin}
           />
