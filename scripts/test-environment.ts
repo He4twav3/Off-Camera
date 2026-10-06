@@ -4,6 +4,12 @@
  */
 import { appEnv, stagingEmailAllowed, supabaseMismatch } from "../src/lib/environment";
 
+// These tests must give the same answer on any machine, whatever settings it
+// has (the automatic checks set APP_ENV=staging for the build), so start clean.
+delete process.env.APP_ENV;
+delete process.env.EXPECTED_SUPABASE_REF;
+delete process.env.STAGING_EMAIL_ALLOWLIST;
+
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
   if (!ok) bad++;
