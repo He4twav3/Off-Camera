@@ -13,7 +13,7 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
-import { ProvenReach } from "@/components/kora/reach";
+import { ProvenReach, ReachSummary } from "@/components/kora/reach";
 import { ReviewList } from "@/components/kora/review-list";
 import { compactViews } from "@/lib/format";
 import { getProofReel } from "@/lib/proof-reel";
@@ -190,6 +190,8 @@ export default async function BrandsPage() {
           </FeatureCard>
         </div>
       </section>
+
+      <ReachSummary reel={reel} />
 
       <StatsBand
         stats={[
