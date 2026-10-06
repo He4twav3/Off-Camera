@@ -74,13 +74,12 @@ export async function savePayoutAction(
   if (!assignment) return { error: "Assignment not found." };
 
   // One payout row per assignment (enforced by the unique constraint), so an
-  // upsert keeps repeat saves idempotent.
+  // upsert keeps repeat saves idempotent. paid_at is set only after the credit below succeeds.
   const { error: payoutError } = await supabase.from("payouts").upsert(
     {
       assignment_id: parsed.data.assignment_id,
       gross_amount: parsed.data.gross_amount,
       applicant_payout_amount: assignment.applicant_payout_amount,
-      paid_at: paidAt,
       brand_paid_at: brandPaidAt,
       brand_payment_ref: parsed.data.brand_payment_ref || null,
       notes: parsed.data.notes || null,
@@ -93,40 +92,55 @@ export async function savePayoutAction(
   }
 
   if (markPaid) {
-    const { error: assignmentError } = await supabase
-      .from("assignments")
-      .update({ status: "paid", paid_at: paidAt })
-      .eq("id", parsed.data.assignment_id);
-
-    if (assignmentError) {
-      return { error: "Saved the payout, but couldn't mark it paid." };
+    // Manual release is the override for cases the automatic release doesn't cover.
+    // If anything was already credited for this assignment (automatically, or by an
+    // earlier release), don't add to it.
+    const { data: earlier } = await supabase
+      .from("balance_entries")
+      .select("amount")
+      .eq("assignment_id", parsed.data.assignment_id)
+      .eq("kind", "earning");
+    if ((earlier ?? []).length > 0) {
+      return { error: "This assignment has already been credited to the creator's balance (automatically or earlier), so nothing more can be released here." };
     }
 
-    // Release the creator's share to their balance. One credit per assignment
-    // (unique on assignment_id), so saving again can't pay them twice.
     const { data: owner } = await supabase
       .from("assignments")
       .select("applicant_id")
       .eq("id", parsed.data.assignment_id)
       .single();
-    if (!owner) return { error: "Marked paid, but couldn't find the creator to credit." };
-    const { error: creditError } = await supabase.from("balance_entries").upsert(
-      {
-        applicant_id: owner.applicant_id,
-        amount: assignment.applicant_payout_amount,
-        kind: "earning",
-        assignment_id: parsed.data.assignment_id,
-        note: assignment.jobs?.title ?? null,
-      },
-      { onConflict: "assignment_id", ignoreDuplicates: true },
-    );
+    if (!owner) return { error: "Couldn't find the creator to credit." };
+
+    // Credit first, then mark paid: if the credit is refused nothing is left half done.
+    // The database refuses to credit more than the brand paid.
+    const { error: creditError } = await supabase.from("balance_entries").insert({
+      applicant_id: owner.applicant_id,
+      amount: assignment.applicant_payout_amount,
+      kind: "earning",
+      stage: "full",
+      assignment_id: parsed.data.assignment_id,
+      note: assignment.jobs?.title ?? null,
+    });
     if (creditError) {
-      const needsMfa = creditError.code === "42501";
-      return {
-        error: needsMfa
-          ? "Marked paid, but crediting balances needs two-step sign-in. Open Admin → Security, then save again."
-          : "Marked paid, but couldn't add it to the creator's balance. Save again to retry.",
-      };
+      if (creditError.message.includes("exceeds_funded")) {
+        return { error: "The creator's pay is more than the amount the brand paid. Check both amounts." };
+      }
+      if (creditError.code === "42501") {
+        return { error: "Crediting balances needs two-step sign-in. Open Admin → Security, then try again." };
+      }
+      return { error: "Couldn't add it to the creator's balance. Nothing was marked paid; try again." };
+    }
+
+    const { error: assignmentError } = await supabase
+      .from("assignments")
+      .update({ status: "paid", paid_at: paidAt })
+      .eq("id", parsed.data.assignment_id);
+    const { error: closeError } = await supabase
+      .from("payouts")
+      .update({ paid_at: paidAt })
+      .eq("assignment_id", parsed.data.assignment_id);
+    if (assignmentError || closeError) {
+      return { error: "The balance was credited, but marking it paid failed. Save again to finish." };
     }
 
     const applicant = assignment.applicants;
@@ -168,4 +182,27 @@ export async function setAssignmentStatusAction(formData: FormData) {
 
   revalidatePath("/admin/payouts");
   revalidatePath("/dashboard/recruiting");
+}
+
+export interface ApproveState {
+  error?: string;
+  success?: string;
+}
+
+/** One click: the post is good. From here the release runs by itself (see lib/auto-release.ts). */
+export async function approvePostAction(_prev: ApproveState, formData: FormData): Promise<ApproveState> {
+  const id = z.string().uuid().safeParse(formData.get("assignment_id"));
+  if (!id.success) return { error: "Invalid request." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("approve_assignment", { p_id: id.data });
+  if (error) {
+    if (error.message.includes("forbidden")) return { error: "Approving needs two-step sign-in. Open Admin → Security." };
+    if (error.message.includes("already_approved")) return { error: "Already approved." };
+    if (error.message.includes("not_submitted")) return { error: "The creator hasn't submitted a post for this one." };
+    return { error: "Couldn't approve that. Try again." };
+  }
+
+  revalidatePath("/admin/payouts");
+  return { success: "Approved." };
 }

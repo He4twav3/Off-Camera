@@ -66,6 +66,11 @@ export default async function EarningsPage() {
     .eq("applicant_id", applicant.id)
     .maybeSingle();
   const frozen = Boolean(freeze);
+  const { data: savedDest } = await admin
+    .from("payout_destinations")
+    .select("hint, holder")
+    .eq("applicant_id", applicant.id)
+    .maybeSingle();
 
   // RLS limits both tables to this creator's own rows.
   const [{ data: entries }, { data: withdrawals }] = await Promise.all([
@@ -118,7 +123,7 @@ export default async function EarningsPage() {
         <Card className="border-border/70">
           <CardContent>
             {canWithdraw ? (
-              <WithdrawForm available={available} maxNow={maxNow} />
+              <WithdrawForm available={available} maxNow={maxNow} saved={savedDest ?? null} />
             ) : (
               <p className="text-[15px] text-muted-foreground">
                 {frozen
@@ -133,8 +138,8 @@ export default async function EarningsPage() {
               </p>
             )}
             <p className="mt-4 text-sm text-muted-foreground">
-              For your safety, each request is confirmed from an email link, then held for 24 to 72 hours before we pay it
-              through Wise. Wise emails you a secure link to enter your bank details, and we never see them. You can cancel any
+              For your safety, a new payout email is confirmed from an email link and held for 72 hours. After we&apos;ve paid an
+              email once, later withdrawals to it are confirmed straight away and held for 24 hours. We pay through Wise. Wise emails you a secure link to enter your bank details, and we never see them. You can cancel any
               time before it&apos;s paid.
             </p>
           </CardContent>

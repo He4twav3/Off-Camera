@@ -178,6 +178,9 @@ export interface Database {
           proof_url: string | null;
           assigned_at: string;
           paid_at: string | null;
+          submitted_at: string | null;
+          approved_at: string | null;
+          approved_by: string | null;
         };
         Insert: {
           id?: string;
@@ -251,6 +254,7 @@ export interface Database {
           kind: "earning" | "withdrawal" | "adjustment";
           assignment_id: string | null;
           withdrawal_id: string | null;
+          stage: "fixed" | "rest" | "full";
           note: string | null;
           created_at: string;
           created_by: string | null;
@@ -262,6 +266,7 @@ export interface Database {
           kind: "earning" | "withdrawal" | "adjustment";
           assignment_id?: string | null;
           withdrawal_id?: string | null;
+          stage?: "fixed" | "rest" | "full";
           note?: string | null;
           created_at?: string;
         };
@@ -294,6 +299,26 @@ export interface Database {
         };
         Insert: never;
         Update: never;
+        Relationships: [];
+      };
+      payout_destinations: {
+        Row: {
+          applicant_id: string;
+          cipher: string;
+          hash: string;
+          hint: string;
+          holder: string;
+          updated_at: string;
+        };
+        Insert: {
+          applicant_id: string;
+          cipher: string;
+          hash: string;
+          hint: string;
+          holder: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["payout_destinations"]["Insert"]>;
         Relationships: [];
       };
       withdrawal_freezes: {
@@ -590,9 +615,17 @@ export interface Database {
           p_last4: string;
           p_hash: string;
           p_holder: string;
-          p_token_hash: string;
+          p_token_hash: string | null;
         };
         Returns: string;
+      };
+      approve_assignment: {
+        Args: { p_id: string };
+        Returns: undefined;
+      };
+      release_earning: {
+        Args: { p_assignment: string; p_stage: string; p_amount: number; p_final: boolean; p_note?: string | null };
+        Returns: boolean;
       };
       confirm_withdrawal: {
         Args: { p_user_id: string; p_token_hash: string };

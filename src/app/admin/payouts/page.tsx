@@ -4,6 +4,9 @@ import { requireAdminMfa } from "@/lib/admin-mfa";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge, assignmentStatusTone } from "@/components/ui/status-badge";
 import { PayoutForm } from "./PayoutForm";
+import { ApprovePost } from "./ApprovePost";
+import { loadReleaseCandidates } from "@/lib/auto-release-data";
+import { planRelease, type ReleasePlan } from "@/lib/auto-release";
 import { setAssignmentStatusAction } from "./actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
@@ -26,7 +29,7 @@ export default async function AdminPayoutsPage() {
   const { data: assignments } = await supabase
     .from("assignments")
     .select(
-      "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, applicants(name, email, handle), jobs(title, payout_terms), payouts(gross_amount, notes, paid_at, brand_paid_at, brand_payment_ref)",
+      "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, approved_at, approved_by, applicants(name, email, handle), jobs(title, payout_terms), payouts(gross_amount, notes, paid_at, brand_paid_at, brand_payment_ref)",
     )
     .order("assigned_at", { ascending: false });
 
@@ -49,6 +52,11 @@ export default async function AdminPayoutsPage() {
     const views = viewsByKey.get(`${norm(a.jobs.title)}|${norm(a.applicants.handle)}`) ?? 0;
     suggestions.set(a.id, { views, breakdown: calculatePayout(terms, views) });
   }
+
+  // What the daily automatic release will do with each submitted post.
+  const plans = new Map<string, ReleasePlan>();
+  for (const c of await loadReleaseCandidates(supabase)) plans.set(c.assignmentId, planRelease(c.input));
+  const needAttention = [...plans.values()].filter((p) => p.kind === "attention").length;
 
   const all = assignments ?? [];
   const awaiting = all.filter((a) => a.status === "submitted");
@@ -74,6 +82,12 @@ export default async function AdminPayoutsPage() {
             {formatCurrency(totalOwed)}
           </span>{" "}
           outstanding to creators
+          {needAttention > 0 && (
+            <>
+              {" "}·{" "}
+              <span className="font-semibold text-destructive">{needAttention} need your attention</span>
+            </>
+          )}
         </p>
       </header>
 
@@ -91,10 +105,10 @@ export default async function AdminPayoutsPage() {
       ) : (
         <div className="flex flex-col gap-10">
           {awaiting.length > 0 && (
-            <Section title="Awaiting payout" items={awaiting} suggestions={suggestions} />
+            <Section title="Awaiting payout" items={awaiting} suggestions={suggestions} plans={plans} />
           )}
-          {disputed.length > 0 && <Section title="Disputed" items={disputed} suggestions={suggestions} />}
-          {others.length > 0 && <Section title="Everything else" items={others} suggestions={suggestions} />}
+          {disputed.length > 0 && <Section title="Disputed" items={disputed} suggestions={suggestions} plans={plans} />}
+          {others.length > 0 && <Section title="Everything else" items={others} suggestions={suggestions} plans={plans} />}
         </div>
       )}
     </div>
@@ -108,6 +122,8 @@ type AssignmentRow = {
   applicant_payout_amount: number;
   assigned_at: string;
   paid_at: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
   applicants: { name: string; email: string; handle: string } | null;
   jobs: { title: string; payout_terms: Record<string, unknown> | null } | null;
   // `payouts.assignment_id` is a unique FK, so PostgREST embeds this as a
@@ -127,10 +143,12 @@ function Section({
   title,
   items,
   suggestions,
+  plans,
 }: {
   title: string;
   items: AssignmentRow[];
   suggestions: Map<string, Suggestion>;
+  plans: Map<string, ReleasePlan>;
 }) {
   return (
     <section>
@@ -214,6 +232,10 @@ function Section({
                   </p>
                 )}
 
+                {a.status === "submitted" && plans.get(a.id) && (
+                  <ReleaseStatus plan={plans.get(a.id)!} assignmentId={a.id} approvedAt={a.approved_at} approvedBy={a.approved_by} />
+                )}
+
                 <div className="mt-4 border-t border-border pt-4">
                   <PayoutForm
                     assignmentId={a.id}
@@ -264,5 +286,46 @@ function Section({
         })}
       </ul>
     </section>
+  );
+}
+
+/** What the automatic release will do with this post, and the approve button when that is the next step. */
+function ReleaseStatus({
+  plan,
+  assignmentId,
+  approvedAt,
+  approvedBy,
+}: {
+  plan: ReleasePlan;
+  assignmentId: string;
+  approvedAt: string | null;
+  approvedBy: string | null;
+}) {
+  return (
+    <div className="mt-4 rounded-md bg-muted/50 p-3">
+      <p className="text-sm font-semibold text-muted-foreground">Automatic release</p>
+      {approvedAt && (
+        <p className="mt-1 text-sm text-muted-foreground">
+          Post approved by {approvedBy} on {formatDate(approvedAt)}.
+        </p>
+      )}
+      {plan.kind === "release" && (
+        <p className="mt-1 text-[15px] text-foreground">
+          Ready: {formatCurrency(plan.amount)} will be added to the creator&apos;s balance on the next daily run (about 06:30 UTC).
+        </p>
+      )}
+      {plan.kind === "wait" && (
+        <p className="mt-1 text-[15px] text-foreground">
+          {plan.reason}
+          {plan.until ? ` It releases from ${formatDate(plan.until.toISOString())}.` : ""}
+        </p>
+      )}
+      {plan.kind === "attention" && (
+        <div className="mt-1 flex flex-col gap-2">
+          <p className="text-[15px] font-semibold text-destructive">{plan.reason}</p>
+          {!approvedAt && <ApprovePost assignmentId={assignmentId} />}
+        </div>
+      )}
+    </div>
   );
 }

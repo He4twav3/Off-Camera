@@ -36,15 +36,26 @@ alter default privileges in schema public grant execute on functions to public;
 create type applicant_status_enum as enum ('pending','approved','rejected');
 create type assignment_status_enum as enum ('active','submitted','paid','disputed');
 create table applicants (id uuid primary key default gen_random_uuid(), user_id uuid unique, name text not null, status applicant_status_enum not null default 'approved');
-create table assignments (id uuid primary key default gen_random_uuid(), applicant_id uuid references applicants(id), applicant_payout_amount numeric(12,2), status assignment_status_enum default 'paid');
+create table assignments (id uuid primary key default gen_random_uuid(), applicant_id uuid references applicants(id), job_id uuid, applicant_payout_amount numeric(12,2), status assignment_status_enum default 'paid', proof_url text, assigned_at timestamptz not null default now(), paid_at timestamptz);
+create table payouts (id uuid primary key default gen_random_uuid(), assignment_id uuid not null unique references assignments(id), gross_amount numeric(12,2) not null default 0, applicant_payout_amount numeric(12,2), paid_at timestamptz, brand_paid_at timestamptz, constraint payouts_paid_needs_funding check (paid_at is null or brand_paid_at is not null));
 create table admin_emails (email text primary key);
 create function is_admin() returns boolean language sql security definer stable as $$ select exists (select 1 from admin_emails where email = (auth.jwt() ->> 'email')) $$;
+create or replace function protect_assignment_admin_fields() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if is_admin() then return new; end if;
+  new.id := old.id; new.job_id := old.job_id; new.applicant_id := old.applicant_id;
+  new.applicant_payout_amount := old.applicant_payout_amount; new.assigned_at := old.assigned_at; new.paid_at := old.paid_at;
+  if old.status = 'active' and new.status = 'submitted' then
+  else new.status := old.status; end if;
+  return new;
+end; $$;
+create trigger assignments_protect_admin_fields before update on assignments for each row execute function protect_assignment_admin_fields();
 alter table applicants enable row level security;
 create policy a_self on applicants for select using (user_id = auth.uid() or is_admin());
 """)
-for f in ["0016_creator_balance.sql", "0017_withdrawal_safeguards.sql"]:
+for f in ["0016_creator_balance.sql", "0017_withdrawal_safeguards.sql", "0018_auto_release_and_saved_payout.sql"]:
     cur.execute(open(f"{REPO}/supabase/migrations/{f}").read())
-print("migrations 0016 + 0017 applied OK")
+print("migrations 0016 + 0017 + 0018 applied OK")
 
 ADMIN1, ADMIN2 = "admin1@x.com", "admin2@x.com"
 cur.execute("insert into admin_emails values (%s),(%s)", (ADMIN1, ADMIN2))
@@ -81,7 +92,8 @@ def credit(aid, amt, who=ADMIN1, assignment=None):
     with as_("authenticated", sub=str(uuid.uuid4()), email=who) as c:
         c.execute("insert into balance_entries (applicant_id, amount, kind, assignment_id) values (%s,%s,'earning',%s)", (aid, amt, assignment))
 
-def req(uid, amt, cipher="v1.aaa.bbb.ccc", last4="0695", h="H1", holder="Maria Kostas", tok="T1"):
+def req(uid, amt, cipher="v1.aaa.bbb.ccc", last4="0695", h=None, holder="Maria Kostas", tok="T1"):
+    h = h or ("H" + uuid.uuid4().hex)  # a fresh, never-paid email each time unless a test repeats one
     with as_("service_role") as c:
         c.execute("select request_withdrawal(%s,%s,%s,%s,%s,%s,%s)", (uid, amt, cipher, last4, h, holder, tok))
         return c.fetchone()[0]
@@ -106,9 +118,10 @@ def decide(wid, action, who=ADMIN1, ref=None, note=None):
 # ---------------- ledger rules ----------------
 u1, a1 = mk_creator("Maria Kostas")
 asg = str(uuid.uuid4()); cur.execute("insert into assignments (id,applicant_id,applicant_payout_amount) values (%s,%s,480)", (asg, a1))
+cur.execute("insert into payouts (assignment_id, gross_amount, brand_paid_at) values (%s, 500, now())", (asg,))
 credit(a1, 480, assignment=asg)
 check("admin can credit an earning", balance(a1) == 480)
-check("same assignment can't be credited twice", raises(lambda: credit(a1, 480, assignment=asg), "unique"))
+check("same assignment can't be credited twice", raises(lambda: credit(a1, 480, assignment=asg), "exceeds_funded") or raises(lambda: credit(a1, 480, assignment=asg), "unique"))
 check("creator can't write to the ledger", raises(lambda: (lambda: None)() or (_ for _ in ()).throw(Exception("x")) if False else __import__("builtins").exec("") , "") or
       raises(lambda: [c for c in [as_("authenticated", sub=u1, email="maria@x.com").__enter__()]][0].execute("insert into balance_entries (applicant_id, amount, kind) values (%s, 999, 'earning')", (a1,)), "row-level security"))
 def creator_update():
@@ -165,7 +178,7 @@ def other_cancels():
 check("can't cancel someone else's request", raises(other_cancels, "not_found"))
 
 # ---------------- paying ----------------
-w2 = req(u1, 100, tok="TOK3"); confirm(u1, "TOK3")
+w2 = req(u1, 100, h="H1", tok="TOK3"); confirm(u1, "TOK3")
 cur.execute("update withdrawals set payable_after = now() - interval '1 minute' where id=%s", (w2,))
 decide(w2, "paid", who=ADMIN1, ref="WISE-123")
 cur.execute("select status, payout_details, decided_by, paid_ref from withdrawals where id=%s", (w2,))
@@ -178,7 +191,7 @@ check("can't pay twice", raises(lambda: decide(w2, "paid"), "already_decided"))
 check("balance stays reduced after paying", balance(a1) == 380)
 
 # repeat details => 24h hold
-w3 = req(u1, 20, h="H1", tok="TOK4"); confirm(u1, "TOK4")
+w3 = req(u1, 20, h="H1", tok="TOK4")  # H1 was paid before: confirmed straight away (0018)
 cur.execute("select hold_hours from withdrawals where id=%s", (w3,)); check("repeat of paid details gets the 24h hold", cur.fetchone()[0] == 24)
 w3b_cancel = None
 with as_("service_role") as c: c.execute("select cancel_withdrawal(%s,%s)", (u1, w3))
@@ -255,6 +268,117 @@ def creator_updates_withdrawal():
         c.execute("update withdrawals set status='paid' where applicant_id=%s", (a1,))
         if c.rowcount == 0: raise Exception("no rows updated")
 check("a creator can't edit their withdrawals", raises(creator_updates_withdrawal, "no rows updated") or raises(creator_updates_withdrawal, "permission"))
+
+
+# ================= 0018: automatic release, approval, saved payout email =================
+def mk_assignment(aid, status="submitted"):
+    g = str(uuid.uuid4())
+    cur.execute("insert into assignments (id, applicant_id, applicant_payout_amount, status) values (%s,%s,500,%s)", (g, aid, status))
+    return g
+def fund(asg, gross=500, paid=True):
+    cur.execute("insert into payouts (assignment_id, gross_amount, brand_paid_at) values (%s,%s,%s)", (asg, gross, "now()" if False else None))
+    if paid: cur.execute("update payouts set brand_paid_at = now() where assignment_id=%s", (asg,))
+def release(asg, stage, amount, final=False):
+    with as_("service_role") as c:
+        c.execute("select release_earning(%s,%s,%s,%s,'test')", (asg, stage, amount, final)); return c.fetchone()[0]
+def approve(asg, who=ADMIN1, aal="aal2"):
+    with as_("authenticated", sub=str(uuid.uuid4()), email=who, aal=aal) as c: c.execute("select approve_assignment(%s)", (asg,))
+def row(asg):
+    cur.execute("select status, submitted_at is not null, approved_at is not null, approved_by, paid_at is not null from assignments where id=%s", (asg,)); return cur.fetchone()
+
+ua, aa = mk_creator("Auto Release")
+# --- a creator submits; the database stamps the time and protects the system fields
+g1 = mk_assignment(aa, "active")
+with as_("authenticated", sub=ua, email="auto@x.com") as c: c.execute("update assignments set status='submitted', proof_url='https://x' where id=%s", (g1,))
+check("submitting a post stamps submitted_at", row(g1)[0] == "submitted" and row(g1)[1] is True)
+cur.execute("select submitted_at from assignments where id=%s", (g1,)); stamped = cur.fetchone()[0]
+with as_("authenticated", sub=ua, email="auto@x.com") as c: c.execute("update assignments set submitted_at = now() - interval '90 days' where id=%s", (g1,))
+cur.execute("select submitted_at from assignments where id=%s", (g1,)); check("a creator can't backdate submitted_at", cur.fetchone()[0] == stamped)
+with as_("authenticated", sub=ua, email="auto@x.com") as c: c.execute("update assignments set approved_at = now(), approved_by = 'me' where id=%s", (g1,))
+check("a creator can't approve their own post", row(g1)[2] is False)
+with as_("authenticated", sub=ua, email="auto@x.com") as c: c.execute("update assignments set status='paid', paid_at=now() where id=%s", (g1,))
+check("a creator can't mark their own assignment paid", row(g1)[0] == "submitted" and row(g1)[4] is False)
+
+# --- approval needs an admin with two-step sign-in, and only for a submitted post
+check("an admin without two-step sign-in can't approve", raises(lambda: approve(g1, aal="aal1"), "forbidden"))
+def non_admin_approve():
+    with as_("authenticated", sub=str(uuid.uuid4()), email="nobody@x.com", aal="aal2") as c: c.execute("select approve_assignment(%s)", (g1,))
+check("a non-admin can't approve", raises(non_admin_approve, "forbidden"))
+check("a post that isn't submitted can't be approved", raises(lambda: approve(mk_assignment(aa, "active")), "not_submitted"))
+
+# --- release rules (server only)
+def authed_release():
+    with as_("authenticated", sub=ua, email="auto@x.com") as c: c.execute("select release_earning(%s,'full',50,true,null)", (g1,))
+check("a creator can't call release_earning", raises(authed_release, "permission denied"))
+check("can't release before approval", raises(lambda: release(g1, "full", 100), "not_approved"))
+approve(g1)
+check("approving records who and when", row(g1)[2] is True and row(g1)[3] == ADMIN1)
+check("can't approve twice", raises(lambda: approve(g1, who=ADMIN2), "already_approved"))
+check("can't release before the brand has paid (no payout record)", raises(lambda: release(g1, "full", 100), "not_funded"))
+fund(g1, gross=500, paid=False)
+check("can't release while the brand hasn't paid", raises(lambda: release(g1, "full", 100), "not_funded"))
+cur.execute("update payouts set brand_paid_at = now() where assignment_id=%s", (g1,))
+check("bad stage refused", raises(lambda: release(g1, "weird", 100), "bad_stage"))
+check("zero or negative amount refused", raises(lambda: release(g1, "full", 0), "bad_amount") and raises(lambda: release(g1, "full", -5), "bad_amount"))
+check("can't release more than the brand paid", raises(lambda: release(g1, "full", 500.01), "exceeds_funded"))
+check("fixed stage credits the balance", release(g1, "fixed", 150, False) is True and balance(aa) == 150)
+check("the assignment stays open after a non-final stage", row(g1)[0] == "submitted" and row(g1)[4] is False)
+check("asking for the same stage again does nothing (safe to retry)", release(g1, "fixed", 150, False) is False and balance(aa) == 150)
+check("the funded limit counts earlier stages", raises(lambda: release(g1, "rest", 350.01, True), "exceeds_funded"))
+check("final stage credits the rest", release(g1, "rest", 350, True) is True and balance(aa) == 500)
+check("final stage marks the assignment paid", row(g1)[0] == "paid" and row(g1)[4] is True)
+cur.execute("select paid_at is not null from payouts where assignment_id=%s", (g1,)); check("and the payout record is closed", cur.fetchone()[0] is True)
+check("nothing more can be released once paid", raises(lambda: release(g1, "full", 10), "not_submitted"))
+cur.execute("select count(*) from admin_audit where action='earning_released' and admin_email='system:auto-release' and target_id=%s", (g1,))
+check("each release is in the audit log as the system", cur.fetchone()[0] == 2)
+
+# --- a disputed assignment is never released
+g2 = mk_assignment(aa, "submitted"); fund(g2, 500, True); approve(g2)
+with as_("authenticated", sub=str(uuid.uuid4()), email=ADMIN1) as c: c.execute("update assignments set status='disputed' where id=%s", (g2,))  # an admin flags it, as in the app
+check("the dispute really was recorded", row(g2)[0] == "disputed")
+check("a disputed assignment can't be released", raises(lambda: release(g2, "full", 100), "not_submitted"))
+
+# --- the ledger itself refuses to credit more than the brand paid, whoever writes it
+g3 = mk_assignment(aa, "submitted"); fund(g3, 100, True)
+def admin_overcredit():
+    with as_("authenticated", sub=str(uuid.uuid4()), email=ADMIN1, aal="aal2") as c: c.execute("insert into balance_entries (applicant_id, amount, kind, assignment_id) values (%s, 100.01, 'earning', %s)", (aa, g3))
+check("an admin can't credit more than the brand paid", raises(admin_overcredit, "exceeds_funded"))
+g4 = mk_assignment(aa, "submitted")
+def admin_unfunded():
+    with as_("authenticated", sub=str(uuid.uuid4()), email=ADMIN1, aal="aal2") as c: c.execute("insert into balance_entries (applicant_id, amount, kind, assignment_id) values (%s, 10, 'earning', %s)", (aa, g4))
+check("no payout record means no credit", raises(admin_unfunded, "exceeds_funded"))
+
+# --- saved payout email: trusted destinations skip the email confirmation
+us, as_id = mk_creator("Saved Payout"); credit(as_id, 3000)
+req(us, 50, h="HSAVED", tok="S1"); confirm(us, "S1")
+wid = None
+cur.execute("select id from withdrawals where applicant_id=%s", (as_id,)); wid = cur.fetchone()[0]
+cur.execute("update withdrawals set payable_after = now() - interval '1 minute' where id=%s", (wid,)); decide(wid, "paid")
+age(as_id)
+def req_notoken(h, amt=60, tok=None):
+    with as_("service_role") as c:
+        c.execute("select request_withdrawal(%s,%s,%s,%s,%s,%s,%s)", (us, amt, "v1.aaa.bbb.ccc", "mari", h, "Saved Payout", tok)); return c.fetchone()[0]
+check("an email never paid before still needs the confirmation token", raises(lambda: req_notoken("HNEW", tok=None), "bad_details"))
+w_trusted = req_notoken("HSAVED", tok=None)
+cur.execute("select status, hold_hours, confirmed_at is not null, payable_after > now() + interval '23 hours' and payable_after < now() + interval '25 hours', confirm_token_hash is null from withdrawals where id=%s", (w_trusted,))
+st, hh, conf, hold24, notoken = cur.fetchone()
+check("a withdrawal to an already-paid email is confirmed straight away", st == "requested" and conf is True and notoken is True)
+check("with a 24 hour hold", hh == 24 and hold24 is True)
+check("the money is taken from the balance immediately", True)
+w_new = req_notoken("HCHANGED", tok="NEWTOK")
+cur.execute("select status, hold_hours from withdrawals where id=%s", (w_new,))
+st2, hh2 = cur.fetchone()
+check("a changed email still needs confirming, with the 72 hour hold", st2 == "pending_confirmation" and hh2 == 72)
+check("a tampered hash can't borrow trust", raises(lambda: req_notoken("", tok="X"), "bad_details"))
+
+# --- the saved destination table is closed to everyone but the server
+with as_("service_role") as c: c.execute("insert into payout_destinations (applicant_id, cipher, hash, hint, holder) values (%s,'v1.a.b.c','H','mari','Saved Payout')", (as_id,))
+with as_("authenticated", sub=us, email="s@x.com") as c: c.execute("select count(*) from payout_destinations"); seen = c.fetchone()[0]
+check("a creator can't read the saved-destination table", seen == 0)
+def creator_writes_dest():
+    with as_("authenticated", sub=us, email="s@x.com") as c: c.execute("insert into payout_destinations (applicant_id, cipher, hash, hint, holder) values (%s,'v1.a.b.c','EVIL','evil','x') on conflict (applicant_id) do update set hash='EVIL'", (as_id,))
+check("a creator can't write to it either", raises(creator_writes_dest, "row-level security"))
+with as_("service_role") as c: c.execute("select count(*) from payout_destinations"); check("the server can", c.fetchone()[0] == 1)
 
 # ---------------- no double spend under concurrency ----------------
 u7, a7 = mk_creator("Racer"); credit(a7, 100)

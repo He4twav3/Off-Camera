@@ -9,6 +9,7 @@ import { PayoutPaidEmail } from "@/emails/payout-paid-email";
 import { WithdrawalPaidEmail } from "@/emails/withdrawal-paid-email";
 import { WithdrawalConfirmEmail } from "@/emails/withdrawal-confirm-email";
 import { WithdrawalConfirmedEmail } from "@/emails/withdrawal-confirmed-email";
+import { PayoutEmailChangedEmail } from "@/emails/payout-email-changed-email";
 import { ApplicationReceivedEmail } from "@/emails/application-received-email";
 import { ApplicationAcceptedEmail } from "@/emails/application-accepted-email";
 import { ApplicationDeclinedEmail } from "@/emails/application-declined-email";
@@ -67,6 +68,16 @@ export async function sendPayoutPaidEmail(
     subject: `${payoutLabel} added to your balance`,
     react: PayoutPaidEmail({ name, jobTitle, payoutLabel, dashboardUrl: `${baseUrl}/dashboard/recruiting/earnings` }),
     text: `Your pay is ready, ${name}. We've added ${payoutLabel} for ${jobTitle} to your balance. Withdraw it from your Earnings page: ${baseUrl}/dashboard/recruiting/earnings`,
+  });
+}
+
+export async function sendPayoutEmailChangedEmail(to: string, name: string, hint: string) {
+  const baseUrl = await getBaseUrl();
+  return sendEmail({
+    to,
+    subject: "Your payout email was changed",
+    react: PayoutEmailChangedEmail({ name, hint, earningsUrl: `${baseUrl}/dashboard/recruiting/earnings` }),
+    text: `Your payout email was changed, ${name}. The email we pay you through now starts with ${hint}… Because it's new, your next withdrawal to it needs to be confirmed from an email link and waits 72 hours. Wasn't you? Change your password, remove the saved email on your Earnings page (${baseUrl}/dashboard/recruiting/earnings), and reply to this email.`,
   });
 }
 

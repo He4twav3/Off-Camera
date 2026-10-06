@@ -1,3 +1,12 @@
 {
-  "crons": [{ "path": "/api/cron/campaign-views", "schedule": "0 6 * * *" }]
+  "crons": [
+    {
+      "path": "/api/cron/campaign-views",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/auto-release",
+      "schedule": "30 6 * * *"
+    }
+  ]
 }

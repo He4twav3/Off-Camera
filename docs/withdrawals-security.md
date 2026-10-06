@@ -40,3 +40,16 @@ SEPA) and marks it paid (Admin → Withdrawals).
 ## Tests
 
 `python3 scripts/test-withdrawals-sql.py` runs the SQL against a throwaway Postgres.
+
+## Automatic release and the saved payout email (added)
+
+**Automatic release.** After an admin approves a creator's post (one click on the Payouts page), the server releases the creator's earnings to their balance by itself, once:
+- the brand has paid (the "brand paid" tick),
+- for view-based pay, the measurement window has ended and the view counts are fresh (under 3 days old) and not zero,
+- the amount is not more than the brand paid, and the assignment isn't disputed.
+
+A fixed fee only is released at approval. A fixed fee "paid on approval" plus performance pay is released in two stages (the fixed part at approval, the rest at the end of the window). Anything unusual is left alone and shown on the Payouts page as "needs your attention". It runs daily at about 06:30 UTC (`/api/cron/auto-release`, protected by `CRON_SECRET`). The database refuses any credit that doesn't hold these rules, and each stage can be credited only once. **This is bookkeeping only: no money moves until an admin sends the bank transfer.**
+
+**Saved payout email.** A creator saves a payout email once. A withdrawal to an email we've already paid successfully is confirmed on the spot (24h hold). A new or changed email still needs the emailed confirmation and the 72h hold, and the creator is emailed when it changes. A stolen session therefore can't send money to a destination we haven't paid before; at most it can withdraw to the creator's own, already-paid email. The creator can remove the saved email at any time.
+
+Tests: `python3 scripts/test-withdrawals-sql.py` (database rules) and `npx tsx scripts/test-auto-release.ts` (release rules).
