@@ -6,6 +6,7 @@ import { ApplicantApprovedEmail } from "@/emails/applicant-approved-email";
 import { ApplicantRejectedEmail } from "@/emails/applicant-rejected-email";
 import { AssignmentEmail } from "@/emails/assignment-email";
 import { PayoutPaidEmail } from "@/emails/payout-paid-email";
+import { WithdrawalPaidEmail } from "@/emails/withdrawal-paid-email";
 import { ApplicationReceivedEmail } from "@/emails/application-received-email";
 import { ApplicationAcceptedEmail } from "@/emails/application-accepted-email";
 import { ApplicationDeclinedEmail } from "@/emails/application-declined-email";
@@ -61,9 +62,20 @@ export async function sendPayoutPaidEmail(
   const payoutLabel = formatCurrency(payoutAmount);
   return sendEmail({
     to,
-    subject: `Payment sent — ${payoutLabel}`,
-    react: PayoutPaidEmail({ name, jobTitle, payoutLabel, dashboardUrl: `${baseUrl}/dashboard/recruiting` }),
-    text: `Your payment is on its way, ${name}. We've sent ${payoutLabel} for ${jobTitle}.`,
+    subject: `${payoutLabel} added to your balance`,
+    react: PayoutPaidEmail({ name, jobTitle, payoutLabel, dashboardUrl: `${baseUrl}/dashboard/recruiting/earnings` }),
+    text: `Your pay is ready, ${name}. We've added ${payoutLabel} for ${jobTitle} to your balance. Withdraw it from your Earnings page: ${baseUrl}/dashboard/recruiting/earnings`,
+  });
+}
+
+export async function sendWithdrawalPaidEmail(to: string, name: string, amount: number) {
+  const baseUrl = await getBaseUrl();
+  const amountLabel = formatCurrency(amount);
+  return sendEmail({
+    to,
+    subject: `Your ${amountLabel} withdrawal has been sent`,
+    react: WithdrawalPaidEmail({ name, amountLabel, earningsUrl: `${baseUrl}/dashboard/recruiting/earnings` }),
+    text: `Your withdrawal has been sent, ${name}. We've sent ${amountLabel} by bank transfer. If you don't see it in a few days, reply to this email.`,
   });
 }
 

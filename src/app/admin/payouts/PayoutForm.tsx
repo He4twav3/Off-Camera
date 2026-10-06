@@ -116,8 +116,8 @@ export function PayoutForm({
           disabled={!brandPaid}
           label={
             brandPaid
-              ? "I've sent the creator their payout — mark this paid and email them."
-              : "Mark the creator paid (available once the brand's payment has arrived)."
+              ? "Release the creator's share to their balance and email them. They then withdraw it from their Earnings page."
+              : "Release the creator's share to their balance (available once the brand's payment has arrived)."
           }
         />
       )}

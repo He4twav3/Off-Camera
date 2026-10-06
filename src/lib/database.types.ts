@@ -198,6 +198,69 @@ export interface Database {
           },
         ];
       };
+      withdrawals: {
+        Row: {
+          id: string;
+          applicant_id: string;
+          amount: number;
+          status: "requested" | "paid" | "rejected";
+          payout_details: string;
+          paid_ref: string | null;
+          admin_note: string | null;
+          created_at: string;
+          decided_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_applicant_id_fkey";
+            columns: ["applicant_id"];
+            isOneToOne: false;
+            referencedRelation: "applicants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      balance_entries: {
+        Row: {
+          id: string;
+          applicant_id: string;
+          amount: number;
+          kind: "earning" | "withdrawal" | "adjustment";
+          assignment_id: string | null;
+          withdrawal_id: string | null;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          applicant_id: string;
+          amount: number;
+          kind: "earning" | "withdrawal" | "adjustment";
+          assignment_id?: string | null;
+          withdrawal_id?: string | null;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "balance_entries_applicant_id_fkey";
+            columns: ["applicant_id"];
+            isOneToOne: false;
+            referencedRelation: "applicants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "balance_entries_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: true;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       payouts: {
         Row: {
           id: string;
@@ -473,6 +536,14 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      request_withdrawal: {
+        Args: { p_amount: number; p_details: string };
+        Returns: string;
+      };
+      decide_withdrawal: {
+        Args: { p_id: string; p_action: string; p_ref?: string | null; p_note?: string | null };
+        Returns: undefined;
+      };
     };
     Enums: {
       platform_enum: PlatformEnum;
@@ -493,6 +564,8 @@ export type Niche = Database["public"]["Tables"]["niches"]["Row"];
 export type Applicant = Database["public"]["Tables"]["applicants"]["Row"];
 export type Assignment = Database["public"]["Tables"]["assignments"]["Row"];
 export type Payout = Database["public"]["Tables"]["payouts"]["Row"];
+export type Withdrawal = Database["public"]["Tables"]["withdrawals"]["Row"];
+export type BalanceEntry = Database["public"]["Tables"]["balance_entries"]["Row"];
 export type ApplicantHandle =
   Database["public"]["Tables"]["applicant_handles"]["Row"];
 export type Application = Database["public"]["Tables"]["applications"]["Row"];

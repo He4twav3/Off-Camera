@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Payouts · Admin" };
 const STATUS_LABELS: Record<string, string> = {
   active: "In progress",
   submitted: "Awaiting payout",
-  paid: "Paid",
+  paid: "Released to creator",
   disputed: "Disputed",
 };
 
