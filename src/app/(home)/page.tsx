@@ -78,9 +78,9 @@ export default function CreatorsPage() {
           title="Everything for your UGC work, in one workspace"
           sub="No more tabs, screenshots and spreadsheets."
         />
-        <div className="mt-14 grid gap-4 md:grid-cols-5">
+        <div className="mt-10 grid grid-cols-5 gap-2 sm:mt-14 md:gap-4">
           <FeatureCard
-            className="md:col-span-3"
+            className="col-span-3"
             icon={LineChart}
             title="Every campaign, tracked"
             body="Deliverables, status and what you're owed on every campaign."
@@ -113,7 +113,7 @@ export default function CreatorsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-2"
+            className="col-span-2"
             delay={80}
             icon={ShieldCheck}
             title="Verified accounts"
@@ -134,7 +134,7 @@ export default function CreatorsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-2"
+            className="col-span-2"
             delay={80}
             icon={Wallet}
             title="See your earnings build"
@@ -149,7 +149,7 @@ export default function CreatorsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-3"
+            className="col-span-3"
             delay={160}
             icon={Store}
             title="A board of open campaigns"

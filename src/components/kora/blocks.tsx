@@ -177,14 +177,14 @@ export function FeatureCard({
 }) {
   return (
     <FadeIn delay={delay} className={className}>
-      <div className="flex h-full flex-col rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-7">
-        <span className="flex size-11 items-center justify-center rounded-xl bg-[#ac0216]/15 text-[#e0556a]">
-          <Icon className="size-5" />
+      <div className="flex h-full min-w-0 flex-col rounded-2xl border border-white/[0.08] bg-[#1d1c22] p-3 sm:rounded-3xl sm:p-7">
+        <span className="flex size-7 items-center justify-center rounded-lg bg-[#ac0216]/15 text-[#e0556a] sm:size-11 sm:rounded-xl">
+          <Icon className="size-3.5 sm:size-5" />
         </span>
-        <h3 className="mt-6 text-xl font-semibold tracking-[-0.01em]">{title}</h3>
-        <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
-        <div className="mt-6 flex-1 rounded-2xl border border-white/[0.07] bg-[#16151a] p-4" aria-hidden>
-          {children}
+        <h3 className="mt-3 text-[0.8rem] leading-tight font-semibold tracking-[-0.01em] sm:mt-6 sm:text-xl">{title}</h3>
+        <p className="mt-1 text-[0.62rem] leading-snug text-[#a39e98] sm:mt-2 sm:text-[15px] sm:leading-relaxed">{body}</p>
+        <div className="mt-3 flex-1 overflow-hidden rounded-xl border border-white/[0.07] bg-[#16151a] p-2 sm:mt-6 sm:rounded-2xl sm:p-4" aria-hidden>
+          <div className="[zoom:0.58] sm:[zoom:1]">{children}</div>
         </div>
       </div>
     </FadeIn>

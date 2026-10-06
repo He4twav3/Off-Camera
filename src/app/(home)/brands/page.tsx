@@ -88,9 +88,9 @@ export default async function BrandsPage() {
           title="What makes this work"
           sub="Vetted creators, results you can see, and a team that sets it up with you."
         />
-        <div className="mt-14 grid gap-4 md:grid-cols-6">
+        <div className="mt-10 grid grid-cols-6 gap-2 sm:mt-14 md:gap-4">
           <FeatureCard
-            className="md:col-span-3"
+            className="col-span-3"
             icon={ShieldCheck}
             title="Hand-reviewed creators"
             body="Every creator is reviewed by our team before they can join a campaign."
@@ -112,7 +112,7 @@ export default async function BrandsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-3"
+            className="col-span-3"
             delay={80}
             icon={BadgeCheck}
             title="Accounts that are really theirs"
@@ -133,7 +133,7 @@ export default async function BrandsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-2"
+            className="col-span-2"
             icon={Eye}
             title="Reach you can see"
             body="Every post's views, updated daily, rolled up per creator and per campaign."
@@ -156,7 +156,7 @@ export default async function BrandsPage() {
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-2"
+            className="col-span-2"
             delay={80}
             icon={LayoutDashboard}
             title="One dashboard"
@@ -164,16 +164,16 @@ export default async function BrandsPage() {
           >
             <ul className="flex flex-col gap-2 text-sm">
               {creators.slice(0, 3).map((c, i) => (
-                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="font-semibold"><AtHandle handle={c.handle} /></span>
-                  <span className="text-xs text-[#a39e98]">{compactViews(c.viewsNum)} views</span>
+                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between gap-2 rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                  <span className="min-w-0 truncate font-semibold"><AtHandle handle={c.handle} /></span>
+                  <span className="shrink-0 text-xs text-[#a39e98]">{compactViews(c.viewsNum)}<span className="hidden sm:inline"> views</span></span>
                 </li>
               ))}
             </ul>
           </FeatureCard>
 
           <FeatureCard
-            className="md:col-span-2"
+            className="col-span-2"
             delay={160}
             icon={Rocket}
             title="We set it up with you"
