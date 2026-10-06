@@ -20,8 +20,12 @@
  */
 function resolveSiteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured && !configured.includes("localhost")) return configured;
-  return "https://oncameraugc.com";
+  if (configured && !configured.includes("localhost")) {
+    // The bare domain 308-redirects to www, so a canonical/sitemap URL on the
+    // bare domain tells search engines to index an address that redirects away.
+    return configured.replace(/^(https?:\/\/)oncameraugc\.com/, "$1www.oncameraugc.com").replace(/\/$/, "");
+  }
+  return "https://www.oncameraugc.com";
 }
 
 export const siteConfig = {
