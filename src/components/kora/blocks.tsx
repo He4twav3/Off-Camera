@@ -60,7 +60,7 @@ export function BrowserFrame({
   sidebar,
   tabs,
   children,
-  badge = "Example data",
+  badge,
 }: {
   url: string;
   badge?: string;
@@ -79,28 +79,30 @@ export function BrowserFrame({
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
-        <span className="ml-3 text-xs text-[#a39e98]">{url}</span>
-        <span className="ml-auto rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
-          {badge}
-        </span>
+        <span className="ml-2 min-w-0 truncate text-xs text-[#a39e98] sm:ml-3">{url}</span>
+        {badge && (
+          <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
+            {badge}
+          </span>
+        )}
       </div>
       {tabs && (
-        <nav className="flex gap-1 overflow-x-auto border-b border-white/[0.07] px-4 py-3">
+        <nav className="flex gap-0.5 overflow-x-auto border-b border-white/[0.07] px-3 py-3 sm:gap-1 sm:px-4">
           {tabs.map(({ icon: Icon, label, active }) => (
             <span
               key={label}
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm",
+                "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm sm:gap-2 sm:px-4",
                 active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
               )}
             >
               <Icon className="size-4" />
-              {label}
+              <span className={active ? undefined : "hidden sm:inline"}>{label}</span>
             </span>
           ))}
         </nav>
       )}
-      <div className={cn("grid", sidebar && "sm:grid-cols-[190px_1fr]")}>
+      <div className={cn("grid grid-cols-1", sidebar && "sm:grid-cols-[190px_1fr]")}>
         {sidebar && (
         <aside className="hidden border-r border-white/[0.07] p-4 sm:block">
           <ul className="flex flex-col gap-1">
@@ -119,7 +121,7 @@ export function BrowserFrame({
           </ul>
         </aside>
         )}
-        <div className="p-5 sm:p-6">{children}</div>
+        <div className="min-w-0 p-5 sm:p-6">{children}</div>
       </div>
     </div>
   );
@@ -127,9 +129,9 @@ export function BrowserFrame({
 
 export function StatTile({ label, value, accent }: { label: string; value: ReactNode; accent?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/[0.08] px-4 py-3.5">
-      <p className="text-[0.65rem] font-bold tracking-[0.14em] text-[#a39e98] uppercase">{label}</p>
-      <p className={cn("mt-1 text-2xl font-bold tabular-nums", accent && "text-[#e0556a]")}>{value}</p>
+    <div className="min-w-0 rounded-xl border border-white/[0.08] px-2.5 py-2.5 sm:px-4 sm:py-3.5">
+      <p className="text-[0.5rem] font-bold tracking-[0.06em] text-[#a39e98] uppercase sm:text-[0.65rem] sm:tracking-[0.14em]">{label}</p>
+      <p className={cn("mt-1 text-lg font-bold tabular-nums sm:text-2xl", accent && "text-[#e0556a]")}>{value}</p>
     </div>
   );
 }
@@ -159,6 +161,14 @@ export function SectionTitle({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
+/** Card colours: plain panel, crimson-tinted, or a deeper ink panel, so a run of
+ * cards does not read as one repeated grey box. */
+const TONES = {
+  panel: { card: "border-white/[0.08] bg-[#1d1c22]", well: "border-white/[0.07] bg-[#16151a]", icon: "bg-[#ac0216]/15 text-[#e0556a]" },
+  crimson: { card: "border-[#ac0216]/40 bg-gradient-to-b from-[#3a0e15] to-[#241017]", well: "border-[#ac0216]/25 bg-[#16090d]/80", icon: "bg-[#ac0216]/30 text-[#ff8d9c]" },
+  ink: { card: "border-white/[0.06] bg-[#121115]", well: "border-white/[0.06] bg-[#1d1c22]", icon: "bg-white/[0.07] text-[#edeae4]" },
+} as const;
+
 /** A feature card: icon tile, title, one line, then a small picture of it. */
 export function FeatureCard({
   icon: Icon,
@@ -166,6 +176,7 @@ export function FeatureCard({
   body,
   className,
   delay,
+  tone = "panel",
   children,
 }: {
   icon: LucideIcon;
@@ -173,17 +184,19 @@ export function FeatureCard({
   body: string;
   className?: string;
   delay?: number;
+  tone?: keyof typeof TONES;
   children: ReactNode;
 }) {
+  const t = TONES[tone];
   return (
     <FadeIn delay={delay} className={className}>
-      <div className="flex h-full flex-col rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-7">
-        <span className="flex size-11 items-center justify-center rounded-xl bg-[#ac0216]/15 text-[#e0556a]">
+      <div className={cn("flex h-full min-w-0 flex-col rounded-3xl border p-6 sm:p-7", t.card)}>
+        <span className={cn("flex size-11 items-center justify-center rounded-xl", t.icon)}>
           <Icon className="size-5" />
         </span>
-        <h3 className="mt-6 text-xl font-semibold tracking-[-0.01em]">{title}</h3>
+        <h3 className="mt-5 text-xl font-semibold tracking-[-0.01em] sm:mt-6">{title}</h3>
         <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
-        <div className="mt-6 flex-1 rounded-2xl border border-white/[0.07] bg-[#16151a] p-4" aria-hidden>
+        <div className={cn("mt-5 flex flex-1 flex-col justify-center rounded-2xl border p-4 sm:mt-6", t.well)} aria-hidden>
           {children}
         </div>
       </div>
@@ -195,11 +208,11 @@ export function FeatureCard({
 export function StatsBand({ stats }: { stats: { value: ReactNode; label: string }[] }) {
   return (
     <section className="mt-24 border-y border-white/[0.07] bg-[#1a191e]">
-      <dl className={cn("mx-auto grid max-w-[1000px] gap-10 px-6 py-14 text-center", stats.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-4")}>
+      <dl className={cn("mx-auto grid max-w-[1000px] gap-3 px-4 py-10 text-center sm:gap-10 sm:px-6 sm:py-14", stats.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4")}>
         {stats.map((s) => (
           <FadeIn key={s.label}>
-            <dd className="text-5xl font-bold tracking-[-0.03em] tabular-nums">{s.value}</dd>
-            <dt className="mt-2 text-sm text-[#a39e98]">{s.label}</dt>
+            <dd className="text-3xl font-bold tracking-[-0.03em] tabular-nums sm:text-5xl">{s.value}</dd>
+            <dt className="mt-2 text-[0.7rem] leading-tight text-[#a39e98] sm:text-sm">{s.label}</dt>
           </FadeIn>
         ))}
       </dl>
@@ -207,7 +220,8 @@ export function StatsBand({ stats }: { stats: { value: ReactNode; label: string 
   );
 }
 
-/** The numbered flow: 01 / 02 / 03. */
+/** The numbered flow: 01 / 02 / 03 as circles joined by a line, running down the
+ * page on phones and across it on wider screens. */
 export function Steps({ eyebrow, title, steps }: { eyebrow: string; title: string; steps: [string, string][] }) {
   return (
     <section className="mx-auto mt-24 max-w-[1100px] px-5">
@@ -215,13 +229,24 @@ export function Steps({ eyebrow, title, steps }: { eyebrow: string; title: strin
         <p className="text-[0.75rem] font-bold tracking-[0.18em] text-[#e0556a] uppercase">{eyebrow}</p>
         <h2 className="mt-3 text-[clamp(1.9rem,4.6vw,3.1rem)] leading-[1.08] font-bold tracking-[-0.03em] text-balance">{title}</h2>
       </FadeIn>
-      <ol className="mt-14 grid gap-4 md:grid-cols-3">
+      <ol className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
         {steps.map(([head, body], i) => (
           <FadeIn key={head} delay={i * 90}>
-            <li className="h-full rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-7">
-              <span className="font-mono text-sm font-bold text-[#e0556a]">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="mt-4 text-xl font-semibold tracking-[-0.01em]">{head}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
+            <li className="relative flex gap-5 md:flex-col md:items-center md:gap-0 md:text-center">
+              {i < steps.length - 1 && (
+                <>
+                  {/* the line to the next step: down on phones, across on desktop */}
+                  <span className="absolute top-14 left-7 -bottom-10 w-px -translate-x-1/2 bg-gradient-to-b from-[#ac0216]/70 to-[#ac0216]/30 md:hidden" />
+                  <span className="absolute top-7 left-[calc(50%+2.25rem)] right-[calc(-50%+2.25rem)] hidden h-px bg-gradient-to-r from-[#ac0216]/70 to-[#ac0216]/30 md:block" />
+                </>
+              )}
+              <span className="relative z-10 flex size-14 shrink-0 items-center justify-center rounded-full border border-[#ac0216]/50 bg-[#2a0f14] font-mono text-lg font-bold text-[#e0556a]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="md:mt-6">
+                <h3 className="text-xl font-semibold tracking-[-0.01em]">{head}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
+              </div>
             </li>
           </FadeIn>
         ))}

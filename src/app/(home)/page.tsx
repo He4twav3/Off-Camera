@@ -38,8 +38,8 @@ const faqs: [string, string][] = [
   ],
 ];
 
-/** Creators page. The numbers inside the example windows are labelled
- * "Example data" and aren't real results. */
+/** Creators page. The numbers inside the example windows are example figures,
+ * not real results. */
 export default function CreatorsPage() {
   return (
     <>
@@ -64,10 +64,10 @@ export default function CreatorsPage() {
             <p className="text-lg font-semibold">Analytics</p>
             <Chip>Last 7 days</Chip>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Active campaigns" value={<CountUp to={12} />} />
-            <StatTile label="Pending" value={<>$<CountUp to={8240} /></>} />
-            <StatTile label="Earned" value={<>$<CountUp to={84600} /></>} accent />
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <StatTile label="Active campaigns" value={<CountUp to={2} />} />
+            <StatTile label="Earned" value={<>$<CountUp to={2578} /></>} />
+            <StatTile label="Pending" value={<>$<CountUp to={1847} /></>} accent />
           </div>
           <AnalyticsPanel />
         </BrowserFrame>
@@ -78,10 +78,11 @@ export default function CreatorsPage() {
           title="Everything for your UGC work, in one workspace"
           sub="No more tabs, screenshots and spreadsheets."
         />
-        <div className="mt-14 grid gap-4 md:grid-cols-5">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-14 md:grid-cols-5">
           <FeatureCard
             className="md:col-span-3"
             icon={LineChart}
+            tone="crimson"
             title="Every campaign, tracked"
             body="Deliverables, status and what you're owed on every campaign."
           >
@@ -116,12 +117,13 @@ export default function CreatorsPage() {
             className="md:col-span-2"
             delay={80}
             icon={ShieldCheck}
+            tone="panel"
             title="Verified accounts"
             body="Prove each handle is yours so brands know who they are working with."
           >
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">TikTok <span className="font-normal text-[#a39e98]">@yourhandle</span></span>
+                <span className="font-semibold">TikTok <span className="font-normal text-[#a39e98]">@careercraft.ai</span></span>
                 <span className="ko-pop inline-flex items-center gap-1 font-semibold text-emerald-300">
                   <BadgeCheck className="size-4" /> Verified
                 </span>
@@ -137,6 +139,7 @@ export default function CreatorsPage() {
             className="md:col-span-2"
             delay={80}
             icon={Wallet}
+            tone="panel"
             title="See your earnings build"
             body="Pending and paid, per campaign, so you always know where you stand."
           >
@@ -152,6 +155,7 @@ export default function CreatorsPage() {
             className="md:col-span-3"
             delay={160}
             icon={Store}
+            tone="panel"
             title="A board of open campaigns"
             body="Browse campaigns from brands and apply in a click."
           >

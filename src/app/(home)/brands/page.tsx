@@ -13,8 +13,8 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
-import { ProvenReach } from "@/components/kora/reach";
-import { ReviewList } from "@/components/kora/review-list";
+import { ProvenReach, ReachSummary } from "@/components/kora/reach";
+import { Leaderboard } from "@/components/kora/leaderboard";
 import { compactViews } from "@/lib/format";
 import { getProofReel } from "@/lib/proof-reel";
 
@@ -66,16 +66,16 @@ export default async function BrandsPage() {
           ]}
         >
           <p className="mb-4 font-semibold">Our creators</p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <StatTile label="Creators" value={<CountUp to={Math.max(creators.length, 1)} />} />
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <StatTile label="Applicants" value={<CountUp to={Math.max(creators.length, 1)} />} />
             <StatTile label="Avg views" value={<><CountUp to={avg} compact />{plus}</>} />
             <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
           </div>
-          <ReviewList
+          <Leaderboard
             items={creators.map((c) => ({
               id: c.handle,
               name: `@${c.handle}`,
-              meta: `${compactViews(c.viewsNum)} views`,
+              views: c.viewsNum,
             }))}
           />
         </BrowserFrame>
@@ -88,10 +88,11 @@ export default async function BrandsPage() {
           title="What makes this work"
           sub="Vetted creators, results you can see, and a team that sets it up with you."
         />
-        <div className="mt-14 grid gap-4 md:grid-cols-6">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-14 md:grid-cols-6">
           <FeatureCard
             className="md:col-span-3"
             icon={ShieldCheck}
+            tone="crimson"
             title="Hand-reviewed creators"
             body="Every creator is reviewed by our team before they can join a campaign."
           >
@@ -115,12 +116,13 @@ export default async function BrandsPage() {
             className="md:col-span-3"
             delay={80}
             icon={BadgeCheck}
+            tone="panel"
             title="Accounts that are really theirs"
             body="Creators prove each handle is their own with a short code in their bio, so you know who you are working with."
           >
             <div className="flex flex-col gap-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">@yourhandle</span>
+                <span className="font-semibold">@careercraft.ai</span>
                 <span className="ko-pop inline-flex items-center gap-1 font-semibold text-emerald-300">
                   <BadgeCheck className="size-4" /> Verified
                 </span>
@@ -135,6 +137,7 @@ export default async function BrandsPage() {
           <FeatureCard
             className="md:col-span-2"
             icon={Eye}
+            tone="panel"
             title="Reach you can see"
             body="Every post's views, updated daily, rolled up per creator and per campaign."
           >
@@ -159,14 +162,15 @@ export default async function BrandsPage() {
             className="md:col-span-2"
             delay={80}
             icon={LayoutDashboard}
+            tone="panel"
             title="One dashboard"
             body="Your campaigns, the creators on each, their posts and where they are."
           >
             <ul className="flex flex-col gap-2 text-sm">
               {creators.slice(0, 3).map((c, i) => (
-                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="font-semibold"><AtHandle handle={c.handle} /></span>
-                  <span className="text-xs text-[#a39e98]">{compactViews(c.viewsNum)} views</span>
+                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between gap-2 rounded-lg bg-[#1d1c22] px-3 py-2.5">
+                  <span className="min-w-0 truncate font-semibold"><AtHandle handle={c.handle} /></span>
+                  <span className="shrink-0 text-xs text-[#a39e98]">{compactViews(c.viewsNum)} views</span>
                 </li>
               ))}
             </ul>
@@ -176,20 +180,26 @@ export default async function BrandsPage() {
             className="md:col-span-2"
             delay={160}
             icon={Rocket}
+            tone="panel"
             title="We set it up with you"
             body="Share your brief and we set up the campaign and match the right creators."
           >
-            <ol className="flex flex-col gap-2 text-sm">
-              {["Your brief", "Creators matched", "Campaign live"].map((s, i) => (
-                <li key={s} className="flex items-center gap-3 rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span style={{ animationDelay: `${i * 0.7}s` }} className="ko-dot size-4 rounded-full border-2" />
-                  {s}
-                </li>
-              ))}
-            </ol>
+            <div className="flex flex-col gap-2 text-sm">
+              <p style={{ animationDelay: "0s" }} className="ko-slide ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#ac0216] px-3.5 py-2 text-white">
+                Here&apos;s our brief: new app launch, 3 videos.
+              </p>
+              <p style={{ animationDelay: "0.5s" }} className="ko-slide max-w-[85%] rounded-2xl rounded-bl-md border border-white/[0.1] bg-[#1d1c22] px-3.5 py-2">
+                Got it. Matching creators now.
+              </p>
+              <p style={{ animationDelay: "1s" }} className="ko-slide ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#ac0216] px-3.5 py-2 text-white">
+                Perfect, go live.
+              </p>
+            </div>
           </FeatureCard>
         </div>
       </section>
+
+      <ReachSummary reel={reel} />
 
       <StatsBand
         stats={[

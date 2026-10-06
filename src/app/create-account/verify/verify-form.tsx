@@ -31,7 +31,7 @@ export function VerifyForm({ email }: { email: string }) {
           />
         </div>
         {state.error && <p className="text-sm font-medium text-destructive">{state.error}</p>}
-        <Button type="submit" size="lg" disabled={verifying} className="btn-sticker w-full">
+        <Button type="submit" size="lg" disabled={verifying} className="btn-sticker h-11 w-full">
           {verifying ? "Checking…" : "Verify"}
         </Button>
       </form>
