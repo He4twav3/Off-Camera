@@ -49,6 +49,13 @@
 }
 .ko-slide { animation: ko-slide 6s ease-out infinite; }
 
+/* Fades up once and stays — a panel or chat bubble appearing. */
+@keyframes ko-panel {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ko-panel { animation: ko-panel 0.35s ease-out both; }
+
 /* Chart bars growing up from the baseline one after another, then resetting. */
 @keyframes ko-grow {
   0%, 6% { transform: scaleY(0.06); }
@@ -68,7 +75,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ko-sheen { animation: none; }
   .ko-grow, .ko-glow { animation: none; transform: none; box-shadow: none; }
-  .ko-pop, .ko-slide { animation: none; opacity: 1; transform: none; }
+  .ko-pop, .ko-slide, .ko-panel { animation: none; opacity: 1; transform: none; }
   .ko-dot { animation: none; background-color: #ac0216; border-color: #ac0216; }
   .ko-fill { animation: none; width: var(--ko-to, 72%); }
 }
@@ -87,3 +94,8 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* A horizontal bar growing from the left once. */
+@keyframes ko-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ko-bar { animation: ko-bar 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) { .ko-bar { animation: none; } }

@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
-import { BadgeCheck, BarChart3, Briefcase, Home as HomeIcon, LineChart, ShieldCheck, Store, Wallet } from "lucide-react";
+import { BadgeCheck, LineChart, ShieldCheck, Store, Wallet } from "lucide-react";
 import {
-  BrowserFrame,
   Chip,
   CountUp,
   Faq,
   FeatureCard,
   Hero,
   SectionTitle,
-  StatTile,
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
-import { AnalyticsPanel } from "@/components/kora/analytics";
+import { HeroDemo } from "@/components/kora/hero-demo";
 
 export const metadata: Metadata = {
   title: { absolute: "OnCamera · Your UGC work, all in one place" },
@@ -50,27 +48,7 @@ export default function CreatorsPage() {
         cta={{ href: "/create-account", label: "Get started" }}
         note="Free to join. Every creator is hand-reviewed."
       >
-        <BrowserFrame
-          url="oncameraugc.com/dashboard"
-          tabs={[
-            { icon: HomeIcon, label: "Home" },
-            { icon: BarChart3, label: "Analytics", active: true },
-            { icon: Briefcase, label: "Campaigns" },
-            { icon: Wallet, label: "Earnings" },
-            { icon: BadgeCheck, label: "Accounts" },
-          ]}
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-lg font-semibold">Analytics</p>
-            <Chip>Last 7 days</Chip>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <StatTile label="Active campaigns" value={<CountUp to={2} />} />
-            <StatTile label="Earned" value={<>$<CountUp to={2578} /></>} />
-            <StatTile label="Pending" value={<>$<CountUp to={1847} /></>} accent />
-          </div>
-          <AnalyticsPanel />
-        </BrowserFrame>
+        <HeroDemo />
       </Hero>
 
       <section id="features" className="mx-auto mt-24 max-w-[1100px] scroll-mt-28 px-5">

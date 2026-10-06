@@ -59,11 +59,14 @@ export function BrowserFrame({
   url,
   sidebar,
   tabs,
+  onSelect,
   children,
   badge,
 }: {
   url: string;
   badge?: string;
+  /** Makes the tab bar or sidebar clickable. Needs a client component as the caller. */
+  onSelect?: (label: string) => void;
   /** Left-hand navigation. */
   sidebar?: { icon: LucideIcon; label: string; active?: boolean }[];
   /** Or a tab bar across the top instead of a sidebar. */
@@ -88,36 +91,59 @@ export function BrowserFrame({
       </div>
       {tabs && (
         <nav className="flex gap-0.5 overflow-x-auto border-b border-white/[0.07] px-3 py-3 sm:gap-1 sm:px-4">
-          {tabs.map(({ icon: Icon, label, active }) => (
-            <span
-              key={label}
-              className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm sm:gap-2 sm:px-4",
-                active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
-              )}
-            >
-              <Icon className="size-4" />
-              <span className={active ? undefined : "hidden sm:inline"}>{label}</span>
-            </span>
-          ))}
+          {tabs.map(({ icon: Icon, label, active }) => {
+            const className = cn(
+              "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm sm:gap-2 sm:px-4",
+              active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
+              onSelect && !active && "transition-colors hover:text-[#edeae4]",
+            );
+            const inner = (
+              <>
+                <Icon className="size-4" />
+                <span className={active ? undefined : "hidden sm:inline"}>{label}</span>
+              </>
+            );
+            return onSelect ? (
+              <button key={label} type="button" aria-current={active ? "page" : undefined} onClick={() => onSelect(label)} className={className}>
+                {inner}
+              </button>
+            ) : (
+              <span key={label} className={className}>
+                {inner}
+              </span>
+            );
+          })}
         </nav>
       )}
       <div className={cn("grid grid-cols-1", sidebar && "sm:grid-cols-[190px_1fr]")}>
         {sidebar && (
         <aside className="hidden border-r border-white/[0.07] p-4 sm:block">
           <ul className="flex flex-col gap-1">
-            {sidebar.map(({ icon: Icon, label, active }) => (
-              <li
-                key={label}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm",
-                  active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
-                )}
-              >
-                <Icon className="size-4" />
-                {label}
-              </li>
-            ))}
+            {sidebar.map(({ icon: Icon, label, active }) => {
+              const className = cn(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm",
+                active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
+                onSelect && "w-full text-left transition-colors",
+                onSelect && !active && "hover:text-[#edeae4]",
+              );
+              const inner = (
+                <>
+                  <Icon className="size-4" />
+                  {label}
+                </>
+              );
+              return (
+                <li key={label}>
+                  {onSelect ? (
+                    <button type="button" aria-current={active ? "page" : undefined} onClick={() => onSelect(label)} className={className}>
+                      {inner}
+                    </button>
+                  ) : (
+                    <span className={className}>{inner}</span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </aside>
         )}

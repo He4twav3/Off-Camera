@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { BadgeCheck, BarChart3, Eye, LayoutDashboard, Megaphone, Rocket, ShieldCheck, Users } from "lucide-react";
+import { BadgeCheck, Eye, LayoutDashboard, Rocket, ShieldCheck } from "lucide-react";
 import {
   AtHandle,
-  BrowserFrame,
   Chip,
   CountUp,
   Faq,
@@ -13,6 +12,7 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
+import { BrandHeroDemo } from "@/components/kora/brand-hero-demo";
 import { ProvenReach, ReachSummary } from "@/components/kora/reach";
 import { Leaderboard } from "@/components/kora/leaderboard";
 import { compactViews } from "@/lib/format";
@@ -56,29 +56,25 @@ export default async function BrandsPage() {
         cta={{ href: "/create-account?type=brand", label: "Start a campaign" }}
         note="Free to create an account."
       >
-        <BrowserFrame
-          url="oncameraugc.com/brand"
-          badge="Live"
-          sidebar={[
-            { icon: Megaphone, label: "Campaigns" },
-            { icon: Users, label: "Creators", active: true },
-            { icon: BarChart3, label: "Results" },
-          ]}
-        >
-          <p className="mb-4 font-semibold">Our creators</p>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <StatTile label="Applicants" value={<CountUp to={Math.max(creators.length, 1)} />} />
-            <StatTile label="Avg views" value={<><CountUp to={avg} compact />{plus}</>} />
-            <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
-          </div>
-          <Leaderboard
-            items={creators.map((c) => ({
-              id: c.handle,
-              name: `@${c.handle}`,
-              views: c.viewsNum,
-            }))}
-          />
-        </BrowserFrame>
+        <BrandHeroDemo
+          creators={
+            <>
+              <p className="mb-4 font-semibold">Our creators</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <StatTile label="Applicants" value={<CountUp to={Math.max(creators.length, 1)} />} />
+                <StatTile label="Avg views" value={<><CountUp to={avg} compact />{plus}</>} />
+                <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
+              </div>
+              <Leaderboard
+                items={creators.map((c) => ({
+                  id: c.handle,
+                  name: `@${c.handle}`,
+                  views: c.viewsNum,
+                }))}
+              />
+            </>
+          }
+        />
       </Hero>
 
       <ProvenReach reel={reel} />
