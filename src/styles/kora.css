@@ -49,8 +49,25 @@
 }
 .ko-slide { animation: ko-slide 6s ease-out infinite; }
 
+/* Chart bars growing up from the baseline one after another, then resetting. */
+@keyframes ko-grow {
+  0%, 6% { transform: scaleY(0.06); }
+  34%, 86% { transform: scaleY(1); }
+  100% { transform: scaleY(0.06); }
+}
+.ko-grow { transform-origin: bottom; animation: ko-grow 6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+
+/* A soft glow on the newest bar while it is full height. */
+@keyframes ko-glow {
+  0%, 30% { box-shadow: 0 0 0 0 rgba(172, 2, 22, 0); }
+  50%, 80% { box-shadow: 0 0 28px 2px rgba(172, 2, 22, 0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(172, 2, 22, 0); }
+}
+.ko-glow { transform-origin: bottom; animation: ko-grow 6s cubic-bezier(0.22, 1, 0.36, 1) infinite, ko-glow 6s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .ko-sheen { animation: none; }
+  .ko-grow, .ko-glow { animation: none; transform: none; box-shadow: none; }
   .ko-pop, .ko-slide { animation: none; opacity: 1; transform: none; }
   .ko-dot { animation: none; background-color: #ac0216; border-color: #ac0216; }
   .ko-fill { animation: none; width: var(--ko-to, 72%); }

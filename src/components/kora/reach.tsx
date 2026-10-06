@@ -96,8 +96,8 @@ export function ReachSummary({ reel }: { reel: ProofReel }) {
             {BARS.map((h, i) => (
               <span
                 key={i}
-                style={{ height: `${h}%` }}
-                className={i === BARS.length - 1 ? "flex-1 rounded-md bg-[#ac0216]" : "flex-1 rounded-md bg-[#ac0216]/25"}
+                style={{ height: `${h}%`, animationDelay: `${i * 90}ms` }}
+                className={i === BARS.length - 1 ? "ko-glow flex-1 rounded-md bg-[#ac0216]" : "ko-grow flex-1 rounded-md bg-[#ac0216]/25"}
               />
             ))}
           </div>
