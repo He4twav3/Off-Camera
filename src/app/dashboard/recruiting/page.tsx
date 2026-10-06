@@ -1,3 +1,6 @@
+import { isDirectPay } from "@/lib/direct-pay";
+import { getCreatorStatements } from "@/lib/direct-pay-data";
+import { sumMoney } from "@/lib/balance";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -91,9 +94,12 @@ export default async function DashboardPage(props: {
   const apps = (applications ?? []) as ApplicationRow[];
   const completeness = profileCompleteness(applicant, handles ?? []);
 
-  const earned = active
-    .filter((a) => a.status === "paid")
-    .reduce((sum, a) => sum + Number(a.applicant_payout_amount), 0);
+  // Direct pay: money counts as earned once the creator has confirmed receiving it.
+  const earned = isDirectPay()
+    ? sumMoney((await getCreatorStatements(applicant.id)).filter((s) => s.creator_confirmed_at).map((s) => s.amount))
+    : active
+        .filter((a) => a.status === "paid")
+        .reduce((sum, a) => sum + Number(a.applicant_payout_amount), 0);
   const pendingPay = active
     .filter((a) => a.status === "active" || a.status === "submitted")
     .reduce((sum, a) => sum + Number(a.applicant_payout_amount), 0);
@@ -239,7 +245,7 @@ export default async function DashboardPage(props: {
                           )}
                           {a.status === "paid" && a.paid_at && (
                             <p className="mt-1 text-sm font-semibold text-toy-soft-foreground">
-                              Added to your balance {formatDate(a.paid_at)}
+                              {isDirectPay() ? "Completed" : "Added to your balance"} {formatDate(a.paid_at)}
                             </p>
                           )}
                         </div>

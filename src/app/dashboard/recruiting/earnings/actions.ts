@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { withdrawalErrorMessage, HOLD_HOURS } from "@/lib/balance";
+import { isDirectPay } from "@/lib/direct-pay";
 import { encryptDetails, hashDetails, hashToken, newConfirmToken } from "@/lib/secret-box";
 import { sendWithdrawalConfirmEmail, sendWithdrawalConfirmedEmail } from "@/lib/email/notifications";
 
@@ -29,6 +30,9 @@ export async function requestWithdrawalAction(
   _prev: WithdrawState,
   formData: FormData,
 ): Promise<WithdrawState> {
+  if (isDirectPay()) {
+    return { error: "Withdrawals are off. Brands pay creators directly." };
+  }
   const parsed = requestSchema.safeParse({
     amount: formData.get("amount"),
     holder: formData.get("holder") ?? "",

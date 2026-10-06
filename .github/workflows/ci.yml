@@ -56,6 +56,7 @@ jobs:
         run: |
           python3 -m pip install --quiet pgserver psycopg2-binary
           python3 scripts/test-withdrawals-sql.py
+          python3 scripts/test-direct-payments-sql.py
 
       - name: Build
         run: npm run build

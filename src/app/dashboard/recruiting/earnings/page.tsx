@@ -9,6 +9,9 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { DAILY_WITHDRAWAL_LIMIT, MIN_WITHDRAWAL, sumMoney } from "@/lib/balance";
 import { Button } from "@/components/ui/button";
 import { WithdrawForm } from "./WithdrawForm";
+import { DirectPayments } from "./DirectPayments";
+import { isDirectPay } from "@/lib/direct-pay";
+import { getCreatorStatements } from "@/lib/direct-pay-data";
 import { cancelWithdrawalAction } from "./actions";
 
 export const metadata: Metadata = { title: "Earnings" };
@@ -55,6 +58,16 @@ export default async function EarningsPage() {
         </p>
       </div>
     );
+  }
+
+  // Brands pay creators directly: show statements, not a balance to withdraw.
+  // (Separate query so the balance mode never depends on the 0019 column.)
+  if (isDirectPay()) {
+    const [{ data: details }, statements] = await Promise.all([
+      supabase.from("applicants").select("payout_instructions").eq("id", applicant.id).maybeSingle(),
+      getCreatorStatements(applicant.id),
+    ]);
+    return <DirectPayments statements={statements} payoutInstructions={details?.payout_instructions ?? null} />;
   }
 
   // Unconfirmed requests older than 24 hours are closed and the money returned.

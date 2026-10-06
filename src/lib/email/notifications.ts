@@ -12,6 +12,7 @@ import { WithdrawalConfirmedEmail } from "@/emails/withdrawal-confirmed-email";
 import { ApplicationReceivedEmail } from "@/emails/application-received-email";
 import { ApplicationAcceptedEmail } from "@/emails/application-accepted-email";
 import { ApplicationDeclinedEmail } from "@/emails/application-declined-email";
+import { BrandMarkedPaidEmail, StatementIssuedBrandEmail, StatementIssuedCreatorEmail } from "@/emails/statement-emails";
 
 // Applicant-facing emails, now real React Email components (see src/emails/)
 // routed through the site's own mailer.ts — same branded shell every other
@@ -161,5 +162,68 @@ export async function sendApplicationDeclinedEmail(
     subject: `Update on your application — ${jobTitle}`,
     react: ApplicationDeclinedEmail({ name, jobTitle, jobsUrl: `${baseUrl}/dashboard/recruiting/jobs` }),
     text: `Thanks for applying, ${name}. We went with someone else for ${jobTitle} — see what else is open: ${baseUrl}/dashboard/recruiting/jobs`,
+  });
+}
+
+// ---- Direct payment: the brand pays the creator itself ----------------------
+// None of these mention our fee. Dates are written out in full (UTC) so nobody
+// has to guess a timezone.
+
+const longDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+export async function sendStatementIssuedCreatorEmail(args: {
+  to: string;
+  name: string;
+  jobTitle: string;
+  amount: number;
+  due: Date;
+}) {
+  const baseUrl = await getBaseUrl();
+  const amountLabel = formatCurrency(args.amount);
+  const dueLabel = longDate(args.due);
+  const paymentsUrl = `${baseUrl}/dashboard/recruiting/earnings`;
+  return sendEmail({
+    to: args.to,
+    subject: `${amountLabel} owed to you for ${args.jobTitle}`,
+    react: StatementIssuedCreatorEmail({ name: args.name, jobTitle: args.jobTitle, amountLabel, dueLabel, paymentsUrl }),
+    text: `Your campaign is done, ${args.name}. ${amountLabel} is owed to you for ${args.jobTitle}. The brand pays you directly and has been asked to by ${dueLabel}. Add how you'd like to be paid, and confirm when the money arrives: ${paymentsUrl}`,
+  });
+}
+
+export async function sendStatementIssuedBrandEmail(args: {
+  to: string;
+  contactName: string;
+  jobTitle: string;
+  creatorName: string;
+  amount: number;
+  due: Date;
+}) {
+  const baseUrl = await getBaseUrl();
+  const amountLabel = formatCurrency(args.amount);
+  const dueLabel = longDate(args.due);
+  const brandUrl = `${baseUrl}/brand`;
+  return sendEmail({
+    to: args.to,
+    subject: `Payment due: ${amountLabel} to ${args.creatorName}`,
+    react: StatementIssuedBrandEmail({ contactName: args.contactName, jobTitle: args.jobTitle, creatorName: args.creatorName, amountLabel, dueLabel, brandUrl }),
+    text: `A payment is due, ${args.contactName}. ${args.creatorName} has finished ${args.jobTitle}; based on the views the amount owed is ${amountLabel}, due by ${dueLabel}. You pay the creator directly. See how they asked to be paid and mark it paid here: ${brandUrl}`,
+  });
+}
+
+export async function sendBrandMarkedPaidEmail(args: {
+  to: string;
+  name: string;
+  jobTitle: string;
+  amount: number;
+  method: string;
+}) {
+  const baseUrl = await getBaseUrl();
+  const amountLabel = formatCurrency(args.amount);
+  const paymentsUrl = `${baseUrl}/dashboard/recruiting/earnings`;
+  return sendEmail({
+    to: args.to,
+    subject: `Did you get paid? ${amountLabel} for ${args.jobTitle}`,
+    react: BrandMarkedPaidEmail({ name: args.name, jobTitle: args.jobTitle, amountLabel, methodLabel: args.method, paymentsUrl }),
+    text: `The brand says it sent you ${amountLabel} for ${args.jobTitle} (${args.method}). Please check your account and confirm once it has arrived. If it hasn't, tell us on the same page: ${paymentsUrl}`,
   });
 }
