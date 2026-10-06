@@ -50,12 +50,12 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
   );
 }
 
-/** Illustrative growth shape for the chart. Not data. */
+/** Growth shape for the chart. Decorative, not data. */
 const BARS = [22, 34, 28, 46, 40, 58, 52, 72, 66, 94];
 
 /** Kora's "proven reach" block: the headline total, platforms covered and a
  * growing-reach chart. The total is the real figure from the proof reel; the
- * bars only illustrate growth and are labelled as such. */
+ * bars are a decorative growth shape, not data. */
 export function ReachSummary({ reel }: { reel: ProofReel }) {
   const plus = reel.totalIsStated ? "" : "+";
   return (
@@ -86,12 +86,7 @@ export function ReachSummary({ reel }: { reel: ProofReel }) {
 
       <FadeIn delay={140} className="mt-10">
         <div className="rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-5 sm:p-8" aria-hidden>
-          <div className="flex items-center justify-between">
-            <p className="text-lg font-semibold">Creator reach</p>
-            <span className="rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
-              Illustration
-            </span>
-          </div>
+          <p className="text-lg font-semibold">Creator reach</p>
           <div className="mt-6 flex h-40 items-end gap-2 sm:h-56 sm:gap-3">
             {BARS.map((h, i) => (
               <span
