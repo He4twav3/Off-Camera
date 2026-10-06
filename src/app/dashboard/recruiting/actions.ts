@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchBio, verificationCode } from "@/lib/handle-verification";
 import { refreshAssignmentViews } from "@/lib/campaign-views";
+import { checkPostLink } from "@/lib/post-link";
 
 export interface ProofFormState {
   error?: string;
@@ -15,10 +16,8 @@ export interface ProofFormState {
 
 const schema = z.object({
   assignment_id: z.string().uuid(),
-  proof_url: z
-    .string()
-    .trim()
-    .url("Paste the full link to your post, starting with https://"),
+  // Checked against the campaign's platform below.
+  proof_url: z.string().trim().min(1, "Paste the link to your post.").max(500),
 });
 
 export async function submitProofAction(
@@ -44,13 +43,24 @@ export async function submitProofAction(
 
   if (!user) return { error: "You need to be logged in." };
 
+  // The link has to be a post on the platform this campaign is for. RLS makes
+  // this return only the caller's own assignment.
+  const { data: target } = await supabase
+    .from("assignments")
+    .select("id, jobs(platform)")
+    .eq("id", parsed.data.assignment_id)
+    .maybeSingle();
+  if (!target?.jobs) return { error: "We couldn't find that campaign." };
+  const link = checkPostLink(parsed.data.proof_url, target.jobs.platform);
+  if (!link.ok) return { error: link.error };
+
   // RLS restricts this to the caller's own assignment, and the DB trigger
   // permits only the active -> submitted transition plus proof_url — so the
   // payout amount and paid_at can't be touched from here even if the request
   // were tampered with.
   const { error } = await supabase
     .from("assignments")
-    .update({ proof_url: parsed.data.proof_url, status: "submitted" })
+    .update({ proof_url: link.url, status: "submitted" })
     .eq("id", parsed.data.assignment_id);
 
   if (error) {

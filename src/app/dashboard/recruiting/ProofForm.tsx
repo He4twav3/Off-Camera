@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
+import { POST_LINK_EXAMPLES, PLATFORM_NAMES, type PostPlatform } from "@/lib/post-link";
 import { submitProofAction, type ProofFormState } from "./actions";
 
 function SubmitButton() {
@@ -20,9 +21,11 @@ function SubmitButton() {
 export function ProofForm({
   assignmentId,
   currentProofUrl,
+  platform,
 }: {
   assignmentId: string;
   currentProofUrl: string | null;
+  platform: PostPlatform;
 }) {
   const [state, formAction] = useActionState<ProofFormState, FormData>(
     submitProofAction,
@@ -36,14 +39,14 @@ export function ProofForm({
       <Field
         label="Link to your post"
         htmlFor={`proof-${assignmentId}`}
-        hint="Paste the public URL of the post once it's live."
+        hint={`This campaign is for ${PLATFORM_NAMES[platform]}. Paste the public link to your ${PLATFORM_NAMES[platform]} post once it's live.`}
       >
         <Input
           id={`proof-${assignmentId}`}
           name="proof_url"
           type="url"
           defaultValue={currentProofUrl ?? ""}
-          placeholder="https://www.tiktok.com/@you/video/..."
+          placeholder={POST_LINK_EXAMPLES[platform]}
           required
         />
       </Field>

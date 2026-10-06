@@ -268,6 +268,7 @@ export default async function DashboardPage(props: {
                             <ProofForm
                               assignmentId={a.id}
                               currentProofUrl={a.proof_url}
+                              platform={job?.platform ?? "tiktok"}
                             />
                           </div>
                         )}
