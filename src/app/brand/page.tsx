@@ -73,7 +73,8 @@ export default async function BrandDashboardPage() {
             <section className="mb-8">
               <h2 className="font-heading text-xl font-semibold">Payments to creators</h2>
               <p className="mt-1 text-[15px] text-muted-foreground">
-                You pay each creator directly, the way they asked. Then mark it as paid here so they can confirm.
+                You pay each creator directly, the way they asked, from your own account. Send the full amount shown, in US
+                dollars, and cover any transfer fees so they receive all of it. Then mark it as paid here so they can confirm.
               </p>
               <ul className="mt-4 flex flex-col gap-4">
                 {statements.map((st) => {
