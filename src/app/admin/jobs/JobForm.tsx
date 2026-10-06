@@ -298,6 +298,20 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
         </fieldset>
 
         <Field
+          label="Affiliate link (optional)"
+          htmlFor={`affiliate-${k}`}
+          hint="From the brand, if they run an affiliate program (most make theirs in Dub). Assigned creators see it with the brief. Leave empty if there isn't one."
+        >
+          <Input
+            id={`affiliate-${k}`}
+            name="affiliate_url"
+            type="url"
+            defaultValue={job?.affiliate_url ?? ""}
+            placeholder="https://dub.sh/..."
+          />
+        </Field>
+
+        <Field
           label="Notion SOP link"
           htmlFor={`notion-${job?.id ?? "new"}`}
           hint="The instructions doc the assigned creator sees on their dashboard."

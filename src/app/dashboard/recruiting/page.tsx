@@ -12,6 +12,7 @@ import { ProfileCard } from "@/components/ProfileCard";
 import { AccountsCard } from "@/components/app/AccountsCard";
 import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import { CommissionNote } from "@/components/app/CommissionNote";
+import { CopyLinkButton } from "@/components/app/CopyLinkButton";
 import { ProfileStrength } from "@/components/app/ProfileStrength";
 import { profileCompleteness } from "@/lib/profile-completeness";
 import { formatCurrency, formatDate, PLATFORM_LABELS } from "@/lib/utils";
@@ -70,7 +71,7 @@ export default async function DashboardPage(props: {
       supabase
         .from("assignments")
         .select(
-          "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, jobs(id, title, platform, notion_sop_url, description)",
+          "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, jobs(id, title, platform, notion_sop_url, affiliate_url, description)",
         )
         .eq("applicant_id", applicant.id)
         .order("assigned_at", { ascending: false }),
@@ -251,6 +252,30 @@ export default async function DashboardPage(props: {
 
                         {a.status === "active" && <DisclosureNotice className="mt-4" />}
                         <CommissionNote className="mt-3" />
+
+                        {job?.affiliate_url && a.status !== "paid" && (
+                          <div className="mt-4 rounded-lg border border-border/70 bg-muted/40 p-4">
+                            <p className="font-heading font-semibold text-foreground">
+                              Affiliate link from the brand
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              Use this link where the brief says to, in your bio or
+                              caption. Any affiliate earnings are between you and the
+                              brand, and they are separate from your payout here.
+                            </p>
+                            <div className="mt-3 flex flex-wrap items-center gap-3">
+                              <a
+                                href={job.affiliate_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="min-w-0 break-all text-[15px] font-semibold text-primary underline underline-offset-2"
+                              >
+                                {job.affiliate_url}
+                              </a>
+                              <CopyLinkButton url={job.affiliate_url} />
+                            </div>
+                          </div>
+                        )}
 
                         {job?.notion_sop_url && (
                           <a
