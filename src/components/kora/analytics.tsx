@@ -35,7 +35,7 @@ export function AnalyticsPanel() {
 
   return (
     <div className="mt-4 rounded-2xl border border-white/[0.08] p-5 sm:p-6">
-      <div role="tablist" className="flex flex-wrap gap-x-6 gap-y-2 border-b border-white/[0.07] pb-3">
+      <div role="tablist" className="flex flex-nowrap gap-x-3 border-b sm:gap-x-6 border-white/[0.07] pb-3">
         {TABS.map((t, i) => (
           <button
             key={t.id}
@@ -46,7 +46,7 @@ export function AnalyticsPanel() {
               setIndex(i);
             }}
             className={cn(
-              "relative flex items-center gap-2 pb-2 text-[0.95rem] transition-colors",
+              "relative flex items-center gap-1.5 whitespace-nowrap pb-2 text-[0.85rem] transition-colors sm:gap-2 sm:text-[0.95rem]",
               i === index ? "font-semibold text-[#edeae4]" : "text-[#a39e98] hover:text-[#edeae4]",
             )}
           >

@@ -76,7 +76,7 @@ export function CreateAccountForm({ accountType }: { accountType: "creator" | "b
       </label>
 
       {state.error && <p className="text-sm font-medium text-destructive">{state.error}</p>}
-      <Button type="submit" size="lg" disabled={pending} className="btn-sticker w-full">
+      <Button type="submit" size="lg" disabled={pending} className="btn-sticker h-11 w-full">
         {pending ? "Creating account…" : "Create account"}
       </Button>
     </form>

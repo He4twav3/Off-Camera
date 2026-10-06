@@ -43,9 +43,9 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
       </FadeIn>
 
       {creators.length > 0 && (
-        <ul className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <ul className="-mx-5 mt-4 flex scroll-px-5 snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-3">
           {creators.map((c, i) => (
-            <FadeIn key={c.handle} delay={Math.min(i, 5) * 60}>
+            <FadeIn key={c.handle} delay={Math.min(i, 5) * 60} className="w-[78%] shrink-0 snap-start sm:w-auto">
               <li className="flex list-none items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-[#1d1c22] px-5 py-4">
                 <span className="min-w-0 truncate text-lg font-semibold tracking-[-0.01em]">
                   <AtHandle handle={c.handle} />
@@ -68,9 +68,9 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
               Content that stops the scroll
             </h3>
           </FadeIn>
-          <ul className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-5">
+          <ul className="-mx-5 mt-8 flex scroll-px-5 snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible md:px-0 md:pb-0">
             {reel.posts.map((p, i) => (
-              <FadeIn key={p.id} delay={i * 70}>
+              <FadeIn key={p.id} delay={i * 70} className="w-[58%] shrink-0 snap-start sm:w-[36%] md:w-auto">
                 <li className="list-none">
                   <a
                     href={p.postUrl}

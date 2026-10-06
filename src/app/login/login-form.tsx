@@ -64,7 +64,7 @@ export function LoginForm({ next }: { next?: string }) {
         type="submit"
         size="lg"
         disabled={pending}
-        className="btn-sticker w-full"
+        className="btn-sticker h-11 w-full"
       >
         {pending ? "Signing in…" : "Sign in"}
       </Button>

@@ -79,18 +79,18 @@ export function BrowserFrame({
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
         <span className="size-2.5 rounded-full bg-[#3a3840]" />
-        <span className="ml-3 text-xs text-[#a39e98]">{url}</span>
-        <span className="ml-auto rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
+        <span className="ml-2 min-w-0 truncate text-xs text-[#a39e98] sm:ml-3">{url}</span>
+        <span className="ml-auto shrink-0 whitespace-nowrap rounded-full border border-white/[0.09] px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] text-[#a39e98] uppercase">
           {badge}
         </span>
       </div>
       {tabs && (
-        <nav className="flex gap-1 overflow-x-auto border-b border-white/[0.07] px-4 py-3">
+        <nav className="flex gap-0.5 overflow-x-auto border-b border-white/[0.07] px-3 py-3 sm:gap-1 sm:px-4">
           {tabs.map(({ icon: Icon, label, active }) => (
             <span
               key={label}
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm",
+                "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm sm:gap-2 sm:px-4",
                 active ? "bg-[#ac0216]/15 font-semibold text-[#e0556a]" : "text-[#a39e98]",
               )}
             >
@@ -100,7 +100,7 @@ export function BrowserFrame({
           ))}
         </nav>
       )}
-      <div className={cn("grid", sidebar && "sm:grid-cols-[190px_1fr]")}>
+      <div className={cn("grid grid-cols-1", sidebar && "sm:grid-cols-[190px_1fr]")}>
         {sidebar && (
         <aside className="hidden border-r border-white/[0.07] p-4 sm:block">
           <ul className="flex flex-col gap-1">
@@ -119,7 +119,7 @@ export function BrowserFrame({
           </ul>
         </aside>
         )}
-        <div className="p-5 sm:p-6">{children}</div>
+        <div className="min-w-0 p-5 sm:p-6">{children}</div>
       </div>
     </div>
   );
