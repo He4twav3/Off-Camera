@@ -10,6 +10,7 @@ import {
   StatsBand,
   Steps,
 } from "@/components/kora/blocks";
+import { siteConfig } from "@/lib/site-config";
 import { HeroDemo } from "@/components/kora/hero-demo";
 
 export const metadata: Metadata = {
@@ -39,8 +40,31 @@ const faqs: [string, string][] = [
 /** Creators page. The numbers inside the example windows are example figures,
  * not real results. */
 export default function CreatorsPage() {
+  // Tells search engines the site's name, so a search for "oncameraugc"
+  // resolves to this page rather than a secondary one.
+  const siteJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteConfig.url}/#website`,
+        url: siteConfig.url,
+        name: "OnCamera",
+        alternateName: ["oncameraugc", "OnCamera UGC", "On Camera"],
+      },
+      {
+        "@type": "Organization",
+        "@id": `${siteConfig.url}/#organization`,
+        url: siteConfig.url,
+        name: "OnCamera",
+        alternateName: "oncameraugc",
+      },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }} />
       <Hero
         line1="Your UGC work,"
         line2="all in one place"
