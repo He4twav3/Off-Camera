@@ -9,6 +9,13 @@ export type AccountRequirementEnum = "new_ok" | "established_required";
 export type JobStatusEnum = "open" | "filled" | "closed";
 export type ApplicantStatusEnum = "pending" | "approved" | "rejected";
 export type AssignmentStatusEnum = "active" | "submitted" | "paid" | "disputed";
+export type WithdrawalStatus =
+  | "pending_confirmation"
+  | "requested"
+  | "paid"
+  | "rejected"
+  | "cancelled"
+  | "expired";
 export type ApplicationStatusEnum =
   | "pending"
   | "accepted"
@@ -203,12 +210,24 @@ export interface Database {
           id: string;
           applicant_id: string;
           amount: number;
-          status: "requested" | "paid" | "rejected";
+          status: WithdrawalStatus;
           payout_details: string;
           paid_ref: string | null;
           admin_note: string | null;
           created_at: string;
           decided_at: string | null;
+          details_last4: string | null;
+          details_hash: string | null;
+          account_holder_match: boolean;
+          hold_hours: number;
+          confirm_token_hash: string | null;
+          confirm_expires_at: string | null;
+          confirmed_at: string | null;
+          payable_after: string | null;
+          approved_by: string | null;
+          approved_at: string | null;
+          decided_by: string | null;
+          details_removed_at: string | null;
         };
         Insert: never;
         Update: never;
@@ -232,6 +251,7 @@ export interface Database {
           withdrawal_id: string | null;
           note: string | null;
           created_at: string;
+          created_by: string | null;
         };
         Insert: {
           id?: string;
@@ -260,6 +280,30 @@ export interface Database {
             referencedColumns: ["id"];
           },
         ];
+      };
+      admin_audit: {
+        Row: {
+          id: string;
+          admin_email: string;
+          action: string;
+          target_id: string | null;
+          detail: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      withdrawal_freezes: {
+        Row: {
+          applicant_id: string;
+          reason: string | null;
+          frozen_by: string;
+          frozen_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
       };
       payouts: {
         Row: {
@@ -537,8 +581,36 @@ export interface Database {
         Returns: boolean;
       };
       request_withdrawal: {
-        Args: { p_amount: number; p_details: string };
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_cipher: string;
+          p_last4: string;
+          p_hash: string;
+          p_holder: string;
+          p_token_hash: string;
+        };
         Returns: string;
+      };
+      confirm_withdrawal: {
+        Args: { p_user_id: string; p_token_hash: string };
+        Returns: string;
+      };
+      cancel_withdrawal: {
+        Args: { p_user_id: string; p_id: string };
+        Returns: undefined;
+      };
+      expire_unconfirmed_withdrawals: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      freeze_withdrawals: {
+        Args: { p_applicant: string; p_frozen: boolean; p_reason?: string | null };
+        Returns: undefined;
+      };
+      log_admin_action: {
+        Args: { p_action: string; p_target?: string | null; p_detail?: string | null };
+        Returns: undefined;
       };
       decide_withdrawal: {
         Args: { p_id: string; p_action: string; p_ref?: string | null; p_note?: string | null };

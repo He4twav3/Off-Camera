@@ -121,7 +121,12 @@ export async function savePayoutAction(
       { onConflict: "assignment_id", ignoreDuplicates: true },
     );
     if (creditError) {
-      return { error: "Marked paid, but couldn't add it to the creator's balance. Save again to retry." };
+      const needsMfa = creditError.code === "42501";
+      return {
+        error: needsMfa
+          ? "Marked paid, but crediting balances needs two-step sign-in. Open Admin → Security, then save again."
+          : "Marked paid, but couldn't add it to the creator's balance. Save again to retry.",
+      };
     }
 
     const applicant = assignment.applicants;

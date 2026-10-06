@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdminMfa } from "@/lib/admin-mfa";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge, assignmentStatusTone } from "@/components/ui/status-badge";
 import { PayoutForm } from "./PayoutForm";
@@ -17,6 +18,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default async function AdminPayoutsPage() {
+  await requireAdminMfa("/admin/payouts");
   const supabase = await createClient();
 
   // Assignments that need attention first: submitted (proof in, not yet paid),

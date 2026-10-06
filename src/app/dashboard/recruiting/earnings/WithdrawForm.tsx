@@ -16,15 +16,16 @@ function SubmitButton() {
   );
 }
 
-export function WithdrawForm({ available }: { available: number }) {
+export function WithdrawForm({ available, maxNow }: { available: number; maxNow: number }) {
   const [state, formAction] = useActionState<WithdrawState, FormData>(requestWithdrawalAction, {});
+  const top = Math.min(available, maxNow);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <Field
         label="Amount ($)"
         htmlFor="withdraw-amount"
-        hint={`Up to ${available.toFixed(2)}. The smallest withdrawal is $${MIN_WITHDRAWAL}.`}
+        hint={`Up to ${top.toFixed(2)} right now. The smallest withdrawal is $${MIN_WITHDRAWAL}.`}
       >
         <Input
           id="withdraw-amount"
@@ -32,24 +33,33 @@ export function WithdrawForm({ available }: { available: number }) {
           type="number"
           inputMode="decimal"
           min={MIN_WITHDRAWAL}
-          max={available}
+          max={top}
           step="0.01"
-          defaultValue={available.toFixed(2)}
+          defaultValue={top.toFixed(2)}
           required
         />
       </Field>
 
       <Field
-        label="How should we pay you?"
+        label="Name on the account"
+        htmlFor="withdraw-holder"
+        hint="It should match the name on your profile, or we'll look more closely before paying."
+      >
+        <Input id="withdraw-holder" name="holder" autoComplete="off" maxLength={100} required />
+      </Field>
+
+      <Field
+        label="Where should we pay you?"
         htmlFor="withdraw-details"
-        hint="Your IBAN and the name on the account, or the email on your Wise or PayPal. Only you and our admins can see this."
+        hint="Your IBAN, or the email on your Wise or PayPal. It's stored encrypted, and deleted once the payment is done."
       >
         <Textarea
           id="withdraw-details"
           name="details"
+          autoComplete="off"
           maxLength={300}
           required
-          placeholder="IBAN GR00 0000 0000 0000 0000 0000 000, account holder Maria K."
+          placeholder="IBAN GR00 0000 0000 0000 0000 0000 000"
         />
       </Field>
 

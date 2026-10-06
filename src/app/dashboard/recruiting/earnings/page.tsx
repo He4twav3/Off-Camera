@@ -2,16 +2,33 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { MIN_WITHDRAWAL, sumMoney } from "@/lib/balance";
+import { DAILY_WITHDRAWAL_LIMIT, MIN_WITHDRAWAL, sumMoney } from "@/lib/balance";
+import { Button } from "@/components/ui/button";
 import { WithdrawForm } from "./WithdrawForm";
+import { cancelWithdrawalAction } from "./actions";
 
 export const metadata: Metadata = { title: "Earnings" };
 
-const WITHDRAWAL_TONE = { requested: "pending", paid: "success", rejected: "error" } as const;
-const WITHDRAWAL_LABEL = { requested: "Being processed", paid: "Paid", rejected: "Not paid" } as const;
+const WITHDRAWAL_TONE = {
+  pending_confirmation: "pending",
+  requested: "pending",
+  paid: "success",
+  rejected: "error",
+  cancelled: "closed",
+  expired: "closed",
+} as const;
+const WITHDRAWAL_LABEL = {
+  pending_confirmation: "Confirm by email",
+  requested: "Being processed",
+  paid: "Paid",
+  rejected: "Not paid",
+  cancelled: "Cancelled",
+  expired: "Expired",
+} as const;
 
 export default async function EarningsPage() {
   const supabase = await createClient();
@@ -40,6 +57,16 @@ export default async function EarningsPage() {
     );
   }
 
+  // Unconfirmed requests older than 24 hours are closed and the money returned.
+  const admin = createAdminClient();
+  await admin.rpc("expire_unconfirmed_withdrawals");
+  const { data: freeze } = await admin
+    .from("withdrawal_freezes")
+    .select("applicant_id")
+    .eq("applicant_id", applicant.id)
+    .maybeSingle();
+  const frozen = Boolean(freeze);
+
   // RLS limits both tables to this creator's own rows.
   const [{ data: entries }, { data: withdrawals }] = await Promise.all([
     supabase
@@ -49,7 +76,7 @@ export default async function EarningsPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("withdrawals")
-      .select("id, amount, status, created_at, decided_at, admin_note")
+      .select("id, amount, status, created_at, decided_at, admin_note, details_last4, confirm_expires_at, payable_after")
       .eq("applicant_id", applicant.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -57,10 +84,20 @@ export default async function EarningsPage() {
   const ledger = entries ?? [];
   const requests = withdrawals ?? [];
   const available = sumMoney(ledger.map((e) => Number(e.amount)));
-  const processing = sumMoney(requests.filter((w) => w.status === "requested").map((w) => Number(w.amount)));
+  const processing = sumMoney(
+    requests.filter((w) => w.status === "requested" || w.status === "pending_confirmation").map((w) => Number(w.amount)),
+  );
+  const dayAgo = new Date().getTime() - 24 * 60 * 60 * 1000;
+  const usedToday = sumMoney(
+    requests
+      .filter((w) => ["pending_confirmation", "requested", "paid"].includes(w.status) && new Date(w.created_at).getTime() > dayAgo)
+      .map((w) => Number(w.amount)),
+  );
+  const maxNow = Math.max(0, DAILY_WITHDRAWAL_LIMIT - usedToday);
+  const waitingOnEmail = requests.some((w) => w.status === "pending_confirmation");
   const withdrawn = sumMoney(requests.filter((w) => w.status === "paid").map((w) => Number(w.amount)));
   const earnedTotal = sumMoney(ledger.filter((e) => e.kind === "earning").map((e) => Number(e.amount)));
-  const canWithdraw = applicant.status === "approved" && available >= MIN_WITHDRAWAL;
+  const canWithdraw = applicant.status === "approved" && Math.min(available, maxNow) >= MIN_WITHDRAWAL && !frozen && !waitingOnEmail;
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 lg:py-10">
@@ -81,16 +118,23 @@ export default async function EarningsPage() {
         <Card className="border-border/70">
           <CardContent>
             {canWithdraw ? (
-              <WithdrawForm available={available} />
+              <WithdrawForm available={available} maxNow={maxNow} />
             ) : (
               <p className="text-[15px] text-muted-foreground">
-                {applicant.status !== "approved"
-                  ? "You can withdraw once your profile has been approved."
-                  : `You can withdraw once your balance reaches $${MIN_WITHDRAWAL}.`}
+                {frozen
+                  ? "Withdrawals are paused on your account. Please contact us."
+                  : applicant.status !== "approved"
+                    ? "You can withdraw once your profile has been approved."
+                    : waitingOnEmail
+                      ? "You have a request waiting for your email confirmation. Confirm or cancel it below first."
+                      : available < MIN_WITHDRAWAL
+                        ? `You can withdraw once your balance reaches $${MIN_WITHDRAWAL}.`
+                        : `You've reached the limit of $${DAILY_WITHDRAWAL_LIMIT.toLocaleString("en-US")} per 24 hours. Try again later.`}
               </p>
             )}
             <p className="mt-4 text-sm text-muted-foreground">
-              We review each request and pay it by bank transfer. It can take a few business days, and we email you when it&apos;s paid.
+              For your safety, each request is confirmed from an email link, then held for 24 to 72 hours before we pay it by
+              bank transfer. You can cancel any time before it&apos;s paid.
             </p>
           </CardContent>
         </Card>
@@ -110,11 +154,34 @@ export default async function EarningsPage() {
                         Requested {formatDate(w.created_at)}
                         {w.decided_at ? ` · decided ${formatDate(w.decided_at)}` : ""}
                       </p>
+                      {w.details_last4 && w.status !== "paid" && (
+                        <p className="text-sm text-muted-foreground">To the account ending {w.details_last4}</p>
+                      )}
+                      {w.status === "pending_confirmation" && w.confirm_expires_at && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Check your email for the confirmation link. It expires {formatDate(w.confirm_expires_at)}.
+                        </p>
+                      )}
+                      {w.status === "requested" && w.payable_after && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Confirmed. We can pay it from {formatDate(w.payable_after)}.
+                        </p>
+                      )}
                       {w.status === "rejected" && w.admin_note && (
                         <p className="mt-1 text-sm text-muted-foreground">{w.admin_note}</p>
                       )}
                     </div>
-                    <StatusBadge tone={WITHDRAWAL_TONE[w.status]}>{WITHDRAWAL_LABEL[w.status]}</StatusBadge>
+                    <div className="flex items-center gap-3">
+                      {(w.status === "pending_confirmation" || w.status === "requested") && (
+                        <form action={cancelWithdrawalAction}>
+                          <input type="hidden" name="id" value={w.id} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Cancel
+                          </Button>
+                        </form>
+                      )}
+                      <StatusBadge tone={WITHDRAWAL_TONE[w.status]}>{WITHDRAWAL_LABEL[w.status]}</StatusBadge>
+                    </div>
                   </CardContent>
                 </Card>
               </li>

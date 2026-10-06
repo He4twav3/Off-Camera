@@ -12,6 +12,7 @@ const ADMIN_LINKS = [
   { href: "/admin/applicants", label: "Creators" },
   { href: "/admin/payouts", label: "Payouts" },
   { href: "/admin/withdrawals", label: "Withdrawals" },
+  { href: "/admin/security", label: "Security" },
   { href: "/admin/niches", label: "Niches" },
 ];
 
