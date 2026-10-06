@@ -13,7 +13,7 @@ SEPA) and marks it paid (Admin → Withdrawals).
 | Quick theft after takeover | A hold before payment: 72h for a first withdrawal or new payment details, 24h otherwise. The creator can cancel any time before it's paid. |
 | Draining a balance | $2,000 per rolling 24h, 3 requests per hour, one unconfirmed request at a time. |
 | A stolen admin login | Money actions (crediting balances, approving, paying, freezing) need two-step sign-in (TOTP), checked in the database. Requests of $1,000 or more need one admin to approve and a **different** admin to mark paid. Every action is logged with who did it (Admin → Withdrawals, "Recent admin activity"). |
-| Leaked bank details | Stored encrypted (AES-256-GCM) with a key that lives only in the server environment. Hidden in lists; revealing them is logged. Wiped when a request is paid, rejected, cancelled or expired; only the last 4 characters stay. |
+| Leaked bank details | We never collect them. Creators enter only an email address; Wise emails them a secure link to enter their bank details themselves. The email is stored encrypted (AES-256-GCM) with a key that lives only in the server environment, hidden in lists, revealing it is logged, and it is wiped when a request is paid, rejected, cancelled or expired (only the first 4 characters stay). |
 | Wrong name on an account | The account-holder name is compared with the profile name; a mismatch is flagged to the admin. |
 | Suspected fraud | An admin can freeze one creator's withdrawals. |
 | Bad bookkeeping | "Books check" on the Withdrawals page: payouts released = credits, and balances = credits − withdrawals. A mismatch is shown in red. |
@@ -32,9 +32,10 @@ SEPA) and marks it paid (Admin → Withdrawals).
 
 1. Admin → Withdrawals. Check the name-match flag and the hold ("Ready to pay").
 2. For $1,000 or more: one admin presses **Approve**; a different admin does the rest.
-3. Press **Show details (logged)**, send the transfer from the separate creator-money
-   account, then **Mark paid** with the transfer reference. The creator is emailed
-   and the details are wiped.
+3. Press **Show details (logged)**. In Wise choose Send money, then send by email to that
+   address (Wise asks the creator for their bank details; they have 7 days to claim it).
+   Send it from the separate creator-money account, then **Mark paid** with the transfer
+   reference. The creator is emailed and the email is wiped.
 
 ## Tests
 

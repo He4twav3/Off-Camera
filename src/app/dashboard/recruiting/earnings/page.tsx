@@ -133,8 +133,9 @@ export default async function EarningsPage() {
               </p>
             )}
             <p className="mt-4 text-sm text-muted-foreground">
-              For your safety, each request is confirmed from an email link, then held for 24 to 72 hours before we pay it by
-              bank transfer. You can cancel any time before it&apos;s paid.
+              For your safety, each request is confirmed from an email link, then held for 24 to 72 hours before we pay it
+              through Wise. Wise emails you a secure link to enter your bank details, and we never see them. You can cancel any
+              time before it&apos;s paid.
             </p>
           </CardContent>
         </Card>
@@ -155,7 +156,7 @@ export default async function EarningsPage() {
                         {w.decided_at ? ` · decided ${formatDate(w.decided_at)}` : ""}
                       </p>
                       {w.details_last4 && w.status !== "paid" && (
-                        <p className="text-sm text-muted-foreground">To the account ending {w.details_last4}</p>
+                        <p className="text-sm text-muted-foreground">To the email starting “{w.details_last4}…”</p>
                       )}
                       {w.status === "pending_confirmation" && w.confirm_expires_at && (
                         <p className="mt-1 text-sm text-muted-foreground">

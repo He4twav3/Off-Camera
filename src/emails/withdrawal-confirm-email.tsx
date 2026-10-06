@@ -17,8 +17,8 @@ export function WithdrawalConfirmEmail({
     <EmailLayout preview={`Confirm your ${amountLabel} withdrawal`}>
       <EmailHeading>Confirm your withdrawal, {name}</EmailHeading>
       <EmailText>
-        Someone asked to withdraw <strong>{amountLabel}</strong> to the account
-        ending <strong>{last4 || "…"}</strong>. If that was you, confirm it
+        Someone asked to withdraw <strong>{amountLabel}</strong> to the email
+        starting <strong>{last4 || "…"}…</strong>. If that was you, confirm it
         below. The link works for 24 hours.
       </EmailText>
       <EmailButton href={confirmUrl}>Confirm withdrawal</EmailButton>

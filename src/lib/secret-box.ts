@@ -2,7 +2,8 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 
 /**
- * Encryption for withdrawal payment details (IBANs and the like), plus the
+ * Encryption for withdrawal payout details (the creator's name and payout
+ * email; bank details never reach us, Wise collects them), plus the
  * confirmation-link tokens. The key lives only in the server's environment
  * (WITHDRAWAL_DETAILS_KEY, 32 random bytes as base64), never in the database,
  * so a copy of the database alone does not reveal anyone's bank details.

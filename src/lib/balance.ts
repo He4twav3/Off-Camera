@@ -18,7 +18,7 @@ export function withdrawalErrorMessage(code: string | undefined): string {
   if (text.includes("invalid_or_expired")) return "That confirmation link is invalid or has expired.";
   if (text.includes("below_minimum")) return `The smallest withdrawal is $${MIN_WITHDRAWAL}.`;
   if (text.includes("insufficient_balance")) return "That's more than your available balance.";
-  if (text.includes("bad_details")) return "Add how we should pay you (5 to 300 characters).";
+  if (text.includes("bad_details")) return "Enter a valid email for your payout.";
   if (text.includes("not_approved")) return "Your profile needs to be approved before you can withdraw.";
   if (text.includes("no_profile")) return "Set up your creator profile first.";
   return "We couldn't send that request. Please try again.";

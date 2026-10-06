@@ -45,8 +45,8 @@ export default async function ConfirmWithdrawalPage(props: {
           {pending ? (
             <>
               <p className="text-[15px] text-foreground">
-                Withdraw <strong>{formatCurrency(pending.amount)}</strong> to the account ending{" "}
-                <strong>{pending.details_last4 || "…"}</strong>?
+                Withdraw <strong>{formatCurrency(pending.amount)}</strong> to the email starting{" "}
+                <strong>{pending.details_last4 || "…"}…</strong>?
               </p>
               <p className="text-sm text-muted-foreground">
                 After you confirm, we wait a safety period (24 to 72 hours) before paying, and you can cancel until then.

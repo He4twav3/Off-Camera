@@ -75,7 +75,7 @@ export default async function AdminWithdrawalsPage() {
         <p className="mt-2 text-[15px] text-muted-foreground">
           {toPay.length} confirmed ·{" "}
           <span className="font-semibold text-foreground">{formatCurrency(owed)}</span> to pay. Send each one by bank
-          transfer (Wise or SEPA) once its hold has passed, then mark it paid here. Requests of{" "}
+          transfer through Wise once its hold has passed: Send money, choose to send by email, and Wise asks the creator for their bank details. Then mark it paid here. Requests of{" "}
           {formatCurrency(SECOND_APPROVAL_FROM)} or more need one admin to approve and a different admin to mark them paid.
         </p>
       </header>
@@ -227,7 +227,7 @@ function Section({
                     </div>
                   ) : (
                     <p className="mt-3 text-sm text-muted-foreground">
-                      Payment details were removed{w.details_last4 ? ` (account ended ${w.details_last4})` : ""}.
+                      Payment details were removed{w.details_last4 ? ` (email started ${w.details_last4})` : ""}.
                     </p>
                   )}
 

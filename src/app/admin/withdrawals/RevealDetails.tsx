@@ -12,7 +12,7 @@ export function RevealDetails({ id, last4 }: { id: string; last4: string | null 
 
   return (
     <div className="rounded-md bg-muted/50 p-3">
-      <p className="text-sm font-semibold text-muted-foreground">Pay to</p>
+      <p className="text-sm font-semibold text-muted-foreground">Pay to (Wise: Send money → by email)</p>
       {details ? (
         <>
           <p className="mt-1 break-words whitespace-pre-line text-[15px] text-foreground">{details}</p>
@@ -22,7 +22,7 @@ export function RevealDetails({ id, last4 }: { id: string; last4: string | null 
         </>
       ) : (
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <span className="font-mono text-[15px] text-foreground">•••• {last4 ?? "…"}</span>
+          <span className="font-mono text-[15px] text-foreground">{last4 ?? "…"}••••</span>
           <Button
             type="button"
             size="sm"

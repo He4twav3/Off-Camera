@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Textarea } from "@/components/ui/field";
+import { Field, Input } from "@/components/ui/field";
 import { MIN_WITHDRAWAL } from "@/lib/balance";
 import { requestWithdrawalAction, type WithdrawState } from "./actions";
 
@@ -41,25 +41,26 @@ export function WithdrawForm({ available, maxNow }: { available: number; maxNow:
       </Field>
 
       <Field
-        label="Name on the account"
+        label="Your name"
         htmlFor="withdraw-holder"
-        hint="It should match the name on your profile, or we'll look more closely before paying."
+        hint="The name you'll get paid under. It should match the name on your profile, or we'll look more closely before paying."
       >
-        <Input id="withdraw-holder" name="holder" autoComplete="off" maxLength={100} required />
+        <Input id="withdraw-holder" name="holder" autoComplete="name" maxLength={100} required />
       </Field>
 
       <Field
-        label="Where should we pay you?"
-        htmlFor="withdraw-details"
-        hint="Your IBAN, or the email on your Wise or PayPal. It's stored encrypted, and deleted once the payment is done."
+        label="Email for your payout"
+        htmlFor="withdraw-email"
+        hint="We send the money through Wise. Wise emails you a secure link to enter your bank details yourself, so we never see or store your bank details. Please claim it within 7 days."
       >
-        <Textarea
-          id="withdraw-details"
-          name="details"
-          autoComplete="off"
-          maxLength={300}
+        <Input
+          id="withdraw-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          maxLength={200}
           required
-          placeholder="IBAN GR00 0000 0000 0000 0000 0000 000"
+          placeholder="you@example.com"
         />
       </Field>
 

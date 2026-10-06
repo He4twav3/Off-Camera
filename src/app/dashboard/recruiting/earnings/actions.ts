@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { withdrawalErrorMessage, HOLD_HOURS } from "@/lib/balance";
-import { encryptDetails, hashDetails, hashToken, last4, newConfirmToken } from "@/lib/secret-box";
+import { encryptDetails, hashDetails, hashToken, newConfirmToken } from "@/lib/secret-box";
 import { sendWithdrawalConfirmEmail, sendWithdrawalConfirmedEmail } from "@/lib/email/notifications";
 
 export interface WithdrawState {
@@ -19,8 +19,10 @@ export interface WithdrawState {
 
 const requestSchema = z.object({
   amount: z.coerce.number().positive("Enter an amount."),
-  holder: z.string().trim().min(2, "Add the name on the account.").max(100),
-  details: z.string().trim().min(5, "Add how we should pay you.").max(300),
+  holder: z.string().trim().min(2, "Add your name.").max(100),
+  // Only an email address. Wise emails the creator a secure link to enter their
+  // own bank details, so bank details never pass through our site.
+  email: z.string().trim().toLowerCase().email("Enter a valid email address.").max(200),
 });
 
 export async function requestWithdrawalAction(
@@ -30,7 +32,7 @@ export async function requestWithdrawalAction(
   const parsed = requestSchema.safeParse({
     amount: formData.get("amount"),
     holder: formData.get("holder") ?? "",
-    details: formData.get("details") ?? "",
+    email: formData.get("email") ?? "",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
@@ -45,14 +47,15 @@ export async function requestWithdrawalAction(
   let box: string;
   let hash: string;
   try {
-    box = encryptDetails(`${parsed.data.holder}\n${parsed.data.details}`);
-    hash = hashDetails(parsed.data.details);
+    box = encryptDetails(`${parsed.data.holder}\n${parsed.data.email}`);
+    hash = hashDetails(parsed.data.email);
   } catch (e) {
     console.error("Withdrawal encryption unavailable:", (e as Error).message);
     return { error: "Withdrawals are temporarily unavailable. Please try again later." };
   }
   const { token, tokenHash } = newConfirmToken();
-  const tail = last4(parsed.data.details);
+  // First 4 characters of the email, the only part kept once the request is closed.
+  const tail = parsed.data.email.slice(0, 4);
 
   const admin = createAdminClient();
   const { data: id, error } = await admin.rpc("request_withdrawal", {

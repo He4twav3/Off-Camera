@@ -17,8 +17,8 @@ export function WithdrawalConfirmedEmail({
     <EmailLayout preview={`Your ${amountLabel} withdrawal is confirmed`}>
       <EmailHeading>Withdrawal confirmed, {name}</EmailHeading>
       <EmailText>
-        We&apos;ll pay <strong>{amountLabel}</strong> to the account ending{" "}
-        <strong>{last4 || "…"}</strong> no earlier than <strong>{earliest}</strong>.
+        We&apos;ll pay <strong>{amountLabel}</strong> to the email starting{" "}
+        <strong>{last4 || "…"}…</strong> no earlier than <strong>{earliest}</strong>.
       </EmailText>
       <EmailText>
         <strong>Wasn&apos;t you?</strong> Cancel it now from your Earnings page

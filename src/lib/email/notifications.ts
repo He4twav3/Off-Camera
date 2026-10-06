@@ -85,7 +85,7 @@ export async function sendWithdrawalConfirmEmail(args: {
     to: args.to,
     subject: `Confirm your ${amountLabel} withdrawal`,
     react: WithdrawalConfirmEmail({ name: args.name, amountLabel, last4: args.last4, confirmUrl, holdHours: args.holdHours }),
-    text: `Confirm your withdrawal, ${args.name}. Someone asked to withdraw ${amountLabel} to the account ending ${args.last4}. If that was you, confirm here (valid 24 hours): ${confirmUrl}\n\nAfter you confirm we wait ${args.holdHours} hours before paying. Wasn't you? Don't click the link: the request expires by itself. Change your password and reply to this email.`,
+    text: `Confirm your withdrawal, ${args.name}. Someone asked to withdraw ${amountLabel} to the email starting ${args.last4}… If that was you, confirm here (valid 24 hours): ${confirmUrl}\n\nAfter you confirm we wait ${args.holdHours} hours before paying. Wasn't you? Don't click the link: the request expires by itself. Change your password and reply to this email.`,
   });
 }
 
@@ -103,7 +103,7 @@ export async function sendWithdrawalConfirmedEmail(args: {
     to: args.to,
     subject: `Your ${amountLabel} withdrawal is confirmed`,
     react: WithdrawalConfirmedEmail({ name: args.name, amountLabel, last4: args.last4, earliest, earningsUrl: `${baseUrl}/dashboard/recruiting/earnings` }),
-    text: `Withdrawal confirmed, ${args.name}. We'll pay ${amountLabel} to the account ending ${args.last4} no earlier than ${earliest}. Wasn't you? Cancel it from your Earnings page (${baseUrl}/dashboard/recruiting/earnings), then change your password and reply to this email.`,
+    text: `Withdrawal confirmed, ${args.name}. We'll pay ${amountLabel} to the email starting ${args.last4}… no earlier than ${earliest}. Wasn't you? Cancel it from your Earnings page (${baseUrl}/dashboard/recruiting/earnings), then change your password and reply to this email.`,
   });
 }
 
