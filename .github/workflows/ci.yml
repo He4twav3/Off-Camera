@@ -45,10 +45,12 @@ jobs:
           --ignore-pattern src/components/marketing/hero-carousel.tsx
           --ignore-pattern src/components/site/desktop-only-mount.tsx
 
-      - name: Rules tests (release planning, environment guards)
+      - name: Rules tests (every scripts/test-*.ts file)
         run: |
-          npx tsx scripts/test-auto-release.ts
-          npx tsx scripts/test-environment.ts
+          for f in scripts/test-*.ts; do
+            echo "== $f"
+            npx tsx "$f"
+          done
 
       - name: Database tests (real Postgres)
         run: |
