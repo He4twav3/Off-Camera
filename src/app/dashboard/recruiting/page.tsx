@@ -141,7 +141,7 @@ export default async function DashboardPage(props: {
         <Stat label="Active campaigns" value={String(active.filter((a) => a.status === "active" || a.status === "submitted").length)} />
         <Stat label="Applications out" value={String(apps.filter((a) => a.status === "pending").length)} />
         <Stat label="Pending payment" value={formatCurrency(pendingPay)} />
-        <Stat label="Paid to date" value={formatCurrency(earned)} tone="success" />
+        <Stat label="Earned to date" value={formatCurrency(earned)} tone="success" />
       </dl>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
@@ -238,7 +238,7 @@ export default async function DashboardPage(props: {
                           )}
                           {a.status === "paid" && a.paid_at && (
                             <p className="mt-1 text-sm font-semibold text-toy-soft-foreground">
-                              Paid {formatDate(a.paid_at)}
+                              Added to your balance {formatDate(a.paid_at)}
                             </p>
                           )}
                         </div>

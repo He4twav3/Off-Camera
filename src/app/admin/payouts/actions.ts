@@ -102,6 +102,33 @@ export async function savePayoutAction(
       return { error: "Saved the payout, but couldn't mark it paid." };
     }
 
+    // Release the creator's share to their balance. One credit per assignment
+    // (unique on assignment_id), so saving again can't pay them twice.
+    const { data: owner } = await supabase
+      .from("assignments")
+      .select("applicant_id")
+      .eq("id", parsed.data.assignment_id)
+      .single();
+    if (!owner) return { error: "Marked paid, but couldn't find the creator to credit." };
+    const { error: creditError } = await supabase.from("balance_entries").upsert(
+      {
+        applicant_id: owner.applicant_id,
+        amount: assignment.applicant_payout_amount,
+        kind: "earning",
+        assignment_id: parsed.data.assignment_id,
+        note: assignment.jobs?.title ?? null,
+      },
+      { onConflict: "assignment_id", ignoreDuplicates: true },
+    );
+    if (creditError) {
+      const needsMfa = creditError.code === "42501";
+      return {
+        error: needsMfa
+          ? "Marked paid, but crediting balances needs two-step sign-in. Open Admin → Security, then save again."
+          : "Marked paid, but couldn't add it to the creator's balance. Save again to retry.",
+      };
+    }
+
     const applicant = assignment.applicants;
     if (applicant) {
       await sendPayoutPaidEmail(
@@ -116,7 +143,7 @@ export async function savePayoutAction(
   revalidatePath("/admin/payouts");
   revalidatePath("/dashboard/recruiting");
   return {
-    success: markPaid ? "Marked paid — creator emailed." : "Payout record saved.",
+    success: markPaid ? "Added to the creator's balance — they've been emailed." : "Payout record saved.",
   };
 }
 

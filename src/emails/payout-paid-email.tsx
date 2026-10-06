@@ -12,17 +12,17 @@ export function PayoutPaidEmail({
   dashboardUrl: string;
 }) {
   return (
-    <EmailLayout preview={`Payment sent — ${payoutLabel}`}>
-      <EmailHeading>Your payment is on its way, {name}</EmailHeading>
+    <EmailLayout preview={`${payoutLabel} added to your balance`}>
+      <EmailHeading>Your pay is ready, {name}</EmailHeading>
       <EmailText>
-        We&apos;ve sent <strong>{payoutLabel}</strong> for{" "}
-        <strong>{jobTitle}</strong>.
+        We&apos;ve added <strong>{payoutLabel}</strong> for{" "}
+        <strong>{jobTitle}</strong> to your balance.
       </EmailText>
       <EmailText>
-        Depending on the payment method, it can take a little time to land.
-        If you don&apos;t see it in a few days, reply to this email.
+        You can withdraw it from your Earnings page whenever you like. We pay
+        withdrawals by bank transfer and email you when each one is sent.
       </EmailText>
-      <EmailButton href={dashboardUrl}>View your dashboard</EmailButton>
+      <EmailButton href={dashboardUrl}>Go to your earnings</EmailButton>
     </EmailLayout>
   );
 }

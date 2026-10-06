@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Settings, Briefcase, Search, UserCircle, ShieldCheck, Send } from "lucide-react";
+import { LayoutDashboard, Settings, Briefcase, Search, UserCircle, ShieldCheck, Send, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const COURSE_ITEMS = [{ href: "/dashboard", label: "Course", icon: LayoutDashboard }];
@@ -13,6 +13,7 @@ const RECRUITING_ITEMS = [
   { href: "/dashboard/recruiting", label: "Recruiting home", icon: Briefcase, countKey: "applications" as const },
   { href: "/dashboard/recruiting/jobs", label: "Browse jobs", icon: Search, countKey: null },
   { href: "/dashboard/recruiting/submissions", label: "Submissions", icon: Send, countKey: null },
+  { href: "/dashboard/recruiting/earnings", label: "Earnings", icon: Wallet, countKey: null },
   { href: "/dashboard/recruiting/profile-setup", label: "My profile", icon: UserCircle, countKey: null },
 ];
 
