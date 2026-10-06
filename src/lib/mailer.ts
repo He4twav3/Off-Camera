@@ -2,6 +2,7 @@ import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
+import { isStaging, stagingEmailAllowed } from "@/lib/environment";
 
 /**
  * Real outbound email via Resend when RESEND_API_KEY is set (see
@@ -68,7 +69,11 @@ export async function sendEmail(message: {
   let delivery: "sent" | "outbox-only" | "failed" = "outbox-only";
   let deliveryError: string | undefined;
 
-  if (resend) {
+  // The staging copy never emails real people: only the test addresses on the allowlist.
+  const blockedInStaging = isStaging() && !stagingEmailAllowed(message.to);
+  if (blockedInStaging) console.warn("mailer: staging, not sending to an address outside STAGING_EMAIL_ALLOWLIST");
+
+  if (resend && !blockedInStaging) {
     try {
       const result = await resend.emails.send({
         from: FROM,

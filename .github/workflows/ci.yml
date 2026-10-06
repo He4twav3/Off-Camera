@@ -1,0 +1,59 @@
+name: Checks
+
+# Runs on every pull request and on every push to main. A change should not be
+# merged until this is green (turn on "Require status checks" for main in the
+# GitHub branch settings; see docs/environments.md).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Dummy values so the build can run. Nothing here points at a real project.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+      APP_ENV: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate route types
+        run: npx next typegen
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint (new problems fail; the two known older files are listed below)
+        # TODO: fix these two files, then delete the --ignore-pattern lines.
+        run: >
+          npx eslint src scripts --quiet
+          --ignore-pattern src/components/marketing/hero-carousel.tsx
+          --ignore-pattern src/components/site/desktop-only-mount.tsx
+
+      - name: Rules tests (release planning, environment guards)
+        run: |
+          npx tsx scripts/test-auto-release.ts
+          npx tsx scripts/test-environment.ts
+
+      - name: Database tests (real Postgres)
+        run: |
+          python3 -m pip install --quiet pgserver psycopg2-binary
+          python3 scripts/test-withdrawals-sql.py
+
+      - name: Build
+        run: npm run build

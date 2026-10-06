@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { assertSupabaseEnvironment } from "@/lib/environment";
 
 // Service-role client — bypasses RLS entirely. Server-only, and only for the
 // handful of code paths that must run with no signed-in user in scope (the
@@ -9,6 +10,8 @@ import type { Database } from "@/lib/database.types";
 // so it's still subject to the `is_admin()` RLS policies — don't reach for
 // this just because it's convenient.
 export function createAdminClient() {
+  // Refuse to use the service key against the wrong project (see lib/environment.ts).
+  assertSupabaseEnvironment();
   return createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

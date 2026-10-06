@@ -1,3 +1,4 @@
+import { StagingBanner } from "@/components/site/staging-banner";
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Sans, Fjalla_One, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
@@ -186,6 +187,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${heading.variable} ${body.variable} ${wordmark.variable} ${brand.variable} ${stencil.variable} h-full bg-[#16151a] antialiased`}
     >
       <body className="dark-invert min-h-full bg-background text-foreground">
+        <StagingBanner />
         <div className="flex min-h-full flex-col">{children}</div>
       </body>
     </html>

@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
+import { assertSupabaseEnvironment } from "@/lib/environment";
 
 // Use inside Server Components, Server Actions, and Route Handlers.
 export async function createClient() {
+  assertSupabaseEnvironment();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
