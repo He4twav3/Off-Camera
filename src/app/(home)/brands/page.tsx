@@ -92,6 +92,7 @@ export default async function BrandsPage() {
           <FeatureCard
             className="md:col-span-3"
             icon={ShieldCheck}
+            tone="crimson"
             title="Hand-reviewed creators"
             body="Every creator is reviewed by our team before they can join a campaign."
           >
@@ -115,6 +116,7 @@ export default async function BrandsPage() {
             className="md:col-span-3"
             delay={80}
             icon={BadgeCheck}
+            tone="panel"
             title="Accounts that are really theirs"
             body="Creators prove each handle is their own with a short code in their bio, so you know who you are working with."
           >
@@ -135,6 +137,7 @@ export default async function BrandsPage() {
           <FeatureCard
             className="md:col-span-2"
             icon={Eye}
+            tone="ink"
             title="Reach you can see"
             body="Every post's views, updated daily, rolled up per creator and per campaign."
           >
@@ -159,6 +162,7 @@ export default async function BrandsPage() {
             className="md:col-span-2"
             delay={80}
             icon={LayoutDashboard}
+            tone="crimson"
             title="One dashboard"
             body="Your campaigns, the creators on each, their posts and where they are."
           >
@@ -176,17 +180,21 @@ export default async function BrandsPage() {
             className="md:col-span-2"
             delay={160}
             icon={Rocket}
+            tone="panel"
             title="We set it up with you"
             body="Share your brief and we set up the campaign and match the right creators."
           >
-            <ol className="flex flex-col gap-2 text-sm">
-              {["Your brief", "Creators matched", "Campaign live"].map((s, i) => (
-                <li key={s} className="flex items-center gap-3 rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span style={{ animationDelay: `${i * 0.7}s` }} className="ko-dot size-4 rounded-full border-2" />
-                  {s}
-                </li>
-              ))}
-            </ol>
+            <div className="flex flex-col gap-2 text-sm">
+              <p style={{ animationDelay: "0s" }} className="ko-slide ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#ac0216] px-3.5 py-2 text-white">
+                Here&apos;s our brief: new app launch, 3 videos.
+              </p>
+              <p style={{ animationDelay: "0.5s" }} className="ko-slide max-w-[85%] rounded-2xl rounded-bl-md border border-white/[0.1] bg-[#1d1c22] px-3.5 py-2">
+                Got it. Matching creators now.
+              </p>
+              <p style={{ animationDelay: "1s" }} className="ko-slide ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#ac0216] px-3.5 py-2 text-white">
+                Perfect, go live.
+              </p>
+            </div>
           </FeatureCard>
         </div>
       </section>

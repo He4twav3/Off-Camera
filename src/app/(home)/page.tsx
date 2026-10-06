@@ -82,6 +82,7 @@ export default function CreatorsPage() {
           <FeatureCard
             className="md:col-span-3"
             icon={LineChart}
+            tone="crimson"
             title="Every campaign, tracked"
             body="Deliverables, status and what you're owed on every campaign."
           >
@@ -116,6 +117,7 @@ export default function CreatorsPage() {
             className="md:col-span-2"
             delay={80}
             icon={ShieldCheck}
+            tone="panel"
             title="Verified accounts"
             body="Prove each handle is yours so brands know who they are working with."
           >
@@ -137,6 +139,7 @@ export default function CreatorsPage() {
             className="md:col-span-2"
             delay={80}
             icon={Wallet}
+            tone="ink"
             title="See your earnings build"
             body="Pending and paid, per campaign, so you always know where you stand."
           >
@@ -152,6 +155,7 @@ export default function CreatorsPage() {
             className="md:col-span-3"
             delay={160}
             icon={Store}
+            tone="crimson"
             title="A board of open campaigns"
             body="Browse campaigns from brands and apply in a click."
           >

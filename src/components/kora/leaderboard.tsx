@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { compactViews } from "@/lib/format";
-import { cn } from "@/lib/utils";
 
 export type LeaderboardItem = {
   id: string;
@@ -10,73 +9,72 @@ export type LeaderboardItem = {
   views: number;
 };
 
+const CARD = 66; // px, fixed so rows can glide to exact slots
+const GAP = 8;
+const ROW = CARD + GAP;
+// Which neighbouring pair of slots trades places on each step. Cycling through
+// different pairs lets every creator move both up and down over time.
+const PAIRS = [0, 2, 1, 3, 0, 1, 2, 3];
+
 /**
- * A creator leaderboard: ranked by views, each row with its view bar, so a brand
- * can see at a glance who is bringing the reach. A soft highlight moves down the
- * rows, as if a brand were looking through them. The numbers are the real ones
- * and never change; only the highlight and the bars move. Under
- * prefers-reduced-motion everything stays still.
+ * An example applicants list for brands: each creator with their views and
+ * static Accept / Pass buttons. Every couple of seconds two neighbouring
+ * creators swap places, each row sliding smoothly into its new slot, so the
+ * list keeps shifting with no gap. The numbers are the real ones and never
+ * change; only the order does. A picture of the flow, not a live control
+ * (aria-hidden); under prefers-reduced-motion it stays still.
  */
 export function Leaderboard({ items }: { items: LeaderboardItem[] }) {
-  const [active, setActive] = useState(-1);
-
-  const ranked = [...items].sort((a, b) => b.views - a.views);
+  // order[slot] = index into items
+  const [order, setOrder] = useState(() => items.map((_, i) => i));
+  const [step, setStep] = useState(0);
   const count = items.length;
 
   useEffect(() => {
     if (count < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setActive((a) => (a + 1) % count), 1700);
+    const id = setInterval(() => setStep((s) => s + 1), 2300);
     return () => clearInterval(id);
   }, [count]);
 
-  if (ranked.length === 0) return null;
-  const max = ranked[0].views;
+  useEffect(() => {
+    if (step === 0 || count < 2) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOrder((prev) => {
+      const next = [...prev];
+      const a = PAIRS[(step - 1) % PAIRS.length] % (count - 1);
+      [next[a], next[a + 1]] = [next[a + 1], next[a]];
+      return next;
+    });
+  }, [step, count]);
+
+  if (count === 0) return null;
+  const slotOf = new Map(order.map((itemIndex, slot) => [itemIndex, slot]));
 
   return (
-    <ul className="mt-4 flex flex-col gap-2" aria-hidden>
-      {ranked.map((it, i) => {
-        const first = i === 0;
-        const on = i === active;
-        return (
-          <li
-            key={it.id}
-            className={cn(
-              "flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-all duration-500",
-              on ? "border-[#ac0216]/60 bg-[#ac0216]/[0.07]" : "border-white/[0.08]",
-            )}
-          >
-            <span
-              className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums",
-                first ? "bg-[#ac0216] text-white" : "bg-white/[0.06] text-[#a39e98]",
+    <div className="relative mt-4" style={{ height: count * ROW - GAP }} aria-hidden>
+      {items.map((it, i) => (
+        <div
+          key={it.id}
+          style={{ height: CARD, transform: `translateY(${(slotOf.get(i) ?? i) * ROW}px)` }}
+          className="absolute inset-x-0 top-0 flex items-center gap-3.5 rounded-xl border border-white/[0.08] bg-[#1d1c22] px-3.5 transition-transform duration-[900ms] ease-in-out"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[0.95rem] font-semibold">
+              {it.name.startsWith("@") ? (
+                <>
+                  <span className="text-[#a39e98]">@</span>
+                  {it.name.slice(1)}
+                </>
+              ) : (
+                it.name
               )}
-            >
-              {i + 1}
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[0.95rem] font-semibold">
-                {it.name.startsWith("@") ? (
-                  <>
-                    <span className="text-[#a39e98]">@</span>
-                    {it.name.slice(1)}
-                  </>
-                ) : (
-                  it.name
-                )}
-              </span>
-              <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                <span
-                  className={cn("ko-fill block h-full rounded-full", first || on ? "bg-[#ac0216]" : "bg-[#ac0216]/45")}
-                  style={{ "--ko-to": `${Math.max(6, (it.views / max) * 100)}%`, animationDelay: `${i * 0.18}s` } as React.CSSProperties}
-                />
-              </span>
-            </span>
-            <span className={cn("shrink-0 text-sm font-bold tabular-nums", (first || on) && "text-[#e0556a]")}>
-              {compactViews(it.views)}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+            <span className="block truncate text-xs text-[#a39e98]">▶ {compactViews(it.views)} views</span>
+          </span>
+          <span className="rounded-lg bg-[#ac0216] px-4 py-2 text-sm font-semibold text-white">Accept</span>
+          <span className="rounded-lg border border-white/[0.14] px-4 py-2 text-sm font-semibold text-[#edeae4]">Pass</span>
+        </div>
+      ))}
+    </div>
   );
 }

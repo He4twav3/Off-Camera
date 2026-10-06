@@ -159,6 +159,14 @@ export function SectionTitle({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
+/** Card colours: plain panel, crimson-tinted, or a deeper ink panel, so a run of
+ * cards does not read as one repeated grey box. */
+const TONES = {
+  panel: { card: "border-white/[0.08] bg-[#1d1c22]", well: "border-white/[0.07] bg-[#16151a]", icon: "bg-[#ac0216]/15 text-[#e0556a]" },
+  crimson: { card: "border-[#ac0216]/40 bg-gradient-to-b from-[#3a0e15] to-[#241017]", well: "border-[#ac0216]/25 bg-[#16090d]/80", icon: "bg-[#ac0216]/30 text-[#ff8d9c]" },
+  ink: { card: "border-white/[0.06] bg-[#121115]", well: "border-white/[0.06] bg-[#1d1c22]", icon: "bg-white/[0.07] text-[#edeae4]" },
+} as const;
+
 /** A feature card: icon tile, title, one line, then a small picture of it. */
 export function FeatureCard({
   icon: Icon,
@@ -166,6 +174,7 @@ export function FeatureCard({
   body,
   className,
   delay,
+  tone = "panel",
   children,
 }: {
   icon: LucideIcon;
@@ -173,17 +182,19 @@ export function FeatureCard({
   body: string;
   className?: string;
   delay?: number;
+  tone?: keyof typeof TONES;
   children: ReactNode;
 }) {
+  const t = TONES[tone];
   return (
     <FadeIn delay={delay} className={className}>
-      <div className="flex h-full min-w-0 flex-col rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-6 sm:p-7">
-        <span className="flex size-11 items-center justify-center rounded-xl bg-[#ac0216]/15 text-[#e0556a]">
+      <div className={cn("flex h-full min-w-0 flex-col rounded-3xl border p-6 sm:p-7", t.card)}>
+        <span className={cn("flex size-11 items-center justify-center rounded-xl", t.icon)}>
           <Icon className="size-5" />
         </span>
         <h3 className="mt-5 text-xl font-semibold tracking-[-0.01em] sm:mt-6">{title}</h3>
         <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
-        <div className="mt-5 flex flex-1 flex-col justify-center rounded-2xl border border-white/[0.07] bg-[#16151a] p-4 sm:mt-6" aria-hidden>
+        <div className={cn("mt-5 flex flex-1 flex-col justify-center rounded-2xl border p-4 sm:mt-6", t.well)} aria-hidden>
           {children}
         </div>
       </div>
@@ -207,7 +218,8 @@ export function StatsBand({ stats }: { stats: { value: ReactNode; label: string 
   );
 }
 
-/** The numbered flow: 01 / 02 / 03. */
+/** The numbered flow: 01 / 02 / 03 as circles joined by a line, running down the
+ * page on phones and across it on wider screens. */
 export function Steps({ eyebrow, title, steps }: { eyebrow: string; title: string; steps: [string, string][] }) {
   return (
     <section className="mx-auto mt-24 max-w-[1100px] px-5">
@@ -215,13 +227,24 @@ export function Steps({ eyebrow, title, steps }: { eyebrow: string; title: strin
         <p className="text-[0.75rem] font-bold tracking-[0.18em] text-[#e0556a] uppercase">{eyebrow}</p>
         <h2 className="mt-3 text-[clamp(1.9rem,4.6vw,3.1rem)] leading-[1.08] font-bold tracking-[-0.03em] text-balance">{title}</h2>
       </FadeIn>
-      <ol className="mt-10 grid grid-cols-1 gap-4 sm:mt-14 md:grid-cols-3">
+      <ol className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
         {steps.map(([head, body], i) => (
           <FadeIn key={head} delay={i * 90}>
-            <li className="h-full rounded-3xl border border-white/[0.08] bg-[#1d1c22] p-6 sm:p-7">
-              <span className="font-mono text-sm font-bold text-[#e0556a]">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="mt-4 text-xl font-semibold tracking-[-0.01em]">{head}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
+            <li className="relative flex gap-5 md:flex-col md:items-center md:gap-0 md:text-center">
+              {i < steps.length - 1 && (
+                <>
+                  {/* the line to the next step: down on phones, across on desktop */}
+                  <span className="absolute top-14 left-7 -bottom-10 w-px -translate-x-1/2 bg-gradient-to-b from-[#ac0216]/70 to-[#ac0216]/30 md:hidden" />
+                  <span className="absolute top-7 left-[calc(50%+2.25rem)] right-[calc(-50%+2.25rem)] hidden h-px bg-gradient-to-r from-[#ac0216]/70 to-[#ac0216]/30 md:block" />
+                </>
+              )}
+              <span className="relative z-10 flex size-14 shrink-0 items-center justify-center rounded-full border border-[#ac0216]/50 bg-[#2a0f14] font-mono text-lg font-bold text-[#e0556a]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="md:mt-6">
+                <h3 className="text-xl font-semibold tracking-[-0.01em]">{head}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-[#a39e98]">{body}</p>
+              </div>
             </li>
           </FadeIn>
         ))}
