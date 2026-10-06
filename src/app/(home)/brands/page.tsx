@@ -14,7 +14,7 @@ import {
   Steps,
 } from "@/components/kora/blocks";
 import { ProvenReach, ReachSummary } from "@/components/kora/reach";
-import { ReviewList } from "@/components/kora/review-list";
+import { Leaderboard } from "@/components/kora/leaderboard";
 import { compactViews } from "@/lib/format";
 import { getProofReel } from "@/lib/proof-reel";
 
@@ -71,11 +71,11 @@ export default async function BrandsPage() {
             <StatTile label="Avg views" value={<><CountUp to={avg} compact />{plus}</>} />
             <StatTile label="Total views" value={<><CountUp to={reel.totalViews} duration={2000} compact />{plus}</>} accent />
           </div>
-          <ReviewList
+          <Leaderboard
             items={creators.map((c) => ({
               id: c.handle,
               name: `@${c.handle}`,
-              meta: `${compactViews(c.viewsNum)} views`,
+              views: c.viewsNum,
             }))}
           />
         </BrowserFrame>
@@ -164,8 +164,8 @@ export default async function BrandsPage() {
           >
             <ul className="flex flex-col gap-2 text-sm">
               {creators.slice(0, 3).map((c, i) => (
-                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex items-center justify-between gap-2 rounded-lg bg-[#1d1c22] px-3 py-2.5">
-                  <span className="min-w-0 truncate font-semibold"><AtHandle handle={c.handle} /></span>
+                <li key={c.handle} style={{ animationDelay: `${i * 0.5}s` }} className="ko-slide flex flex-col items-start gap-0.5 rounded-lg bg-[#1d1c22] px-2.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3 sm:py-2.5">
+                  <span className="max-w-full min-w-0 truncate font-semibold"><AtHandle handle={c.handle} /></span>
                   <span className="shrink-0 text-xs text-[#a39e98]">{compactViews(c.viewsNum)}<span className="hidden sm:inline"> views</span></span>
                 </li>
               ))}

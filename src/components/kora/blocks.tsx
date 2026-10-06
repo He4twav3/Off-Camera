@@ -181,10 +181,10 @@ export function FeatureCard({
         <span className="flex size-7 items-center justify-center rounded-lg bg-[#ac0216]/15 text-[#e0556a] sm:size-11 sm:rounded-xl">
           <Icon className="size-3.5 sm:size-5" />
         </span>
-        <h3 className="mt-3 text-[0.8rem] leading-tight font-semibold tracking-[-0.01em] sm:mt-6 sm:text-xl">{title}</h3>
-        <p className="mt-1 text-[0.62rem] leading-snug text-[#a39e98] sm:mt-2 sm:text-[15px] sm:leading-relaxed">{body}</p>
-        <div className="mt-3 flex-1 overflow-hidden rounded-xl border border-white/[0.07] bg-[#16151a] p-2 sm:mt-6 sm:rounded-2xl sm:p-4" aria-hidden>
-          <div className="[zoom:0.58] sm:[zoom:1]">{children}</div>
+        <h3 className="mt-3 text-[0.85rem] leading-tight font-semibold tracking-[-0.01em] sm:mt-6 sm:text-xl">{title}</h3>
+        <p className="mt-1 text-[0.68rem] leading-snug text-[#a39e98] sm:mt-2 sm:text-[15px] sm:leading-relaxed">{body}</p>
+        <div className="mt-3 flex flex-1 flex-col justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-[#16151a] p-1.5 sm:mt-6 sm:rounded-2xl sm:p-4" aria-hidden>
+          <div className="[zoom:0.68] sm:[zoom:1]">{children}</div>
         </div>
       </div>
     </FadeIn>
