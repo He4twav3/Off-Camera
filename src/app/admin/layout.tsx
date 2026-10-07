@@ -39,7 +39,7 @@ export default async function AdminLayout({
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4">
           <div className="flex items-center gap-6">
             <Link
-              href="/"
+              href="/admin"
               className="font-heading text-lg font-semibold text-foreground transition-colors duration-200 hover:text-primary"
             >
               Off<span className="text-primary"> Camera</span>
@@ -58,14 +58,12 @@ export default async function AdminLayout({
                 {l.label}
               </Link>
             ))}
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="cursor-pointer text-[15px] font-semibold text-muted-foreground transition-colors duration-200 hover:text-primary"
-              >
-                Sign out
-              </button>
-            </form>
+            <Link
+              href="/admin/settings"
+              className="text-[15px] font-semibold text-muted-foreground transition-colors duration-200 hover:text-primary"
+            >
+              Settings
+            </Link>
           </nav>
         </div>
       </header>
