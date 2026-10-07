@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
 import { sendApplicationReceivedEmail } from "@/lib/email/notifications";
 import { parseDriveLink } from "@/lib/drive-link";
 import { pickVideoIds } from "@/lib/creator-videos";
@@ -87,7 +89,10 @@ export async function applyToJobAction(
     .eq("applicant_id", applicant.id)
     .in("id", picked.ids);
   if (!owned || owned.length !== picked.ids.length) {
-    return { error: "One of those videos is no longer on your profile. Refresh the page and pick again." };
+    return {
+      error:
+        "One of those videos is no longer on your profile. Refresh the page and pick again.",
+    };
   }
   const urlById = new Map(owned.map((v) => [v.id, v.url]));
   const videoUrls = picked.ids.map((id) => urlById.get(id)!);
@@ -114,6 +119,110 @@ export async function applyToJobAction(
   revalidatePath("/dashboard/recruiting");
   revalidatePath("/admin/applications");
   return { success: "Application sent." };
+}
+
+const joinSchema = z.object({
+  job_id: z.string().uuid(),
+  accepted: z.literal("on", {
+    error: "Tick the box to accept the guidelines.",
+  }),
+});
+
+/**
+ * Joining a campaign is instant: accept the guidelines and you're on it. No one
+ * reviews it. A creator can't insert an assignment themselves (only admins can),
+ * so the row is written here with the service role, after checking who is asking
+ * and that the campaign is open. A campaign that asks for a sample video still
+ * goes through an application, because someone has to watch the sample.
+ */
+export async function joinCampaignAction(
+  _prev: ApplyState,
+  formData: FormData,
+): Promise<ApplyState> {
+  const parsed = joinSchema.safeParse({
+    job_id: formData.get("job_id"),
+    accepted: formData.get("accepted") ?? "",
+  });
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Something was off. Try again.",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be logged in to join." };
+
+  // RLS: a creator can only read their own profile row.
+  const { data: applicant } = await supabase
+    .from("applicants")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!applicant)
+    return { error: "Set up your profile before joining a campaign." };
+
+  // Like "link an account" on ContentCircle: you need one account that's proven to be
+  // yours before you can join, because that's where your views are counted.
+  const { count: verified } = await supabase
+    .from("applicant_handles")
+    .select("id", { count: "exact", head: true })
+    .eq("applicant_id", applicant.id)
+    .not("verified_at", "is", null);
+  if (!verified)
+    return {
+      error: "Connect one of your accounts first. Open Account, then Accounts.",
+    };
+
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("id, status, sample_required, payout_amount, payout_terms")
+    .eq("id", parsed.data.job_id)
+    .maybeSingle();
+  if (!job) return { error: "That campaign no longer exists." };
+  if (job.status !== "open")
+    return { error: "This campaign isn't open any more." };
+  if (job.sample_required) {
+    return {
+      error:
+        "This campaign asks for a sample video, so you apply for it instead.",
+    };
+  }
+
+  const { data: existing } = await supabase
+    .from("assignments")
+    .select("id")
+    .eq("applicant_id", applicant.id)
+    .eq("job_id", job.id)
+    .maybeSingle();
+  if (existing) return { success: "You're already on this campaign." };
+
+  // Starting amount: the formula at zero views (the fixed fee, if any) or the
+  // campaign's flat amount. The statement is worked out from real views later.
+  const terms = parsePayoutTerms(job.payout_terms);
+  const amount = terms
+    ? calculatePayout(terms, 0).total
+    : Number(job.payout_amount ?? 0);
+
+  const { error } = await createAdminClient().from("assignments").insert({
+    job_id: job.id,
+    applicant_id: applicant.id,
+    applicant_payout_amount: amount,
+    status: "active",
+  });
+  if (error) {
+    if (error.code === "23505")
+      return { success: "You're already on this campaign." };
+    return { error: "We couldn't add you to this campaign. Please try again." };
+  }
+
+  revalidatePath(`/dashboard/recruiting/jobs/${job.id}`);
+  revalidatePath("/dashboard/recruiting");
+  revalidatePath("/dashboard/recruiting/submissions");
+  revalidatePath("/admin/payouts");
+  return { success: "You're in." };
 }
 
 const withdrawSchema = z.object({ application_id: z.string().uuid() });

@@ -87,6 +87,15 @@ export function normaliseHandle(
 
   // Pasted a URL? Pull the handle out of the path.
   if (/^https?:\/\//i.test(value) || /^[\w.-]+\.(com|be)\//i.test(value)) {
+    // YouTube's /channel/, /c/ and /user/ links name a channel code or an old custom
+    // name, not the @handle, and the handle is what we look the channel up by.
+    if (platform === "youtube_shorts" && isYouTubeChannelPathLink(value)) {
+      return {
+        ok: false,
+        handle: "",
+        error: "That link doesn't show your @handle. Open your channel and copy the name that starts with @.",
+      };
+    }
     const extracted = extractFromUrl(value, platform);
     if (!extracted) {
       return {
@@ -120,6 +129,16 @@ export function normaliseHandle(
   }
 
   return { ok: true, handle: value, profileUrl: rule.profileUrl(value) };
+}
+
+function isYouTubeChannelPathLink(input: string): boolean {
+  try {
+    const url = new URL(/^https?:\/\//i.test(input) ? input : `https://${input}`);
+    const first = url.pathname.split("/").filter(Boolean)[0]?.toLowerCase();
+    return first === "channel" || first === "c" || first === "user";
+  } catch {
+    return false;
+  }
 }
 
 function extractFromUrl(input: string, platform: PlatformEnum): string | null {

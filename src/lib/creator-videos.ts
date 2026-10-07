@@ -7,7 +7,7 @@ import { checkPostLink, PLATFORM_NAMES, type PostPlatform } from "@/lib/post-lin
  */
 
 /** Videos a creator can keep on their profile. Mirrored in the database (0021). */
-export const MAX_PROFILE_VIDEOS = 12;
+export const MAX_PROFILE_VIDEOS = 3;
 /** Videos one application can carry. Mirrored in the database (0021). */
 export const MAX_APPLICATION_VIDEOS = 5;
 

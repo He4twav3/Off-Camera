@@ -8,7 +8,7 @@ import type {
 } from "@/lib/database.types";
 import { JobCard } from "@/components/JobCard";
 import { JobFilters } from "@/components/JobFilters";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageShell, PageHeader, EmptyState } from "@/components/kit/ui";
 
 export const metadata: Metadata = {
   title: "Browse jobs",
@@ -27,7 +27,12 @@ interface SearchParams {
 // URL params are user-controlled, so narrow them against the known enum values
 // before they reach the query — an unrecognised value is ignored rather than
 // passed through to Postgres.
-const PLATFORMS: PlatformEnum[] = ["tiktok", "instagram", "youtube_shorts", "x"];
+const PLATFORMS: PlatformEnum[] = [
+  "tiktok",
+  "instagram",
+  "youtube_shorts",
+  "x",
+];
 const PAYOUT_TYPES: PayoutTypeEnum[] = ["flat", "cpm", "retainer"];
 const ACCOUNT_REQUIREMENTS: AccountRequirementEnum[] = [
   "new_ok",
@@ -121,16 +126,11 @@ export default async function JobsPage(props: {
   const { data: jobs, error } = await query;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-12">
-      <header className="mb-8">
-        <h1 className="font-heading text-3xl font-semibold text-foreground sm:text-4xl">
-          Open campaigns
-        </h1>
-        <p className="mt-3 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-          Browse what&apos;s available right now. Brand names and full briefs
-          are shared once you&apos;re assigned to a campaign.
-        </p>
-      </header>
+    <PageShell>
+      <PageHeader
+        title="Campaigns"
+        summary="Pick a campaign and join it. Brand names are shared once you've joined."
+      />
 
       <Suspense fallback={<FiltersSkeleton />}>
         <JobFilters niches={niches ?? []} hasPayRange={hasPayRange} />
@@ -156,8 +156,8 @@ export default async function JobsPage(props: {
           )
         ) : (
           <>
-            <p className="mb-5 text-sm font-semibold text-muted-foreground">
-              {jobs.length} {jobs.length === 1 ? "job" : "jobs"} found
+            <p className="mb-4 text-sm text-muted-foreground">
+              {jobs.length} {jobs.length === 1 ? "campaign" : "campaigns"}
             </p>
             <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {jobs.map((job) => (
@@ -167,7 +167,9 @@ export default async function JobsPage(props: {
                     // Logged-out visitors get pushed to sign-up when they click
                     // a job, rather than into a details page they can't act on.
                     href={
-                      user ? `/dashboard/recruiting/jobs/${job.id}` : `/signup?next=/dashboard/recruiting/jobs/${job.id}`
+                      user
+                        ? `/dashboard/recruiting/jobs/${job.id}`
+                        : `/signup?next=/dashboard/recruiting/jobs/${job.id}`
                     }
                   />
                 </li>
@@ -176,22 +178,7 @@ export default async function JobsPage(props: {
           </>
         )}
       </div>
-    </div>
-  );
-}
-
-function EmptyState({ title, body }: { title: string; body: string }) {
-  return (
-    <Card className="border-border/70 py-12 text-center">
-      <CardContent>
-        <h2 className="font-heading text-xl font-semibold text-foreground">
-          {title}
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-          {body}
-        </p>
-      </CardContent>
-    </Card>
+    </PageShell>
   );
 }
 

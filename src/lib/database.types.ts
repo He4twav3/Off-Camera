@@ -133,6 +133,8 @@ export interface Database {
           brands_worked_with: string[];
           content_types: string[];
           payout_instructions: string | null;
+          avatar_url: string | null;
+          discord_username: string | null;
         };
         Insert: {
           id?: string;
@@ -165,6 +167,8 @@ export interface Database {
           brands_worked_with?: string[];
           content_types?: string[];
           payout_instructions?: string | null;
+          avatar_url?: string | null;
+          discord_username?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["applicants"]["Insert"]>;
         Relationships: [

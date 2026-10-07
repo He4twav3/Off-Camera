@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useId } from "react";
 import { useFormStatus } from "react-dom";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export function ProofForm({
     submitProofAction,
     {},
   );
+  const inputId = useId();
 
   return (
     <form action={formAction} className="mt-5 flex flex-col gap-4">
@@ -38,11 +39,11 @@ export function ProofForm({
 
       <Field
         label="Link to your post"
-        htmlFor={`proof-${assignmentId}`}
+        htmlFor={inputId}
         hint={`This campaign is for ${PLATFORM_NAMES[platform]}. Paste the public link to your ${PLATFORM_NAMES[platform]} post once it's live.`}
       >
         <Input
-          id={`proof-${assignmentId}`}
+          id={inputId}
           name="proof_url"
           type="url"
           defaultValue={currentProofUrl ?? ""}

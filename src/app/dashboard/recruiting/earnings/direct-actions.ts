@@ -39,6 +39,7 @@ export async function savePayoutInstructionsAction(_prev: DirectState, formData:
   if (error) return { error: "Couldn't save that. Please try again." };
 
   revalidatePath("/dashboard/recruiting/earnings");
+  revalidatePath("/dashboard/account/payments");
   return { success: value ? "Saved. Brands you work with will see this." : "Removed." };
 }
 

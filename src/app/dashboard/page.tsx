@@ -43,7 +43,7 @@ export default async function DashboardPage() {
   // again then.
   if (!session?.paid) {
     return (
-      <div>
+      <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Welcome, {firstName}
         </h1>
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
   const { percent, completedLessons, isComplete } = await getDashboardProgress();
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
         Welcome back, {firstName}
       </h1>

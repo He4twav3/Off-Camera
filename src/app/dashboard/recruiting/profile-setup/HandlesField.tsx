@@ -24,6 +24,8 @@ const PLATFORMS: PlatformEnum[] = [
 interface HandlesFieldProps {
   value: HandleDraft[];
   onChange: (next: HandleDraft[]) => void;
+  /** Just one account (first-time setup); more are added later from Accounts. */
+  single?: boolean;
 }
 
 /**
@@ -34,7 +36,11 @@ interface HandlesFieldProps {
  * front of them rather than failing on submit. The server re-validates the same
  * way — this is convenience, not the enforcement.
  */
-export function HandlesField({ value, onChange }: HandlesFieldProps) {
+export function HandlesField({
+  value,
+  onChange,
+  single = false,
+}: HandlesFieldProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   function update(key: string, patch: Partial<HandleDraft>) {
@@ -176,7 +182,7 @@ export function HandlesField({ value, onChange }: HandlesFieldProps) {
         );
       })}
 
-      {value.length < PLATFORMS.length && (
+      {!single && value.length < PLATFORMS.length && (
         <div className="self-start">
           <Button type="button" variant="outline" size="sm" onClick={add}>
             <Plus size={18} />

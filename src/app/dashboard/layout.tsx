@@ -3,6 +3,7 @@ import { Logo } from "@/components/site/logo";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { SidebarAccount } from "@/components/dashboard/sidebar-account";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
+import { Breadcrumb } from "@/components/dashboard/breadcrumb";
 import { getShellData } from "@/lib/shell-data";
 
 export const metadata: Metadata = {
@@ -36,7 +37,7 @@ export default async function DashboardLayout({
   return (
     // relative z-10: lifts the page above the site's fixed dark vignette (dark-invert.css),
     // which would otherwise dim content near the bottom of the screen.
-    <div className="relative z-10 flex min-h-full flex-1 bg-secondary/30">
+    <div className="app-ui relative z-10 flex min-h-full flex-1">
       {/* ---- Sidebar (desktop) ---- */}
       {/* overflow-y-auto on the outer rail, not just the nav — so if content
           ever runs taller than the viewport, the whole rail scrolls instead
@@ -61,7 +62,11 @@ export default async function DashboardLayout({
           <MobileNav shell={shell} />
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="border-b border-border/70 px-4 py-3 sm:px-6 lg:px-8">
+          <Breadcrumb />
+        </div>
+
+        <main className="w-full flex-1">
           {children}
         </main>
       </div>

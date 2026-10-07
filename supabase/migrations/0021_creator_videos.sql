@@ -6,7 +6,7 @@
 --
 --   applicant_videos      the creator's videos: a link to a post on TikTok,
 --                         Instagram, YouTube or X, with an optional short title.
---                         At most 12 per creator. Owner reads, adds and removes
+--                         At most 3 per creator: their best ones. Owner reads, adds and removes
 --                         their own; admins read. (The authenticator rule from
 --                         0020 is added at the end.)
 --   applications.video_urls
@@ -50,7 +50,7 @@ create policy applicant_videos_delete_own on applicant_videos
   for delete
   using (applicant_id in (select id from applicants where user_id = auth.uid()));
 
--- At most 12 videos per creator. The lock stops two quick adds from both squeezing
+-- At most 3 videos per creator. The lock stops two quick adds from both squeezing
 -- in under the limit.
 create function limit_applicant_videos()
 returns trigger
@@ -58,7 +58,7 @@ language plpgsql
 as $$
 begin
   perform pg_advisory_xact_lock(hashtext(new.applicant_id::text));
-  if (select count(*) from applicant_videos where applicant_id = new.applicant_id) >= 12 then
+  if (select count(*) from applicant_videos where applicant_id = new.applicant_id) >= 3 then
     raise exception 'too_many_videos';
   end if;
   return new;

@@ -4,6 +4,7 @@
 /* Sitewide dark palette — applied globally via the `dark-invert` class on
    <body> (see app/layout.tsx), not scoped to any one route anymore. */
 @import "../styles/dark-invert.css";
+@import "../styles/app-ui.css";
 
 @custom-variant dark (&:is(.dark *));
 

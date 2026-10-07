@@ -1,63 +1,65 @@
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import {
   PLATFORM_LABELS,
   ACCOUNT_REQUIREMENT_LABELS,
   formatPayoutSummary,
 } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
-import { PayStrip } from "@/components/app/PayStrip";
-import { parsePayoutTerms } from "@/lib/payout-terms";
+import { CampaignBanner } from "@/components/app/CampaignBanner";
+import { parsePayoutTerms, termsChips } from "@/lib/payout-terms";
 
 interface JobCardProps {
   job: Job & { niches: { label: string } | null };
   href: string;
 }
 
-// Shows platform / niche / payout / requirement only. Brand names and campaign
-// specifics live in `description`, which is intentionally NOT rendered here —
-// those are only shared with an applicant once they're assigned.
+// Banner with the pay, then the title and the small print. Brand names and campaign
+// specifics live in `description`, which is intentionally NOT rendered here: those
+// are only shared once you've joined.
 export function JobCard({ job, href }: JobCardProps) {
   const terms = parsePayoutTerms(job.payout_terms);
+  const chips = terms ? termsChips(terms) : [];
+  const headline =
+    chips[0] ?? formatPayoutSummary(job.payout_type, job.payout_amount);
+  const extra = chips[1] ?? null;
+
   return (
-    <Link href={href} className="block h-full">
-      <Card className="flex h-full flex-col border-border/70 transition-colors hover:bg-muted/40">
-        <CardContent className="flex h-full flex-col">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <StatusBadge tone="neutral">{PLATFORM_LABELS[job.platform]}</StatusBadge>
-          {job.niches && <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>}
-          <StatusBadge tone={jobStatusTone(job.status)} className="ml-auto">
-            {job.status === "open"
-              ? "Open"
-              : job.status === "filled"
-                ? "Filled"
-                : "Closed"}
-          </StatusBadge>
+    <Link
+      href={href}
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card transition-colors hover:border-primary/40"
+    >
+      <CampaignBanner
+        seed={job.id}
+        headline={headline}
+        caption={PLATFORM_LABELS[job.platform]}
+        className="aspect-[16/9]"
+      />
+      <div className="flex items-center gap-3 px-4 py-3.5">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-[15px] font-semibold text-foreground">
+            {job.title}
+          </h3>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            {[
+              job.niches?.label,
+              ACCOUNT_REQUIREMENT_LABELS[job.account_requirement],
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
         </div>
-
-        <h3 className="font-heading text-lg font-semibold leading-snug text-foreground">
-          {job.title}
-        </h3>
-
-        {terms ? (
-          <PayStrip terms={terms} className="mt-3" />
+        {job.status !== "open" ? (
+          <span className="shrink-0 rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+            {job.status === "filled" ? "Filled" : "Closed"}
+          </span>
         ) : (
-          <p className="mt-3 font-heading text-xl font-semibold text-primary">
-            {formatPayoutSummary(job.payout_type, job.payout_amount)}
-          </p>
+          extra && (
+            <span className="shrink-0 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+              {extra}
+            </span>
+          )
         )}
-        {job.payout_notes && (
-          <p className="mt-1 text-sm text-muted-foreground">
-            {job.payout_notes}
-          </p>
-        )}
-
-        <p className="mt-auto pt-4 text-sm text-muted-foreground">
-          {ACCOUNT_REQUIREMENT_LABELS[job.account_requirement]}
-        </p>
-        </CardContent>
-      </Card>
+      </div>
     </Link>
   );
 }

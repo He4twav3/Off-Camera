@@ -39,6 +39,7 @@ create schema storage;
 grant usage on schema storage to anon, authenticated, service_role;
 create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
 create table storage.objects (id uuid default gen_random_uuid(), bucket_id text, name text, owner uuid);
+create function storage.foldername(name text) returns text[] language plpgsql as $f$ declare parts text[]; begin select string_to_array(name, '/') into parts; return parts[1:array_length(parts,1)-1]; end $f$;
 alter table storage.objects enable row level security;
 grant all on storage.objects, storage.buckets to anon, authenticated, service_role;
 """)

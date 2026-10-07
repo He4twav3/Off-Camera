@@ -1,7 +1,7 @@
 """
 Tests migration 0021 (creator videos) on a real, throwaway Postgres with the
 whole migration history applied: who can see and change a creator's videos, the
-12-video limit, https-only links, and the checks on the videos copied onto an
+3-video limit, https-only links, and the checks on the videos copied onto an
 application.
 
 Supabase's own pieces (auth schema, roles, storage tables) are stubbed below;
@@ -34,6 +34,7 @@ create schema storage;
 grant usage on schema storage to anon, authenticated, service_role;
 create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
 create table storage.objects (id uuid default gen_random_uuid(), bucket_id text, name text, owner uuid);
+create function storage.foldername(name text) returns text[] language plpgsql as $f$ declare parts text[]; begin select string_to_array(name, '/') into parts; return parts[1:array_length(parts,1)-1]; end $f$;
 alter table storage.objects enable row level security;
 grant all on storage.objects, storage.buckets to anon, authenticated, service_role;
 """)
@@ -115,10 +116,10 @@ with as_(**maria) as c:
     check("a creator can remove their own video", c.rowcount == 1)
 
 # --- the limit ---------------------------------------------------------------
-for i in range(12):
+for i in range(3):
     add(maria, maria_id, f"https://www.tiktok.com/@maria/video/{100 + i}")
-check("a creator can have 12 videos", True)
-check("the 13th video is refused", fails(lambda: add(maria, maria_id, "https://www.tiktok.com/@maria/video/999"), "too_many_videos"))
+check("a creator can have 3 videos", True)
+check("the 4th video is refused", fails(lambda: add(maria, maria_id, "https://www.tiktok.com/@maria/video/999"), "too_many_videos"))
 check("another creator's limit is separate", not fails(lambda: add(other, other_id, "https://www.tiktok.com/@other/video/1"), "too_many_videos"))
 
 # --- the copy on an application ------------------------------------------------

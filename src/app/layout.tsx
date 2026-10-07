@@ -1,6 +1,6 @@
 import { StagingBanner } from "@/components/site/staging-banner";
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans, Fjalla_One, Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans, Fjalla_One, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
@@ -55,6 +55,14 @@ const heading = DM_Sans({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+// The signed-in app uses a plain, neutral sans (see styles/app-ui.css). preload is off so
+// public pages don't download it; it loads only where the app's CSS asks for it.
+const appFont = Inter({
+  variable: "--font-app",
+  subsets: ["latin"],
+  preload: false,
 });
 
 const body = Plus_Jakarta_Sans({
@@ -184,7 +192,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // have this problem (it's `.dark-invert` but never `:root`), which
       // is exactly why this needed a second, different fix rather than
       // just copying body's.
-      className={`${heading.variable} ${body.variable} ${wordmark.variable} ${brand.variable} ${stencil.variable} h-full bg-[#16151a] antialiased`}
+      className={`${heading.variable} ${appFont.variable} ${body.variable} ${wordmark.variable} ${brand.variable} ${stencil.variable} h-full bg-[#16151a] antialiased`}
     >
       <body className="dark-invert min-h-full bg-background text-foreground">
         <StagingBanner />

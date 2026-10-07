@@ -1,23 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
-import { DisclosureNotice } from "@/components/app/DisclosureNotice";
+import { CampaignView } from "@/components/app/CampaignView";
+import { SubmitContent } from "./SubmitContent";
 import type { VideoItem } from "@/components/app/VideosCard";
-import { CommissionNote } from "@/components/app/CommissionNote";
-import { describeTerms, parsePayoutTerms } from "@/lib/payout-terms";
-import { PayStrip } from "@/components/app/PayStrip";
-import {
-  PLATFORM_LABELS,
-  PAYOUT_TYPE_LABELS,
-  ACCOUNT_REQUIREMENT_LABELS,
-  formatPayoutSummary,
-  formatDate,
-} from "@/lib/utils";
+import { parsePayoutTerms } from "@/lib/payout-terms";
+import { formatDate } from "@/lib/utils";
 
 const APPLICATION_LABELS: Record<string, string> = {
   pending: "Waiting to hear back",
@@ -56,275 +48,203 @@ export default async function JobDetailPage(props: {
     .maybeSingle();
 
   // Existing application and assignment for this job, if any.
-  const [{ data: application }, { data: assignment }, { data: handles }, { data: videos }] =
-    applicant
-      ? await Promise.all([
-          supabase
-            .from("applications")
-            .select("id, status, created_at")
-            .eq("applicant_id", applicant.id)
-            .eq("job_id", job.id)
-            .maybeSingle(),
-          supabase
-            .from("assignments")
-            .select("id")
-            .eq("applicant_id", applicant.id)
-            .eq("job_id", job.id)
-            .maybeSingle(),
-          supabase
-            .from("applicant_handles")
-            .select("*")
-            .eq("applicant_id", applicant.id)
-            .order("is_primary", { ascending: false }),
-          // The creator's own videos, to apply with (RLS: only their own rows).
-          supabase
-            .from("applicant_videos")
-            .select("id, platform, url, title")
-            .eq("applicant_id", applicant.id)
-            .order("created_at", { ascending: false }),
-        ])
-      : [{ data: null }, { data: null }, { data: null }, { data: null }];
+  const [
+    { data: application },
+    { data: assignment },
+    { data: handles },
+    { data: videos },
+  ] = applicant
+    ? await Promise.all([
+        supabase
+          .from("applications")
+          .select("id, status, created_at")
+          .eq("applicant_id", applicant.id)
+          .eq("job_id", job.id)
+          .maybeSingle(),
+        supabase
+          .from("assignments")
+          .select("id, status, proof_url")
+          .eq("applicant_id", applicant.id)
+          .eq("job_id", job.id)
+          .maybeSingle(),
+        supabase
+          .from("applicant_handles")
+          .select("*")
+          .eq("applicant_id", applicant.id)
+          .order("is_primary", { ascending: false }),
+        // The creator's own videos, to apply with (RLS: only their own rows).
+        supabase
+          .from("applicant_videos")
+          .select("id, platform, url, title")
+          .eq("applicant_id", applicant.id)
+          .order("created_at", { ascending: false }),
+      ])
+    : [{ data: null }, { data: null }, { data: null }, { data: null }];
+
+  // What the creator can do next, split the way the page uses it: `cta` is the one
+  // button (shown top right and pinned in the left panel), `notice` explains a state
+  // in the left panel, and `below` is the longer form for campaigns that need one.
+  const joinedUrl = `/dashboard/recruiting/jobs/${job.id}/join`;
+  let intro = "Join to get the full brief and start posting.";
+  let cta: React.ReactNode = null;
+  let notice: React.ReactNode = null;
+  let below: React.ReactNode = null;
+
+  if (!applicant) {
+    intro = "Set up your profile to join this campaign.";
+    cta = (
+      <Button
+        size="lg"
+        className="w-full"
+        nativeButton={false}
+        render={<Link href="/dashboard/recruiting/profile-setup" />}
+      >
+        Set up my profile
+      </Button>
+    );
+  } else if (assignment) {
+    intro = assignment.proof_url
+      ? "Your post is in. You can send a different link if it changes."
+      : "You're on this campaign. Post your video, then submit the link.";
+    cta = (
+      <SubmitContent
+        assignmentId={assignment.id}
+        platform={job.platform}
+        currentProofUrl={assignment.proof_url}
+        label={assignment.proof_url ? "Update my post" : "Submit content"}
+      />
+    );
+  } else if (job.status !== "open") {
+    intro = "This campaign isn't open any more.";
+    cta = (
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full"
+        nativeButton={false}
+        render={<Link href="/dashboard/recruiting/jobs" />}
+      >
+        Browse campaigns
+      </Button>
+    );
+  } else if (application && application.status !== "withdrawn") {
+    intro = "You applied to this campaign.";
+    notice = (
+      <div className="rounded-xl border border-border/70 bg-card p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge
+            tone={
+              application.status === "accepted"
+                ? "success"
+                : application.status === "declined"
+                  ? "error"
+                  : "pending"
+            }
+          >
+            {APPLICATION_LABELS[application.status]}
+          </StatusBadge>
+          <span className="text-sm text-muted-foreground">
+            Sent {formatDate(application.created_at)}
+          </span>
+        </div>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {application.status === "pending"
+            ? "We review applications by hand. You'll get an email either way."
+            : application.status === "declined"
+              ? "Not a fit for this one, but it doesn't affect future campaigns."
+              : "Check your dashboard for the brief."}
+        </p>
+      </div>
+    );
+    cta = (
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full"
+        nativeButton={false}
+        render={<Link href="/dashboard/recruiting/jobs" />}
+      >
+        Browse more campaigns
+      </Button>
+    );
+  } else if (job.sample_required) {
+    // The brand wants to see a sample first, so this one is an application.
+    intro =
+      "This brand wants a sample video first, so each application is reviewed.";
+    if (applicant.status !== "approved") {
+      notice = (
+        <div className="rounded-xl border border-border/70 bg-card p-4">
+          <p className="font-semibold text-foreground">
+            {applicant.status === "pending"
+              ? "Your profile is under review"
+              : "Your profile isn't eligible right now"}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            {applicant.status === "pending"
+              ? "We check new creators by hand, usually within a few days. Once you're approved you can apply to campaigns like this one."
+              : "If you think that's a mistake, get in touch and we'll take another look."}
+          </p>
+        </div>
+      );
+    } else {
+      below = (
+        <section className="mt-8">
+          <h2 className="font-heading text-lg font-semibold text-foreground">
+            Apply for this campaign
+          </h2>
+          <p className="mt-1 mb-4 text-sm text-muted-foreground">
+            Your profile and videos go with your application.
+          </p>
+          <ProfileCard
+            applicant={applicant}
+            handles={handles ?? []}
+            variant="self"
+          />
+          <div className="mt-6">
+            <ApplyForm
+              jobId={job.id}
+              videos={(videos ?? []) as VideoItem[]}
+              sampleRequired={job.sample_required}
+              sampleCriteria={job.sample_criteria}
+            />
+          </div>
+        </section>
+      );
+    }
+  } else if (!(handles ?? []).some((h) => h.verified_at)) {
+    // Your views are counted on your own accounts, so one has to be connected first.
+    intro = "Connect an account to join this campaign.";
+    cta = (
+      <Button
+        size="lg"
+        className="w-full"
+        nativeButton={false}
+        render={<Link href="/dashboard/account/accounts" />}
+      >
+        Connect an account
+      </Button>
+    );
+  } else {
+    cta = (
+      <Button
+        size="lg"
+        className="w-full"
+        nativeButton={false}
+        render={<Link href={joinedUrl} />}
+      >
+        Join campaign
+      </Button>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
-      <Link
-        href="/dashboard/recruiting/jobs"
-        className="text-sm font-semibold text-primary underline underline-offset-2 transition-colors duration-200 hover:text-primary/80"
-      >
-        ← Back to all jobs
-      </Link>
-
-      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
-      <div className="min-w-0">
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge tone="neutral">{PLATFORM_LABELS[job.platform]}</StatusBadge>
-        {job.niches && <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>}
-        <StatusBadge tone={jobStatusTone(job.status)}>
-          {job.status === "open"
-            ? "Open"
-            : job.status === "filled"
-              ? "Filled"
-              : "Closed"}
-        </StatusBadge>
-      </div>
-
-      <h1 className="mt-4 font-heading text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
-        {job.title}
-      </h1>
-
-      {/* How you're paid, first and plainly. */}
-      <section className="mt-6">
-        {terms ? (
-          <>
-            <PayStrip terms={terms} />
-            <ul className="mt-4 list-disc space-y-1 pl-5 text-[15px] text-foreground">
-              {describeTerms(terms).map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <p className="font-heading text-2xl font-semibold text-primary">
-            {formatPayoutSummary(job.payout_type, job.payout_amount)}
-          </p>
-        )}
-        {job.payout_notes && <p className="mt-3 text-[15px] text-muted-foreground">{job.payout_notes}</p>}
-      </section>
-
-      {job.description && (
-        <section className="mt-8">
-          <h2 className="font-heading text-xl font-semibold text-foreground">
-            The brief
-          </h2>
-          <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground">
-            {job.description}
-          </p>
-          <p className="mt-4 rounded-md bg-muted/50 p-4 text-sm leading-relaxed text-muted-foreground">
-            The brand name and full brief are shared with you once you&apos;re
-            assigned to this campaign.
-          </p>
-          <DisclosureNotice className="mt-4" />
-          <CommissionNote className="mt-3" />
-        </section>
-      )}
-
-      {/* ---- Apply / status ---- */}
-      <section className="mt-10">
-        {!applicant ? (
-          <Card className="border-border/70">
-            <CardContent>
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              Finish your profile to apply
-            </h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              Your profile is what gets sent when you apply, so it needs to be
-              filled in first. Takes about three minutes.
-            </p>
-            <Button
-              className="mt-5"
-              nativeButton={false}
-              render={<Link href="/dashboard/recruiting/profile-setup" />}
-            >
-              Set up my profile
-            </Button>
-            </CardContent>
-          </Card>
-        ) : assignment ? (
-          <Card className="border-border/70">
-            <CardContent>
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              You&apos;re on this campaign
-            </h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              Head to your dashboard for the brief and to submit your post.
-            </p>
-            <Button
-              className="mt-5"
-              nativeButton={false}
-              render={<Link href="/dashboard/recruiting" />}
-            >
-              Go to dashboard
-            </Button>
-            </CardContent>
-          </Card>
-        ) : application && application.status !== "withdrawn" ? (
-          <Card className="border-border/70">
-            <CardContent>
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-heading text-lg font-semibold text-foreground">
-                You applied to this campaign
-              </h2>
-              <StatusBadge
-                tone={
-                  application.status === "accepted"
-                    ? "success"
-                    : application.status === "declined"
-                      ? "error"
-                      : "pending"
-                }
-              >
-                {APPLICATION_LABELS[application.status]}
-              </StatusBadge>
-            </div>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              Sent {formatDate(application.created_at)}.{" "}
-              {application.status === "pending"
-                ? "We review applications by hand — you'll get an email either way."
-                : application.status === "declined"
-                  ? "Not a fit for this one, but it doesn't affect future campaigns."
-                  : "Check your dashboard for the brief."}
-            </p>
-            <Button
-              className="mt-5"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/dashboard/recruiting" />}
-            >
-              Track it on my dashboard
-            </Button>
-            </CardContent>
-          </Card>
-        ) : applicant.status !== "approved" ? (
-          <Card className="border-border/70">
-            <CardContent>
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              {applicant.status === "pending"
-                ? "Your profile is under review"
-                : "Your profile isn't eligible right now"}
-            </h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              {applicant.status === "pending"
-                ? "We check new creators by hand, usually within a few days. Once you're approved you can apply to campaigns like this one."
-                : "If you think that's a mistake, get in touch and we'll take another look."}
-            </p>
-            </CardContent>
-          </Card>
-        ) : job.status !== "open" ? (
-          <Card className="border-border/70">
-            <CardContent>
-            <h2 className="font-heading text-lg font-semibold text-foreground">
-              This campaign isn&apos;t taking applications
-            </h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              It&apos;s already been filled. Have a look at what else is open.
-            </p>
-            <Button
-              className="mt-5"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/dashboard/recruiting/jobs" />}
-            >
-              Browse open jobs
-            </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <h2 className="font-heading text-xl font-semibold text-foreground">
-              Apply for this campaign
-            </h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-              This is what we&apos;ll see. Everything on it comes from your
-              profile, so{" "}
-              <Link
-                href="/dashboard/recruiting/profile-setup"
-                className="font-semibold text-primary underline underline-offset-2"
-              >
-                update your profile
-              </Link>{" "}
-              if anything looks out of date.
-            </p>
-
-            <ProfileCard
-              applicant={applicant}
-              handles={handles ?? []}
-              variant="self"
-              className="mt-5"
-            />
-
-            <div className="mt-6">
-              <ApplyForm
-                jobId={job.id}
-                videos={(videos ?? []) as VideoItem[]}
-                sampleRequired={job.sample_required}
-                sampleCriteria={job.sample_criteria}
-              />
-            </div>
-          </>
-        )}
-      </section>
-      </div>
-
-      <aside className="rounded-xl border border-border/70 bg-card p-5 lg:sticky lg:top-6">
-        <h2 className="font-heading text-base font-semibold text-foreground">At a glance</h2>
-        <dl className="mt-4 flex flex-col gap-4 text-sm">
-          <div>
-            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Payout</dt>
-            <dd className="mt-0.5 font-heading text-lg font-semibold text-primary">
-              {formatPayoutSummary(job.payout_type, job.payout_amount)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Pay type</dt>
-            <dd className="mt-0.5 text-foreground">{PAYOUT_TYPE_LABELS[job.payout_type]}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Platform</dt>
-            <dd className="mt-0.5 text-foreground">{PLATFORM_LABELS[job.platform]}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Accounts</dt>
-            <dd className="mt-0.5 text-foreground">{ACCOUNT_REQUIREMENT_LABELS[job.account_requirement]}</dd>
-          </div>
-          {job.sample_required && (
-            <div>
-              <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Sample video</dt>
-              <dd className="mt-0.5 text-foreground">Asked for with your application</dd>
-            </div>
-          )}
-        </dl>
-      </aside>
-      </div>
-    </div>
+    <CampaignView
+      job={job}
+      terms={terms}
+      intro={intro}
+      cta={cta}
+      notice={notice}
+      below={below}
+    />
   );
 }

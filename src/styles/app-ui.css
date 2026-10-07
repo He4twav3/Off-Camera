@@ -1,0 +1,107 @@
+/**
+ * The signed-in creator app's look: flat charcoal, thin borders, small corners, one
+ * violet accent and a plain sans. Applied by putting `app-ui` on the dashboard's root
+ * element, so the public site (which keeps its own bolder style) is untouched.
+ *
+ * It works by redefining the same tokens every component already reads, then
+ * flattening the few things that came from the public site's style: thick outlined
+ * inputs and chips, embossed gradient buttons, pill-shaped tags and the rounded
+ * heading font. Unlayered on purpose, so it wins over utility classes.
+ */
+.app-ui {
+  --background: #0e0f12;
+  --foreground: #ececf0;
+  --card: #141519;
+  --card-foreground: #ececf0;
+  --popover: #16171b;
+  --popover-foreground: #ececf0;
+  --primary: #6a5cf2;
+  --primary-foreground: #ffffff;
+  --secondary: #17181c;
+  --secondary-foreground: #ececf0;
+  --muted: #1a1b20;
+  --muted-foreground: #8a8c98;
+  --accent: #23242b;
+  --accent-foreground: #f4f4f6;
+  --border: #25262c;
+  --input: #2b2c33;
+  --ring: #6a5cf2;
+  --ink: #2b2c33;
+  --radius: 0.5rem;
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-app, ui-sans-serif, system-ui, sans-serif);
+  letter-spacing: -0.005em;
+}
+
+/* One plain font for everything, headings included, a little tighter. */
+.app-ui .font-heading {
+  font-family: inherit;
+  letter-spacing: -0.015em;
+}
+
+/* Inputs: one thin line, small corners, a violet ring when focused. */
+.app-ui
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(
+    [type="range"]
+  ),
+.app-ui select,
+.app-ui textarea {
+  border-width: 1px;
+  border-color: var(--input);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+  box-shadow: none;
+}
+.app-ui
+  input:not([type="checkbox"]):not([type="radio"]):not(
+    [type="file"]
+  ):focus-visible,
+.app-ui select:focus-visible,
+.app-ui textarea:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 28%, transparent);
+}
+.app-ui input[type="checkbox"],
+.app-ui input[type="radio"] {
+  border-width: 1px;
+  border-color: var(--input);
+}
+
+/* Chip pickers (skills): small squared chips, not outlined pills. */
+.app-ui button[aria-pressed] {
+  border-width: 1px;
+  border-radius: 0.5rem;
+  border-color: var(--input);
+  background: var(--background);
+  color: var(--foreground);
+}
+.app-ui button[aria-pressed="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Buttons: flat. No gradient, no glow, no stacked shadows. */
+.app-ui .btn-emboss,
+.app-ui .btn-emboss-on-light {
+  background-image: none;
+  box-shadow: none;
+}
+.app-ui .btn-emboss-on-light:hover,
+.app-ui .btn-emboss:hover {
+  box-shadow: none;
+}
+
+/* Status tags and counts: small rounded rectangles instead of pills. */
+.app-ui .rounded-4xl {
+  border-radius: 0.375rem;
+}
+
+/* Cards: a thin border, nothing else. */
+.app-ui [data-slot="card"] {
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+  border: 1px solid var(--border);
+}

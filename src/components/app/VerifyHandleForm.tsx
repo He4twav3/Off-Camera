@@ -9,13 +9,13 @@ const initial: VerifyHandleState = {};
 export function VerifyHandleForm({ handleId }: { handleId: string }) {
   const [state, formAction, pending] = useActionState(verifyHandleAction, initial);
   return (
-    <form action={formAction} className="mt-2">
+    <form action={formAction} className="flex flex-wrap items-center gap-3">
       <input type="hidden" name="handle_id" value={handleId} />
-      <Button type="submit" size="sm" variant="outline" disabled={pending}>
-        {pending ? "Checking…" : "Check my bio"}
+      <Button type="submit" size="sm" disabled={pending}>
+        {pending ? "Checking…" : "Verify"}
       </Button>
-      {state.error && <p className="mt-2 text-sm font-medium text-destructive">{state.error}</p>}
-      {state.success && <p className="mt-2 text-sm text-muted-foreground">{state.success}</p>}
+      {state.error && <p className="w-full text-sm font-medium text-destructive">{state.error}</p>}
+      {state.success && <p className="w-full text-sm text-muted-foreground">{state.success}</p>}
     </form>
   );
 }

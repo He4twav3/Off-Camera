@@ -11,7 +11,7 @@ const t = (n: string, ok: boolean, got?: unknown) => {
   console.log(ok ? "PASS" : "FAIL", n, ok ? "" : JSON.stringify(got));
 };
 
-t("limits match the database", MAX_PROFILE_VIDEOS === 12 && MAX_APPLICATION_VIDEOS === 5);
+t("limits match the database", MAX_PROFILE_VIDEOS === 3 && MAX_APPLICATION_VIDEOS === 5);
 
 // which platform
 t("TikTok", detectPlatform("https://www.tiktok.com/@maria/video/123") === "tiktok");
