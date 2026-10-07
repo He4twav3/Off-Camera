@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login?next=/admin");
+  if (!user) redirect("/admin/login");
 
   // Second gate behind the middleware check — same is_admin() allowlist that
   // backs the RLS policies, so a direct request can't slip past.

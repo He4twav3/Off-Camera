@@ -107,11 +107,11 @@ export function AdminMobileMenu({ groups, email }: { groups: AdminNavGroup[]; em
   );
 }
 
-/** Sign out and stay inside admin: lands on the login page, never the public site. */
+/** Sign out and stay inside admin: lands on the admin sign-in, never the public site. */
 export function AdminSignOut() {
   return (
     <form action="/auth/signout" method="post">
-      <input type="hidden" name="next" value="/login" />
+      <input type="hidden" name="next" value="/admin/login" />
       <button
         type="submit"
         className="mt-1 flex min-h-10 w-full cursor-pointer items-center rounded-lg px-3 py-2 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

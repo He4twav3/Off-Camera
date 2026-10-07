@@ -41,6 +41,8 @@ t("a *.vercel.app address cannot reach admin", is(decide("project-abc.vercel.app
 t("admin address with the secret: /admin works", is(decide(ADMIN, "/admin"), "allow"));
 t("admin address with the secret: admin sub-pages work", is(decide(ADMIN, "/admin/jobs/abc/contract"), "allow"));
 t("admin address: the host's case and port are ignored", is(decide("ADMIN.Example.com:443", "/admin"), "allow"));
+t("admin address: the admin sign-in page works", is(decide(ADMIN, "/admin/login"), "allow"));
+t("public address: the admin sign-in page does not exist", is(decide("www.example.com", "/admin/login"), "notfound"));
 t("admin address with the secret: login works", is(decide(ADMIN, "/login"), "allow"));
 t("admin address with the secret: sign-out works", is(decide(ADMIN, "/auth/signout"), "allow"));
 t("admin address with the secret: password reset works", is(decide(ADMIN, "/reset-password"), "allow") && is(decide(ADMIN, "/forgot-password"), "allow"));

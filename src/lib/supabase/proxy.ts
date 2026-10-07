@@ -44,10 +44,32 @@ export async function updateSession(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
   const isAdminRoute = path.startsWith(ADMIN_PREFIX);
 
-  if (!user && (isProtected || isAdminRoute)) {
+  // The admin panel has its own sign-in page, which must be reachable when signed out.
+  const isAdminLogin = path === "/admin/login";
+
+  if (!user && isAdminRoute && !isAdminLogin) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/login";
+    url.search = "";
+    url.searchParams.set("next", path);
+    return NextResponse.redirect(url);
+  }
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", path);
+    return NextResponse.redirect(url);
+  }
+
+  // Signed in already: the admin sign-in page is pointless. Admins go on to the panel
+  // (which asks for the authenticator code if needed); anyone else sees nothing here.
+  if (user && isAdminLogin) {
+    const { data: isAdminHere } = await supabase.rpc("is_admin");
+    if (!isAdminHere) return new NextResponse("Not found", { status: 404 });
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
