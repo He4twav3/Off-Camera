@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
 import { DisclosureNotice } from "@/components/app/DisclosureNotice";
+import type { VideoItem } from "@/components/app/VideosCard";
 import { CommissionNote } from "@/components/app/CommissionNote";
 import { describeTerms, parsePayoutTerms } from "@/lib/payout-terms";
 import { PayStrip } from "@/components/app/PayStrip";
@@ -55,7 +56,7 @@ export default async function JobDetailPage(props: {
     .maybeSingle();
 
   // Existing application and assignment for this job, if any.
-  const [{ data: application }, { data: assignment }, { data: handles }] =
+  const [{ data: application }, { data: assignment }, { data: handles }, { data: videos }] =
     applicant
       ? await Promise.all([
           supabase
@@ -75,11 +76,17 @@ export default async function JobDetailPage(props: {
             .select("*")
             .eq("applicant_id", applicant.id)
             .order("is_primary", { ascending: false }),
+          // The creator's own videos, to apply with (RLS: only their own rows).
+          supabase
+            .from("applicant_videos")
+            .select("id, platform, url, title")
+            .eq("applicant_id", applicant.id)
+            .order("created_at", { ascending: false }),
         ])
-      : [{ data: null }, { data: null }, { data: null }];
+      : [{ data: null }, { data: null }, { data: null }, { data: null }];
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-12">
+    <div className="mx-auto max-w-5xl px-5 py-10">
       <Link
         href="/dashboard/recruiting/jobs"
         className="text-sm font-semibold text-primary underline underline-offset-2 transition-colors duration-200 hover:text-primary/80"
@@ -87,7 +94,9 @@ export default async function JobDetailPage(props: {
         ← Back to all jobs
       </Link>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+      <div className="min-w-0">
+      <div className="flex flex-wrap items-center gap-2">
         <StatusBadge tone="neutral">{PLATFORM_LABELS[job.platform]}</StatusBadge>
         {job.niches && <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>}
         <StatusBadge tone={jobStatusTone(job.status)}>
@@ -103,69 +112,29 @@ export default async function JobDetailPage(props: {
         {job.title}
       </h1>
 
-      <Card className="mt-8 border-border/70">
-        <CardContent>
-        <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm font-semibold text-muted-foreground">
-              Payout
-            </dt>
-            <dd className="mt-1 font-heading text-2xl font-semibold text-primary">
-              {terms ? (
-                <PayStrip terms={terms} />
-              ) : (
-                formatPayoutSummary(job.payout_type, job.payout_amount)
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-muted-foreground">
-              Payout type
-            </dt>
-            <dd className="mt-1 text-[15px] text-foreground">
-              {PAYOUT_TYPE_LABELS[job.payout_type]}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-muted-foreground">
-              Account requirement
-            </dt>
-            <dd className="mt-1 text-[15px] text-foreground">
-              {ACCOUNT_REQUIREMENT_LABELS[job.account_requirement]}
-            </dd>
-          </div>
-          {terms && (
-            <div className="sm:col-span-2">
-              <dt className="text-sm font-semibold text-muted-foreground">
-                How you&apos;re paid
-              </dt>
-              <dd className="mt-1">
-                <ul className="list-disc space-y-1 pl-5 text-[15px] text-foreground">
-                  {describeTerms(terms).map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </dd>
-            </div>
-          )}
-          {job.payout_notes && (
-            <div>
-              <dt className="text-sm font-semibold text-muted-foreground">
-                Payout notes
-              </dt>
-              <dd className="mt-1 text-[15px] text-foreground">
-                {job.payout_notes}
-              </dd>
-            </div>
-          )}
-        </dl>
-        </CardContent>
-      </Card>
+      {/* How you're paid, first and plainly. */}
+      <section className="mt-6">
+        {terms ? (
+          <>
+            <PayStrip terms={terms} />
+            <ul className="mt-4 list-disc space-y-1 pl-5 text-[15px] text-foreground">
+              {describeTerms(terms).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="font-heading text-2xl font-semibold text-primary">
+            {formatPayoutSummary(job.payout_type, job.payout_amount)}
+          </p>
+        )}
+        {job.payout_notes && <p className="mt-3 text-[15px] text-muted-foreground">{job.payout_notes}</p>}
+      </section>
 
       {job.description && (
         <section className="mt-8">
           <h2 className="font-heading text-xl font-semibold text-foreground">
-            About this campaign
+            The brief
           </h2>
           <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground">
             {job.description}
@@ -316,6 +285,7 @@ export default async function JobDetailPage(props: {
             <div className="mt-6">
               <ApplyForm
                 jobId={job.id}
+                videos={(videos ?? []) as VideoItem[]}
                 sampleRequired={job.sample_required}
                 sampleCriteria={job.sample_criteria}
               />
@@ -323,6 +293,38 @@ export default async function JobDetailPage(props: {
           </>
         )}
       </section>
+      </div>
+
+      <aside className="rounded-xl border border-border/70 bg-card p-5 lg:sticky lg:top-6">
+        <h2 className="font-heading text-base font-semibold text-foreground">At a glance</h2>
+        <dl className="mt-4 flex flex-col gap-4 text-sm">
+          <div>
+            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Payout</dt>
+            <dd className="mt-0.5 font-heading text-lg font-semibold text-primary">
+              {formatPayoutSummary(job.payout_type, job.payout_amount)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Pay type</dt>
+            <dd className="mt-0.5 text-foreground">{PAYOUT_TYPE_LABELS[job.payout_type]}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Platform</dt>
+            <dd className="mt-0.5 text-foreground">{PLATFORM_LABELS[job.platform]}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Accounts</dt>
+            <dd className="mt-0.5 text-foreground">{ACCOUNT_REQUIREMENT_LABELS[job.account_requirement]}</dd>
+          </div>
+          {job.sample_required && (
+            <div>
+              <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Sample video</dt>
+              <dd className="mt-0.5 text-foreground">Asked for with your application</dd>
+            </div>
+          )}
+        </dl>
+      </aside>
+      </div>
     </div>
   );
 }

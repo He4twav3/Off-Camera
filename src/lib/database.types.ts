@@ -430,6 +430,34 @@ export interface Database {
           },
         ];
       };
+      applicant_videos: {
+        Row: {
+          id: string;
+          applicant_id: string;
+          platform: PlatformEnum;
+          url: string;
+          title: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          applicant_id: string;
+          platform: PlatformEnum;
+          url: string;
+          title?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["applicant_videos"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "applicant_videos_applicant_id_fkey";
+            columns: ["applicant_id"];
+            isOneToOne: false;
+            referencedRelation: "applicants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       applications: {
         Row: {
           id: string;
@@ -438,6 +466,7 @@ export interface Database {
           status: ApplicationStatusEnum;
           cover_note: string | null;
           sample_url: string | null;
+          video_urls: string[];
           created_at: string;
           decided_at: string | null;
         };
@@ -448,6 +477,7 @@ export interface Database {
           status?: ApplicationStatusEnum;
           cover_note?: string | null;
           sample_url?: string | null;
+          video_urls?: string[];
           created_at?: string;
           decided_at?: string | null;
         };
@@ -692,6 +722,7 @@ export type Applicant = Database["public"]["Tables"]["applicants"]["Row"];
 export type Assignment = Database["public"]["Tables"]["assignments"]["Row"];
 export type Payout = Database["public"]["Tables"]["payouts"]["Row"];
 export type DirectPayment = Database["public"]["Tables"]["direct_payments"]["Row"];
+export type ApplicantVideo = Database["public"]["Tables"]["applicant_videos"]["Row"];
 export type Withdrawal = Database["public"]["Tables"]["withdrawals"]["Row"];
 export type BalanceEntry = Database["public"]["Tables"]["balance_entries"]["Row"];
 export type ApplicantHandle =

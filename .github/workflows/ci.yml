@@ -58,6 +58,7 @@ jobs:
           python3 scripts/test-withdrawals-sql.py
           python3 scripts/test-direct-payments-sql.py
           python3 scripts/test-admin-mfa-sql.py
+          python3 scripts/test-creator-videos-sql.py
 
       - name: Build
         run: npm run build

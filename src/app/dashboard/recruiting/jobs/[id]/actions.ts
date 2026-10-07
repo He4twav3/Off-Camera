@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { sendApplicationReceivedEmail } from "@/lib/email/notifications";
 import { parseDriveLink } from "@/lib/drive-link";
+import { pickVideoIds } from "@/lib/creator-videos";
 
 export interface ApplyState {
   error?: string;
@@ -75,11 +76,28 @@ export async function applyToJobAction(
     sampleUrl = link.url;
   }
 
+  // The videos the creator chose to apply with. They must be on the creator's own
+  // profile (row-level security only shows them their own); the links are copied
+  // onto the application so later profile changes don't alter what was sent.
+  const picked = pickVideoIds(formData.getAll("video_ids").map(String));
+  if (!picked.ok) return { error: picked.error };
+  const { data: owned } = await supabase
+    .from("applicant_videos")
+    .select("id, url")
+    .eq("applicant_id", applicant.id)
+    .in("id", picked.ids);
+  if (!owned || owned.length !== picked.ids.length) {
+    return { error: "One of those videos is no longer on your profile. Refresh the page and pick again." };
+  }
+  const urlById = new Map(owned.map((v) => [v.id, v.url]));
+  const videoUrls = picked.ids.map((id) => urlById.get(id)!);
+
   const { error } = await supabase.from("applications").insert({
     job_id: parsed.data.job_id,
     applicant_id: applicant.id,
     cover_note: parsed.data.cover_note || null,
     sample_url: sampleUrl,
+    video_urls: videoUrls,
   });
 
   if (error) {

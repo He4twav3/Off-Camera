@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { CheckCircle2, Clock, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge, assignmentStatusTone, applicantStatusTone } from "@/components/ui/status-badge";
+import { StatusBadge, assignmentStatusTone } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { ProofForm } from "./ProofForm";
 import { ApplicationsList, type ApplicationRow } from "./ApplicationsList";
@@ -16,6 +16,8 @@ import { AccountsCard } from "@/components/app/AccountsCard";
 import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import { CommissionNote } from "@/components/app/CommissionNote";
 import { CopyLinkButton } from "@/components/app/CopyLinkButton";
+import { ProfileSummary } from "@/components/app/ProfileSummary";
+import { VideosCard } from "@/components/app/VideosCard";
 import { ProfileStrength } from "@/components/app/ProfileStrength";
 import { profileCompleteness } from "@/lib/profile-completeness";
 import { formatCurrency, formatDate, PLATFORM_LABELS } from "@/lib/utils";
@@ -55,7 +57,7 @@ export default async function DashboardPage(props: {
 
   if (!applicant) redirect("/dashboard/recruiting/profile-setup");
 
-  const [{ data: handles }, { data: applications }, { data: assignments }] =
+  const [{ data: handles }, { data: applications }, { data: assignments }, { data: videos }] =
     await Promise.all([
       supabase
         .from("applicant_handles")
@@ -78,6 +80,12 @@ export default async function DashboardPage(props: {
         )
         .eq("applicant_id", applicant.id)
         .order("assigned_at", { ascending: false }),
+      // The creator's own videos (RLS: only their own rows). Empty until 0021 is run.
+      supabase
+        .from("applicant_videos")
+        .select("id, platform, url, title")
+        .eq("applicant_id", applicant.id)
+        .order("created_at", { ascending: false }),
     ]);
 
   // Views on each campaign's post(s), keyed by campaign title. RLS limits this
@@ -123,14 +131,6 @@ export default async function DashboardPage(props: {
           <h1 className="font-heading text-2xl font-semibold text-foreground sm:text-3xl">
             Hi, {applicant.name.split(" ")[0]}
           </h1>
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-[15px] text-muted-foreground">
-            <span>
-              @{applicant.handle} · {PLATFORM_LABELS[applicant.platform]}
-            </span>
-            <StatusBadge tone={applicantStatusTone(applicant.status)}>
-              {APPLICANT_STATUS_LABELS[applicant.status]}
-            </StatusBadge>
-          </p>
         </div>
         {applicant.status === "approved" && (
           <Button
@@ -154,6 +154,15 @@ export default async function DashboardPage(props: {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
         {/* ---- Main column ---- */}
         <div className="flex flex-col gap-8">
+          <ProfileSummary
+            name={applicant.name}
+            status={applicant.status}
+            statusLabel={APPLICANT_STATUS_LABELS[applicant.status]}
+            handles={handles ?? []}
+            location={applicant.location}
+          />
+          <VideosCard videos={videos ?? []} />
+
           <section id="campaigns" className="scroll-mt-20">
             <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
               Your campaigns

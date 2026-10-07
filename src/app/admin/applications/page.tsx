@@ -29,7 +29,7 @@ export default async function AdminApplicationsPage() {
   const { data: applications } = await supabase
     .from("applications")
     .select(
-      "id, status, cover_note, sample_url, created_at, decided_at, jobs(id, title, platform, payout_type, payout_amount), applicants(*, niches(label))",
+      "id, status, cover_note, sample_url, video_urls, created_at, decided_at, jobs(id, title, platform, payout_type, payout_amount), applicants(*, niches(label))",
     )
     .order("created_at", { ascending: false });
 
@@ -132,6 +132,7 @@ interface RowProps {
     status: string;
     cover_note: string | null;
     sample_url: string | null;
+    video_urls: string[];
     created_at: string;
     decided_at: string | null;
     jobs: {
@@ -178,6 +179,28 @@ function ApplicationRow({ app, handles }: RowProps) {
         <blockquote className="border-l-2 border-primary pl-4 text-[15px] leading-relaxed text-foreground">
           {app.cover_note}
         </blockquote>
+      )}
+
+      {app.video_urls.length > 0 && (
+        <div>
+          <p className="text-[15px] font-semibold text-foreground">
+            Applied with {app.video_urls.length} {app.video_urls.length === 1 ? "video" : "videos"}
+          </p>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {app.video_urls.map((url) => (
+              <li key={url}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="break-all text-sm font-semibold text-primary underline underline-offset-2"
+                >
+                  {url}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {app.sample_url && (
