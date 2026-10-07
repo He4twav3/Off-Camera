@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/site/logo";
 import { VerifyForm } from "./verify-form";
+import { SignupsClosed } from "@/components/site/signups-closed";
+import { signupsOpen } from "@/lib/signups";
 import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
@@ -13,7 +15,9 @@ export const metadata: Metadata = {
 export default async function VerifyPage(props: {
   searchParams: Promise<{ email?: string }>;
 }) {
+  // Read the query first so the page renders per request (see create-account/page.tsx).
   const { email } = await props.searchParams;
+  if (!signupsOpen()) return <SignupsClosed />;
   if (!email) redirect("/create-account");
 
   return (
