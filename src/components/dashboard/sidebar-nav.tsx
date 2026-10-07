@@ -2,28 +2,29 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Settings, Briefcase, Search, UserCircle, ShieldCheck, Send, Wallet } from "lucide-react";
+import { LayoutDashboard, Settings, Briefcase, UserCircle, Send, Wallet, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const COURSE_ITEMS = [{ href: "/dashboard", label: "Course", icon: LayoutDashboard }];
-
-const ACCOUNT_ITEMS = [{ href: "/dashboard/account", label: "Account", icon: Settings }];
-
-const RECRUITING_ITEMS = [
-  { href: "/dashboard/recruiting", label: "Recruiting home", icon: Briefcase, countKey: "applications" as const },
-  { href: "/dashboard/recruiting/jobs", label: "Browse jobs", icon: Search, countKey: null },
+// One short, flat list: what a creator does, in the order they do it. No section
+// headings and no admin link (admins have their own sign-in and panel).
+const MAIN_ITEMS = [
+  { href: "/dashboard/recruiting", label: "Home", icon: LayoutDashboard, countKey: "applications" as const },
+  { href: "/dashboard/recruiting/jobs", label: "Campaigns", icon: Briefcase, countKey: null },
   { href: "/dashboard/recruiting/submissions", label: "Submissions", icon: Send, countKey: null },
   { href: "/dashboard/recruiting/earnings", label: "Earnings", icon: Wallet, countKey: null },
-  { href: "/dashboard/recruiting/profile-setup", label: "My profile", icon: UserCircle, countKey: null },
+  { href: "/dashboard/recruiting/profile-setup", label: "Profile", icon: UserCircle, countKey: null },
 ];
 
-// "/dashboard" and "/dashboard/recruiting" are each an index route with
-// their own sibling items nested underneath in this same nav (Account;
-// Browse jobs/My profile) — prefix-matching either would also light up
-// while viewing one of those siblings, so they need exact matches only.
-// Nothing else here has that shape, so plain prefix matching is correct
-// for the rest (e.g. "Browse jobs" should stay active on a job's own
-// detail page, which isn't a nav item of its own).
+// Quieter, set apart at the bottom. The course is optional: nothing waits on it.
+const SECONDARY_ITEMS = [
+  { href: "/dashboard", label: "Course (optional)", icon: GraduationCap },
+  { href: "/dashboard/account", label: "Account", icon: Settings },
+];
+
+// "/dashboard" and "/dashboard/recruiting" are each an index route with sibling
+// items beneath them in this same nav, so prefix-matching either would also light
+// up while viewing a sibling: they match exactly. Everything else matches by
+// prefix, so "Campaigns" stays active on a single campaign's page.
 const EXACT_ONLY = new Set(["/dashboard", "/dashboard/recruiting"]);
 
 function isActive(pathname: string, href: string) {
@@ -50,7 +51,7 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-        active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -64,59 +65,27 @@ function NavLink({
   );
 }
 
-export function SidebarNav({
-  recruitingCounts,
-  isAdmin,
-}: {
-  recruitingCounts: { applications: number; campaigns: number };
-  isAdmin: boolean;
-}) {
+export function SidebarNav({ recruitingCounts }: { recruitingCounts: { applications: number; campaigns: number } }) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Main" className="flex flex-col gap-6">
-      <div>
-        <p className="mb-1.5 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Recruiting
-        </p>
-        <div className="flex flex-col gap-0.5">
-          {RECRUITING_ITEMS.map((item) => (
-            <NavLink
-              key={item.href}
-              {...item}
-              active={isActive(pathname, item.href)}
-              count={item.countKey ? recruitingCounts[item.countKey] : undefined}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* The course is optional: nothing in Recruiting waits on it. */}
-      <div>
-        <p className="mb-1.5 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Course <span className="font-normal normal-case">· optional</span>
-        </p>
-        <div className="flex flex-col gap-0.5">
-          {COURSE_ITEMS.map((item) => (
-            <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />
-          ))}
-        </div>
-      </div>
-
+    <nav aria-label="Main" className="flex flex-col gap-8">
       <div className="flex flex-col gap-0.5">
-        {ACCOUNT_ITEMS.map((item) => (
-          <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />
+        {MAIN_ITEMS.map((item) => (
+          <NavLink
+            key={item.href}
+            {...item}
+            active={isActive(pathname, item.href)}
+            count={item.countKey ? recruitingCounts[item.countKey] : undefined}
+          />
         ))}
       </div>
 
-      {isAdmin && (
-        <div>
-          <p className="mb-1.5 px-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Admin
-          </p>
-          <NavLink href="/admin" label="Admin panel" icon={ShieldCheck} active={false} />
-        </div>
-      )}
+      <div className="flex flex-col gap-0.5 border-t border-border/70 pt-4">
+        {SECONDARY_ITEMS.map((item) => (
+          <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />
+        ))}
+      </div>
     </nav>
   );
 }

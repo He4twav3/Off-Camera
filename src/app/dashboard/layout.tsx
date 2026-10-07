@@ -34,7 +34,9 @@ export default async function DashboardLayout({
   const session = shell.session ?? { displayName: "Creator", email: "creator@example.com", initials: "CR" };
 
   return (
-    <div className="flex min-h-full flex-1 bg-secondary/30">
+    // relative z-10: lifts the page above the site's fixed dark vignette (dark-invert.css),
+    // which would otherwise dim content near the bottom of the screen.
+    <div className="relative z-10 flex min-h-full flex-1 bg-secondary/30">
       {/* ---- Sidebar (desktop) ---- */}
       {/* overflow-y-auto on the outer rail, not just the nav — so if content
           ever runs taller than the viewport, the whole rail scrolls instead
@@ -45,10 +47,7 @@ export default async function DashboardLayout({
             <Logo />
           </div>
           <div className="flex-1">
-            <SidebarNav
-              recruitingCounts={shell.recruiting}
-              isAdmin={shell.isAdmin}
-            />
+            <SidebarNav recruitingCounts={shell.recruiting} />
           </div>
           <SidebarAccount displayName={session.displayName} email={session.email} initials={session.initials} />
         </div>

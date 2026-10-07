@@ -16,7 +16,7 @@ import {
   StatGrid,
   Tabs,
   type TabItem,
-} from "@/components/admin/ui";
+} from "@/components/kit/ui";
 import { IssueForm } from "./IssueForm";
 import { adminMarkBrandPaidAction, toggleFeeReceivedAction, voidStatementAction } from "./actions";
 

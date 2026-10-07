@@ -32,10 +32,7 @@ export function MobileNav({ shell }: { shell: ShellData }) {
           <Logo />
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-3 py-4" onClick={() => setOpen(false)}>
-          <SidebarNav
-            recruitingCounts={shell.recruiting}
-            isAdmin={shell.isAdmin}
-          />
+          <SidebarNav recruitingCounts={shell.recruiting} />
         </div>
         <div className="px-3 pb-4">
           <SidebarAccount

@@ -5,7 +5,7 @@ import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 /**
- * The admin design kit. Every admin page is built from these so they all look
+ * The app design kit. Admin, brand and creator pages are built from these so they all look
  * and behave the same: a header with the numbers that matter, tabs with counts,
  * dense rows, and details that open only when needed.
  *
