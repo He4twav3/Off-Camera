@@ -1,8 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogoutButton } from "@/components/dashboard/logout-button";
 
 /** Pinned to the foot of the sidebar rail (and reused inside the mobile
- * drawer) — who's signed in, and the one way out. */
+ * drawer) — who's signed in. Logging out lives only on the Account page. */
 export function SidebarAccount({
   displayName,
   email,
@@ -25,7 +24,6 @@ export function SidebarAccount({
           <span className="block truncate text-xs text-muted-foreground">{email}</span>
         </span>
       </div>
-      <LogoutButton />
     </div>
   );
 }
