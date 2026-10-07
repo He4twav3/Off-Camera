@@ -9,6 +9,7 @@ import { SIGNUP_COOKIE } from "./constants";
 import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 import { parseCreatorSignup, signupMetadata } from "@/lib/creator-signup";
 import { brandMetadata, parseBrandSignup } from "@/lib/brand-signup";
+import { SIGNUPS_CLOSED_MESSAGE, signupsOpen } from "@/lib/signups";
 
 export type CreateAccountState = { error?: string };
 
@@ -27,6 +28,8 @@ export async function createAccount(
   _prev: CreateAccountState,
   formData: FormData,
 ): Promise<CreateAccountState> {
+  if (!signupsOpen()) return { error: SIGNUPS_CLOSED_MESSAGE };
+
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 

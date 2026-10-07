@@ -8,6 +8,7 @@ import { sendVerificationCode, verifyCode } from "@/lib/email-code";
 import { createBrandAccount } from "@/lib/brand-signup";
 import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 import { SIGNUP_COOKIE } from "../constants";
+import { SIGNUPS_CLOSED_MESSAGE, signupsOpen } from "@/lib/signups";
 
 export type VerifyState = { error?: string; message?: string };
 
@@ -18,6 +19,8 @@ export type VerifyState = { error?: string; message?: string };
  * dashboard, which greets them by name.
  */
 export async function verifyAccount(_prev: VerifyState, formData: FormData): Promise<VerifyState> {
+  // Closed means closed all the way: nobody who started before it closed can finish either.
+  if (!signupsOpen()) return { error: SIGNUPS_CLOSED_MESSAGE };
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
   if (!email) return { error: "Start again from the sign-up page." };
@@ -56,6 +59,7 @@ export async function verifyAccount(_prev: VerifyState, formData: FormData): Pro
 }
 
 export async function resendCode(_prev: VerifyState, formData: FormData): Promise<VerifyState> {
+  if (!signupsOpen()) return { error: SIGNUPS_CLOSED_MESSAGE };
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email) return { error: "Start again from the sign-up page." };
   if (!rateLimit(`resend:${await clientIp()}`, 10, 10 * 60_000)) return { error: TOO_MANY };

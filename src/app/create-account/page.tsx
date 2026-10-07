@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
 import { CreateAccountForm } from "./create-account-form";
+import { SignupsClosed } from "@/components/site/signups-closed";
+import { signupsOpen } from "@/lib/signups";
 import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
@@ -14,7 +16,10 @@ export const metadata: Metadata = {
 export default async function CreateAccountPage(props: {
   searchParams: Promise<{ type?: string }>;
 }) {
+  // Read the query first: it makes this page render per request, so the SIGNUPS_OPEN setting
+  // is checked live and never baked into the build.
   const { type } = await props.searchParams;
+  if (!signupsOpen()) return <SignupsClosed />;
   const isBrand = type === "brand";
   return (
     <div className="dark-invert flex min-h-screen flex-col items-center justify-center bg-background px-4 py-16 text-foreground">
