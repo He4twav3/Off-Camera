@@ -4,7 +4,11 @@ import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { getBrandCampaigns } from "@/lib/brand-data";
-import { PLATFORM_LABELS, formatDate } from "@/lib/utils";
+import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { STATE_LABEL, isDirectPay, statementState } from "@/lib/direct-pay";
+import { getBrandStatements } from "@/lib/direct-pay-data";
+import { PayCreatorForm } from "./PayCreatorForm";
 
 export const metadata: Metadata = { title: "Your campaigns" };
 
@@ -32,6 +36,7 @@ export default async function BrandDashboardPage() {
 
   const firstName = brand.contact_name.split(" ")[0];
   const campaigns = brand.status === "approved" ? await getBrandCampaigns(brand.id) : [];
+  const statements = brand.status === "approved" && isDirectPay() ? await getBrandStatements(brand.id) : [];
   const creatorCount = campaigns.reduce((n, c) => n + c.creators.length, 0);
   const totalViews = campaigns.reduce((n, c) => n + c.totalViews, 0);
 
@@ -63,6 +68,54 @@ export default async function BrandDashboardPage() {
             <Stat label="Creators" value={creatorCount.toLocaleString()} />
             <Stat label="Total views" value={totalViews.toLocaleString()} />
           </dl>
+
+          {statements.length > 0 && (
+            <section className="mb-8">
+              <h2 className="font-heading text-xl font-semibold">Payments to creators</h2>
+              <p className="mt-1 text-[15px] text-muted-foreground">
+                You pay each creator directly, the way they asked, from your own account. Send the full amount shown, in US
+                dollars, and cover any transfer fees so they receive all of it. Then mark it as paid here so they can confirm.
+              </p>
+              <ul className="mt-4 flex flex-col gap-4">
+                {statements.map((st) => {
+                  const state = statementState(st);
+                  return (
+                    <li key={st.id}>
+                      <Card className="border-border/70">
+                        <CardContent>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <StatusBadge tone={state === "overdue" || state === "disputed" ? "error" : state === "confirmed" ? "success" : "pending"}>
+                                {state === "brand_says_paid" ? "You marked it paid. Waiting for the creator to confirm" : STATE_LABEL[state]}
+                              </StatusBadge>
+                              <h3 className="mt-3 text-[15px] font-semibold">
+                                {st.creatorName} <span className="font-normal text-muted-foreground">@{st.creatorHandle}</span>
+                              </h3>
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                {st.campaign} · due {formatDate(st.due_at)}
+                              </p>
+                              {state !== "confirmed" && (
+                                <p className="mt-2 text-sm">
+                                  <span className="font-semibold">Pay to: </span>
+                                  {st.payTo ?? "The creator hasn't added payment details yet. We've asked them to."}
+                                </p>
+                              )}
+                            </div>
+                            <p className="font-heading text-2xl font-semibold tabular-nums">{formatCurrency(st.amount)}</p>
+                          </div>
+                          {!st.brand_paid_at && !st.creator_confirmed_at && (
+                            <div className="mt-4 border-t border-border pt-4">
+                              <PayCreatorForm id={st.id} />
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
 
           {campaigns.length === 0 ? (
             <Card className="border-border/70 py-10 text-center">

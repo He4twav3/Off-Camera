@@ -92,6 +92,13 @@ export interface Database {
             referencedRelation: "niches";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "jobs_brand_account_id_fkey";
+            columns: ["brand_account_id"];
+            isOneToOne: false;
+            referencedRelation: "brand_accounts";
+            referencedColumns: ["id"];
+          },
         ];
       };
       applicants: {
@@ -125,6 +132,7 @@ export interface Database {
           experience_summary: string | null;
           brands_worked_with: string[];
           content_types: string[];
+          payout_instructions: string | null;
         };
         Insert: {
           id?: string;
@@ -156,6 +164,7 @@ export interface Database {
           experience_summary?: string | null;
           brands_worked_with?: string[];
           content_types?: string[];
+          payout_instructions?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["applicants"]["Insert"]>;
         Relationships: [
@@ -334,6 +343,50 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "payouts_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: true;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      direct_payments: {
+        Row: {
+          id: string;
+          assignment_id: string;
+          amount: number;
+          issued_at: string;
+          due_at: string;
+          brand_paid_at: string | null;
+          brand_method: string | null;
+          brand_reference: string | null;
+          creator_confirmed_at: string | null;
+          creator_disputed_at: string | null;
+          creator_dispute_note: string | null;
+          our_fee: number;
+          fee_received_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          assignment_id: string;
+          amount: number;
+          issued_at?: string;
+          due_at: string;
+          brand_paid_at?: string | null;
+          brand_method?: string | null;
+          brand_reference?: string | null;
+          creator_confirmed_at?: string | null;
+          creator_disputed_at?: string | null;
+          creator_dispute_note?: string | null;
+          our_fee?: number;
+          fee_received_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["direct_payments"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "direct_payments_assignment_id_fkey";
             columns: ["assignment_id"];
             isOneToOne: true;
             referencedRelation: "assignments";
@@ -638,6 +691,7 @@ export type Niche = Database["public"]["Tables"]["niches"]["Row"];
 export type Applicant = Database["public"]["Tables"]["applicants"]["Row"];
 export type Assignment = Database["public"]["Tables"]["assignments"]["Row"];
 export type Payout = Database["public"]["Tables"]["payouts"]["Row"];
+export type DirectPayment = Database["public"]["Tables"]["direct_payments"]["Row"];
 export type Withdrawal = Database["public"]["Tables"]["withdrawals"]["Row"];
 export type BalanceEntry = Database["public"]["Tables"]["balance_entries"]["Row"];
 export type ApplicantHandle =

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { isDirectPay } from "@/lib/direct-pay";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminMfa } from "@/lib/admin-mfa";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +20,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default async function AdminPayoutsPage() {
+  // Brands pay creators directly: statements replace funded-then-released payouts.
+  if (isDirectPay()) redirect("/admin/statements");
   await requireAdminMfa("/admin/payouts");
   const supabase = await createClient();
 

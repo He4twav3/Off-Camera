@@ -2,6 +2,17 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isDirectPay } from "@/lib/direct-pay";
+
+// Brands pay creators directly (see lib/direct-pay.ts), so by default there are
+// statements to issue and nothing to withdraw. PAYMENT_MODE=platform brings the
+// balance-and-withdrawal pages back.
+const PAYMENT_LINKS = isDirectPay()
+  ? [{ href: "/admin/statements", label: "Statements" }]
+  : [
+      { href: "/admin/payouts", label: "Payouts" },
+      { href: "/admin/withdrawals", label: "Withdrawals" },
+    ];
 
 const ADMIN_LINKS = [
   { href: "/admin", label: "Overview" },
@@ -10,8 +21,7 @@ const ADMIN_LINKS = [
   { href: "/admin/brands", label: "Brands" },
   { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/applicants", label: "Creators" },
-  { href: "/admin/payouts", label: "Payouts" },
-  { href: "/admin/withdrawals", label: "Withdrawals" },
+  ...PAYMENT_LINKS,
   { href: "/admin/security", label: "Security" },
   { href: "/admin/niches", label: "Niches" },
 ];
