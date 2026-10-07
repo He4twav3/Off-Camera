@@ -31,11 +31,29 @@ const securityHeaders = [
   },
 ];
 
+/**
+ * Extra rules for the admin panel only. Later entries win, so these replace the
+ * site-wide Referrer-Policy: nothing is ever sent to another site from admin,
+ * pages are never cached by the browser or a proxy, and search engines are told
+ * to stay out. COOP/CORP keep other sites from reaching into an admin window.
+ */
+const adminHeaders = [
+  { key: "Cache-Control", value: "no-store, max-age=0" },
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   allowedDevOrigins: lanDevOrigins,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/admin", headers: adminHeaders },
+      { source: "/admin/:path*", headers: adminHeaders },
+    ];
   },
 };
 

@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       // The dashboard is the logged-in student area — nothing there is
       // meant to rank, and indexing it would leak mock account UI into
       // search results.
-      disallow: "/dashboard",
+      disallow: ["/dashboard", "/admin"],
     },
     sitemap: `${siteConfig.url}/sitemap.xml`,
   };

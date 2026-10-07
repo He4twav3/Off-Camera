@@ -54,7 +54,8 @@ export async function updateSession(request: NextRequest) {
   // Already signed in — /login and /signup don't make sense to revisit.
   if (user && (path === "/login" || path === "/signup" || path === "/create-account")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    const { data: isAdminHere } = await supabase.rpc("is_admin");
+    url.pathname = isAdminHere ? "/admin" : "/dashboard";
     url.search = "";
     return NextResponse.redirect(url);
   }
@@ -65,9 +66,8 @@ export async function updateSession(request: NextRequest) {
     // Postgres can never drift apart.
     const { data: isAdmin } = await supabase.rpc("is_admin");
     if (!isAdmin) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+      // Not an admin: to this person /admin simply doesn't exist.
+      return new NextResponse("Not found", { status: 404 });
     }
 
     // Every admin page needs the two-step code (see lib/admin-mfa-gate.ts); the

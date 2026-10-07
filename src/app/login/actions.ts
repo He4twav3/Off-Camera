@@ -39,14 +39,17 @@ export async function login(
   }
 
   // Go where they were headed (same-site paths only — an absolute URL here
-  // would be an open redirect), otherwise to their own dashboard: creators
-  // to the creator dashboard, everyone else to the main one.
+  // would be an open redirect), otherwise to their own home: admins to the
+  // admin panel, brands to theirs, creators to the creator dashboard.
   const next = String(formData.get("next") ?? "");
   if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  // Admins go to their own panel, not the creator dashboard.
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin) redirect("/admin");
   if (user?.user_metadata?.account_type === "brand") redirect("/brand");
   const { data: applicant } = user
     ? await supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle()

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -163,16 +162,7 @@ function ApplicationRow({ app, handles }: RowProps) {
             {job && <StatusBadge tone="neutral">{PLATFORM_LABELS[job.platform]}</StatusBadge>}
           </div>
           <h3 className="mt-3 font-heading text-lg font-semibold text-foreground">
-            {job ? (
-              <Link
-                href={`/dashboard/recruiting/jobs/${job.id}`}
-                className="underline-offset-2 hover:underline"
-              >
-                {job.title}
-              </Link>
-            ) : (
-              "Campaign removed"
-            )}
+            {job ? job.title : "Campaign removed"}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Applied {formatDate(app.created_at)}

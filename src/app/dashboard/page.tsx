@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { Lock, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCards } from "@/components/dashboard/stat-cards";
@@ -13,6 +15,19 @@ import { TOTAL_LESSONS, TOTAL_MODULES } from "@/lib/curriculum";
 import { COURSE_IS_FREE } from "@/lib/feature-flags";
 
 export default async function DashboardPage() {
+  // An admin account with no creator profile has nothing here: send it to admin.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const [{ data: isAdmin }, { data: creator }] = await Promise.all([
+      supabase.rpc("is_admin"),
+      supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle(),
+    ]);
+    if (isAdmin && !creator) redirect("/admin");
+  }
+
   const session = await getSession();
   const firstName = session?.displayName.split(" ")[0] ?? "Creator";
 

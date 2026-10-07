@@ -1,141 +1,77 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import { isDirectPay, statementState } from "@/lib/direct-pay";
+import { adminNavGroups } from "@/lib/admin-nav";
+import { OverviewView, type QueueItem } from "@/components/admin/overview-view";
 
 export const metadata: Metadata = { title: "Overview · Admin" };
 
 export default async function AdminHomePage() {
   const supabase = await createClient();
+  const direct = isDirectPay();
+  const count = { count: "exact", head: true } as const;
 
-  // Counts only — `head: true` skips returning rows.
-  const [
-    pendingApplicants,
-    pendingApplications,
-    awaitingPayout,
-    openJobs,
-    disputed,
-  ] = await Promise.all([
-    supabase
-      .from("applicants")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending"),
-    supabase
-      .from("applications")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending"),
-    supabase
-      .from("assignments")
-      .select("applicant_payout_amount")
-      .eq("status", "submitted"),
-    supabase
-      .from("jobs")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "open"),
-    supabase
-      .from("assignments")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "disputed"),
-  ]);
+  // Counts only (`head: true` skips returning rows), plus the few small lists
+  // the money numbers need.
+  const [pendingApplicants, pendingApplications, pendingBrands, pendingSignups, openJobs, disputed, submitted] =
+    await Promise.all([
+      supabase.from("applicants").select("*", count).eq("status", "pending"),
+      supabase.from("applications").select("*", count).eq("status", "pending"),
+      supabase.from("brand_accounts").select("*", count).eq("status", "pending"),
+      supabase.from("campaign_signups").select("*", count).eq("status", "pending"),
+      supabase.from("jobs").select("*", count).eq("status", "open"),
+      supabase.from("assignments").select("*", count).eq("status", "disputed"),
+      supabase.from("assignments").select("id, applicant_payout_amount, direct_payments(id)").eq("status", "submitted"),
+    ]);
 
-  const owed = (awaitingPayout.data ?? []).reduce(
-    (sum, a) => sum + Number(a.applicant_payout_amount),
-    0,
-  );
+  const n = (r: { count: number | null }) => r.count ?? 0;
+  const submittedRows = submitted.data ?? [];
 
-  const queue = [
-    {
-      label: "Applications to decide",
-      value: pendingApplications.count ?? 0,
-      href: "/admin/applications",
-      urgent: (pendingApplications.count ?? 0) > 0,
-    },
-    {
-      label: "Creators to review",
-      value: pendingApplicants.count ?? 0,
-      href: "/admin/applicants",
-      urgent: (pendingApplicants.count ?? 0) > 0,
-    },
-    {
-      label: "Posts awaiting payout",
-      value: awaitingPayout.data?.length ?? 0,
-      href: "/admin/payouts",
-      urgent: (awaitingPayout.data?.length ?? 0) > 0,
-    },
-    {
-      label: "Disputes open",
-      value: disputed.count ?? 0,
-      href: "/admin/payouts",
-      urgent: (disputed.count ?? 0) > 0,
-    },
+  const queue: QueueItem[] = [
+    { label: "Applications to decide", value: String(n(pendingApplications)), href: "/admin/applications", urgent: n(pendingApplications) > 0 },
+    { label: "Creators to review", value: String(n(pendingApplicants)), href: "/admin/applicants", urgent: n(pendingApplicants) > 0 },
+    { label: "Brands to approve", value: String(n(pendingBrands)), href: "/admin/brands", urgent: n(pendingBrands) > 0 },
+    { label: "Campaign signups to review", value: String(n(pendingSignups)), href: "/admin/campaigns", urgent: n(pendingSignups) > 0 },
   ];
 
-  return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
-      <header className="mb-8">
-        <h1 className="font-heading text-3xl font-semibold text-foreground">
-          Overview
-        </h1>
-        <p className="mt-2 text-[15px] text-muted-foreground">
-          {openJobs.count ?? 0} open{" "}
-          {(openJobs.count ?? 0) === 1 ? "campaign" : "campaigns"} ·{" "}
-          <span className="font-semibold text-foreground">
-            {formatCurrency(owed)}
-          </span>{" "}
-          owed out to creators
-        </p>
-      </header>
+  let summary: string;
 
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {queue.map((item) => (
-          <li key={item.label}>
-            <Link href={item.href} className="block h-full">
-              <Card className="h-full border-border/70 transition-colors hover:bg-muted/40">
-                <CardContent>
-                  <p className="text-sm font-semibold text-muted-foreground">
-                    {item.label}
-                  </p>
-                  <p
-                    className={
-                      "mt-2 font-heading text-4xl font-semibold tabular-nums " +
-                      (item.urgent ? "text-primary" : "text-muted-foreground")
-                    }
-                  >
-                    {item.value}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          </li>
-        ))}
-      </ul>
+  if (direct) {
+    const { data: statementRows } = await supabase
+      .from("direct_payments")
+      .select("amount, due_at, brand_paid_at, creator_confirmed_at, creator_disputed_at, our_fee, fee_received_at");
+    const statements = statementRows ?? [];
+    const readyForStatement = submittedRows.filter((a) => !a.direct_payments).length;
+    const needAttention = statements.filter((s) => {
+      const state = statementState(s);
+      return state === "overdue" || state === "disputed";
+    }).length;
+    const owedToCreators = statements.filter((s) => !s.creator_confirmed_at).reduce((sum, s) => sum + Number(s.amount), 0);
+    const feesOutstanding = statements.filter((s) => !s.fee_received_at).reduce((sum, s) => sum + Number(s.our_fee), 0);
 
-      <section className="mt-10">
-        <h2 className="mb-4 font-heading text-xl font-semibold text-foreground">
-          Manage
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {[
-            { href: "/admin/jobs", label: "Campaigns", body: "Post, edit and close campaigns." },
-            { href: "/admin/applicants", label: "Creators", body: "Approve, reject and assign." },
-            { href: "/admin/niches", label: "Niches", body: "Edit the niche list creators pick from." },
-          ].map((l) => (
-            <Link key={l.href} href={l.href} className="block h-full">
-              <Card className="h-full border-border/70 transition-colors hover:bg-muted/40">
-                <CardContent>
-                  <h3 className="font-heading text-lg font-semibold text-foreground">
-                    {l.label}
-                  </h3>
-                  <p className="mt-1 text-[15px] text-muted-foreground">
-                    {l.body}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+    queue.push(
+      { label: "Ready for a statement", value: String(readyForStatement), href: "/admin/statements", urgent: readyForStatement > 0 },
+      { label: "Statements needing attention", value: String(needAttention), href: "/admin/statements", urgent: needAttention > 0 },
+      { label: "Our fees not yet received", value: formatCurrency(feesOutstanding), href: "/admin/statements", urgent: feesOutstanding > 0 },
+    );
+    summary = `${n(openJobs)} open ${n(openJobs) === 1 ? "campaign" : "campaigns"} · brands still owe creators ${formatCurrency(owedToCreators)}`;
+  } else {
+    const awaiting = submittedRows.length;
+    const owed = submittedRows.reduce((sum, a) => sum + Number(a.applicant_payout_amount), 0);
+    const withdrawals = await supabase.from("withdrawals").select("*", count).eq("status", "requested");
+    queue.push(
+      { label: "Posts awaiting payout", value: String(awaiting), href: "/admin/payouts", urgent: awaiting > 0 },
+      { label: "Withdrawals to pay", value: String(n(withdrawals)), href: "/admin/withdrawals", urgent: n(withdrawals) > 0 },
+    );
+    summary = `${n(openJobs)} open ${n(openJobs) === 1 ? "campaign" : "campaigns"} · ${formatCurrency(owed)} owed out to creators`;
+  }
+
+  // With direct payment a dispute is a creator reporting a missing payment,
+  // already counted under "Statements needing attention".
+  if (!direct) {
+    queue.push({ label: "Disputes open", value: String(n(disputed)), href: "/admin/payouts", urgent: n(disputed) > 0 });
+  }
+
+  return <OverviewView summary={summary} queue={queue} groups={adminNavGroups(direct)} />;
 }
