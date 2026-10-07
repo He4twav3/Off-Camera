@@ -13,7 +13,7 @@ function Brand() {
     <div className="flex items-center gap-2.5">
       <BrandMark className="size-6" />
       <span className="font-heading text-base font-semibold text-foreground">OnCamera</span>
-      <span className="rounded-full bg-accent-tint px-2.5 py-0.5 text-xs font-semibold text-accent-ink">Admin</span>
+      <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">Admin</span>
     </div>
   );
 }
@@ -30,7 +30,7 @@ export function AdminShell({
   return (
     // relative z-10: the site draws a fixed dark vignette (dark-invert.css) that would
     // otherwise paint over the page and dim text near the bottom of the screen.
-    <div className="relative z-10 flex min-h-screen bg-secondary/30">
+    <div className="app-ui relative z-10 flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-y-auto border-r border-border/70 bg-card lg:block">
         <div className="flex min-h-full flex-col px-3 py-4">
           <div className="px-3 pb-5">

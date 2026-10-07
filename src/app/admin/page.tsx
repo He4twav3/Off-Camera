@@ -53,7 +53,7 @@ export default async function AdminHomePage() {
     queue.push(
       { label: "Ready for a statement", value: String(readyForStatement), href: "/admin/statements", urgent: readyForStatement > 0 },
       { label: "Statements needing attention", value: String(needAttention), href: "/admin/statements", urgent: needAttention > 0 },
-      { label: "Our fees not yet received", value: formatCurrency(feesOutstanding), href: "/admin/statements", urgent: feesOutstanding > 0 },
+      { label: "Our fees not yet received", value: formatCurrency(feesOutstanding), href: "/admin/fees", urgent: feesOutstanding > 0 },
     );
     summary = `${n(openJobs)} open ${n(openJobs) === 1 ? "campaign" : "campaigns"} · brands still owe creators ${formatCurrency(owedToCreators)}`;
   } else {

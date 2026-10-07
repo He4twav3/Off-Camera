@@ -167,6 +167,8 @@ export async function toggleFeeReceivedAction(formData: FormData): Promise<void>
     .update({ fee_received_at: row.fee_received_at ? null : new Date().toISOString() })
     .eq("id", parsed.data.id);
   revalidatePath("/admin/statements");
+  revalidatePath("/admin/fees");
+  revalidatePath("/admin");
 }
 
 /** Remove a statement issued by mistake. Only before anyone has said it was paid. */

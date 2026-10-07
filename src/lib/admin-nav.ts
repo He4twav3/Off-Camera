@@ -14,9 +14,9 @@ export type AdminIcon =
   | "jobs"
   | "signups"
   | "statements"
+  | "fees"
   | "payouts"
   | "withdrawals"
-  | "niches"
   | "security";
 
 export type AdminNavItem = { href: string; label: string; icon: AdminIcon; blurb: string };
@@ -43,7 +43,10 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
     {
       label: "Money",
       items: directPay
-        ? [{ href: "/admin/statements", label: "Statements", icon: "statements", blurb: "Issue statements and track who has paid, and our fees." }]
+        ? [
+            { href: "/admin/statements", label: "Statements", icon: "statements", blurb: "Issue statements and track who has paid." },
+            { href: "/admin/fees", label: "Fees", icon: "fees", blurb: "What each brand owes us, per campaign and creator." },
+          ]
         : [
             { href: "/admin/payouts", label: "Payouts", icon: "payouts", blurb: "Release creators' pay once the brand has paid." },
             { href: "/admin/withdrawals", label: "Withdrawals", icon: "withdrawals", blurb: "Pay creators' withdrawal requests." },
@@ -52,7 +55,6 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
     {
       label: "Settings",
       items: [
-        { href: "/admin/niches", label: "Niches", icon: "niches", blurb: "Edit the niche list creators pick from." },
         { href: "/admin/security", label: "Security", icon: "security", blurb: "Two-step sign-in for your account." },
       ],
     },
