@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { LogoImage } from "@/components/app/LogoImage";
 
 // A campaign has no brand logo to show (the brand name is private until you join),
 // so the banner carries what matters instead: the pay. The colour comes from the
@@ -33,10 +34,8 @@ export function CampaignBanner({
           className,
         )}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <LogoImage
           src={logoUrl}
-          alt=""
           className="max-h-full max-w-[70%] object-contain"
         />
       </div>
