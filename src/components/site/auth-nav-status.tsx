@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -35,31 +33,12 @@ function useClientSession() {
     };
   }, []);
 
-  return { session: state, setSession: setState };
-}
-
-/**
- * A plain `<Link href="/logout">` breaks when you're already on the page
- * you land back on: `/` → `/logout` → `/` is the same route, so a client
- * component that only fetches its session on mount never re-runs and the
- * pill keeps showing "Log out" even though the cookie is really gone.
- * Logging out explicitly here — hit the route, flip local state, then
- * navigate — fixes that regardless of which page it's clicked from.
- */
-function useLogout(setSession: (s: SessionState) => void) {
-  const router = useRouter();
-  return async () => {
-    setSession({ status: "anon" });
-    await fetch("/logout", { cache: "no-store" }).catch(() => {});
-    router.push("/");
-    router.refresh();
-  };
+  return { session: state };
 }
 
 /** Desktop pill next to the other nav links. */
 export function AuthNavPill() {
-  const { session, setSession } = useClientSession();
-  const logout = useLogout(setSession);
+  const { session } = useClientSession();
 
   if (session.status === "loading") {
     return <span className="h-[34px] w-[92px] shrink-0 rounded-full bg-secondary/60" aria-hidden />;
@@ -67,10 +46,9 @@ export function AuthNavPill() {
 
   if (session.status === "authed") {
     return (
-      <button
-        type="button"
-        onClick={logout}
-        title={`Log out (${session.email})`}
+      <Link
+        href="/"
+        title={session.email}
         className="pill-premium focus-premium flex items-center gap-1.5 rounded-full bg-surface-1/70 px-3.5 py-1.5 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground"
       >
         <Avatar className="-ml-1 size-5">
@@ -78,8 +56,8 @@ export function AuthNavPill() {
             {session.initials}
           </AvatarFallback>
         </Avatar>
-        Log out
-      </button>
+        My account
+      </Link>
     );
   }
 
@@ -101,8 +79,7 @@ export function AuthNavRow({
   onNavigate,
   className,
 }: { onNavigate?: () => void; className?: string } = {}) {
-  const { session, setSession } = useClientSession();
-  const logout = useLogout(setSession);
+  const { session } = useClientSession();
 
   if (session.status === "loading") {
     return <div className={cn("h-[42px] rounded-full bg-secondary/60", className)} aria-hidden />;
@@ -110,20 +87,16 @@ export function AuthNavRow({
 
   if (session.status === "authed") {
     return (
-      <button
-        type="button"
-        onClick={() => {
-          onNavigate?.();
-          logout();
-        }}
+      <Link
+        href="/"
+        onClick={onNavigate}
         className={cn(
           "pill-premium focus-premium flex items-center gap-2.5 rounded-full bg-surface-1/70 px-3.5 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-sm transition-colors hover:bg-surface-2 hover:text-foreground",
           className
         )}
       >
-        <LogOut className="size-4" />
-        Log out ({session.email})
-      </button>
+        My account ({session.email})
+      </Link>
     );
   }
 

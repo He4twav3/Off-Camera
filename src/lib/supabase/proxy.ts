@@ -60,6 +60,28 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Signed in: the landing page is never a destination, whichever logo or
+  // link points at "/". The only way back to it is logging out, which
+  // lives in settings. Send them to their own home instead.
+  if (user && path === "/") {
+    const { data: isAdmin } = await supabase.rpc("is_admin");
+    let home = "/dashboard";
+    if (isAdmin) {
+      home = "/admin";
+    } else {
+      const { data: brand } = await supabase
+        .from("brand_accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (brand) home = "/brand";
+    }
+    const url = request.nextUrl.clone();
+    url.pathname = home;
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   if (user && isAdminRoute) {
     // Admin status comes from the DB allowlist via is_admin(), the same
     // function the RLS policies use — so the gate here and the gate in

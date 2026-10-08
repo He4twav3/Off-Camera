@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Logo } from "@/components/site/logo";
 import { teamSignupOpen } from "@/lib/team-signup";
 import { TeamSignupForm } from "./team-signup-form";
@@ -12,7 +13,11 @@ export const metadata: Metadata = {
 
 // Not linked from anywhere. Closed unless TEAM_SIGNUP_KEY is set, and meant to be
 // closed again (key removed) once the team has signed up.
-export default function TeamPage() {
+export default async function TeamPage() {
+  // Wait for a real request first, so this page is rendered on every visit and never
+  // built once with the key baked in. Otherwise a cached build could keep it open
+  // after TEAM_SIGNUP_KEY is deleted.
+  await connection();
   const open = teamSignupOpen(process.env.TEAM_SIGNUP_KEY);
   return (
     <div className="dark-invert flex min-h-screen flex-col items-center justify-center bg-background px-4 py-16 text-foreground">

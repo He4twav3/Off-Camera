@@ -56,6 +56,7 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
       label: "Settings",
       items: [
         { href: "/admin/security", label: "Security", icon: "security", blurb: "Two-step sign-in for your account." },
+        { href: "/admin/settings", label: "Account", icon: "security", blurb: "Your account, and logging out." },
       ],
     },
   ];

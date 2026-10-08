@@ -171,12 +171,12 @@ check("a creator cannot edit a campaign's brief", run(maria, "update jobs set ab
 
 # --- the Getimg campaign file creates a valid campaign ------------------------------------------
 cur.execute(open(f"{REPO}/supabase/seeds/getimg-campaign.sql").read())
-cur.execute("select post_terms, status, payout_amount from jobs where title like 'Getimg:%'")
+cur.execute("select post_terms, status, payout_amount from jobs where title = 'Getimg' order by created_at desc limit 1")
 terms, status, amount = cur.fetchone()
 check("the Getimg file creates an open campaign", status == "open" and float(amount) == 20)
 check("with the contract's base pay, cycle and window", terms["basePerPost"] == 20 and terms["cycleSize"] == 15 and terms["windowDays"] == 30 and terms["keepPublicDays"] == 90, terms)
 check("and the four bonus tiers", [(m["views"], m["amount"]) for m in terms["milestones"]] == [(1000, 2), (5000, 10), (10000, 20), (100000, 200)], terms)
-cur.execute("select about, formats from jobs where title like 'Getimg:%'")
+cur.execute("select about, formats from jobs where title = 'Getimg' order by created_at desc limit 1")
 about_, formats_ = cur.fetchone()
 check("the Getimg file includes the brand note", about_ is not None and "creative AI workspace" in about_, about_)
 check("and four formats that work", formats_ is not None and len(formats_.split("\n")) == 4, formats_)

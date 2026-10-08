@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/site/logo";
 import "@/styles/dark-invert.css";
 
-/** The brand side's frame: logo, one link home, sign out. Used by app/brand/layout.tsx. */
+/** The brand side's frame: logo, a link home, settings. Used by app/brand/layout.tsx. */
 export function BrandShell({ children }: { children: ReactNode }) {
   return (
     <div className="dark-invert flex min-h-screen flex-col bg-background text-foreground">
@@ -16,14 +16,12 @@ export function BrandShell({ children }: { children: ReactNode }) {
             <Link href="/brand" className="text-[15px] font-semibold hover:text-primary">
               Dashboard
             </Link>
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="cursor-pointer text-[15px] font-semibold text-muted-foreground hover:text-foreground"
-              >
-                Sign out
-              </button>
-            </form>
+            <Link
+              href="/brand/settings"
+              className="text-[15px] font-semibold text-muted-foreground hover:text-foreground"
+            >
+              Settings
+            </Link>
           </nav>
         </div>
       </header>
