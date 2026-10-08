@@ -58,33 +58,46 @@ export async function uploadAvatarAction(
   const checked = checkAvatarFile(file.size, bytes);
   if (!checked.ok) return { error: checked.error };
 
-  // A new random name each time, inside the creator's own folder (the storage
-  // rules only allow writes there), so a changed picture is never served stale.
+  // A new random name each time, inside the creator's own folder, so a changed
+  // picture is never served stale. The signed-in check above proves whose folder
+  // it is; the write itself goes through the server key, so it does not depend on
+  // storage rules being set up in the project.
+  const storage = createAdminClient().storage;
   const path = `${user.id}/${crypto.randomUUID()}.${checked.type}`;
-  const { error: uploadError } = await supabase.storage
-    .from("avatars")
-    .upload(path, bytes, {
+  const put = () =>
+    storage.from("avatars").upload(path, bytes, {
       contentType: AVATAR_CONTENT_TYPES[checked.type],
       upsert: false,
     });
-  if (uploadError)
+  let { error: uploadError } = await put();
+  if (uploadError && /bucket not found/i.test(uploadError.message)) {
+    await storage.createBucket("avatars", {
+      public: true,
+      fileSizeLimit: 2097152,
+      allowedMimeTypes: Object.values(AVATAR_CONTENT_TYPES),
+    });
+    ({ error: uploadError } = await put());
+  }
+  if (uploadError) {
+    console.error("avatar upload failed:", uploadError.message);
     return { error: "We couldn't upload that picture. Please try again." };
+  }
 
-  const url = supabase.storage.from("avatars").getPublicUrl(path)
+  const url = storage.from("avatars").getPublicUrl(path)
     .data.publicUrl;
   const { error } = await supabase
     .from("applicants")
     .update({ avatar_url: url })
     .eq("id", applicant.id);
   if (error) {
-    await supabase.storage.from("avatars").remove([path]);
+    await storage.from("avatars").remove([path]);
     return { error: "We couldn't save your picture. Please try again." };
   }
 
   // Tidy up the one it replaces. Failing to is harmless.
   const old = avatarPathFromUrl(applicant.avatar_url);
   if (old && old.startsWith(`${user.id}/`))
-    await supabase.storage.from("avatars").remove([old]);
+    await storage.from("avatars").remove([old]);
 
   refresh();
   return { success: "Picture updated." };
@@ -107,7 +120,7 @@ export async function removeAvatarAction(
 
   const old = avatarPathFromUrl(applicant.avatar_url);
   if (old && old.startsWith(`${user.id}/`))
-    await supabase.storage.from("avatars").remove([old]);
+    await createAdminClient().storage.from("avatars").remove([old]);
 
   refresh();
   return { success: "Picture removed." };

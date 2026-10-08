@@ -12,7 +12,7 @@ function JoinButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? "Joining…" : "Join campaign"}
+      {pending ? "Applying…" : "Apply to this campaign"}
     </Button>
   );
 }

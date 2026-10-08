@@ -89,13 +89,13 @@ export default async function JobDetailPage(props: {
   // button (shown top right), `notice` explains a state
   // in the left panel, and `below` is the longer form for campaigns that need one.
   const joinedUrl = `/dashboard/recruiting/jobs/${job.id}/join`;
-  let intro = "Join to get the full brief and start posting.";
+  let intro = "Apply to get started: you can add posts as soon as you're on.";
   let cta: React.ReactNode = null;
   let notice: React.ReactNode = null;
   let below: React.ReactNode = null;
 
   if (!applicant) {
-    intro = "Set up your profile to join this campaign.";
+    intro = "Set up your profile to apply to this campaign.";
     cta = (
       <Button
         size="lg"
@@ -103,7 +103,7 @@ export default async function JobDetailPage(props: {
         nativeButton={false}
         render={<Link href="/dashboard/recruiting/profile-setup" />}
       >
-        Set up my profile
+        Set up my profile to apply
       </Button>
     );
   } else if (assignment && postTerms) {
@@ -220,7 +220,7 @@ export default async function JobDetailPage(props: {
     }
   } else if (!(handles ?? []).some((h) => h.verified_at)) {
     // Your views are counted on your own accounts, so one has to be connected first.
-    intro = "Connect an account to join this campaign.";
+    intro = "Connect and verify one of your accounts to apply: your views are counted on it.";
     cta = (
       <Button
         size="lg"
@@ -228,7 +228,7 @@ export default async function JobDetailPage(props: {
         nativeButton={false}
         render={<Link href="/dashboard/account/accounts" />}
       >
-        Connect an account
+        Connect an account to apply
       </Button>
     );
   } else {
@@ -239,7 +239,7 @@ export default async function JobDetailPage(props: {
         nativeButton={false}
         render={<Link href={joinedUrl} />}
       >
-        Join campaign
+        Apply to this campaign
       </Button>
     );
   }

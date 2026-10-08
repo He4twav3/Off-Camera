@@ -13,7 +13,7 @@ import {
 import { formatPayoutSummary } from "@/lib/utils";
 import { JoinSteps } from "../JoinSteps";
 
-export const metadata: Metadata = { title: "Join campaign" };
+export const metadata: Metadata = { title: "Apply to campaign" };
 
 export default async function JoinPage(props: {
   params: Promise<{ id: string }>;

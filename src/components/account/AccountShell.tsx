@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CreditCard, Link2, Settings, User, Video } from "lucide-react";
+import { Link2, Settings, User, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type AccountSection =
@@ -29,12 +29,6 @@ const SECTIONS: {
     label: "Videos",
     href: "/dashboard/account/videos",
     icon: Video,
-  },
-  {
-    key: "payments",
-    label: "Payments",
-    href: "/dashboard/account/payments",
-    icon: CreditCard,
   },
   {
     key: "settings",

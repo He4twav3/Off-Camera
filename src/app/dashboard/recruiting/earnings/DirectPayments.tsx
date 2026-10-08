@@ -32,14 +32,12 @@ const TONE: Record<StatementState, StatusTone> = {
 
 export function DirectPayments({
   statements,
-  payoutInstructions,
   campaigns = [],
   campaignHref,
   campaignsPath = "/dashboard/recruiting/jobs",
-  accountPath = "/dashboard/account/payments",
 }: {
   statements: CreatorStatement[];
-  payoutInstructions: string | null;
+  payoutInstructions?: string | null;
   /** The campaigns you've joined, each with its tracking. */
   campaigns?: MyCampaignRow[];
   campaignHref?: (row: MyCampaignRow) => string;
@@ -59,16 +57,6 @@ export function DirectPayments({
     <PageShell>
       <PageHeader
         title="Earnings"
-        actions={
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href={accountPath} />}
-          >
-            Payment details
-            <ArrowRight className="size-4" />
-          </Button>
-        }
       />
 
       {/* The big number, and where to go when there isn't one yet. */}
@@ -104,20 +92,6 @@ export function DirectPayments({
           </p>
         )}
       </section>
-
-      {!payoutInstructions && (
-        <div className="mt-4">
-          <Notice>
-            Brands can&apos;t pay you until they know where.{" "}
-            <Link
-              href={accountPath}
-              className="font-semibold text-primary underline underline-offset-2"
-            >
-              Add your payment details
-            </Link>
-          </Notice>
-        </div>
-      )}
 
       <dl className="mt-4 mb-8 grid grid-cols-2 divide-x divide-border/70 overflow-hidden rounded-xl border border-border/70 bg-card lg:grid-cols-4">
         <Cell label="Owed" value={formatCurrency(owed)} />
