@@ -1,4 +1,4 @@
-import { AVATAR_MAX_BYTES, avatarPathFromUrl, checkAvatarFile, parseDiscordName, sniffImageType } from "../src/lib/avatar";
+import { AVATAR_MAX_BYTES, avatarPathFromUrl, checkAvatarFile, sniffImageType } from "../src/lib/avatar";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -30,17 +30,14 @@ t("over 2 MB is refused", checkAvatarFile(AVATAR_MAX_BYTES + 1, png).ok === fals
 t("a zero-byte file is refused", checkAvatarFile(0, png).ok === false);
 t("the size check comes first", (checkAvatarFile(AVATAR_MAX_BYTES + 1, svg) as { error: string }).error.includes("2 MB"));
 
-t("a Discord name is lowercased", JSON.stringify(parseDiscordName("Maria_UGC")) === JSON.stringify({ ok: true, name: "maria_ugc" }));
-t("a leading @ is removed", JSON.stringify(parseDiscordName("@maria")) === JSON.stringify({ ok: true, name: "maria" }));
-t("spaces inside are refused", parseDiscordName("maria ugc").ok === false);
-t("one letter is refused", parseDiscordName("m").ok === false);
-t("33 characters are refused", parseDiscordName("a".repeat(33)).ok === false);
-t("a Discord link is refused", parseDiscordName("https://discord.com/users/1").ok === false);
-t("empty is refused", parseDiscordName("  ").ok === false);
+
 
 t("the file path comes out of a public link", avatarPathFromUrl("https://x.supabase.co/storage/v1/object/public/avatars/u1/a.png") === "u1/a.png");
 t("a link to somewhere else gives nothing", avatarPathFromUrl("https://evil.com/a.png") === null);
 t("null gives nothing", avatarPathFromUrl(null) === null);
+t("a campaign logo's path comes out of its own folder", avatarPathFromUrl("https://x.supabase.co/storage/v1/object/public/campaign-logos/abc.png", "campaign-logos") === "abc.png");
+t("a profile picture link is not a campaign logo", avatarPathFromUrl("https://x.supabase.co/storage/v1/object/public/avatars/u1/a.png", "campaign-logos") === null);
+t("the messages can say logo", (checkAvatarFile(AVATAR_MAX_BYTES + 1, png, "logo") as { error: string }).error === "That logo is over 2 MB. Choose a smaller one." && (checkAvatarFile(10, svg, "logo") as { error: string }).error.endsWith("logo."));
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import {
+  AVATAR_CONTENT_TYPES,
+  avatarPathFromUrl,
+  checkAvatarFile,
+} from "@/lib/avatar";
 import { payoutTermsSchema } from "@/lib/payout-terms";
+import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 
 export interface JobFormState {
   error?: string;
@@ -23,13 +29,21 @@ const jobSchema = z.object({
   status: z.enum(["open", "filled", "closed"]),
   brand_account_id: z.string().uuid().optional().or(z.literal("")),
   sample_criteria: z.string().trim().max(1000).optional(),
+  about: z
+    .string()
+    .trim()
+    .max(2000, "Keep the brand note under 2,000 characters.")
+    .optional(),
   // Optional affiliate link from the brand (most make theirs in Dub). Any https
   // link, so Dub's own domains and brands' custom domains both work.
   affiliate_url: z
     .string()
     .trim()
     .max(500)
-    .refine((v) => v === "" || /^https:\/\/[^\s]+$/i.test(v), "Affiliate link must be a full URL starting with https://")
+    .refine(
+      (v) => v === "" || /^https:\/\/[^\s]+$/i.test(v),
+      "Affiliate link must be a full URL starting with https://",
+    )
     .optional(),
   notion_sop_url: z
     .string()
@@ -39,10 +53,12 @@ const jobSchema = z.object({
     .or(z.literal("")),
 });
 
-
 /** Reads the payout-formula fields of the job form. Returns null terms when none
  * of the parts are filled in (the campaign then uses the plain payout fields). */
-function readPayoutTerms(formData: FormData): { terms: Record<string, unknown> | null; error?: string } {
+function readPayoutTerms(formData: FormData): {
+  terms: Record<string, unknown> | null;
+  error?: string;
+} {
   const text = (k: string) => String(formData.get(k) ?? "").trim();
   const num = (k: string): number | null | "bad" => {
     const t = text(k);
@@ -69,24 +85,38 @@ function readPayoutTerms(formData: FormData): { terms: Record<string, unknown> |
       const views = read(`bonus${i}_views`, `Bonus ${i} views`);
       const amount = read(`bonus${i}_amount`, `Bonus ${i} amount`);
       if (views === null && amount === null) continue;
-      if (views === null || amount === null) throw new Error(`Fill in both the views and the amount for bonus ${i}, or leave both empty.`);
+      if (views === null || amount === null)
+        throw new Error(
+          `Fill in both the views and the amount for bonus ${i}, or leave both empty.`,
+        );
       bonuses.push({ views, amount });
     }
 
-    const any = fixed > 0 || (cpmRate !== null && cpmRate > 0) || bonuses.length > 0;
+    const any =
+      fixed > 0 || (cpmRate !== null && cpmRate > 0) || bonuses.length > 0;
     if (!any) return { terms: null };
 
     const parsed = payoutTermsSchema.safeParse({
       v: 1,
       videos,
       fixedPerVideo: fixed,
-      cpm: cpmRate !== null && cpmRate > 0 ? { ratePer1000: cpmRate, startsAt: Math.max(0, Math.floor(cpmStart)) } : null,
+      cpm:
+        cpmRate !== null && cpmRate > 0
+          ? {
+              ratePer1000: cpmRate,
+              startsAt: Math.max(0, Math.floor(cpmStart)),
+            }
+          : null,
       bonuses,
       capPerCreator: cap !== null && cap > 0 ? cap : null,
       measureDays: days,
       fixedPaidOn: text("fixed_paid_on") === "end" ? "end" : "approval",
     });
-    if (!parsed.success) return { terms: null, error: parsed.error.issues[0]?.message ?? "Check the payout formula." };
+    if (!parsed.success)
+      return {
+        terms: null,
+        error: parsed.error.issues[0]?.message ?? "Check the payout formula.",
+      };
     return { terms: parsed.data };
   } catch (e) {
     return { terms: null, error: (e as Error).message };
@@ -110,11 +140,23 @@ export async function saveJobAction(
     status: formData.get("status"),
     brand_account_id: (formData.get("brand_account_id") as string) || "",
     notion_sop_url: formData.get("notion_sop_url") ?? "",
+    about: formData.get("about") ?? "",
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Check the job fields." };
+    return {
+      error: parsed.error.issues[0]?.message ?? "Check the job fields.",
+    };
   }
+
+  // What the brand says on the campaign page: formats that work, and example videos.
+  const formatLines = parseLines(String(formData.get("formats") ?? ""));
+  if (!formatLines.ok)
+    return { error: `Formats that work: ${formatLines.error}` };
+  const examples = parseExampleLinks(
+    String(formData.get("example_urls") ?? ""),
+  );
+  if (!examples.ok) return { error: `Example videos: ${examples.error}` };
 
   const formula = readPayoutTerms(formData);
   if (formula.error) return { error: formula.error };
@@ -133,17 +175,64 @@ export async function saveJobAction(
     sample_required: formData.get("sample_required") === "on",
     sample_criteria: values.sample_criteria || null,
     affiliate_url: values.affiliate_url || null,
+    about: values.about || null,
+    formats: formatLines.lines.length ? formatLines.lines.join("\n") : null,
+    example_urls: examples.urls,
   };
+
+  // The campaign's logo. Uploaded as the signed-in admin: the storage rules only let an
+  // admin (after two-step sign-in) write to the logos folder. What the file really is
+  // comes from its bytes, not its name.
+  let logoUrl: string | null | undefined; // undefined = leave as it is
+  let oldLogoPath: string | null = null;
+  if (id) {
+    const { data: current } = await supabase
+      .from("jobs")
+      .select("logo_url")
+      .eq("id", id)
+      .maybeSingle();
+    oldLogoPath = avatarPathFromUrl(
+      current?.logo_url ?? null,
+      "campaign-logos",
+    );
+  }
+  const file = formData.get("logo");
+  if (file instanceof File && file.size > 0) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const checked = checkAvatarFile(file.size, bytes, "logo");
+    if (!checked.ok) return { error: checked.error };
+    if (checked.type === "gif")
+      return { error: "Use a JPG, PNG or WebP logo." };
+    const path = `${crypto.randomUUID()}.${checked.type}`;
+    const { error: uploadError } = await supabase.storage
+      .from("campaign-logos")
+      .upload(path, bytes, {
+        contentType: AVATAR_CONTENT_TYPES[checked.type],
+        upsert: false,
+      });
+    if (uploadError)
+      return { error: "We couldn't upload that logo. Please try again." };
+    logoUrl = supabase.storage.from("campaign-logos").getPublicUrl(path)
+      .data.publicUrl;
+  } else if (formData.get("remove_logo") === "on") {
+    logoUrl = null;
+  }
 
   // RLS restricts writes to admins; this runs as the signed-in admin, not
   // service-role, so the policy is doing the real enforcement.
+  const saved: typeof row & { logo_url?: string | null } =
+    logoUrl === undefined ? row : { ...row, logo_url: logoUrl };
   const { error } = id
-    ? await supabase.from("jobs").update(row).eq("id", id)
-    : await supabase.from("jobs").insert(row);
+    ? await supabase.from("jobs").update(saved).eq("id", id)
+    : await supabase.from("jobs").insert(saved);
 
   if (error) {
     return { error: "Couldn't save the job. Please try again." };
   }
+
+  // The logo it replaced is no longer used. Failing to tidy it up is harmless.
+  if (oldLogoPath && logoUrl !== undefined)
+    await supabase.storage.from("campaign-logos").remove([oldLogoPath]);
 
   revalidatePath("/admin/jobs");
   revalidatePath("/dashboard/recruiting/jobs");

@@ -42,7 +42,7 @@ export default async function AdminHomePage() {
       .from("direct_payments")
       .select("amount, due_at, brand_paid_at, creator_confirmed_at, creator_disputed_at, our_fee, fee_received_at");
     const statements = statementRows ?? [];
-    const readyForStatement = submittedRows.filter((a) => !a.direct_payments).length;
+    const readyForStatement = submittedRows.filter((a) => a.direct_payments.length === 0).length;
     const needAttention = statements.filter((s) => {
       const state = statementState(s);
       return state === "overdue" || state === "disputed";

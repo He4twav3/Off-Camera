@@ -59,6 +59,11 @@ export interface Database {
           notion_sop_url: string | null;
           brand_account_id: string | null;
           payout_terms: Record<string, unknown> | null;
+          post_terms: Record<string, unknown> | null;
+          logo_url: string | null;
+          about: string | null;
+          formats: string | null;
+          example_urls: string[];
           sample_required: boolean;
           sample_criteria: string | null;
           affiliate_url: string | null;
@@ -78,6 +83,11 @@ export interface Database {
           notion_sop_url?: string | null;
           brand_account_id?: string | null;
           payout_terms?: Record<string, unknown> | null;
+          post_terms?: Record<string, unknown> | null;
+          logo_url?: string | null;
+          about?: string | null;
+          formats?: string | null;
+          example_urls?: string[];
           sample_required?: boolean;
           sample_criteria?: string | null;
           affiliate_url?: string | null;
@@ -134,6 +144,7 @@ export interface Database {
           content_types: string[];
           payout_instructions: string | null;
           avatar_url: string | null;
+          discord_id: string | null;
           discord_username: string | null;
         };
         Insert: {
@@ -168,6 +179,7 @@ export interface Database {
           content_types?: string[];
           payout_instructions?: string | null;
           avatar_url?: string | null;
+          discord_id?: string | null;
           discord_username?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["applicants"]["Insert"]>;
@@ -354,6 +366,52 @@ export interface Database {
           },
         ];
       };
+      assignment_posts: {
+        Row: {
+          id: string;
+          assignment_id: string;
+          platform: PlatformEnum;
+          url: string;
+          post_key: string;
+          posted_at: string | null;
+          window_ends_at: string | null;
+          state: "counting" | "final" | "rejected";
+          author_verified: boolean;
+          reject_reason: string | null;
+          views: number;
+          views_counted_at: string | null;
+          last_error: string | null;
+          submitted_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          assignment_id: string;
+          platform: PlatformEnum;
+          url: string;
+          post_key: string;
+          posted_at?: string | null;
+          window_ends_at?: string | null;
+          state?: "counting" | "final" | "rejected";
+          author_verified?: boolean;
+          reject_reason?: string | null;
+          views?: number;
+          views_counted_at?: string | null;
+          last_error?: string | null;
+          submitted_at?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["assignment_posts"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "assignment_posts_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       direct_payments: {
         Row: {
           id: string;
@@ -369,6 +427,7 @@ export interface Database {
           creator_dispute_note: string | null;
           our_fee: number;
           fee_received_at: string | null;
+          cycle: number;
           created_at: string;
         };
         Insert: {
@@ -385,6 +444,7 @@ export interface Database {
           creator_dispute_note?: string | null;
           our_fee?: number;
           fee_received_at?: string | null;
+          cycle?: number;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["direct_payments"]["Insert"]>;
@@ -392,7 +452,7 @@ export interface Database {
           {
             foreignKeyName: "direct_payments_assignment_id_fkey";
             columns: ["assignment_id"];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: "assignments";
             referencedColumns: ["id"];
           },

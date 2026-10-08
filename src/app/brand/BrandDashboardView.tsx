@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { money } from "@/lib/fees";
 import type { StatusTone } from "@/components/ui/status-badge";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { statementState, type StatementState } from "@/lib/direct-pay";
@@ -65,25 +67,52 @@ export type BrandView = {
   statements: BrandStatement[];
 };
 
-export function BrandDashboardView({ brand, tab }: { brand: BrandView; tab?: string }) {
+export function BrandDashboardView({
+  brand,
+  tab,
+}: {
+  brand: BrandView;
+  tab?: string;
+}) {
   const { campaigns, statements } = brand;
   const approved = brand.status === "approved";
 
-  const toPay = statements.filter((s) => !s.brand_paid_at && !s.creator_confirmed_at);
+  const toPay = statements.filter(
+    (s) => !s.brand_paid_at && !s.creator_confirmed_at,
+  );
   const unsettled = statements.filter((s) => statementState(s) !== "confirmed");
   const amountToPay = toPay.reduce((n, s) => n + s.amount, 0);
   const creatorCount = campaigns.reduce((n, c) => n + c.creators.length, 0);
   const totalViews = campaigns.reduce((n, c) => n + c.totalViews, 0);
 
   const showPayments = statements.length > 0;
-  const defaultTab = showPayments && unsettled.length > 0 ? "payments" : "campaigns";
-  const active = tab === "payments" && showPayments ? "payments" : tab === "campaigns" ? "campaigns" : defaultTab;
+  const defaultTab =
+    showPayments && unsettled.length > 0 ? "payments" : "campaigns";
+  const active =
+    tab === "payments" && showPayments
+      ? "payments"
+      : tab === "campaigns"
+        ? "campaigns"
+        : defaultTab;
 
   const tabs: TabItem[] = [
     ...(showPayments
-      ? [{ key: "payments", label: "Payments", count: unsettled.length, href: "/brand?tab=payments", attention: true }]
+      ? [
+          {
+            key: "payments",
+            label: "Payments",
+            count: unsettled.length,
+            href: "/brand?tab=payments",
+            attention: true,
+          },
+        ]
       : []),
-    { key: "campaigns", label: "Campaigns", count: campaigns.length, href: "/brand?tab=campaigns" },
+    {
+      key: "campaigns",
+      label: "Campaigns",
+      count: campaigns.length,
+      href: "/brand?tab=campaigns",
+    },
   ];
 
   return (
@@ -92,7 +121,11 @@ export function BrandDashboardView({ brand, tab }: { brand: BrandView; tab?: str
 
       {!approved ? (
         <EmptyState
-          title={brand.status === "pending" ? "Your account is under review" : "Your account wasn’t approved"}
+          title={
+            brand.status === "pending"
+              ? "Your account is under review"
+              : "Your account wasn’t approved"
+          }
           body={
             brand.status === "pending"
               ? "We review new brands by hand, usually within a day or two. You'll see your campaigns here as soon as you're approved."
@@ -110,7 +143,11 @@ export function BrandDashboardView({ brand, tab }: { brand: BrandView; tab?: str
                 label="To pay"
                 value={formatCurrency(amountToPay)}
                 attention={amountToPay > 0}
-                hint={toPay.length > 0 ? `${toPay.length} ${toPay.length === 1 ? "creator" : "creators"}` : "All paid"}
+                hint={
+                  toPay.length > 0
+                    ? `${toPay.length} ${toPay.length === 1 ? "creator" : "creators"}`
+                    : "All paid"
+                }
               />
             )}
           </StatGrid>
@@ -120,8 +157,10 @@ export function BrandDashboardView({ brand, tab }: { brand: BrandView; tab?: str
           {active === "payments" ? (
             <div className="flex flex-col gap-4">
               <Notice>
-                You pay each creator directly, the way they asked, from your own account. Send the full amount in US dollars
-                and cover any transfer fees so they receive all of it. Then mark it as paid here so they can confirm.
+                You pay each creator directly, the way they asked, from your own
+                account. Send the full amount in US dollars and cover any
+                transfer fees so they receive all of it. Then mark it as paid
+                here so they can confirm.
               </Notice>
               <RowList>
                 {statements.map((s) => (
@@ -130,7 +169,10 @@ export function BrandDashboardView({ brand, tab }: { brand: BrandView; tab?: str
               </RowList>
             </div>
           ) : campaigns.length === 0 ? (
-            <EmptyState title="No campaigns yet" body="Your campaigns will appear here once we set them up with you." />
+            <EmptyState
+              title="No campaigns yet"
+              body="Your campaigns will appear here once we set them up with you."
+            />
           ) : (
             <RowList>
               {campaigns.map((c) => (
@@ -162,7 +204,11 @@ function PaymentRow({ s }: { s: BrandStatement }) {
             items={[
               {
                 label: "Pay to",
-                value: state === "confirmed" ? "—" : (s.payTo ?? "The creator hasn't added payment details yet. We've asked them to."),
+                value:
+                  state === "confirmed"
+                    ? "—"
+                    : (s.payTo ??
+                      "The creator hasn't added payment details yet. We've asked them to."),
               },
               { label: "Due", value: formatDate(s.due_at) },
               { label: "Campaign", value: s.campaign },
@@ -197,16 +243,32 @@ function CampaignRow({ c }: { c: BrandCampaign }) {
       detailsLabel="Creators"
       details={
         c.creators.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No creators on this campaign yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No creators on this campaign yet.
+          </p>
         ) : (
           <ul className="divide-y divide-border/70">
             {c.creators.map((cr) => {
               const cs = CREATOR_STATUS[cr.status] ?? CREATOR_STATUS.active;
               return (
-                <li key={cr.assignmentId} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0">
+                <li
+                  key={cr.assignmentId}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0"
+                >
                   <Initial name={cr.name} />
                   <div className="min-w-0 flex-1 basis-48">
-                    <p className="truncate text-[15px] font-semibold text-foreground">{cr.name}</p>
+                    {cr.pay ? (
+                      <Link
+                        href={`/brand/creators/${cr.assignmentId}`}
+                        className="truncate text-[15px] font-semibold text-foreground underline-offset-2 hover:underline"
+                      >
+                        {cr.name}
+                      </Link>
+                    ) : (
+                      <p className="truncate text-[15px] font-semibold text-foreground">
+                        {cr.name}
+                      </p>
+                    )}
                     <p className="truncate text-sm text-muted-foreground">
                       {PLATFORM_LABELS[cr.platform]} @{cr.handle}
                       {cr.proofUrl && (
@@ -225,8 +287,22 @@ function CampaignRow({ c }: { c: BrandCampaign }) {
                     </p>
                   </div>
                   <StatusBadge tone={cs.tone}>{cs.label}</StatusBadge>
+                  {cr.pay && (
+                    <div className="min-w-28 text-right">
+                      <p className="tabular-nums text-[15px] font-semibold text-foreground">
+                        {money(cr.pay.earned)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {cr.pay.posts} {cr.pay.posts === 1 ? "post" : "posts"} ·{" "}
+                        {money(cr.pay.payable)} due now
+                      </p>
+                    </div>
+                  )}
                   <p className="min-w-20 text-right tabular-nums text-[15px] font-semibold text-foreground">
-                    {cr.views.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">views</span>
+                    {cr.views.toLocaleString()}{" "}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      views
+                    </span>
                   </p>
                 </li>
               );

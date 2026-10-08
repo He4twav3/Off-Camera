@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { PlatformEnum } from "@/lib/database.types";
+import type { Database, PlatformEnum } from "@/lib/database.types";
+import { parsePostTerms, payFor } from "@/lib/post-terms";
 
 /**
  * What a brand is allowed to see about its own campaigns: creator name and
@@ -11,6 +12,11 @@ import type { PlatformEnum } from "@/lib/database.types";
  * Callers must pass a brand id they have already tied to the signed-in user.
  */
 
+type PostRow = Pick<
+  Database["public"]["Tables"]["assignment_posts"]["Row"],
+  "id" | "assignment_id" | "state" | "author_verified" | "views" | "submitted_at" | "window_ends_at"
+>;
+
 export type BrandCreator = {
   assignmentId: string;
   name: string;
@@ -19,6 +25,12 @@ export type BrandCreator = {
   status: "active" | "submitted" | "paid" | "disputed";
   proofUrl: string | null;
   views: number;
+  /**
+   * For a campaign paid per post: what this creator has earned so far under the contract,
+   * and how much of it is due now. The same numbers the creator sees (lib/post-terms.ts).
+   * What the brand owes the creator, never our own fee.
+   */
+  pay: { earned: number; payable: number; posts: number } | null;
 };
 
 export type BrandCampaign = {
@@ -31,12 +43,14 @@ export type BrandCampaign = {
   totalViews: number;
 };
 
-export async function getBrandCampaigns(brandId: string): Promise<BrandCampaign[]> {
+export async function getBrandCampaigns(
+  brandId: string,
+): Promise<BrandCampaign[]> {
   const db = createAdminClient();
 
   const { data: jobs } = await db
     .from("jobs")
-    .select("id, title, platform, status, created_at")
+    .select("id, title, platform, status, created_at, post_terms")
     .eq("brand_account_id", brandId)
     .order("created_at", { ascending: false });
   if (!jobs || jobs.length === 0) return [];
@@ -47,19 +61,48 @@ export async function getBrandCampaigns(brandId: string): Promise<BrandCampaign[
     .select("id, job_id, applicant_id, status, proof_url")
     .in("job_id", jobIds);
 
-  const applicantIds = [...new Set((assignments ?? []).map((a) => a.applicant_id))];
-  const [{ data: applicants }, { data: handles }, { data: views }] = await Promise.all([
-    applicantIds.length
-      ? db.from("applicants").select("id, name, handle, platform").in("id", applicantIds)
-      : Promise.resolve({ data: [] }),
-    applicantIds.length
-      ? db.from("applicant_handles").select("applicant_id, handle").in("applicant_id", applicantIds)
-      : Promise.resolve({ data: [] }),
-    db
-      .from("campaign_views")
-      .select("campaign, handle, views")
-      .in("campaign", jobs.map((j) => j.title)),
-  ]);
+  // Posts tracked one by one, for campaigns paid per post.
+  const assignmentIds = (assignments ?? []).map((a) => a.id);
+  const { data: postRows } = assignmentIds.length
+    ? await db
+        .from("assignment_posts")
+        .select(
+          "id, assignment_id, state, author_verified, views, submitted_at, window_ends_at",
+        )
+        .in("assignment_id", assignmentIds)
+    : { data: [] };
+  const postsByAssignment = new Map<string, PostRow[]>();
+  for (const p of postRows ?? []) {
+    const list = postsByAssignment.get(p.assignment_id) ?? [];
+    list.push(p);
+    postsByAssignment.set(p.assignment_id, list);
+  }
+
+  const applicantIds = [
+    ...new Set((assignments ?? []).map((a) => a.applicant_id)),
+  ];
+  const [{ data: applicants }, { data: handles }, { data: views }] =
+    await Promise.all([
+      applicantIds.length
+        ? db
+            .from("applicants")
+            .select("id, name, handle, platform")
+            .in("id", applicantIds)
+        : Promise.resolve({ data: [] }),
+      applicantIds.length
+        ? db
+            .from("applicant_handles")
+            .select("applicant_id, handle")
+            .in("applicant_id", applicantIds)
+        : Promise.resolve({ data: [] }),
+      db
+        .from("campaign_views")
+        .select("campaign, handle, views")
+        .in(
+          "campaign",
+          jobs.map((j) => j.title),
+        ),
+    ]);
 
   const applicantById = new Map((applicants ?? []).map((a) => [a.id, a]));
   const handlesByApplicant = new Map<string, string[]>();
@@ -78,9 +121,31 @@ export async function getBrandCampaigns(brandId: string): Promise<BrandCampaign[
           ...(handlesByApplicant.get(a.applicant_id) ?? []),
           (person?.handle ?? "").toLowerCase(),
         ]);
-        const creatorViews = (views ?? [])
-          .filter((v) => v.campaign === job.title && own.has(v.handle))
-          .reduce((n, v) => n + v.views, 0);
+        // A campaign paid per post counts each post on its own; any other campaign counts
+        // the creator's views by campaign title and handle, as before.
+        const postTerms = parsePostTerms(job.post_terms);
+        const posts = postsByAssignment.get(a.id) ?? [];
+        const counted = posts.filter(
+          (p) => p.state !== "rejected" && p.author_verified,
+        );
+        const pay = postTerms
+          ? payFor(
+              postTerms,
+              posts.map((p) => ({
+                id: p.id,
+                state: p.state,
+                authorVerified: p.author_verified,
+                views: Number(p.views),
+                submittedAt: p.submitted_at,
+                windowEndsAt: p.window_ends_at,
+              })),
+            )
+          : null;
+        const creatorViews = postTerms
+          ? counted.reduce((n, p) => n + Number(p.views), 0)
+          : (views ?? [])
+              .filter((v) => v.campaign === job.title && own.has(v.handle))
+              .reduce((n, v) => n + v.views, 0);
         return {
           assignmentId: a.id,
           name: person?.name ?? "Creator",
@@ -89,6 +154,9 @@ export async function getBrandCampaigns(brandId: string): Promise<BrandCampaign[
           status: a.status,
           proofUrl: a.proof_url,
           views: creatorViews,
+          pay: pay
+            ? { earned: pay.earned, payable: pay.payable, posts: pay.counted }
+            : null,
         };
       });
     return {

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
+import { submitPost } from "@/lib/post-tracking";
 import { sendApplicationReceivedEmail } from "@/lib/email/notifications";
 import { parseDriveLink } from "@/lib/drive-link";
 import { pickVideoIds } from "@/lib/creator-videos";
@@ -253,4 +254,30 @@ export async function withdrawApplicationAction(
   revalidatePath("/dashboard/recruiting");
   revalidatePath("/admin/applications");
   return { success: "Application withdrawn." };
+}
+
+/**
+ * A creator hands in one post on a campaign paid per video. It is checked (their own
+ * verified account, published after they joined, not used before), stored, and its
+ * views start counting. See lib/post-tracking.ts.
+ */
+export async function submitPostAction(_prev: ApplyState, formData: FormData): Promise<ApplyState> {
+  const parsed = z
+    .object({ assignment_id: z.string().uuid(), post_url: z.string().trim().min(1, "Paste the link to your post.").max(500) })
+    .safeParse({ assignment_id: formData.get("assignment_id"), post_url: formData.get("post_url") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Paste the link to your post." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be logged in." };
+
+  const result = await submitPost(user.id, parsed.data.assignment_id, parsed.data.post_url);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/dashboard/recruiting/jobs", "layout");
+  revalidatePath("/dashboard/recruiting/submissions");
+  revalidatePath("/admin/statements");
+  return { success: result.message };
 }

@@ -13,14 +13,6 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "Rejected",
 };
 
-function payRangeLabel(min: number | null, max: number | null) {
-  if (min === null && max === null) return "Open to anything";
-  if (min !== null && max !== null)
-    return `${formatCurrency(min)} – ${formatCurrency(max)}`;
-  if (min !== null) return `${formatCurrency(min)}+`;
-  return `Up to ${formatCurrency(max!)}`;
-}
-
 export default async function AdminApplicantsPage() {
   const supabase = await createClient();
 
@@ -109,9 +101,7 @@ interface ApplicantCardProps {
     handle: string;
     platform: string;
     status: string;
-    skills: string[];
-    preferred_pay_min: number | null;
-    preferred_pay_max: number | null;
+    discord_username: string | null;
     bio: string | null;
     portfolio_url: string | null;
     availability_notes: string | null;
@@ -147,16 +137,8 @@ function ApplicantCard({ applicant: a, openJobs }: ApplicantCardProps) {
 
           <dl className="mt-4 flex flex-col gap-2 text-[15px]">
             <div className="flex flex-wrap gap-2">
-              <dt className="font-semibold text-foreground">Pay range:</dt>
-              <dd className="text-muted-foreground">
-                {payRangeLabel(a.preferred_pay_min, a.preferred_pay_max)}
-              </dd>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <dt className="font-semibold text-foreground">Skills:</dt>
-              <dd className="text-muted-foreground">
-                {a.skills.length > 0 ? a.skills.join(", ") : "None listed"}
-              </dd>
+              <dt className="font-semibold text-foreground">Discord:</dt>
+              <dd className="text-muted-foreground">{a.discord_username ?? "Not connected"}</dd>
             </div>
             {a.availability_notes && (
               <div className="flex flex-wrap gap-2">

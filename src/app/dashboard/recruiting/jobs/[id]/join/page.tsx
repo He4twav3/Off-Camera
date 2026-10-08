@@ -5,6 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/kit/ui";
 import { PayStrip } from "@/components/app/PayStrip";
 import { parsePayoutTerms } from "@/lib/payout-terms";
+import {
+  describePostTerms,
+  parsePostTerms,
+  postTermsChips,
+} from "@/lib/post-terms";
 import { formatPayoutSummary } from "@/lib/utils";
 import { JoinSteps } from "../JoinSteps";
 
@@ -24,7 +29,7 @@ export default async function JoinPage(props: {
   const { data: job } = await supabase
     .from("jobs")
     .select(
-      "id, title, status, description, sample_required, payout_type, payout_amount, payout_terms",
+      "id, title, status, description, sample_required, payout_type, payout_amount, payout_terms, post_terms",
     )
     .eq("id", id)
     .maybeSingle();
@@ -57,6 +62,7 @@ export default async function JoinPage(props: {
     redirect(campaignPath);
 
   const terms = parsePayoutTerms(job.payout_terms);
+  const postTerms = parsePostTerms(job.post_terms);
 
   return (
     <PageShell>
@@ -71,7 +77,21 @@ export default async function JoinPage(props: {
           Join {job.title}
         </h1>
         <div className="mt-3">
-          {terms ? (
+          {postTerms ? (
+            <ul
+              className="flex flex-wrap gap-2"
+              aria-label="How this campaign pays"
+            >
+              {postTermsChips(postTerms).map((c, i) => (
+                <li
+                  key={c}
+                  className={`rounded-md border px-3 py-1 text-sm font-semibold ${i === 0 ? "border-primary/30 bg-primary/10 text-primary" : "border-border/70 bg-muted/50 text-foreground"}`}
+                >
+                  {c}
+                </li>
+              ))}
+            </ul>
+          ) : terms ? (
             <PayStrip terms={terms} />
           ) : (
             <p className="font-heading text-lg font-semibold text-primary">
@@ -84,6 +104,7 @@ export default async function JoinPage(props: {
             jobId={job.id}
             title={job.title}
             brief={job.description}
+            payLines={postTerms ? describePostTerms(postTerms) : []}
             campaignPath={campaignPath}
           />
         </div>

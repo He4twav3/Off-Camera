@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { normaliseHandle } from "@/lib/handles";
 import {
   AVATAR_CONTENT_TYPES,
   avatarPathFromUrl,
   checkAvatarFile,
-  parseDiscordName,
 } from "@/lib/avatar";
 import type { PlatformEnum } from "@/lib/database.types";
 
@@ -115,43 +115,23 @@ export async function removeAvatarAction(
 
 // --- Discord ---------------------------------------------------------------------
 
-export async function saveDiscordAction(
-  _prev: AccountState,
-  formData: FormData,
-): Promise<AccountState> {
-  const { supabase, user, applicant } = await me();
-  if (!user) return { error: "You need to be logged in." };
-  if (!applicant) return { error: "Save your profile first." };
-
-  const parsed = parseDiscordName(String(formData.get("discord") ?? ""));
-  if (!parsed.ok) return { error: parsed.error };
-
-  const { error } = await supabase
-    .from("applicants")
-    .update({ discord_username: parsed.name })
-    .eq("id", applicant.id);
-  if (error) return { error: "We couldn't save that. Please try again." };
-
-  refresh();
-  return { success: "Discord saved." };
-}
-
 export async function disconnectDiscordAction(
   _prev: AccountState,
   _formData: FormData,
 ): Promise<AccountState> {
   void _formData;
-  const { supabase, user, applicant } = await me();
+  const { user, applicant } = await me();
   if (!user || !applicant) return { error: "You need to be logged in." };
 
-  const { error } = await supabase
+  // The database stops creators writing the Discord fields themselves, so the server does it.
+  const { error } = await createAdminClient()
     .from("applicants")
-    .update({ discord_username: null })
+    .update({ discord_id: null, discord_username: null })
     .eq("id", applicant.id);
   if (error) return { error: "We couldn't do that. Please try again." };
 
   refresh();
-  return { success: "Discord removed." };
+  return { success: "Discord disconnected." };
 }
 
 // --- accounts (handles) ---------------------------------------------------------

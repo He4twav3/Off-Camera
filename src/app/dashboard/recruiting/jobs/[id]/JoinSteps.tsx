@@ -22,11 +22,14 @@ export function JoinSteps({
   jobId,
   title,
   brief,
+  payLines = [],
   campaignPath,
 }: {
   jobId: string;
   title: string;
   brief: string | null;
+  /** The pay rules in plain sentences, for a campaign paid per post. Part of what you accept. */
+  payLines?: string[];
   campaignPath: string;
 }) {
   const [state, formAction] = useActionState<ApplyState, FormData>(
@@ -89,6 +92,18 @@ export function JoinSteps({
               No extra guidelines for this campaign. Follow the pay terms and
               post honestly.
             </p>
+          )}
+          {payLines.length > 0 && (
+            <div className="mt-4 border-t border-border/70 pt-4">
+              <p className="text-sm font-semibold text-foreground">
+                How you&apos;re paid
+              </p>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                {payLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
           )}
           <DisclosureNotice className="mt-4" />
         </div>

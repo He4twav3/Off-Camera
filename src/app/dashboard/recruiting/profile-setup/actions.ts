@@ -4,30 +4,15 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import {
-  checkName,
-  checkCity,
-  checkCountry,
-  checkBrands,
-  composeLocation,
-} from "@/lib/validation";
+import { checkName } from "@/lib/validation";
 
 export interface ProfileFormState {
   error?: string;
   success?: string;
 }
 
-const MIN_AGE = 18;
-
-function isOldEnough(dob: string) {
-  const birth = new Date(dob);
-  const cutoff = new Date();
-  cutoff.setFullYear(cutoff.getFullYear() - MIN_AGE);
-  return birth <= cutoff;
-}
-
-// The profile is deliberately short: who you are, what you do, brands you've worked
-// with. Accounts are connected on their own page, so they aren't part of this form.
+// The profile is deliberately short: who you are and where you are. Accounts are
+// connected on their own page, and the track record is worked out from real campaigns.
 const schema = z.object({
   first_name: z.string().trim().min(1, "Tell us your first name.").max(60),
   last_name: z.string().trim().min(1, "Tell us your surname.").max(60),
@@ -39,28 +24,7 @@ const schema = z.object({
       (s) => /^[a-z0-9_]{3,30}$/.test(s),
       "Usernames are 3–30 characters: lowercase letters, numbers and underscores.",
     ),
-  date_of_birth: z
-    .string()
-    .min(1, "Enter your date of birth.")
-    .refine(
-      isOldEnough,
-      `You need to be ${MIN_AGE} or older to take on campaigns.`,
-    ),
-  country: z.string().trim(),
-  city: z.string().trim().max(60).optional(),
-  skills: z.array(z.string()).default([]),
-  brands_worked_with: z.string().trim().max(500).optional(),
 });
-
-/** Splits a comma-separated field into a clean array. */
-function toList(raw: string | undefined, max = 20): string[] {
-  if (!raw) return [];
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, max);
-}
 
 export async function saveProfileAction(
   _prev: ProfileFormState,
@@ -77,11 +41,6 @@ export async function saveProfileAction(
     first_name: formData.get("first_name"),
     last_name: formData.get("last_name"),
     username: formData.get("username"),
-    date_of_birth: formData.get("date_of_birth"),
-    country: formData.get("country") ?? "",
-    city: formData.get("city") ?? "",
-    skills: formData.getAll("skills").map(String),
-    brands_worked_with: formData.get("brands_worked_with") ?? "",
   });
 
   if (!parsed.success) {
@@ -92,15 +51,9 @@ export async function saveProfileAction(
   // directly. The client shows the same messages as a courtesy.
   const d = parsed.data;
   const fullName = `${d.first_name} ${d.last_name}`;
-  const brandsList = toList(d.brands_worked_with, 30);
 
-  const failed = [
-    checkName(fullName),
-    checkCountry(d.country),
-    checkCity(d.city ?? ""),
-    checkBrands(brandsList),
-  ].find((c) => !c.ok);
-  if (failed && !failed.ok) return { error: failed.error };
+  const nameCheck = checkName(fullName);
+  if (!nameCheck.ok) return { error: nameCheck.error };
 
   // Phone-first signups have no email on the auth record; fall back to a
   // placeholder an admin can correct, since the column is NOT NULL.
@@ -110,12 +63,6 @@ export async function saveProfileAction(
     name: fullName,
     username: d.username,
     email,
-    location: composeLocation(d.city ?? "", d.country),
-    skills: d.skills,
-    // Reuses the list the content check already validated, so the stored value
-    // is exactly what was screened.
-    brands_worked_with: brandsList,
-    date_of_birth: d.date_of_birth,
     marketing_opt_in: Boolean(user.user_metadata?.marketing_opt_in),
     tos_accepted_at:
       (user.user_metadata?.tos_accepted_at as string | undefined) ??
@@ -135,14 +82,12 @@ export async function saveProfileAction(
   // over from the main account).
   const { error } = current
     ? await supabase.from("applicants").update(fields).eq("id", current.id)
-    : await supabase
-        .from("applicants")
-        .insert({
-          ...fields,
-          user_id: user.id,
-          handle: "",
-          platform: "tiktok",
-        });
+    : await supabase.from("applicants").insert({
+        ...fields,
+        user_id: user.id,
+        handle: "",
+        platform: "tiktok",
+      });
 
   if (error) {
     // 23505 = unique_violation, which here means the username is taken.

@@ -2,7 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import type { StatusTone } from "@/components/ui/status-badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { BRAND_METHODS, STATE_LABEL, type StatementState } from "@/lib/direct-pay";
+import {
+  BRAND_METHODS,
+  STATE_LABEL,
+  type StatementState,
+} from "@/lib/direct-pay";
 import {
   EmptyState,
   Facts,
@@ -18,7 +22,13 @@ import {
   type TabItem,
 } from "@/components/kit/ui";
 import { IssueForm } from "./IssueForm";
-import { adminMarkBrandPaidAction, toggleFeeReceivedAction, voidStatementAction } from "./actions";
+import {
+  acceptPostAction,
+  adminMarkBrandPaidAction,
+  rejectPostAction,
+  toggleFeeReceivedAction,
+  voidStatementAction,
+} from "./actions";
 
 export type StatementRowData = {
   id: string;
@@ -27,9 +37,13 @@ export type StatementRowData = {
   proof_url: string | null;
   suggested: number | null;
   applicants: { name: string; email: string; handle: string } | null;
-  jobs: { title: string; brand_accounts: { company_name: string } | null } | null;
+  jobs: {
+    title: string;
+    brand_accounts: { company_name: string } | null;
+  } | null;
   direct_payments: {
     id: string;
+    cycle: number;
     amount: number;
     issued_at: string;
     due_at: string;
@@ -43,6 +57,25 @@ export type StatementRowData = {
     fee_received_at: string | null;
   } | null;
   state: StatementState | null;
+  /** For a campaign paid per post: the contract's numbers and the posts behind them. */
+  perPost?: {
+    earned: number;
+    payable: number;
+    statemented: number;
+    nextCycle: number;
+    counted: number;
+    posts: {
+      id: string;
+      platform: string;
+      url: string;
+      state: "counting" | "final" | "rejected";
+      authorVerified: boolean;
+      views: number;
+      windowEndsAt: string | null;
+      rejectReason: string | null;
+      lastError: string | null;
+    }[];
+  };
 };
 
 const STATE_TONE: Record<StatementState, StatusTone> = {
@@ -56,19 +89,33 @@ const STATE_TONE: Record<StatementState, StatusTone> = {
 const TABS = ["attention", "ready", "waiting", "paid"] as const;
 type TabKey = (typeof TABS)[number];
 
-export function StatementsView({ rows, tab }: { rows: StatementRowData[]; tab?: string }) {
-  const ready = rows.filter((r) => r.status === "submitted" && !r.direct_payments);
+export function StatementsView({
+  rows,
+  tab,
+}: {
+  rows: StatementRowData[];
+  tab?: string;
+}) {
+  const ready = rows.filter(
+    (r) => r.status === "submitted" && !r.direct_payments,
+  );
   const withStatement = rows.filter((r) => r.direct_payments);
   const lists: Record<TabKey, StatementRowData[]> = {
-    attention: withStatement.filter((r) => r.state === "disputed" || r.state === "overdue"),
+    attention: withStatement.filter(
+      (r) => r.state === "disputed" || r.state === "overdue",
+    ),
     ready,
-    waiting: withStatement.filter((r) => r.state === "awaiting_payment" || r.state === "brand_says_paid"),
+    waiting: withStatement.filter(
+      (r) => r.state === "awaiting_payment" || r.state === "brand_says_paid",
+    ),
     paid: withStatement.filter((r) => r.state === "confirmed"),
   };
 
   // Open on the first tab that has something in it.
   const firstWithItems = TABS.find((k) => lists[k].length > 0) ?? "ready";
-  const active: TabKey = (TABS as readonly string[]).includes(tab ?? "") ? (tab as TabKey) : firstWithItems;
+  const active: TabKey = (TABS as readonly string[]).includes(tab ?? "")
+    ? (tab as TabKey)
+    : firstWithItems;
 
   const owedToCreators = withStatement
     .filter((r) => r.state !== "confirmed")
@@ -78,8 +125,18 @@ export function StatementsView({ rows, tab }: { rows: StatementRowData[]; tab?: 
     .reduce((n, r) => n + Number(r.direct_payments!.our_fee), 0);
 
   const tabs: TabItem[] = [
-    { key: "attention", label: "Attention", count: lists.attention.length, attention: true },
-    { key: "ready", label: "Ready", count: lists.ready.length, attention: true },
+    {
+      key: "attention",
+      label: "Attention",
+      count: lists.attention.length,
+      attention: true,
+    },
+    {
+      key: "ready",
+      label: "Ready",
+      count: lists.ready.length,
+      attention: true,
+    },
     { key: "waiting", label: "Waiting", count: lists.waiting.length },
     { key: "paid", label: "Paid", count: lists.paid.length },
   ].map((t) => ({ ...t, href: `/admin/statements?tab=${t.key}` }));
@@ -94,22 +151,40 @@ export function StatementsView({ rows, tab }: { rows: StatementRowData[]; tab?: 
       />
 
       <StatGrid>
-        <Stat label="Needs attention" value={String(lists.attention.length)} attention={lists.attention.length > 0} />
-        <Stat label="Ready to issue" value={String(lists.ready.length)} attention={lists.ready.length > 0} />
-        <Stat label="Brands owe creators" value={formatCurrency(owedToCreators)} />
-        <Stat label="Brands owe us (fees)" value={formatCurrency(feesOutstanding)} attention={feesOutstanding > 0} />
+        <Stat
+          label="Needs attention"
+          value={String(lists.attention.length)}
+          attention={lists.attention.length > 0}
+        />
+        <Stat
+          label="Ready to issue"
+          value={String(lists.ready.length)}
+          attention={lists.ready.length > 0}
+        />
+        <Stat
+          label="Brands owe creators"
+          value={formatCurrency(owedToCreators)}
+        />
+        <Stat
+          label="Brands owe us (fees)"
+          value={formatCurrency(feesOutstanding)}
+          attention={feesOutstanding > 0}
+        />
       </StatGrid>
 
       <Tabs items={tabs} active={active} />
 
       {items.length === 0 ? (
-        <EmptyState
-          title={EMPTY[active].title}
-          body={EMPTY[active].body}
-        />
+        <EmptyState title={EMPTY[active].title} body={EMPTY[active].body} />
       ) : (
         <RowList>
-          {items.map((r) => (active === "ready" ? <ReadyRow key={r.id} row={r} /> : <StatementRow key={r.id} row={r} />))}
+          {items.map((r) =>
+            active === "ready" ? (
+              <ReadyRow key={r.id} row={r} />
+            ) : (
+              <StatementRow key={r.direct_payments?.id ?? r.id} row={r} />
+            ),
+          )}
         </RowList>
       )}
     </PageShell>
@@ -117,10 +192,22 @@ export function StatementsView({ rows, tab }: { rows: StatementRowData[]; tab?: 
 }
 
 const EMPTY: Record<TabKey, { title: string; body: string }> = {
-  attention: { title: "Nothing needs attention", body: "Overdue statements and creators who report not being paid show up here." },
-  ready: { title: "Nothing to issue", body: "When a creator submits their post, it appears here, ready for a statement." },
-  waiting: { title: "Nothing waiting", body: "Issued statements that brands haven't paid yet show up here." },
-  paid: { title: "Nothing paid yet", body: "Statements the creator has confirmed receiving show up here." },
+  attention: {
+    title: "Nothing needs attention",
+    body: "Overdue statements and creators who report not being paid show up here.",
+  },
+  ready: {
+    title: "Nothing to issue",
+    body: "When a creator submits their post, it appears here, ready for a statement.",
+  },
+  waiting: {
+    title: "Nothing waiting",
+    body: "Issued statements that brands haven't paid yet show up here.",
+  },
+  paid: {
+    title: "Nothing paid yet",
+    body: "Statements the creator has confirmed receiving show up here.",
+  },
 };
 
 function brandOf(r: StatementRowData) {
@@ -136,19 +223,34 @@ function ReadyRow({ row: r }: { row: StatementRowData }) {
       status="Ready to issue"
       statusTone="pending"
       figure={r.suggested !== null ? formatCurrency(r.suggested) : "—"}
-      figureLabel="Formula says"
-      figureNote={`${r.views.toLocaleString()} views so far`}
+      figureLabel={
+        r.perPost ? `Due now · cycle ${r.perPost.nextCycle}` : "Formula says"
+      }
+      figureNote={
+        r.perPost
+          ? `${r.perPost.counted} posts · ${formatCurrency(r.perPost.earned)} earned · ${formatCurrency(r.perPost.statemented)} already covered`
+          : `${r.views.toLocaleString()} views so far`
+      }
       details={
         <div className="flex flex-col gap-4">
           {r.proof_url && (
             <p className="text-sm">
-              <a href={r.proof_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline underline-offset-2">
+              <a
+                href={r.proof_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary underline underline-offset-2"
+              >
                 Open the submitted post
               </a>
             </p>
           )}
+          {r.perPost && <PostsList posts={r.perPost.posts} />}
           {!r.jobs?.brand_accounts && (
-            <Notice>This campaign has no brand account attached, so nobody will be emailed to pay. You&apos;ll record the payment yourself.</Notice>
+            <Notice>
+              This campaign has no brand account attached, so nobody will be
+              emailed to pay. You&apos;ll record the payment yourself.
+            </Notice>
           )}
           <IssueForm assignmentId={r.id} suggestedAmount={r.suggested} />
         </div>
@@ -168,19 +270,29 @@ function StatementRow({ row: r }: { row: StatementRowData }) {
     <Row
       leading={<Initial name={r.applicants?.name ?? "?"} />}
       title={r.applicants?.name ?? "Creator"}
-      meta={`@${r.applicants?.handle ?? ""} · ${r.jobs?.title ?? "Campaign"} · ${brandOf(r)}`}
+      meta={`@${r.applicants?.handle ?? ""} · ${r.jobs?.title ?? "Campaign"}${r.perPost ? ` · payment ${dp.cycle}` : ""} · ${brandOf(r)}`}
       status={STATE_LABEL[state]}
       statusTone={STATE_TONE[state]}
       figure={formatCurrency(Number(dp.amount))}
       figureLabel="Brand owes creator"
-      figureNote={fee > 0 ? `Our fee ${formatCurrency(fee)}${dp.fee_received_at ? " · received" : " · not received"}` : undefined}
+      figureNote={
+        fee > 0
+          ? `Our fee ${formatCurrency(fee)}${dp.fee_received_at ? " · received" : " · not received"}`
+          : undefined
+      }
       defaultOpen={state === "disputed"}
       details={
         <div className="flex flex-col gap-4">
           {dp.creator_disputed_at && (
             <Notice tone="warn">
-              <span className="font-semibold">Creator says they weren&apos;t paid</span> ({formatDate(dp.creator_disputed_at)}):{" "}
-              {dp.creator_dispute_note ? `“${dp.creator_dispute_note.replace(/[.\s]+$/, "")}”` : "no note"}. Follow up with the brand.
+              <span className="font-semibold">
+                Creator says they weren&apos;t paid
+              </span>{" "}
+              ({formatDate(dp.creator_disputed_at)}):{" "}
+              {dp.creator_dispute_note
+                ? `“${dp.creator_dispute_note.replace(/[.\s]+$/, "")}”`
+                : "no note"}
+              . Follow up with the brand.
             </Notice>
           )}
 
@@ -195,17 +307,35 @@ function StatementRow({ row: r }: { row: StatementRowData }) {
                   ? `${formatDate(dp.brand_paid_at)}${dp.brand_method ? ` · ${dp.brand_method}` : ""}${dp.brand_reference ? ` · ${dp.brand_reference}` : ""}`
                   : "Not yet",
               },
-              { label: "Creator confirmed", value: dp.creator_confirmed_at ? formatDate(dp.creator_confirmed_at) : "Not yet" },
-              { label: "Our fee", value: fee > 0 ? `${formatCurrency(fee)} · ${dp.fee_received_at ? "received" : "not received"}` : "None" },
+              {
+                label: "Creator confirmed",
+                value: dp.creator_confirmed_at
+                  ? formatDate(dp.creator_confirmed_at)
+                  : "Not yet",
+              },
+              {
+                label: "Our fee",
+                value:
+                  fee > 0
+                    ? `${formatCurrency(fee)} · ${dp.fee_received_at ? "received" : "not received"}`
+                    : "None",
+              },
             ]}
           />
 
           <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
             {open && (
-              <form action={adminMarkBrandPaidAction} className="flex flex-wrap items-end gap-3">
+              <form
+                action={adminMarkBrandPaidAction}
+                className="flex flex-wrap items-end gap-3"
+              >
                 <input type="hidden" name="id" value={dp.id} />
                 <Field label="Brand told us it paid" htmlFor={`m-${dp.id}`}>
-                  <Select id={`m-${dp.id}`} name="method" defaultValue={BRAND_METHODS[0]}>
+                  <Select
+                    id={`m-${dp.id}`}
+                    name="method"
+                    defaultValue={BRAND_METHODS[0]}
+                  >
                     {BRAND_METHODS.map((m) => (
                       <option key={m} value={m}>
                         {m}
@@ -226,7 +356,9 @@ function StatementRow({ row: r }: { row: StatementRowData }) {
               <form action={toggleFeeReceivedAction}>
                 <input type="hidden" name="id" value={dp.id} />
                 <Button type="submit" variant="outline" size="sm">
-                  {dp.fee_received_at ? "Mark our fee as not received" : "Mark our fee as received"}
+                  {dp.fee_received_at
+                    ? "Mark our fee as not received"
+                    : "Mark our fee as received"}
                 </Button>
               </form>
             )}
@@ -247,5 +379,72 @@ function StatementRow({ row: r }: { row: StatementRowData }) {
       }
       detailsLabel="Details"
     />
+  );
+}
+
+function PostsList({
+  posts,
+}: {
+  posts: NonNullable<StatementRowData["perPost"]>["posts"];
+}) {
+  if (posts.length === 0)
+    return (
+      <p className="text-sm text-muted-foreground">No posts submitted yet.</p>
+    );
+  return (
+    <div>
+      <p className="mb-2 text-sm font-semibold text-foreground">Posts</p>
+      <ul className="divide-y divide-border/70 rounded-lg border border-border/70">
+        {posts.map((p) => {
+          const needsLook = p.state === "counting" && !p.authorVerified;
+          return (
+            <li
+              key={p.id}
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 text-sm"
+            >
+              <a
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 flex-1 basis-48 truncate font-semibold text-primary underline underline-offset-2"
+              >
+                {p.url.replace(/^https:\/\/(www\.)?/, "")}
+              </a>
+              <span className="text-muted-foreground">
+                {p.state === "rejected"
+                  ? `Rejected: ${p.rejectReason ?? ""}`
+                  : needsLook
+                    ? `Not confirmed${p.lastError ? `: ${p.lastError}` : ""}`
+                    : `${p.views.toLocaleString()} views · ${p.state === "final" ? "final" : "counting"}`}
+              </span>
+              <div className="flex gap-3">
+                {(needsLook || p.state === "rejected") && (
+                  <form action={acceptPostAction}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      type="submit"
+                      className="cursor-pointer text-sm font-semibold text-primary underline underline-offset-2"
+                    >
+                      Accept
+                    </button>
+                  </form>
+                )}
+                {p.state !== "rejected" && (
+                  <form action={rejectPostAction}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      type="submit"
+                      className="cursor-pointer text-sm font-semibold text-destructive underline underline-offset-2"
+                    >
+                      Reject
+                    </button>
+                  </form>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

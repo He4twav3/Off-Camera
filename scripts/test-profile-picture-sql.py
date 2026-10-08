@@ -25,6 +25,7 @@ create table auth.users (id uuid primary key default gen_random_uuid(), email te
 create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true),''),'{}')::jsonb $$;
 create function auth.uid() returns uuid language sql stable as $$ select nullif(auth.jwt()->>'sub','')::uuid $$;
 create function auth.email() returns text language sql stable as $$ select auth.jwt()->>'email' $$;
+create function auth.role() returns text language sql stable as $$ select auth.jwt()->>'role' $$;
 create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
 grant usage on schema public, auth to anon, authenticated, service_role;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
@@ -79,6 +80,12 @@ admin1 = dict(role="authenticated", sub=str(uuid.uuid4()), email=ADMIN, aal="aal
 admin2 = dict(role="authenticated", sub=str(uuid.uuid4()), email=ADMIN, aal="aal2")
 visitor = dict(role="anon")
 
+def run(who, sql, args=()):
+    with as_(**who) as c:
+        c.execute(sql, args)
+        changed = c.rowcount
+        return c.fetchall() if c.description else changed
+
 def set_(who, sql, args):
     with as_(**who) as c:
         c.execute(sql, args)
@@ -89,11 +96,18 @@ check("a creator can set their own picture link", set_(maria, "update applicants
 check("a picture link must be https", fails(lambda: set_(maria, "update applicants set avatar_url = %s where id = %s", ("javascript:alert(1)", maria_id)), "avatar_url"))
 check("a picture link cannot be a data: link", fails(lambda: set_(maria, "update applicants set avatar_url = %s where id = %s", ("data:image/png;base64,AAAA", maria_id)), "avatar_url"))
 check("a creator cannot change someone else's picture", set_(maria, "update applicants set avatar_url = %s where id = %s", ("https://x.co/a.png", other_id)) == 0)
-check("a Discord name is accepted", set_(maria, "update applicants set discord_username = %s where id = %s", ("maria_ugc", maria_id)) == 1)
-check("a Discord name with spaces is refused", fails(lambda: set_(maria, "update applicants set discord_username = %s where id = %s", ("maria ugc", maria_id)), "discord_username"))
-check("a one-letter Discord name is refused", fails(lambda: set_(maria, "update applicants set discord_username = %s where id = %s", ("m", maria_id)), "discord_username"))
-check("a Discord name in capitals is refused (stored lowercase)", fails(lambda: set_(maria, "update applicants set discord_username = %s where id = %s", ("Maria", maria_id)), "discord_username"))
-check("a creator can clear their Discord name", set_(maria, "update applicants set discord_username = null where id = %s", (maria_id,)) == 1)
+svc = dict(role="service_role")
+check("a creator cannot set their own Discord name", run(maria, "update applicants set discord_username = 'fake_name' where id = %s", (maria_id,)) == 1 and run(svc, "select discord_username from applicants where id = %s", (maria_id,))[0][0] is None)
+check("a creator cannot set their own Discord id", run(maria, "update applicants set discord_id = '123456789012345678' where id = %s", (maria_id,)) == 1 and run(svc, "select discord_id from applicants where id = %s", (maria_id,))[0][0] is None)
+check("the server (service role) can link a Discord account", run(svc, "update applicants set discord_id = '123456789012345678', discord_username = 'maria_ugc' where id = %s", (maria_id,)) == 1)
+check("and it sticks", run(svc, "select discord_id, discord_username from applicants where id = %s", (maria_id,))[0] == ("123456789012345678", "maria_ugc"))
+check("a creator cannot change a linked Discord account", run(maria, "update applicants set discord_id = '999999999999999999', discord_username = 'someone_else' where id = %s", (maria_id,)) == 1 and run(svc, "select discord_id from applicants where id = %s", (maria_id,))[0][0] == "123456789012345678")
+check("one Discord account cannot be linked to two creators", fails(lambda: run(svc, "update applicants set discord_id = '123456789012345678' where id = %s", (other_id,)), "discord_id"))
+check("a Discord id must be digits", fails(lambda: run(svc, "update applicants set discord_id = 'abc' where id = %s", (other_id,)), "discord_id"))
+check("a Discord name with spaces is refused", fails(lambda: run(svc, "update applicants set discord_username = 'maria ugc' where id = %s", (other_id,)), "discord_username"))
+check("a Discord name in capitals is refused (stored lowercase)", fails(lambda: run(svc, "update applicants set discord_username = 'Maria' where id = %s", (other_id,)), "discord_username"))
+check("an admin can unlink a Discord account", run(admin2, "update applicants set discord_id = null, discord_username = null where id = %s", (maria_id,)) == 1)
+check("the server can unlink one too", run(svc, "update applicants set discord_id = '555555555555555555' where id = %s", (maria_id,)) == 1 and run(svc, "update applicants set discord_id = null, discord_username = null where id = %s", (maria_id,)) == 1)
 
 # --- the avatars bucket --------------------------------------------------------
 cur.execute("select public, file_size_limit, allowed_mime_types from storage.buckets where id = 'avatars'")

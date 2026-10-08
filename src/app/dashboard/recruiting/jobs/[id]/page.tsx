@@ -7,6 +7,8 @@ import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
 import { CampaignView } from "@/components/app/CampaignView";
 import { SubmitContent } from "./SubmitContent";
+import { SubmitPost } from "@/components/app/SubmitPost";
+import { parsePostTerms } from "@/lib/post-terms";
 import type { VideoItem } from "@/components/app/VideosCard";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { formatDate } from "@/lib/utils";
@@ -40,6 +42,8 @@ export default async function JobDetailPage(props: {
 
   if (!job) notFound();
   const terms = parsePayoutTerms(job.payout_terms);
+  // A campaign whose contract pays per post (the Getimg kind) is tracked and paid post by post.
+  const postTerms = parsePostTerms(job.post_terms);
 
   const { data: applicant } = await supabase
     .from("applicants")
@@ -63,7 +67,7 @@ export default async function JobDetailPage(props: {
           .maybeSingle(),
         supabase
           .from("assignments")
-          .select("id, status, proof_url")
+          .select("id, status, proof_url, assigned_at")
           .eq("applicant_id", applicant.id)
           .eq("job_id", job.id)
           .maybeSingle(),
@@ -82,7 +86,7 @@ export default async function JobDetailPage(props: {
     : [{ data: null }, { data: null }, { data: null }, { data: null }];
 
   // What the creator can do next, split the way the page uses it: `cta` is the one
-  // button (shown top right and pinned in the left panel), `notice` explains a state
+  // button (shown top right), `notice` explains a state
   // in the left panel, and `below` is the longer form for campaigns that need one.
   const joinedUrl = `/dashboard/recruiting/jobs/${job.id}/join`;
   let intro = "Join to get the full brief and start posting.";
@@ -102,6 +106,9 @@ export default async function JobDetailPage(props: {
         Set up my profile
       </Button>
     );
+  } else if (assignment && postTerms) {
+    intro = "You're on this campaign. Add each post as you publish it.";
+    cta = <SubmitPost assignmentId={assignment.id} />;
   } else if (assignment) {
     intro = assignment.proof_url
       ? "Your post is in. You can send a different link if it changes."
@@ -241,6 +248,7 @@ export default async function JobDetailPage(props: {
     <CampaignView
       job={job}
       terms={terms}
+      postTerms={postTerms}
       intro={intro}
       cta={cta}
       notice={notice}

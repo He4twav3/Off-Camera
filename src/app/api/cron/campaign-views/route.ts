@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { refreshAssignmentViews, refreshSignupViews } from "@/lib/campaign-views";
+import {
+  refreshAssignmentViews,
+  refreshSignupViews,
+} from "@/lib/campaign-views";
+import { refreshDuePosts } from "@/lib/post-tracking";
 
 // Daily refresh of every approved signup's view counts (see vercel.json).
 // Vercel sends `Authorization: Bearer $CRON_SECRET` on cron invocations; with
@@ -43,7 +47,12 @@ export async function GET(request: Request) {
     posts++;
   }
 
+  // Campaigns paid per post: every post still inside its counting window, read again.
+  // A post whose window has ended is frozen here, not read.
+  const perPost = await refreshDuePosts(deadline);
+
   return NextResponse.json({
+    perPost,
     refreshed: done,
     total: signups?.length ?? 0,
     posts,

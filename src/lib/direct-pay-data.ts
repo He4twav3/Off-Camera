@@ -24,7 +24,9 @@ export type CreatorStatement = {
   brand: string | null;
 };
 
-export async function getCreatorStatements(applicantId: string): Promise<CreatorStatement[]> {
+export async function getCreatorStatements(
+  applicantId: string,
+): Promise<CreatorStatement[]> {
   const { data } = await createAdminClient()
     .from("direct_payments")
     .select(
@@ -68,7 +70,9 @@ export type BrandStatement = {
   payTo: string | null;
 };
 
-export async function getBrandStatements(brandId: string): Promise<BrandStatement[]> {
+export async function getBrandStatements(
+  brandId: string,
+): Promise<BrandStatement[]> {
   const { data } = await createAdminClient()
     .from("direct_payments")
     .select(
@@ -94,4 +98,41 @@ export async function getBrandStatements(brandId: string): Promise<BrandStatemen
       creatorHandle: row.assignments?.applicants?.handle ?? "",
       payTo: row.assignments?.applicants?.payout_instructions ?? null,
     }));
+}
+
+/**
+ * What a creator has confirmed receiving on one campaign: the total of its statements
+ * they have marked as paid. Read with the service role, after the caller has shown the
+ * assignment is theirs; it selects only the amounts, never our fee.
+ */
+export async function getPaidForAssignment(
+  assignmentId: string,
+  applicantId: string,
+): Promise<number> {
+  const { data } = await createAdminClient()
+    .from("direct_payments")
+    .select("amount, creator_confirmed_at, assignments!inner(applicant_id)")
+    .eq("assignment_id", assignmentId)
+    .not("creator_confirmed_at", "is", null);
+  return (
+    (data ?? [])
+      .filter((row) => row.assignments?.applicant_id === applicantId)
+      .reduce((n, row) => n + Math.round(Number(row.amount) * 100), 0) / 100
+  );
+}
+
+/** The same as getPaidForAssignment, for several campaigns at once: assignment id to dollars confirmed received. */
+export async function getPaidByAssignment(assignmentIds: string[], applicantId: string): Promise<Map<string, number>> {
+  const paid = new Map<string, number>();
+  if (assignmentIds.length === 0) return paid;
+  const { data } = await createAdminClient()
+    .from("direct_payments")
+    .select("assignment_id, amount, creator_confirmed_at, assignments!inner(applicant_id)")
+    .in("assignment_id", assignmentIds)
+    .not("creator_confirmed_at", "is", null);
+  for (const row of data ?? []) {
+    if (row.assignments?.applicant_id !== applicantId) continue;
+    paid.set(row.assignment_id, Math.round(((paid.get(row.assignment_id) ?? 0) + Number(row.amount)) * 100) / 100);
+  }
+  return paid;
 }

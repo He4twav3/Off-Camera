@@ -14,14 +14,34 @@ export function CampaignBanner({
   seed,
   headline,
   caption,
+  logoUrl,
   className,
 }: {
   seed: string;
   headline: string;
   caption?: string;
+  /** The campaign's logo. When there is one it fills the banner and the pay is shown beneath it instead. */
+  logoUrl?: string | null;
   className?: string;
 }) {
   const h = hueFor(seed);
+  if (logoUrl) {
+    return (
+      <div
+        className={cn(
+          "flex items-center justify-center overflow-hidden bg-muted/60 p-9",
+          className,
+        )}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoUrl}
+          alt=""
+          className="max-h-full max-w-[70%] object-contain"
+        />
+      </div>
+    );
+  }
   return (
     <div
       className={cn(

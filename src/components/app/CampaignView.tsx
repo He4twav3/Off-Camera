@@ -17,12 +17,15 @@ import {
   termsChips,
   type PayoutTerms,
 } from "@/lib/payout-terms";
-import { compactViews } from "@/lib/format";
 import {
-  PLATFORM_LABELS,
-  ACCOUNT_REQUIREMENT_LABELS,
-  formatPayoutSummary,
-} from "@/lib/utils";
+  describePostTerms,
+  postTermsChips,
+  type PostTerms,
+} from "@/lib/post-terms";
+import { compactViews } from "@/lib/format";
+import { postIdentity } from "@/lib/post-key";
+import { PlatformIcon } from "@/components/account/PlatformIcons";
+import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
 
 /**
@@ -32,6 +35,8 @@ import type { Job } from "@/lib/database.types";
 export function CampaignView({
   job,
   terms,
+  postTerms = null,
+  results,
   intro,
   cta,
   notice,
@@ -39,46 +44,89 @@ export function CampaignView({
 }: {
   job: Job & { niches: { label: string } | null };
   terms: PayoutTerms | null;
+  /** Set for a campaign whose contract pays per post (lib/post-terms.ts). */
+  postTerms?: PostTerms | null;
+  /** The creator's own results on this campaign, shown under how it pays. */
+  results?: ReactNode;
   intro: string;
   cta?: ReactNode;
   notice?: ReactNode;
   below?: ReactNode;
 }) {
-  const chips = terms ? termsChips(terms) : [];
+  const chips = postTerms
+    ? postTermsChips(postTerms)
+    : terms
+      ? termsChips(terms)
+      : [];
   const headline =
     chips[0] ?? formatPayoutSummary(job.payout_type, job.payout_amount);
-  const stats = [
-    terms?.cpm
-      ? { icon: DollarSign, label: `$${terms.cpm.ratePer1000} per 1K views` }
-      : null,
-    terms && terms.cpm && terms.cpm.startsAt > 0
-      ? { icon: Eye, label: `${compactViews(terms.cpm.startsAt)} min views` }
-      : null,
-    terms && terms.capPerCreator !== null
-      ? {
-          icon: TrendingUp,
-          label: `$${terms.capPerCreator.toLocaleString("en-US")} max per creator`,
-        }
-      : null,
-    terms && terms.fixedPerVideo > 0
-      ? {
-          icon: Video,
-          label: `$${terms.fixedPerVideo.toLocaleString("en-US")} per video`,
-        }
-      : null,
-  ].filter(Boolean) as { icon: typeof Eye; label: string }[];
+  const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
+  const topBonus = postTerms?.milestones.at(-1);
+  const stats = postTerms
+    ? ([
+        postTerms.basePerPost > 0
+          ? {
+              icon: DollarSign,
+              label: `${usd(postTerms.basePerPost)} per post`,
+            }
+          : null,
+        topBonus
+          ? {
+              icon: TrendingUp,
+              label: `Bonus up to ${usd(topBonus.amount)} per post`,
+            }
+          : null,
+        { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` },
+        { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
+      ].filter(Boolean) as { icon: typeof Eye; label: string }[])
+    : ([
+        terms?.cpm
+          ? {
+              icon: DollarSign,
+              label: `$${terms.cpm.ratePer1000} per 1K views`,
+            }
+          : null,
+        terms && terms.cpm && terms.cpm.startsAt > 0
+          ? {
+              icon: Eye,
+              label: `${compactViews(terms.cpm.startsAt)} min views`,
+            }
+          : null,
+        terms && terms.capPerCreator !== null
+          ? {
+              icon: TrendingUp,
+              label: `$${terms.capPerCreator.toLocaleString("en-US")} max per creator`,
+            }
+          : null,
+        terms && terms.fixedPerVideo > 0
+          ? {
+              icon: Video,
+              label: `$${terms.fixedPerVideo.toLocaleString("en-US")} per video`,
+            }
+          : null,
+      ].filter(Boolean) as { icon: typeof Eye; label: string }[]);
+  const payLines = postTerms
+    ? describePostTerms(postTerms)
+    : terms
+      ? describeTerms(terms)
+      : [];
   // The brief as a checklist: one line, one rule.
   const rules = (job.description ?? "")
     .split(/\n+/)
     .map((l) => l.replace(/^[\s•\-*\u2022]+/, "").trim())
     .filter(Boolean);
 
-  const sub = [
-    job.niches?.label,
-    ACCOUNT_REQUIREMENT_LABELS[job.account_requirement],
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  // The brand's own words for this campaign (see the admin job form).
+  const formatList = (job.formats ?? "")
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const examples = (job.example_urls ?? []).flatMap((url) => {
+    const id = postIdentity(url);
+    return id.ok ? [{ url: id.url, platform: id.platform }] : [];
+  });
+
+  const sub = job.niches?.label ?? "";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
@@ -90,7 +138,8 @@ export function CampaignView({
               seed={job.id}
               headline={headline}
               caption={PLATFORM_LABELS[job.platform]}
-              className="aspect-[16/10] rounded-xl"
+              className="aspect-[16/10] max-h-56 rounded-xl lg:max-h-none"
+              logoUrl={job.logo_url}
             />
             <Link
               href="/dashboard/recruiting/jobs"
@@ -118,8 +167,6 @@ export function CampaignView({
           </nav>
 
           {notice}
-
-          {cta && <div className="mt-auto hidden lg:block">{cta}</div>}
         </aside>
 
         {/* Centre: the offer, how it pays, then the rules. */}
@@ -134,91 +181,156 @@ export function CampaignView({
             {cta && <div className="w-full sm:w-56">{cta}</div>}
           </header>
 
-          <div className="mt-5 flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="font-heading text-2xl font-semibold text-foreground">
-              {job.title}
-            </h2>
-            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Video className="size-4" />
-              {PLATFORM_LABELS[job.platform]}
-            </span>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {job.niches && (
-              <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>
-            )}
-            <StatusBadge tone={jobStatusTone(job.status)}>
-              {job.status === "open"
-                ? "Open"
-                : job.status === "filled"
-                  ? "Filled"
-                  : "Closed"}
-            </StatusBadge>
-          </div>
+          {
+            <>
+              <div className="mt-5 flex flex-wrap items-baseline justify-between gap-3">
+                <h2 className="font-heading text-2xl font-semibold text-foreground">
+                  {job.title}
+                </h2>
+                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Video className="size-4" />
+                  {PLATFORM_LABELS[job.platform]}
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {job.niches && (
+                  <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>
+                )}
+                <StatusBadge tone={jobStatusTone(job.status)}>
+                  {job.status === "open"
+                    ? "Open"
+                    : job.status === "filled"
+                      ? "Filled"
+                      : "Closed"}
+                </StatusBadge>
+              </div>
 
-          <section className="mt-5">
-            <h2 className="sr-only">How this campaign pays</h2>
-            {stats.length > 0 ? (
-              <ul className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border border-border/70 bg-card px-5 py-3.5">
-                {stats.map((st) => (
-                  <li
-                    key={st.label}
-                    className="flex items-center gap-2 text-[15px] font-semibold text-foreground"
-                  >
-                    <st.icon className="size-4 text-muted-foreground" />
-                    {st.label}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="rounded-xl border border-border/70 bg-card px-5 py-3.5 font-heading text-xl font-semibold text-primary">
-                {formatPayoutSummary(job.payout_type, job.payout_amount)}
-              </p>
-            )}
-            {terms && (
-              <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                {describeTerms(terms).map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            )}
-            {job.payout_notes && (
-              <p className="mt-3 text-sm text-muted-foreground">
-                {job.payout_notes}
-              </p>
-            )}
-          </section>
+              <section className="mt-5">
+                <h2 className="sr-only">How this campaign pays</h2>
+                {stats.length > 0 ? (
+                  <ul className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border border-border/70 bg-card px-5 py-3.5">
+                    {stats.map((st) => (
+                      <li
+                        key={st.label}
+                        className="flex items-center gap-2 text-[15px] font-semibold text-foreground"
+                      >
+                        <st.icon className="size-4 text-muted-foreground" />
+                        {st.label}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="rounded-xl border border-border/70 bg-card px-5 py-3.5 font-heading text-xl font-semibold text-primary">
+                    {formatPayoutSummary(job.payout_type, job.payout_amount)}
+                  </p>
+                )}
+                {payLines.length > 0 && (
+                  <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                    {payLines.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                )}
+                {job.payout_notes && (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {job.payout_notes}
+                  </p>
+                )}
+              </section>
 
-          {rules.length > 0 && (
-            <section className="mt-8 rounded-xl border border-border/70 bg-card px-5 py-4">
-              <h2 className="font-heading text-base font-semibold text-foreground">
-                The brief
-              </h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                The key rules. Follow them in every video.
-              </p>
-              <ul className="mt-4 flex flex-col gap-2.5">
-                {rules.map((rule) => (
-                  <li
-                    key={rule}
-                    className="flex items-start gap-3 text-[15px] text-foreground"
-                  >
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                    {rule}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
+              {results}
 
-          <p className="mt-4 text-sm text-muted-foreground">
-            The brand name is shared once you&apos;ve joined this campaign.
-          </p>
-          <DisclosureNotice className="mt-4" />
-          <CommissionNote className="mt-3" />
+              {/* What the brand says about itself and the content it wants. */}
+              {job.about && (
+                <section className="mt-6 rounded-xl border border-border/70 bg-card px-5 py-4">
+                  <h2 className="font-heading text-base font-semibold text-foreground">
+                    About the brand
+                  </h2>
+                  <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-line text-muted-foreground">
+                    {job.about}
+                  </p>
+                </section>
+              )}
 
-          {/* On a phone the button sits here, under the rules, instead of in the left panel. */}
-          {cta && <div className="mt-6 lg:hidden">{cta}</div>}
+              {formatList.length > 0 && (
+                <section className="mt-6 rounded-xl border border-border/70 bg-card px-5 py-4">
+                  <h2 className="font-heading text-base font-semibold text-foreground">
+                    Formats that work
+                  </h2>
+                  <ul className="mt-3 flex flex-col gap-2 text-[15px] text-foreground">
+                    {formatList.map((f) => (
+                      <li key={f} className="flex items-start gap-3">
+                        <Video className="mt-0.5 size-4 shrink-0 text-primary" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {examples.length > 0 && (
+                <section className="mt-6">
+                  <h2 className="font-heading text-base font-semibold text-foreground">
+                    Examples
+                  </h2>
+                  <p className="mt-0.5 mb-3 text-sm text-muted-foreground">
+                    Posts that show the kind of content this campaign is after.
+                  </p>
+                  <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {examples.map((e) => (
+                      <li key={e.url}>
+                        <a
+                          href={e.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex aspect-[4/3] flex-col justify-between rounded-lg border border-border/70 bg-card p-3 transition-colors hover:border-primary/40"
+                        >
+                          <PlatformIcon
+                            platform={e.platform}
+                            className="size-6"
+                          />
+                          <span className="text-sm font-medium text-foreground">
+                            Watch example
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {rules.length > 0 && (
+                <section className="mt-8 rounded-xl border border-border/70 bg-card px-5 py-4">
+                  <h2 className="font-heading text-base font-semibold text-foreground">
+                    The brief
+                  </h2>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    The key rules. Follow them in every video.
+                  </p>
+                  <ul className="mt-4 flex flex-col gap-2.5">
+                    {rules.map((rule) => (
+                      <li
+                        key={rule}
+                        className="flex items-start gap-3 text-[15px] text-foreground"
+                      >
+                        <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                        {rule}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {!job.logo_url && (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  The brand name is shared once you&apos;ve joined this
+                  campaign.
+                </p>
+              )}
+              <DisclosureNotice className="mt-4" />
+              <CommissionNote className="mt-3" />
+            </>
+          }
 
           {below}
         </div>

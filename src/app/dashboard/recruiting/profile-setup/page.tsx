@@ -7,7 +7,10 @@ import { ProfileForm } from "./ProfileForm";
 
 export const metadata: Metadata = { title: "Profile" };
 
-export default async function ProfilePage() {
+export default async function ProfilePage(props: {
+  searchParams: Promise<{ discord?: string }>;
+}) {
+  const { discord } = await props.searchParams;
   const { applicant, session, person } = await loadAccount(
     "/dashboard/recruiting/profile-setup",
   );
@@ -24,7 +27,9 @@ export default async function ProfilePage() {
         existing={applicant ?? null}
         defaultName={session?.displayName ?? ""}
       />
-      {applicant && <DiscordCard username={applicant.discord_username} />}
+      {applicant && (
+        <DiscordCard username={applicant.discord_username} status={discord} />
+      )}
     </AccountShell>
   );
 }
