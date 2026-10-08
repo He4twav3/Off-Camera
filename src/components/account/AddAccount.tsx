@@ -67,9 +67,9 @@ export function AddAccount() {
             name="handle"
             autoFocus
             required
-            placeholder={open.platform === "youtube_shorts" ? "@yourchannel" : `Your ${open.label} handle`}
-            className="min-w-56 flex-1 sm:max-w-xs"
-            aria-label={`Your ${open.label} username`}
+            placeholder={open.platform === "youtube_shorts" ? "Channel URL, e.g. https://www.youtube.com/@yourchannel" : `Your ${open.label} handle`}
+            className={`min-w-56 flex-1 ${open.platform === "youtube_shorts" ? "sm:max-w-md" : "sm:max-w-xs"}`}
+            aria-label={open.platform === "youtube_shorts" ? "Your YouTube channel URL" : `Your ${open.label} username`}
           />
           <AddSubmit />
           <Button type="button" variant="outline" onClick={() => setOpen(null)}>

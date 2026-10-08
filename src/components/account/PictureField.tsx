@@ -91,23 +91,25 @@ export function PictureField({
               }}
               className={`rounded-xl border-2 border-dashed px-4 py-5 text-center transition-colors ${over ? "border-primary bg-primary/5" : "border-border"}`}
             >
-              <label
-                htmlFor="avatar-file"
-                className="flex cursor-pointer flex-col items-center gap-1.5 text-sm text-muted-foreground"
+              {/* A real button that opens the file picker itself, so it works in every browser. */}
+              <button
+                type="button"
+                onClick={() => input.current?.click()}
+                className="flex w-full cursor-pointer flex-col items-center gap-1.5 text-sm text-muted-foreground"
               >
                 <Upload className="size-6" />
                 <span>{picked ?? "Click to upload or drag and drop"}</span>
                 <span className="text-xs">
                   Supported files: .jpg, .png, .gif, .webp
                 </span>
-              </label>
+              </button>
               <input
                 ref={input}
                 id="avatar-file"
                 name="avatar"
                 type="file"
                 accept="image/png,image/jpeg,image/gif,image/webp"
-                className="sr-only"
+                className="hidden"
                 onChange={(e) => setPicked(e.target.files?.[0]?.name ?? null)}
               />
               <div className="mt-4">

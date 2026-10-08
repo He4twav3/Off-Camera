@@ -10,6 +10,14 @@ import { JobCard } from "@/components/JobCard";
 import { JobFilters } from "@/components/JobFilters";
 import { PageShell, PageHeader, EmptyState } from "@/components/kit/ui";
 
+// The sample campaigns the database starts with. They are not real work, so they are never listed.
+const SAMPLE_CAMPAIGNS = [
+  "Crypto exchange app walkthrough",
+  "Fitness app UGC testimonial",
+  "Online casino unboxing-style promo",
+  "Beauty subscription box review",
+];
+
 export const metadata: Metadata = {
   title: "Browse jobs",
   description: "Open paid content-creation campaigns for creators.",
@@ -86,7 +94,8 @@ export default async function JobsPage(props: {
   let query = supabase
     .from("jobs")
     .select("*, niches(label)")
-    .eq("status", "open");
+    .eq("status", "open")
+    .not("title", "in", `(${SAMPLE_CAMPAIGNS.map((t) => `"${t}"`).join(",")})`);
 
   const platform = asEnum(searchParams.platform, PLATFORMS);
   if (platform) {

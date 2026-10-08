@@ -220,7 +220,7 @@ export default async function JobDetailPage(props: {
     }
   } else if (!(handles ?? []).some((h) => h.verified_at)) {
     // Your views are counted on your own accounts, so one has to be connected first.
-    intro = "Connect and verify one of your accounts to apply: your views are counted on it.";
+    intro = "Connect and verify one of your accounts first. Then come back to this page and press Apply: connecting an account does not apply for you.";
     cta = (
       <Button
         size="lg"
@@ -228,7 +228,7 @@ export default async function JobDetailPage(props: {
         nativeButton={false}
         render={<Link href="/dashboard/account/accounts" />}
       >
-        Connect an account to apply
+        Connect an account first
       </Button>
     );
   } else {
