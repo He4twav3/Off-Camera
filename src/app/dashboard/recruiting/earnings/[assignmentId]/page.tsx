@@ -9,6 +9,9 @@ import { getPaidForAssignment } from "@/lib/direct-pay-data";
 import { parsePostTerms, type PostRowData } from "@/lib/post-terms";
 
 /** One joined campaign's tracking: what it has earned, the cycle, and every post. */
+// Adding a post reads it from its platform before answering, which can take a while.
+export const maxDuration = 60;
+
 export default async function CampaignEarningsPage(props: {
   params: Promise<{ assignmentId: string }>;
   searchParams: Promise<{ tab?: string; sort?: string }>;

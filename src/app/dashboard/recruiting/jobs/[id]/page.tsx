@@ -20,6 +20,9 @@ const APPLICATION_LABELS: Record<string, string> = {
   withdrawn: "Withdrawn",
 };
 
+// Adding a post reads it from its platform before answering, which can take a while.
+export const maxDuration = 60;
+
 export default async function JobDetailPage(props: {
   params: Promise<{ id: string }>;
 }) {
