@@ -1,4 +1,4 @@
-import { discordAuthorizeUrl, discordRedirectUri, parseDiscordUser, signState, verifyState, STATE_MINUTES } from "../src/lib/discord";
+import { discordAuthorizeUrl, discordOrigin, discordRedirectUri, parseDiscordUser, signState, verifyState, STATE_MINUTES } from "../src/lib/discord";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -39,6 +39,13 @@ t("an id given as a number is refused (precision loss)", parseDiscordUser({ id: 
 t("a name with spaces is refused", parseDiscordUser({ id: "80351110224678912", username: "maria ugc" }) === null);
 t("no name is refused", parseDiscordUser({ id: "80351110224678912" }) === null);
 t("not an object is refused", parseDiscordUser("hi") === null && parseDiscordUser(null) === null);
+
+process.env.NEXT_PUBLIC_SITE_URL = "https://www.oncameraugc.com";
+t("uses the configured live address", discordOrigin("https://x.vercel.app/api/discord/connect") === "https://www.oncameraugc.com");
+process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+t("a localhost setting is ignored", discordOrigin("https://www.oncameraugc.com/api/discord/connect") === "https://www.oncameraugc.com");
+delete process.env.NEXT_PUBLIC_SITE_URL;
+t("unset falls back to the request address", discordOrigin("https://www.oncameraugc.com/api/discord/connect") === "https://www.oncameraugc.com");
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

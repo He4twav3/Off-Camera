@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   discordAuthorizeUrl,
+  discordOrigin,
   discordRedirectUri,
   signState,
   STATE_MINUTES,
@@ -16,8 +17,7 @@ const BACK = "/dashboard/recruiting/profile-setup";
  * signed state) and to this creator, and expires after a few minutes.
  */
 export async function GET(request: Request) {
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  const origin = discordOrigin(request.url);
   const clientId = process.env.DISCORD_CLIENT_ID;
   const clientSecret = process.env.DISCORD_CLIENT_SECRET;
   if (!clientId || !clientSecret)

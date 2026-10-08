@@ -99,3 +99,16 @@ export function parseDiscordUser(
 export function discordRedirectUri(siteUrl: string): string {
   return `${siteUrl.replace(/\/+$/, "")}/api/discord/callback`;
 }
+
+/**
+ * The site's own address, for the Discord return trip. It is the configured site address,
+ * unless that is missing or still points at a local machine (a live site left on
+ * "http://localhost:3000" would send Discord to the wrong place); then it is the address
+ * this request actually came to.
+ */
+export function discordOrigin(requestUrl: string): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configured && !/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(configured))
+    return configured;
+  return new URL(requestUrl).origin;
+}
