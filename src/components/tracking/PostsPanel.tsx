@@ -9,6 +9,13 @@ import { cn, PLATFORM_LABELS } from "@/lib/utils";
 
 type Sort = "recent" | "views";
 
+/** "Oct 9, 06:02 UTC": when a post's views were last read. */
+function readAt(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" })} UTC`;
+}
+
 function Chip({
   href,
   on,
@@ -59,6 +66,11 @@ function Tile({
         </p>
         <p className="text-xs text-muted-foreground">views</p>
         <p className="mt-1.5 text-xs text-muted-foreground">{note}</p>
+        {post.viewsCountedAt && (
+          <p className="text-[11px] text-muted-foreground/80">
+            Views read {readAt(post.viewsCountedAt)}
+          </p>
+        )}
         {amount && (
           <p className="text-sm font-semibold text-foreground">{amount}</p>
         )}

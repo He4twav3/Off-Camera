@@ -46,7 +46,7 @@ export default async function CampaignEarningsPage(props: {
     supabase
       .from("assignment_posts")
       .select(
-        "id, platform, url, state, author_verified, views, submitted_at, window_ends_at, reject_reason, last_error",
+        "id, platform, url, state, author_verified, views, submitted_at, window_ends_at, reject_reason, last_error, views_counted_at",
       )
       .eq("assignment_id", assignment.id),
     supabase
@@ -65,6 +65,7 @@ export default async function CampaignEarningsPage(props: {
     windowEndsAt: p.window_ends_at,
     rejectReason: p.reject_reason,
     lastError: p.last_error,
+    viewsCountedAt: p.views_counted_at,
   }));
 
   const tracking = buildTracking({

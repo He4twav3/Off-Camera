@@ -218,6 +218,8 @@ export type PostRowData = PostForPay & {
   url: string;
   rejectReason: string | null;
   lastError: string | null;
+  /** When its views were last read from the platform (ISO). */
+  viewsCountedAt?: string | null;
 };
 
 export type MoneyBar = {
