@@ -80,7 +80,7 @@ export async function submitPost(
   if (named && !verifiedNames.includes(named)) {
     return {
       ok: false,
-      error: `That post is on @${named}, which isn't one of your verified accounts, so it can't count.`,
+      error: `That post is on @${named}, which isn't one of your verified accounts.`,
     };
   }
 
