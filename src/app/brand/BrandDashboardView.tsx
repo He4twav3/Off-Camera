@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Download, FileText } from "lucide-react";
 import { money } from "@/lib/fees";
 import type { StatusTone } from "@/components/ui/status-badge";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
@@ -181,6 +182,8 @@ export function BrandDashboardView({
               ))}
             </RowList>
           )}
+
+          <BrandResources />
         </>
       )}
     </PageShell>
@@ -315,5 +318,52 @@ function CampaignRow({ c }: { c: BrandCampaign }) {
         </div>
       }
     />
+  );
+}
+
+// Templates a brand can download and fill in. Plain files in /public/downloads.
+const BRAND_TEMPLATES = [
+  {
+    label: "UGC creator agreement",
+    note: "Per-post pay, bonuses, usage rights and disclosure. Have a lawyer review it.",
+    href: "/downloads/ugc-creator-agreement.txt",
+  },
+  {
+    label: "Campaign brief template",
+    note: "The brief creators see before they join.",
+    href: "/downloads/campaign-brief-template.txt",
+  },
+];
+
+function BrandResources() {
+  return (
+    <section className="mt-8 rounded-xl border border-border/70 bg-card p-5">
+      <h2 className="font-heading text-base font-semibold text-foreground">
+        Templates
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Starting points for working with creators. They are not legal advice.
+      </p>
+      <ul className="mt-3 divide-y divide-border/70">
+        {BRAND_TEMPLATES.map((t) => (
+          <li key={t.href}>
+            <a
+              href={t.href}
+              download
+              className="flex items-center gap-3 py-3 text-sm hover:text-foreground"
+            >
+              <FileText className="size-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1">
+                <span className="block font-medium text-foreground">
+                  {t.label}
+                </span>
+                <span className="block text-muted-foreground">{t.note}</span>
+              </span>
+              <Download className="size-4 shrink-0 text-muted-foreground" />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
