@@ -193,7 +193,6 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
                 id={`niche-${job?.id ?? "new"}`}
                 name="niche_id"
                 defaultValue={job?.niche_id ?? ""}
-                required
               >
                 <option value="">Pick a niche</option>
                 {niches.map((n) => (
@@ -202,6 +201,13 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
                   </option>
                 ))}
               </Select>
+              <Input
+                name="new_niche"
+                maxLength={40}
+                placeholder="Or type a new niche, e.g. Tech"
+                aria-label="New niche"
+                className="mt-2"
+              />
             </Field>
 
             <Field

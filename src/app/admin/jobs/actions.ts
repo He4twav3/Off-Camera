@@ -127,12 +127,42 @@ export async function saveJobAction(
   _prev: JobFormState,
   formData: FormData,
 ): Promise<JobFormState> {
+  // A new niche typed into the form is created (or found, if it already exists) and used
+  // instead of the one picked in the list. Admins only: the database enforces that.
+  let nicheId = formData.get("niche_id");
+  const newNiche = String(formData.get("new_niche") ?? "").trim().slice(0, 40);
+  if (newNiche) {
+    const slug = newNiche
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    if (!slug) return { error: "Give the niche a name with letters or numbers." };
+    const nicheDb = await createClient();
+    const { data: found } = await nicheDb
+      .from("niches")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (found) {
+      nicheId = found.id;
+    } else {
+      const { data: made, error: nicheError } = await nicheDb
+        .from("niches")
+        .insert({ slug, label: newNiche })
+        .select("id")
+        .single();
+      if (nicheError || !made)
+        return { error: "We couldn't add that niche. Please try again." };
+      nicheId = made.id;
+    }
+  }
+
   const parsed = jobSchema.safeParse({
     id: (formData.get("id") as string) || "",
     title: formData.get("title"),
     description: formData.get("description") ?? "",
     platform: formData.get("platform"),
-    niche_id: formData.get("niche_id"),
+    niche_id: nicheId,
     payout_type: formData.get("payout_type"),
     payout_amount: formData.get("payout_amount"),
     payout_notes: formData.get("payout_notes") ?? "",
