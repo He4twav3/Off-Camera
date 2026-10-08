@@ -83,7 +83,7 @@ t("milestones are sorted lowest first", parsePostTerms({ ...T, milestones: [{ vi
 // --- wording -----------------------------------------------------------------------------------
 t("chips: base, top bonus, cycle, window", postTermsChips(T).join("|") === "$20 per post|Bonus up to $200 per post|Paid every 15 posts|30-day counting window", postTermsChips(T));
 const words = describePostTerms(T).join(" ");
-t("the words give the base pay and cycle", /\$20 for each approved post/.test(words) && /every 15 posts/.test(words), words);
+t("the words give the base pay and cycle", /\$20 for each unique video/.test(words) && /every 15 unique videos/.test(words) && /repost/.test(words), words);
 t("the words list every milestone", /1K views, \$2/.test(words) && /5K views, \$10/.test(words) && /10K views, \$20/.test(words) && /100K views, \$200/.test(words), words);
 t("the words say bonuses don't stack", /don't stack/.test(words));
 t("the words give the window, the own-account rule and the update rate", /30 days/.test(words) && /own verified accounts/.test(words) && /once a day/.test(words), words);
@@ -117,6 +117,27 @@ t("views are added up per cycle", cycleHistory(T, rows(3, { views: 1000 }), 0, n
 
 t("average per post", averagePerPost({ earned: 773, counted: 37 }) === 20.89);
 t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, counted: 0 }) === 0);
+
+// --- reposts: the base fee is per UNIQUE video ---
+{
+  const now = new Date("2026-10-20T12:00:00Z");
+  const post = (id: string, views: number, repostOf: string | null = null, at = "2026-10-10T10:00:00Z") =>
+    ({ id, state: "counting" as const, authorVerified: true, views, submittedAt: at, windowEndsAt: "2026-11-05T00:00:00Z", repostOf });
+  const only = payFor(T, [post("a", 800)], now);
+  t("one unique video earns the base", only.earned === 20 && only.unique === 1, only);
+  const cross = payFor(T, [post("a", 800), post("b", 900, "a", "2026-10-10T11:00:00Z"), post("c", 700, "a", "2026-10-10T12:00:00Z")], now);
+  t("the same video on three platforms earns the base once", cross.earned === 20 && cross.counted === 3 && cross.unique === 1, cross);
+  t("a repost shows no base", cross.posts.find((p) => p.id === "b")!.base === 0 && cross.posts.find((p) => p.id === "b")!.repost === true, cross.posts);
+  const bonus = payFor(T, [post("a", 1200), post("b", 5400, "a", "2026-10-10T11:00:00Z")], now);
+  t("a repost keeps its own view bonus", bonus.earned === 20 + 2 + 10, bonus);
+  const many = Array.from({ length: 15 }, (_, i) => post(`u${i}`, 0, null, `2026-10-${String(i + 1).padStart(2, "0")}T10:00:00Z`));
+  const withReposts = payFor(T, [...many.slice(0, 14), post("r1", 0, "u0", "2026-10-16T10:00:00Z"), post("r2", 0, "u1", "2026-10-16T11:00:00Z")], now);
+  t("reposts don't count toward the 15 unique videos", withReposts.cyclesCompleted === 0 && withReposts.unique === 14, withReposts);
+  const done = payFor(T, [...many, post("r1", 0, "u0", "2026-10-16T10:00:00Z")], now);
+  t("15 unique videos complete a cycle even with reposts", done.cyclesCompleted === 1 && done.unique === 15, done);
+  const orphan = payFor(T, [post("b", 100, "gone")], now);
+  t("a repost whose original isn't counted is treated as unique", orphan.earned === 20, orphan);
+}
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

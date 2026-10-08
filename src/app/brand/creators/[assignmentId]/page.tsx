@@ -1,3 +1,4 @@
+import { repostLinks } from "@/lib/post-reposts";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -69,6 +70,7 @@ export default async function BrandCreatorPage(props: {
         .not("verified_at", "is", null),
     ]);
 
+  const links = await repostLinks((postRows ?? []).map((p) => p.id));
   const posts: PostRowData[] = (postRows ?? []).map((p) => ({
     id: p.id,
     platform: p.platform,
@@ -80,6 +82,7 @@ export default async function BrandCreatorPage(props: {
     windowEndsAt: p.window_ends_at,
     rejectReason: p.reject_reason,
     lastError: p.last_error,
+    repostOf: links.get(p.id) ?? null,
   }));
   const paidTotal =
     (payments ?? [])

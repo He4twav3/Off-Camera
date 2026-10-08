@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { CheckCircle2, Clock, Plus, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { Field, Input, Select } from "@/components/ui/field";
 import {
   submitPostAction,
   type ApplyState,
@@ -21,7 +21,14 @@ function Send() {
 }
 
 /** "Add a post": a button that opens a small window to paste the link to a new video. */
-export function SubmitPost({ assignmentId }: { assignmentId: string }) {
+export function SubmitPost({
+  assignmentId,
+  originals = [],
+}: {
+  assignmentId: string;
+  /** Videos already added, so a new link can be marked as a repost of one of them. */
+  originals?: { id: string; label: string }[];
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action] = useActionState<ApplyState, FormData>(
@@ -78,6 +85,22 @@ export function SubmitPost({ assignmentId }: { assignmentId: string }) {
               placeholder="https://www.tiktok.com/@you/video/1234567890"
             />
           </Field>
+          {originals.length > 0 && (
+            <Field
+              label="Is this the same video as one you already added?"
+              htmlFor={`repost-${assignmentId}`}
+              hint="Pay is per unique video. The same video on another platform is a repost: it can still earn view bonuses, but not the base pay again."
+            >
+              <Select id={`repost-${assignmentId}`} name="repost_of" defaultValue="">
+                <option value="">No, it&apos;s a new video</option>
+                {originals.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    Yes, a repost of {o.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
           {state.error && (
             <div
               role="alert"

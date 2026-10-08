@@ -1,4 +1,5 @@
 import "server-only";
+import { repostLinks } from "@/lib/post-reposts";
 import type { createClient } from "@/lib/supabase/server";
 import { getPaidByAssignment } from "@/lib/direct-pay-data";
 import {
@@ -25,6 +26,10 @@ export async function loadMyCampaigns(
     )
     .eq("applicant_id", applicantId);
 
+  const links = await repostLinks(
+    (joined ?? []).flatMap((a) => a.assignment_posts.map((p) => p.id)),
+  );
+
   const paid = await getPaidByAssignment(
     (joined ?? []).map((a) => a.id),
     applicantId,
@@ -46,6 +51,7 @@ export async function loadMyCampaigns(
                 views: Number(p.views),
                 submittedAt: p.submitted_at,
                 windowEndsAt: p.window_ends_at,
+                repostOf: links.get(p.id) ?? null,
               })),
               paidTotal: paid.get(a.id) ?? 0,
             }),

@@ -1,4 +1,5 @@
 import "server-only";
+import { repostLinks } from "@/lib/post-reposts";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, PlatformEnum } from "@/lib/database.types";
 import { parsePostTerms, payFor } from "@/lib/post-terms";
@@ -78,6 +79,7 @@ export async function getBrandCampaigns(
         )
         .in("assignment_id", assignmentIds)
     : { data: [] };
+  const links = await repostLinks((postRows ?? []).map((p) => p.id));
   const postsByAssignment = new Map<string, PostRow[]>();
   for (const p of postRows ?? []) {
     const list = postsByAssignment.get(p.assignment_id) ?? [];
@@ -145,6 +147,7 @@ export async function getBrandCampaigns(
                 views: Number(p.views),
                 submittedAt: p.submitted_at,
                 windowEndsAt: p.window_ends_at,
+                repostOf: links.get(p.id) ?? null,
               })),
             )
           : null;

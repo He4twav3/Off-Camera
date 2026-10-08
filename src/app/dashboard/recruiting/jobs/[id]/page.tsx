@@ -8,6 +8,7 @@ import { ApplyForm } from "./ApplyForm";
 import { CampaignView } from "@/components/app/CampaignView";
 import { SubmitContent } from "./SubmitContent";
 import { SubmitPost } from "@/components/app/SubmitPost";
+import { repostChoices } from "@/lib/post-reposts";
 import { parsePostTerms } from "@/lib/post-terms";
 import type { VideoItem } from "@/components/app/VideosCard";
 import { parsePayoutTerms } from "@/lib/payout-terms";
@@ -111,7 +112,7 @@ export default async function JobDetailPage(props: {
     );
   } else if (assignment && postTerms) {
     intro = "You're on this campaign. Add each post as you publish it.";
-    cta = <SubmitPost assignmentId={assignment.id} />;
+    cta = <SubmitPost assignmentId={assignment.id} originals={await repostChoices(assignment.id)} />;
   } else if (assignment) {
     intro = assignment.proof_url
       ? "Your post is in. You can send a different link if it changes."

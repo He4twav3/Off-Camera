@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildTracking } from "@/components/tracking/buildTracking";
 import { parseTab } from "@/components/tracking/TrackingTabs";
 import { SubmitPost } from "@/components/app/SubmitPost";
+import { repostChoices, repostLinks } from "@/lib/post-reposts";
 import { getPaidForAssignment } from "@/lib/direct-pay-data";
 import { parsePostTerms, type PostRowData } from "@/lib/post-terms";
 
@@ -54,6 +55,7 @@ export default async function CampaignEarningsPage(props: {
       .select("platform, handle, verified_at")
       .eq("applicant_id", applicant.id),
   ]);
+  const links = await repostLinks((postRows ?? []).map((p) => p.id));
   const posts: PostRowData[] = (postRows ?? []).map((p) => ({
     id: p.id,
     platform: p.platform,
@@ -66,6 +68,7 @@ export default async function CampaignEarningsPage(props: {
     rejectReason: p.reject_reason,
     lastError: p.last_error,
     viewsCountedAt: p.views_counted_at,
+    repostOf: links.get(p.id) ?? null,
   }));
 
   const tracking = buildTracking({
@@ -95,7 +98,7 @@ export default async function CampaignEarningsPage(props: {
           {job.title}
         </h1>
         <div className="w-full sm:w-56">
-          <SubmitPost assignmentId={assignment.id} />
+          <SubmitPost assignmentId={assignment.id} originals={await repostChoices(assignment.id)} />
         </div>
       </div>
       {tracking.header}

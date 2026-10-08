@@ -91,6 +91,8 @@ export type PostForPay = {
   views: number;
   submittedAt: string;
   windowEndsAt: string | null;
+  /** The original post this one repeats (the same video on another platform). Null for a unique video. */
+  repostOf?: string | null;
 };
 
 export type PostPay = {
@@ -100,14 +102,18 @@ export type PostPay = {
   base: number;
   bonus: number;
   windowClosed: boolean;
+  /** The same video as another post, on another platform: no base pay. */
+  repost?: boolean;
   /** Whole days of counting left (0 once closed), or null if the window isn't known yet. */
   daysLeft: number | null;
 };
 
 export type PayTotals = {
   posts: PostPay[];
-  /** Posts that count: not rejected and found on the creator's own account. */
+  /** Posts that count: not rejected and found on the creator's own account (reposts included). */
   counted: number;
+  /** Unique videos among them: what the payment cycles are counted in. */
+  unique: number;
   cyclesCompleted: number;
   /** Everything earned so far, including bonuses that can still change. */
   earned: number;
@@ -133,14 +139,24 @@ export function payFor(
         a.id.localeCompare(b.id),
     );
 
-  const posts: PostPay[] = counted.map((p, i) => {
+  // The base fee is per UNIQUE video. A repost (the same video on another platform) keeps its
+  // view bonus but earns no base and doesn't count toward the payment cycle.
+  const countedIds = new Set(counted.map((p) => p.id));
+  const isRepost = (p: PostForPay) => Boolean(p.repostOf && countedIds.has(p.repostOf));
+  const uniques = counted.filter((p) => !isRepost(p));
+  const cycleOf = new Map(
+    uniques.map((p, i) => [p.id, Math.floor(i / terms.cycleSize) + 1]),
+  );
+
+  const posts: PostPay[] = counted.map((p) => {
     const windowEnds = p.windowEndsAt ? new Date(p.windowEndsAt) : null;
     const windowClosed =
       p.state === "final" || (windowEnds !== null && now >= windowEnds);
+    const repost = isRepost(p);
     return {
       id: p.id,
-      cycle: Math.floor(i / terms.cycleSize) + 1,
-      base: terms.basePerPost,
+      cycle: repost ? (cycleOf.get(p.repostOf!) ?? 1) : (cycleOf.get(p.id) ?? 1),
+      base: repost ? 0 : terms.basePerPost,
       bonus: milestoneBonus(p.views, terms.milestones),
       windowClosed,
       daysLeft: windowClosed
@@ -148,10 +164,11 @@ export function payFor(
         : windowEnds
           ? Math.max(0, Math.ceil((windowEnds.getTime() - now.getTime()) / DAY))
           : null,
+      repost,
     };
   });
 
-  const cyclesCompleted = Math.floor(counted.length / terms.cycleSize);
+  const cyclesCompleted = Math.floor(uniques.length / terms.cycleSize);
   let earned = 0;
   let payable = 0;
   for (const p of posts) {
@@ -162,6 +179,7 @@ export function payFor(
   return {
     posts,
     counted: counted.length,
+    unique: uniques.length,
     cyclesCompleted,
     earned: earned / 100,
     payable: payable / 100,
@@ -195,7 +213,8 @@ export function postTermsChips(terms: PostTerms): string[] {
 export function describePostTerms(terms: PostTerms): string[] {
   const lines: string[] = [];
   if (terms.basePerPost > 0) {
-    lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post. It is paid after every ${terms.cycleSize} posts you deliver.`);
+    lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video. It is paid after every ${terms.cycleSize} unique videos you deliver.`);
+    lines.push("The same video on another platform is a repost: it doesn't earn the base pay again. Mark it as a repost when you add it.");
   }
   if (terms.milestones.length > 0) {
     lines.push(
