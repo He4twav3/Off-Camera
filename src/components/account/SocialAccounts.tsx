@@ -7,6 +7,13 @@ import { VerifyHandleForm } from "@/components/app/VerifyHandleForm";
 import { verificationCode } from "@/lib/handle-verification";
 import type { ApplicantHandle } from "@/lib/database.types";
 
+// Where the code goes on each platform.
+const WHERE: Record<string, string> = {
+  instagram: "Instagram bio (Edit profile, then Bio)",
+  tiktok: "TikTok bio (Edit profile, then Bio)",
+  youtube_shorts: "YouTube channel description (Customize channel, then Description)",
+};
+
 const COLUMNS = "sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]";
 
 /**
@@ -58,10 +65,12 @@ export function SocialAccounts({ applicantId, handles }: { applicantId: string; 
                       </span>
                       <CodeChip code={verificationCode(applicantId, h.platform, h.handle)} />
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="text-sm text-muted-foreground">Add this code to your bio</span>
-                      <VerifyHandleForm handleId={h.id} />
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      1. Copy the code. 2. Paste it into your {WHERE[h.platform] ?? "bio"} and save.
+                      3. Wait a minute, then press Verify. Verifying proves the account is yours; it does
+                      not apply you to anything.
+                    </p>
+                    <VerifyHandleForm handleId={h.id} />
                   </div>
                 )}
 
