@@ -121,7 +121,7 @@ export function BrandDashboardView({
 
   return (
     <PageShell>
-      <PageHeader title={`Hi, ${brand.firstName}`} summary={brand.company} />
+      <PageHeader title={brand.company} />
 
       {!approved ? (
         <EmptyState
