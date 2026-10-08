@@ -1,4 +1,4 @@
-import { postIdentity } from "../src/lib/post-key";
+import { handleInLink, postIdentity } from "../src/lib/post-key";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -42,6 +42,12 @@ for (const [name, u] of [
 ] as const) t(`${name} is refused`, postIdentity(u).ok === false, postIdentity(u));
 t("the short-link message says what to do", /full address/.test((postIdentity("https://vm.tiktok.com/ZMabc/") as { error: string }).error));
 t("the canonical link has no tracking", (postIdentity("https://www.instagram.com/reel/C8aBcDeFgHi/?igsh=zz") as { url: string }).url === "https://www.instagram.com/reel/C8aBcDeFgHi/");
+
+t("tiktok link names its account", handleInLink("https://www.tiktok.com/@MariaMakes/video/7300000000000000001") === "mariamakes");
+t("instagram link with a name", handleInLink("https://www.instagram.com/maria.rivers/reel/Cabc123/") === "maria.rivers");
+t("instagram link without a name has none", handleInLink("https://www.instagram.com/reel/Cabc123/") === null);
+t("youtube link never names the channel", handleInLink("https://www.youtube.com/shorts/abcdefghijk") === null);
+t("junk has no name", handleInLink("nope") === null);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

@@ -94,3 +94,26 @@ export function postIdentity(raw: string): PostIdentity {
 export function platformName(p: TrackedPlatform): string {
   return NAMES[p];
 }
+
+/**
+ * The account name written in a link, when the link shows one: TikTok's
+ * tiktok.com/@name/video/..., and Instagram's instagram.com/name/reel/... form.
+ * YouTube links never name the channel. Lowercase, no @. Used to refuse a link from
+ * someone else's account straight away; the real check still happens when the post is read.
+ */
+export function handleInLink(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl.trim());
+    const path = url.pathname;
+    const host = url.hostname.toLowerCase();
+    if (host === "tiktok.com" || host.endsWith(".tiktok.com"))
+      return path.match(/^\/@([^/]+)\//)?.[1]?.toLowerCase() ?? null;
+    if (host === "instagram.com" || host.endsWith(".instagram.com")) {
+      const name = path.match(/^\/([^/]+)\/(?:p|reel|reels|tv)\//)?.[1]?.toLowerCase();
+      return name && !["p", "reel", "reels", "tv"].includes(name) ? name : null;
+    }
+  } catch {
+    /* not a link */
+  }
+  return null;
+}

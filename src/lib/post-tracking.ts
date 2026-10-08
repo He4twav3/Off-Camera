@@ -1,6 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { postIdentity } from "@/lib/post-key";
+import { handleInLink, platformName, postIdentity } from "@/lib/post-key";
 import { judgePost } from "@/lib/post-reading";
 import { fetchPostReading } from "@/lib/post-reading-server";
 import { parsePostTerms, windowEnd } from "@/lib/post-terms";
@@ -51,6 +51,36 @@ export async function submitPost(
       ok: false,
       error:
         "This campaign isn't for that platform. Check which platforms it accepts.",
+    };
+  }
+
+  // The post has to be on one of this creator's own VERIFIED accounts. Say so straight away
+  // when it plainly isn't, instead of saving it and rejecting it later.
+  const { data: applicantRow } = await db
+    .from("assignments")
+    .select("applicant_id")
+    .eq("id", assignmentId)
+    .single();
+  const { data: ownHandles } = await db
+    .from("applicant_handles")
+    .select("handle")
+    .eq("applicant_id", applicantRow?.applicant_id ?? "")
+    .eq("platform", identity.platform)
+    .not("verified_at", "is", null);
+  const verifiedNames = (ownHandles ?? []).map((h) =>
+    h.handle.trim().replace(/^@+/, "").toLowerCase(),
+  );
+  if (verifiedNames.length === 0) {
+    return {
+      ok: false,
+      error: `Connect and verify your ${platformName(identity.platform)} account first. Posts only count on your own verified accounts.`,
+    };
+  }
+  const named = handleInLink(identity.url);
+  if (named && !verifiedNames.includes(named)) {
+    return {
+      ok: false,
+      error: `That post is on @${named}, which isn't one of your verified accounts, so it can't count.`,
     };
   }
 
