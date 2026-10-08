@@ -31,6 +31,8 @@ export type SubmissionRow = {
   assignedAt: string;
   paidAt: string | null;
   proofUrl: string | null;
+  /** Campaigns paid per post: how many posts, and where to see them. */
+  posts?: { sent: number; counting: number; rejected: number; href: string } | null;
   terms: PayoutTerms | null;
   views: number;
   amount: number;
@@ -140,8 +142,19 @@ export function SubmissionsView({
                         ? [{ label: "Paid", value: formatDate(r.paidAt) }]
                         : []),
                       {
-                        label: "Your post",
-                        value: r.proofUrl ? (
+                        label: r.posts ? "Your posts" : "Your post",
+                        value: r.posts ? (
+                          <span>
+                            {r.posts.sent} sent, {r.posts.counting} counting
+                            {r.posts.rejected > 0 ? `, ${r.posts.rejected} rejected` : ""}.{" "}
+                            <Link
+                              href={r.posts.href}
+                              className="font-semibold text-primary underline underline-offset-2"
+                            >
+                              See your posts
+                            </Link>
+                          </span>
+                        ) : r.proofUrl ? (
                           <a
                             href={r.proofUrl}
                             target="_blank"

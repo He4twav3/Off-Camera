@@ -68,12 +68,19 @@ export default async function SubmissionsPage(props: {
       const counted = a.assignment_posts.filter(
         (p) => p.state !== "rejected" && p.author_verified,
       );
+      const sent = a.assignment_posts.filter((p) => p.state !== "rejected");
       return {
         a,
         terms: null,
         views: counted.reduce((n, p) => n + Number(p.views), 0),
         amount: pay.earned,
         estimated: true,
+        posts: {
+          sent: sent.length,
+          counting: counted.length,
+          rejected: a.assignment_posts.length - sent.length,
+          href: `/dashboard/recruiting/earnings/${a.id}?tab=posts`,
+        },
       };
     }
     const terms = parsePayoutTerms(a.jobs?.payout_terms);
@@ -95,10 +102,15 @@ export default async function SubmissionsPage(props: {
       views,
       amount,
       estimated: a.status !== "paid" && formula !== null,
+      posts: null,
     };
   });
 
-  const submitted = rows.filter((r) => r.a.proof_url).length;
+  // Posts that were sent and not rejected. A rejected post is not a post sent.
+  const submitted = rows.reduce(
+    (n, r) => n + (r.posts ? r.posts.sent : r.a.proof_url ? 1 : 0),
+    0,
+  );
   const totalViews = rows.reduce((n, r) => n + r.views, 0);
   const pending = sumMoney(
     rows.filter((r) => r.a.status !== "paid").map((r) => r.amount),
@@ -111,10 +123,15 @@ export default async function SubmissionsPage(props: {
     <SubmissionsView
       status={status}
       totals={{ submitted, views: totalViews, expected: pending, paid }}
-      rows={rows.map(({ a, terms, views, amount, estimated }) => ({
+      rows={rows.map(({ a, terms, views, amount, estimated, posts }) => ({
         id: a.id,
         jobId: a.jobs?.id ?? null,
-        status: a.status,
+        // Only rejected posts so far means nothing is in review.
+        status:
+          posts && posts.sent === 0 && a.status === "submitted"
+            ? "active"
+            : a.status,
+        posts,
         title: a.jobs?.title ?? "Campaign",
         platform: a.jobs?.platform ?? null,
         assignedAt: a.assigned_at,

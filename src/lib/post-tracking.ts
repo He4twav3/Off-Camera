@@ -137,11 +137,20 @@ export async function submitPost(
     .eq("id", row.id)
     .single();
 
-  if (after?.state === "rejected")
+  if (after?.state === "rejected") {
+    // A rejected first post must not leave the campaign looking "sent in".
+    if (assignment.status === "active") {
+      await db
+        .from("assignments")
+        .update({ status: "active", proof_url: assignment.proof_url })
+        .eq("id", assignmentId)
+        .eq("status", "submitted");
+    }
     return {
       ok: false,
       error: after.reject_reason ?? "That post can't count.",
     };
+  }
   if (after?.author_verified)
     return {
       ok: true,
