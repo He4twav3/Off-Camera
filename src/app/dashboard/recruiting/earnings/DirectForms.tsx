@@ -46,12 +46,19 @@ export function PayoutInstructionsForm({ current }: { current: string | null }) 
           Brands pay you straight into your own account. The payment provider takes its fee from what you receive.
           Pick one, create a free account if you don&apos;t have one, and make a payment link.
         </p>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
           {(Object.keys(PAYMENT_PROVIDERS) as PaymentProvider[]).map((key) => {
             const p = PAYMENT_PROVIDERS[key];
             return (
               <li key={key} className="flex flex-col rounded-lg border border-border/70 p-4">
-                <p className="font-heading font-semibold text-foreground">{p.label}</p>
+                <p className="font-heading font-semibold text-foreground">
+                  {p.label}
+                  {p.recommended && (
+                    <span className="ml-2 rounded-md bg-primary/15 px-1.5 py-0.5 align-middle text-xs font-medium text-primary">
+                      Recommended
+                    </span>
+                  )}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">{p.blurb}</p>
                 <p className="mt-2 text-xs text-muted-foreground">{p.howTo}</p>
                 <a
@@ -73,7 +80,7 @@ export function PayoutInstructionsForm({ current }: { current: string | null }) 
         <Field
           label="2. Paste your payment link"
           htmlFor="payout_instructions"
-          hint="Only Stripe, PayPal and Wise links. Brands you work with see this and pay you through it. Never enter a card number."
+          hint="Only Stripe and Wise links. Brands you work with see this and pay you through it. Never enter a card number."
         >
           <Input
             id="payout_instructions"
@@ -92,7 +99,18 @@ export function PayoutInstructionsForm({ current }: { current: string | null }) 
           </p>
         )}
         {currentProvider && (
-          <p className="text-sm text-muted-foreground">Saved: a {PAYMENT_PROVIDERS[currentProvider].label} link.</p>
+          <p className="text-sm text-muted-foreground">
+            Saved: a {PAYMENT_PROVIDERS[currentProvider].label} link.{" "}
+            <a
+              href={current!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary underline underline-offset-2"
+            >
+              Test my link
+            </a>{" "}
+            to see what a brand will see.
+          </p>
         )}
         <Message state={state} />
         <div>

@@ -12,6 +12,7 @@ import { WithdrawalConfirmedEmail } from "@/emails/withdrawal-confirmed-email";
 import { ApplicationReceivedEmail } from "@/emails/application-received-email";
 import { ApplicationAcceptedEmail } from "@/emails/application-accepted-email";
 import { ApplicationDeclinedEmail } from "@/emails/application-declined-email";
+import { PAYMENT_PROVIDERS, providerOfLink } from "@/lib/payment-links";
 import { BrandMarkedPaidEmail, StatementIssuedBrandEmail, StatementIssuedCreatorEmail } from "@/emails/statement-emails";
 
 // Applicant-facing emails, now real React Email components (see src/emails/)
@@ -197,16 +198,21 @@ export async function sendStatementIssuedBrandEmail(args: {
   creatorName: string;
   amount: number;
   due: Date;
+  /** The creator's saved payment link, if it is a Stripe or Wise one. */
+  payLink?: string | null;
 }) {
   const baseUrl = await getBaseUrl();
   const amountLabel = formatCurrency(args.amount);
   const dueLabel = longDate(args.due);
   const brandUrl = `${baseUrl}/brand`;
+  const provider = providerOfLink(args.payLink);
+  const payLink = provider ? args.payLink! : null;
+  const payLabel = provider ? PAYMENT_PROVIDERS[provider].label : null;
   return sendEmail({
     to: args.to,
     subject: `Payment due: ${amountLabel} to ${args.creatorName}`,
-    react: StatementIssuedBrandEmail({ contactName: args.contactName, jobTitle: args.jobTitle, creatorName: args.creatorName, amountLabel, dueLabel, brandUrl }),
-    text: `A payment is due, ${args.contactName}. ${args.creatorName} has finished ${args.jobTitle}; based on the views the amount owed is ${amountLabel}, due by ${dueLabel}. You pay the creator directly. See how they asked to be paid and mark it paid here: ${brandUrl}`,
+    react: StatementIssuedBrandEmail({ contactName: args.contactName, jobTitle: args.jobTitle, creatorName: args.creatorName, amountLabel, dueLabel, brandUrl, payLink, payLabel }),
+    text: `A payment is due, ${args.contactName}. ${args.creatorName} has finished ${args.jobTitle}; based on the views the amount owed is ${amountLabel}, due by ${dueLabel}. You pay the creator directly. ${payLink ? `Pay exactly ${amountLabel} here: ${payLink} . Then mark it paid` : "See how they asked to be paid and mark it paid"} here: ${brandUrl}`,
   });
 }
 

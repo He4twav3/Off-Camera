@@ -55,7 +55,7 @@ export async function issueStatementAction(
   const { data: assignment } = await supabase
     .from("assignments")
     .select(
-      "id, status, applicants(name, email), jobs(title, brand_account_id, post_terms)",
+      "id, status, applicants(name, email, payout_instructions), jobs(title, brand_account_id, post_terms)",
     )
     .eq("id", parsed.data.assignment_id)
     .maybeSingle();
@@ -130,6 +130,7 @@ export async function issueStatementAction(
           creatorName: assignment.applicants?.name ?? "The creator",
           amount: parsed.data.amount,
           due,
+          payLink: assignment.applicants?.payout_instructions ?? null,
         });
         brandNote = " The brand and the creator have both been emailed.";
       }

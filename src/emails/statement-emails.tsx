@@ -23,9 +23,8 @@ export function StatementIssuedCreatorEmail({
         asked to do so by <strong>{dueLabel}</strong>.
       </EmailText>
       <EmailText>
-        Make sure the brand knows how to pay you: add your PayPal or Wise email
-        or your IBAN on your Payments page. When the money arrives, confirm it
-        there.
+        Make sure the brand can pay you: add your Stripe or Wise payment link on
+        your Payments page. When the money arrives, confirm it there.
       </EmailText>
       <EmailButton href={paymentsUrl}>Open your payments</EmailButton>
     </EmailLayout>
@@ -40,7 +39,11 @@ export function StatementIssuedBrandEmail({
   amountLabel,
   dueLabel,
   brandUrl,
+  payLink,
+  payLabel,
 }: {
+  payLink?: string | null;
+  payLabel?: string | null;
   contactName: string;
   jobTitle: string;
   creatorName: string;
@@ -56,11 +59,27 @@ export function StatementIssuedBrandEmail({
         Based on the views, the amount owed is <strong>{amountLabel}</strong>,
         due by <strong>{dueLabel}</strong>.
       </EmailText>
-      <EmailText>
-        You pay the creator directly. Open your dashboard to see how they asked
-        to be paid, and mark it as paid once you have sent it.
-      </EmailText>
-      <EmailButton href={brandUrl}>See the statement</EmailButton>
+      {payLink ? (
+        <>
+          <EmailText>
+            You pay the creator directly through their own payment page. Open it
+            and enter exactly <strong>{amountLabel}</strong>. Then mark it as paid
+            in your dashboard so they can confirm.
+          </EmailText>
+          <EmailButton href={payLink}>{`Pay ${amountLabel} with ${payLabel ?? "their link"}`}</EmailButton>
+          <EmailText>
+            <a href={brandUrl}>See the statement</a>
+          </EmailText>
+        </>
+      ) : (
+        <>
+          <EmailText>
+            You pay the creator directly. Open your dashboard to see how they
+            asked to be paid, and mark it as paid once you have sent it.
+          </EmailText>
+          <EmailButton href={brandUrl}>See the statement</EmailButton>
+        </>
+      )}
     </EmailLayout>
   );
 }

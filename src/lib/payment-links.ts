@@ -7,12 +7,13 @@
  * saved here can safely be shown to a brand as a button.
  */
 
-export type PaymentProvider = "stripe" | "paypal" | "wise";
+export type PaymentProvider = "stripe" | "wise";
 
 export const PAYMENT_PROVIDERS: Record<
   PaymentProvider,
   {
     label: string;
+    recommended?: boolean;
     hosts: string[];
     signupUrl: string;
     blurb: string;
@@ -21,18 +22,12 @@ export const PAYMENT_PROVIDERS: Record<
 > = {
   stripe: {
     label: "Stripe",
+    recommended: true,
     hosts: ["buy.stripe.com"],
     signupUrl: "https://dashboard.stripe.com/register",
-    blurb: "Best for brands paying by card. Not available in every country.",
+    blurb: "The easiest for brands: they pay by card, no account needed. Not available in every country.",
     howTo:
       "In Stripe, open Payment links, create one, and copy it. It starts with buy.stripe.com.",
-  },
-  paypal: {
-    label: "PayPal",
-    hosts: ["paypal.me", "www.paypal.me", "paypal.com", "www.paypal.com"],
-    signupUrl: "https://www.paypal.com/signup",
-    blurb: "Works in most countries.",
-    howTo: "Create your PayPal.me link and copy it. It looks like paypal.me/yourname.",
   },
   wise: {
     label: "Wise",
@@ -75,7 +70,7 @@ export function parsePaymentLink(raw: string): PaymentLinkResult {
     return {
       ok: false,
       error:
-        "That isn't a Stripe, PayPal or Wise payment link. Create one in your account and paste it here. It has to start with https://",
+        "That isn't a Stripe or Wise payment link. Create one in your account and paste it here. It has to start with https://",
     };
   }
   return { ok: true, provider, value };
