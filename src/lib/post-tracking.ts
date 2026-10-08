@@ -138,6 +138,8 @@ export async function submitPost(
     .single();
 
   if (after?.state === "rejected") {
+    // It doesn't qualify, so it is not kept: the creator is told why and nothing is listed.
+    await db.from("assignment_posts").delete().eq("id", row.id);
     // A rejected first post must not leave the campaign looking "sent in".
     if (assignment.status === "active") {
       await db

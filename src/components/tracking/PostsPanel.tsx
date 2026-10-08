@@ -103,7 +103,15 @@ export function PostsPanel({
   const pay = payFor(terms, posts, now);
   const calc = new Map(pay.posts.map((p) => [p.id, p]));
   const counted = posts.filter((p) => calc.has(p.id));
-  const others = posts.filter((p) => !calc.has(p.id));
+  // A post that was refused when it was added isn't a post, so it isn't listed. What a creator
+  // does see: posts still being checked, and posts the brand denied (with the reason).
+  const others = posts.filter(
+    (p) =>
+      !calc.has(p.id) &&
+      (viewer !== "creator" ||
+        p.state !== "rejected" ||
+        (p.rejectReason ?? "").startsWith("Denied")),
+  );
 
   const noteOf = (p: PostRowData) => {
     const c = calc.get(p.id);
@@ -149,7 +157,7 @@ export function PostsPanel({
         </Chip>
       </div>
 
-      {posts.length === 0 ? (
+      {counted.length === 0 && others.length === 0 ? (
         <EmptyState
           title="No posts yet"
           body="Post your video, then add its link. Its views start counting once we've confirmed it's on your account."
