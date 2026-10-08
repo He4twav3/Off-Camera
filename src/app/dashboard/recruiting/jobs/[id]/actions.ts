@@ -263,16 +263,8 @@ export async function withdrawApplicationAction(
  */
 export async function submitPostAction(_prev: ApplyState, formData: FormData): Promise<ApplyState> {
   const parsed = z
-    .object({
-      assignment_id: z.string().uuid(),
-      post_url: z.string().trim().min(1, "Paste the link to your post.").max(500),
-      repost_of: z.string().uuid().optional().or(z.literal("")),
-    })
-    .safeParse({
-      assignment_id: formData.get("assignment_id"),
-      post_url: formData.get("post_url"),
-      repost_of: (formData.get("repost_of") as string) || "",
-    });
+    .object({ assignment_id: z.string().uuid(), post_url: z.string().trim().min(1, "Paste the link to your post.").max(500) })
+    .safeParse({ assignment_id: formData.get("assignment_id"), post_url: formData.get("post_url") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Paste the link to your post." };
 
   const supabase = await createClient();
@@ -281,7 +273,7 @@ export async function submitPostAction(_prev: ApplyState, formData: FormData): P
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be logged in." };
 
-  const result = await submitPost(user.id, parsed.data.assignment_id, parsed.data.post_url, parsed.data.repost_of || null);
+  const result = await submitPost(user.id, parsed.data.assignment_id, parsed.data.post_url);
   if (!result.ok) return { error: result.error };
 
   revalidatePath("/dashboard/recruiting/jobs", "layout");

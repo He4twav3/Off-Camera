@@ -1,4 +1,4 @@
-import { GETIMG_TERMS as T, averagePerPost, cycleHistory, describePostTerms, moneyBar, type PostRowData, milestoneBonus, parsePostTerms, payFor, postTermsChips, suggestedStatement, windowEnd, type PostForPay } from "../src/lib/post-terms";
+import { GETIMG_TERMS as T, averagePerPost, cycleHistory, describePostTerms, moneyBar, type PostRowData, milestoneBonus, parsePostTerms, payFor, postTermsChips, suggestedStatement, windowEnd, mainPlatformOf, type PostForPay } from "../src/lib/post-terms";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -118,25 +118,32 @@ t("views are added up per cycle", cycleHistory(T, rows(3, { views: 1000 }), 0, n
 t("average per post", averagePerPost({ earned: 773, counted: 37 }) === 20.89);
 t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, counted: 0 }) === 0);
 
-// --- reposts: the base fee is per UNIQUE video ---
+// --- one unique video + reposts: the base is earned on the main platform only ---
 {
   const now = new Date("2026-10-20T12:00:00Z");
-  const post = (id: string, views: number, repostOf: string | null = null, at = "2026-10-10T10:00:00Z") =>
-    ({ id, state: "counting" as const, authorVerified: true, views, submittedAt: at, windowEndsAt: "2026-11-05T00:00:00Z", repostOf });
-  const only = payFor(T, [post("a", 800)], now);
-  t("one unique video earns the base", only.earned === 20 && only.unique === 1, only);
-  const cross = payFor(T, [post("a", 800), post("b", 900, "a", "2026-10-10T11:00:00Z"), post("c", 700, "a", "2026-10-10T12:00:00Z")], now);
-  t("the same video on three platforms earns the base once", cross.earned === 20 && cross.counted === 3 && cross.unique === 1, cross);
-  t("a repost shows no base", cross.posts.find((p) => p.id === "b")!.base === 0 && cross.posts.find((p) => p.id === "b")!.repost === true, cross.posts);
-  const bonus = payFor(T, [post("a", 1200), post("b", 5400, "a", "2026-10-10T11:00:00Z")], now);
+  const post = (id: string, platform: string, views: number, at: string) =>
+    ({ id, platform, state: "counting" as const, authorVerified: true, views, submittedAt: at, windowEndsAt: "2026-11-05T00:00:00Z" });
+  const ig1 = post("ig1", "instagram", 800, "2026-10-10T10:00:00Z");
+  const yt1 = post("yt1", "youtube_shorts", 900, "2026-10-10T11:00:00Z");
+  const tt1 = post("tt1", "tiktok", 700, "2026-10-10T12:00:00Z");
+  const one = payFor(T, [ig1, yt1, tt1], now);
+  t("the same video on three platforms earns the base once", one.earned === 20 && one.counted === 3 && one.unique === 1, one);
+  t("the first post sets the main platform", mainPlatformOf(T, [ig1, yt1, tt1]) === "instagram");
+  t("reposts are marked and earn no base", one.posts.filter((p) => p.repost).length === 2 && one.posts.find((p) => p.id === "yt1")!.base === 0, one.posts);
+  const two = payFor(T, [ig1, yt1, tt1, post("ig2", "instagram", 100, "2026-10-12T10:00:00Z")], now);
+  t("a second unique video on the main platform earns the base again", two.earned === 40 && two.unique === 2, two);
+  const bonus = payFor(T, [post("ig1", "instagram", 1200, "2026-10-10T10:00:00Z"), post("yt1", "youtube_shorts", 5400, "2026-10-10T11:00:00Z")], now);
   t("a repost keeps its own view bonus", bonus.earned === 20 + 2 + 10, bonus);
-  const many = Array.from({ length: 15 }, (_, i) => post(`u${i}`, 0, null, `2026-10-${String(i + 1).padStart(2, "0")}T10:00:00Z`));
-  const withReposts = payFor(T, [...many.slice(0, 14), post("r1", 0, "u0", "2026-10-16T10:00:00Z"), post("r2", 0, "u1", "2026-10-16T11:00:00Z")], now);
-  t("reposts don't count toward the 15 unique videos", withReposts.cyclesCompleted === 0 && withReposts.unique === 14, withReposts);
-  const done = payFor(T, [...many, post("r1", 0, "u0", "2026-10-16T10:00:00Z")], now);
-  t("15 unique videos complete a cycle even with reposts", done.cyclesCompleted === 1 && done.unique === 15, done);
-  const orphan = payFor(T, [post("b", 100, "gone")], now);
-  t("a repost whose original isn't counted is treated as unique", orphan.earned === 20, orphan);
+  const fifteen = Array.from({ length: 14 }, (_, i) => post(`u${i}`, "instagram", 0, `2026-10-${String(i + 1).padStart(2, "0")}T10:00:00Z`));
+  const noCycle = payFor(T, [...fifteen, post("r1", "tiktok", 0, "2026-10-16T10:00:00Z"), post("r2", "youtube_shorts", 0, "2026-10-16T11:00:00Z")], now);
+  t("reposts don't count toward the 15 unique videos", noCycle.cyclesCompleted === 0 && noCycle.unique === 14, noCycle);
+  const yes = payFor(T, [...fifteen, post("u14", "instagram", 0, "2026-10-15T10:00:00Z"), post("r1", "tiktok", 0, "2026-10-16T10:00:00Z")], now);
+  t("15 unique videos complete a cycle even with reposts", yes.cyclesCompleted === 1 && yes.unique === 15, yes);
+  const rej = payFor(T, [{ ...ig1, state: "rejected" as const }, yt1, tt1], now);
+  t("if the first post is rejected the next one sets the main platform", mainPlatformOf(T, [{ ...ig1, state: "rejected" as const }, yt1, tt1]) === "youtube_shorts" && rej.earned === 20, rej);
+  const everyPost = payFor({ ...T, repostsEarnBase: true }, [ig1, yt1, tt1], now);
+  t("a contract that pays every post pays all three", everyPost.earned === 60 && mainPlatformOf({ repostsEarnBase: true }, [ig1]) === null, everyPost);
+  t("older terms without the setting mean one unique video", parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })!.repostsEarnBase === false);
 }
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");

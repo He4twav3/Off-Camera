@@ -89,6 +89,7 @@ export function PostsPanel({
   sort,
   basePath,
   viewer = "creator",
+  postAction,
   now = new Date(),
 }: {
   terms: PostTerms;
@@ -96,6 +97,7 @@ export function PostsPanel({
   sort: Sort;
   basePath: string;
   viewer?: "creator" | "brand";
+  postAction?: (post: PostRowData) => React.ReactNode;
   now?: Date;
 }) {
   const pay = payFor(terms, posts, now);
@@ -106,10 +108,9 @@ export function PostsPanel({
   const noteOf = (p: PostRowData) => {
     const c = calc.get(p.id);
     if (!c) return p.state === "rejected" ? "Rejected" : "Checking";
-    const when = c.windowClosed
+    return c.windowClosed
       ? "Final"
       : `${c.daysLeft} ${c.daysLeft === 1 ? "day" : "days"} left`;
-    return c.repost ? `Repost, no base pay · ${when}` : when;
   };
   const amountOf = (p: PostRowData) => {
     const c = calc.get(p.id);
@@ -186,6 +187,9 @@ export function PostsPanel({
                     >
                       {p.state === "rejected" ? "Rejected" : "Checking"}
                     </span>
+                    {postAction && p.state !== "rejected" && (
+                      <span className="ml-2">{postAction(p)}</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -198,6 +202,7 @@ export function PostsPanel({
                   {[...counted].sort(byRecent).map((p) => (
                     <li key={p.id}>
                       <Tile post={p} note={noteOf(p)} amount={amountOf(p)} />
+                      {postAction && <div className="mt-1.5">{postAction(p)}</div>}
                     </li>
                   ))}
                 </ul>
@@ -217,6 +222,9 @@ export function PostsPanel({
                             note={noteOf(p)}
                             amount={amountOf(p)}
                           />
+                          {postAction && (
+                            <div className="mt-1.5">{postAction(p)}</div>
+                          )}
                         </li>
                       ))}
                     </ul>

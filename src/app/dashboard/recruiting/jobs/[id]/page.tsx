@@ -8,8 +8,7 @@ import { ApplyForm } from "./ApplyForm";
 import { CampaignView } from "@/components/app/CampaignView";
 import { SubmitContent } from "./SubmitContent";
 import { SubmitPost } from "@/components/app/SubmitPost";
-import { repostChoices } from "@/lib/post-reposts";
-import { parsePostTerms } from "@/lib/post-terms";
+import { mainPlatformOf, parsePostTerms } from "@/lib/post-terms";
 import type { VideoItem } from "@/components/app/VideosCard";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { formatDate } from "@/lib/utils";
@@ -112,7 +111,25 @@ export default async function JobDetailPage(props: {
     );
   } else if (assignment && postTerms) {
     intro = "You're on this campaign. Add each post as you publish it.";
-    cta = <SubmitPost assignmentId={assignment.id} originals={await repostChoices(assignment.id)} />;
+    const { data: myPosts } = await supabase
+      .from("assignment_posts")
+      .select("platform, state, author_verified, submitted_at")
+      .eq("assignment_id", assignment.id);
+    cta = (
+      <SubmitPost
+        assignmentId={assignment.id}
+        mainPlatform={mainPlatformOf(
+          postTerms,
+          (myPosts ?? []).map((p) => ({
+            state: p.state,
+            authorVerified: p.author_verified,
+            submittedAt: p.submitted_at,
+            platform: p.platform,
+          })),
+        )}
+        baseOnEveryPost={postTerms.repostsEarnBase}
+      />
+    );
   } else if (assignment) {
     intro = assignment.proof_url
       ? "Your post is in. You can send a different link if it changes."

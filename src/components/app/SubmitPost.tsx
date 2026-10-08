@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { CheckCircle2, Clock, Plus, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Select } from "@/components/ui/field";
+import { Field, Input } from "@/components/ui/field";
 import {
   submitPostAction,
   type ApplyState,
@@ -21,13 +21,22 @@ function Send() {
 }
 
 /** "Add a post": a button that opens a small window to paste the link to a new video. */
+const PLATFORM_NAMES: Record<string, string> = {
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  youtube_shorts: "YouTube",
+};
+
 export function SubmitPost({
   assignmentId,
-  originals = [],
+  mainPlatform = null,
+  baseOnEveryPost = false,
 }: {
   assignmentId: string;
-  /** Videos already added, so a new link can be marked as a repost of one of them. */
-  originals?: { id: string; label: string }[];
+  /** The creator's main platform (where their first counted post is), if they have one yet. */
+  mainPlatform?: string | null;
+  /** True when every post earns the base pay, so there is no main platform to explain. */
+  baseOnEveryPost?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -72,6 +81,24 @@ export function SubmitPost({
           className="flex flex-col gap-4 px-5 pt-4 pb-5"
         >
           <input type="hidden" name="assignment_id" value={assignmentId} />
+          {!baseOnEveryPost && (
+            <p className="rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              {mainPlatform ? (
+                <>
+                  Your main platform is{" "}
+                  <strong className="text-foreground">{PLATFORM_NAMES[mainPlatform] ?? mainPlatform}</strong>.
+                  A new video posted there earns the base pay. The same video on your other
+                  platforms is a repost and earns view bonuses only.
+                </>
+              ) : (
+                <>
+                  Your first post sets your <strong className="text-foreground">main platform</strong>.
+                  Post each new video there first: it earns the base pay. The same video on your
+                  other platforms is a repost and earns view bonuses only.
+                </>
+              )}
+            </p>
+          )}
           <Field
             label="Link to your post"
             htmlFor={`post-${assignmentId}`}
@@ -85,22 +112,6 @@ export function SubmitPost({
               placeholder="https://www.tiktok.com/@you/video/1234567890"
             />
           </Field>
-          {originals.length > 0 && (
-            <Field
-              label="Is this the same video as one you already added?"
-              htmlFor={`repost-${assignmentId}`}
-              hint="Pay is per unique video. The same video on another platform is a repost: it can still earn view bonuses, but not the base pay again."
-            >
-              <Select id={`repost-${assignmentId}`} name="repost_of" defaultValue="">
-                <option value="">No, it&apos;s a new video</option>
-                {originals.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    Yes, a repost of {o.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          )}
           {state.error && (
             <div
               role="alert"

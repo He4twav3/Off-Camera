@@ -30,8 +30,6 @@ export async function submitPost(
   userId: string,
   assignmentId: string,
   rawUrl: string,
-  /** Set when this is the same video as a post already added (on another platform). */
-  repostOfId: string | null = null,
 ): Promise<SubmitPostResult> {
   const db = createAdminClient();
 
@@ -102,26 +100,6 @@ export async function submitPost(
     };
   }
 
-  // A repost: the same video as one already added, on another platform. It earns no base pay.
-  if (repostOfId) {
-    const { data: original, error: originalError } = await db
-      .from("assignment_posts")
-      .select("id, platform, state, repost_of" as never)
-      .eq("id", repostOfId)
-      .eq("assignment_id", assignmentId)
-      .maybeSingle();
-    if (originalError)
-      return { ok: false, error: "Marking a repost isn't available yet. Add it as a new video for now." };
-    const o = original as unknown as { id: string; platform: string; state: string; repost_of: string | null } | null;
-    if (!o || o.state === "rejected" || o.repost_of)
-      return { ok: false, error: "Pick the original video this is a repost of." };
-    if (o.platform === identity.platform)
-      return {
-        ok: false,
-        error: "A repost is the same video on a different platform. For another video on the same platform, add it as a new video.",
-      };
-  }
-
   const { data: row, error } = await db
     .from("assignment_posts")
     .insert({
@@ -129,7 +107,6 @@ export async function submitPost(
       platform: identity.platform,
       url: identity.url,
       post_key: identity.key,
-      ...(repostOfId ? ({ repost_of: repostOfId } as Record<string, unknown>) : {}),
     })
     .select("id")
     .single();

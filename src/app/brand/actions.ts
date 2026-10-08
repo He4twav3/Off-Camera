@@ -177,3 +177,61 @@ export async function setCampaignLogoAction(
   revalidatePath("/admin/jobs");
   return { success: logoUrl ? "Logo updated." : "Logo removed." };
 }
+
+const denySchema = z.object({
+  post_id: z.string().uuid(),
+  reason: z.string().trim().max(200).optional(),
+});
+
+/**
+ * A brand turns down one post on its own campaign (it doesn't qualify, or breaks the brief).
+ * The post is marked rejected, so it stops counting and the creator sees why. The ownership
+ * of the campaign is proved first; the service role is used only after that.
+ */
+export async function denyPostAction(
+  _prev: BrandPayState,
+  formData: FormData,
+): Promise<BrandPayState> {
+  const parsed = denySchema.safeParse({
+    post_id: formData.get("post_id"),
+    reason: formData.get("reason") ?? "",
+  });
+  if (!parsed.success) return { error: "Check the fields." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be logged in." };
+  const { data: brand } = await supabase
+    .from("brand_accounts")
+    .select("id, status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!brand || brand.status !== "approved")
+    return { error: "Your brand account isn't approved yet." };
+
+  const db = createAdminClient();
+  const { data: post } = await db
+    .from("assignment_posts")
+    .select("id, state, assignments(id, jobs(brand_account_id))")
+    .eq("id", parsed.data.post_id)
+    .maybeSingle();
+  if (!post || post.assignments?.jobs?.brand_account_id !== brand.id)
+    return { error: "We couldn't find that post." };
+  if (post.state === "rejected") return { success: "Already denied." };
+
+  const reason = parsed.data.reason
+    ? `Denied by the brand: ${parsed.data.reason}`
+    : "Denied by the brand.";
+  const { error } = await db
+    .from("assignment_posts")
+    .update({ state: "rejected", reject_reason: reason })
+    .eq("id", post.id);
+  if (error) return { error: "We couldn't save that. Please try again." };
+
+  revalidatePath("/brand", "layout");
+  revalidatePath("/dashboard/recruiting", "layout");
+  revalidatePath("/admin/statements");
+  return { success: "Post denied." };
+}

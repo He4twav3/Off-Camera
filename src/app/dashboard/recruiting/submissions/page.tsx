@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { repostLinks } from "@/lib/post-reposts";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SubmissionsView } from "@/components/app/SubmissionsView";
@@ -35,7 +34,7 @@ export default async function SubmissionsPage(props: {
     supabase
       .from("assignments")
       .select(
-        "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, jobs(id, title, platform, payout_terms, post_terms), assignment_posts(id, state, author_verified, views, submitted_at, window_ends_at)",
+        "id, status, proof_url, applicant_payout_amount, assigned_at, paid_at, jobs(id, title, platform, payout_terms, post_terms), assignment_posts(id, platform, state, author_verified, views, submitted_at, window_ends_at)",
       )
       .eq("applicant_id", applicant.id)
       .order("assigned_at", { ascending: false }),
@@ -43,9 +42,6 @@ export default async function SubmissionsPage(props: {
     supabase.from("campaign_views").select("campaign, views"),
   ]);
 
-  const links = await repostLinks(
-    (assignments ?? []).flatMap((a) => a.assignment_posts.map((p) => p.id)),
-  );
   const viewsByCampaign = new Map<string, number>();
   for (const v of viewRows ?? []) {
     viewsByCampaign.set(
@@ -62,12 +58,12 @@ export default async function SubmissionsPage(props: {
         postTerms,
         a.assignment_posts.map((p) => ({
           id: p.id,
+          platform: p.platform,
           state: p.state,
           authorVerified: p.author_verified,
           views: Number(p.views),
           submittedAt: p.submitted_at,
           windowEndsAt: p.window_ends_at,
-          repostOf: links.get(p.id) ?? null,
         })),
       );
       const counted = a.assignment_posts.filter(

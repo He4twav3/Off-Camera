@@ -34,6 +34,8 @@ export function buildTracking(p: {
   startedAt: string;
   handles: { platform: PlatformEnum; handle: string }[];
   viewer?: "creator" | "brand";
+  /** Something to show with each post, e.g. the brand's Deny button. */
+  postAction?: (post: PostRowData) => ReactNode;
   now?: Date;
 }): Tracking {
   const now = p.now ?? new Date();
@@ -66,6 +68,7 @@ export function buildTracking(p: {
           sort={p.sort}
           basePath={p.basePath}
           viewer={viewer}
+          postAction={p.postAction}
           now={now}
         />
       ) : null,

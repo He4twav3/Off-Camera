@@ -38,6 +38,12 @@ export const postTermsSchema = z.object({
   platforms: z
     .array(z.enum(["tiktok", "instagram", "youtube_shorts", "x"]))
     .min(1),
+  /**
+   * false (the default): the base fee is for ONE unique video. The creator's first post sets
+   * their main platform; posts there earn the base. The same video on other platforms is a
+   * repost and earns view bonuses only. true: every post earns the base.
+   */
+  repostsEarnBase: z.boolean().default(false),
 });
 
 export type PostTerms = z.infer<typeof postTermsSchema>;
@@ -65,6 +71,7 @@ export const GETIMG_TERMS: PostTerms = {
   windowDays: 30,
   keepPublicDays: 90,
   platforms: ["instagram", "tiktok", "youtube_shorts"],
+  repostsEarnBase: false,
 };
 
 /** The bonus a post has earned: the highest milestone it reached (0 if none). */
@@ -91,8 +98,8 @@ export type PostForPay = {
   views: number;
   submittedAt: string;
   windowEndsAt: string | null;
-  /** The original post this one repeats (the same video on another platform). Null for a unique video. */
-  repostOf?: string | null;
+  /** Where it was posted. Decides whether it earns the base (see PostTerms.repostsEarnBase). */
+  platform?: string;
 };
 
 export type PostPay = {
@@ -102,7 +109,7 @@ export type PostPay = {
   base: number;
   bonus: number;
   windowClosed: boolean;
-  /** The same video as another post, on another platform: no base pay. */
+  /** Posted on a platform other than the main one: the same video again, no base pay. */
   repost?: boolean;
   /** Whole days of counting left (0 once closed), or null if the window isn't known yet. */
   daysLeft: number | null;
@@ -110,9 +117,9 @@ export type PostPay = {
 
 export type PayTotals = {
   posts: PostPay[];
-  /** Posts that count: not rejected and found on the creator's own account (reposts included). */
+  /** Posts that count: not rejected and found on the creator's own account. */
   counted: number;
-  /** Unique videos among them: what the payment cycles are counted in. */
+  /** Unique videos among them (main platform): what the payment cycles are counted in. */
   unique: number;
   cyclesCompleted: number;
   /** Everything earned so far, including bonuses that can still change. */
@@ -125,6 +132,21 @@ export type PayTotals = {
 
 const cents = (n: number) => Math.round(n * 100);
 const DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * The creator's main platform: where their first counted post is. Null when no post counts
+ * yet, or when every post earns the base (repostsEarnBase). Pass the posts oldest first.
+ */
+export function mainPlatformOf(
+  terms: Pick<PostTerms, "repostsEarnBase">,
+  posts: Pick<PostForPay, "state" | "authorVerified" | "submittedAt" | "platform">[],
+): string | null {
+  if (terms.repostsEarnBase) return null;
+  const first = posts
+    .filter((p) => p.state !== "rejected" && p.authorVerified && p.platform)
+    .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime())[0];
+  return first?.platform ?? null;
+}
 
 export function payFor(
   terms: PostTerms,
@@ -139,23 +161,28 @@ export function payFor(
         a.id.localeCompare(b.id),
     );
 
-  // The base fee is per UNIQUE video. A repost (the same video on another platform) keeps its
-  // view bonus but earns no base and doesn't count toward the payment cycle.
-  const countedIds = new Set(counted.map((p) => p.id));
-  const isRepost = (p: PostForPay) => Boolean(p.repostOf && countedIds.has(p.repostOf));
+  // The base fee is for one unique video. The first counted post sets the main platform; posts
+  // there earn the base, the same video on another platform is a repost (view bonus only) and
+  // doesn't count toward the payment cycle.
+  const main = mainPlatformOf(terms, counted);
+  const isRepost = (p: PostForPay) =>
+    main !== null && p.platform !== undefined && p.platform !== main;
   const uniques = counted.filter((p) => !isRepost(p));
-  const cycleOf = new Map(
-    uniques.map((p, i) => [p.id, Math.floor(i / terms.cycleSize) + 1]),
-  );
+  let cycle = 1;
+  let uniqueSeen = 0;
 
   const posts: PostPay[] = counted.map((p) => {
     const windowEnds = p.windowEndsAt ? new Date(p.windowEndsAt) : null;
     const windowClosed =
       p.state === "final" || (windowEnds !== null && now >= windowEnds);
     const repost = isRepost(p);
+    if (!repost) {
+      cycle = Math.floor(uniqueSeen / terms.cycleSize) + 1;
+      uniqueSeen++;
+    }
     return {
       id: p.id,
-      cycle: repost ? (cycleOf.get(p.repostOf!) ?? 1) : (cycleOf.get(p.id) ?? 1),
+      cycle,
       base: repost ? 0 : terms.basePerPost,
       bonus: milestoneBonus(p.views, terms.milestones),
       windowClosed,
@@ -213,8 +240,12 @@ export function postTermsChips(terms: PostTerms): string[] {
 export function describePostTerms(terms: PostTerms): string[] {
   const lines: string[] = [];
   if (terms.basePerPost > 0) {
-    lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video. It is paid after every ${terms.cycleSize} unique videos you deliver.`);
-    lines.push("The same video on another platform is a repost: it doesn't earn the base pay again. Mark it as a repost when you add it.");
+    if (terms.repostsEarnBase) {
+      lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post. It is paid after every ${terms.cycleSize} posts you deliver.`);
+    } else {
+      lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video. It is paid after every ${terms.cycleSize} unique videos you deliver.`);
+      lines.push("Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost: it earns view bonuses only.");
+    }
   }
   if (terms.milestones.length > 0) {
     lines.push(
