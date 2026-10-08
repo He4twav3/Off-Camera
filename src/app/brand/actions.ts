@@ -486,3 +486,49 @@ export async function setCampaignStatusAction(
   revalidatePath("/dashboard/recruiting/jobs");
   return { success: parsed.data.status === "open" ? "Campaign reopened." : "Campaign closed to new creators." };
 }
+
+// --- business details ---------------------------------------------------------------------
+
+export interface BusinessState {
+  error?: string;
+  success?: string;
+}
+
+/** A brand edits its own business details. brand_accounts has no brand write policy, so the
+ * save is made with the service role, only on the signed-in brand's own row. */
+export async function saveBusinessDetailsAction(
+  _prev: BusinessState,
+  formData: FormData,
+): Promise<BusinessState> {
+  const company = String(formData.get("company_name") ?? "").trim();
+  const contact = String(formData.get("contact_name") ?? "").trim();
+  let website = String(formData.get("website") ?? "").trim().slice(0, 200);
+  if (company.length < 2 || company.length > 120) return { error: "Enter your company name." };
+  if (contact.length < 2 || contact.length > 120) return { error: "Enter a contact name." };
+  if (website) {
+    if (!/^https?:\/\//i.test(website)) website = `https://${website}`;
+    try {
+      const url = new URL(website);
+      if (!url.hostname.includes(".")) throw new Error("bad");
+    } catch {
+      return { error: "That website doesn't look right. Use an address like https://yourbrand.com" };
+    }
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be logged in." };
+
+  const { data, error } = await createAdminClient()
+    .from("brand_accounts")
+    .update({ company_name: company, contact_name: contact, website: website || null })
+    .eq("user_id", user.id)
+    .select("id");
+  if (error || !data || data.length === 0) return { error: "We couldn't save that. Please try again." };
+
+  revalidatePath("/brand", "layout");
+  revalidatePath("/admin/brands");
+  return { success: "Saved." };
+}
