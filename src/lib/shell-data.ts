@@ -27,7 +27,7 @@ export async function getShellData(): Promise<ShellData> {
   const supabase = await createClient();
 
   const [applicant, adminCheck] = await Promise.all([
-    supabase.from("applicants").select("id, username").eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "").maybeSingle(),
+    supabase.from("applicants").select("id, username, name").eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "").maybeSingle(),
     supabase.rpc("is_admin"),
   ]);
 
@@ -53,7 +53,10 @@ export async function getShellData(): Promise<ShellData> {
     session: {
       displayName: session.displayName,
       email: session.email,
-      initials: session.initials,
+      // The first letter of their name (or username), never of their email address.
+      initials: (applicant.data?.name?.trim() || applicant.data?.username || session.displayName)
+        .charAt(0)
+        .toUpperCase(),
       username: applicant.data?.username ?? null,
     },
     recruiting: {
