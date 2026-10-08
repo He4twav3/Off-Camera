@@ -21,6 +21,7 @@ import {
   type TabItem,
 } from "@/components/kit/ui";
 import { PayCreatorForm } from "./PayCreatorForm";
+import { CampaignLogoForm } from "./CampaignLogoForm";
 
 const CREATOR_STATUS: Record<string, { label: string; tone: StatusTone }> = {
   active: { label: "In progress", tone: "open" },
@@ -242,73 +243,76 @@ function CampaignRow({ c }: { c: BrandCampaign }) {
       figureLabel="Views"
       detailsLabel="Creators"
       details={
-        c.creators.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No creators on this campaign yet.
-          </p>
-        ) : (
-          <ul className="divide-y divide-border/70">
-            {c.creators.map((cr) => {
-              const cs = CREATOR_STATUS[cr.status] ?? CREATOR_STATUS.active;
-              return (
-                <li
-                  key={cr.assignmentId}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0"
-                >
-                  <Initial name={cr.name} />
-                  <div className="min-w-0 flex-1 basis-48">
-                    {cr.pay ? (
-                      <Link
-                        href={`/brand/creators/${cr.assignmentId}`}
-                        className="truncate text-[15px] font-semibold text-foreground underline-offset-2 hover:underline"
-                      >
-                        {cr.name}
-                      </Link>
-                    ) : (
-                      <p className="truncate text-[15px] font-semibold text-foreground">
-                        {cr.name}
-                      </p>
-                    )}
-                    <p className="truncate text-sm text-muted-foreground">
-                      {PLATFORM_LABELS[cr.platform]} @{cr.handle}
-                      {cr.proofUrl && (
-                        <>
-                          {" · "}
-                          <a
-                            href={cr.proofUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-semibold text-primary underline underline-offset-2"
-                          >
-                            View post
-                          </a>
-                        </>
+        <div className="flex flex-col gap-5">
+          <CampaignLogoForm jobId={c.id} logoUrl={c.logoUrl} />
+          {c.creators.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No creators on this campaign yet.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/70">
+              {c.creators.map((cr) => {
+                const cs = CREATOR_STATUS[cr.status] ?? CREATOR_STATUS.active;
+                return (
+                  <li
+                    key={cr.assignmentId}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0"
+                  >
+                    <Initial name={cr.name} />
+                    <div className="min-w-0 flex-1 basis-48">
+                      {cr.pay ? (
+                        <Link
+                          href={`/brand/creators/${cr.assignmentId}`}
+                          className="truncate text-[15px] font-semibold text-foreground underline-offset-2 hover:underline"
+                        >
+                          {cr.name}
+                        </Link>
+                      ) : (
+                        <p className="truncate text-[15px] font-semibold text-foreground">
+                          {cr.name}
+                        </p>
                       )}
-                    </p>
-                  </div>
-                  <StatusBadge tone={cs.tone}>{cs.label}</StatusBadge>
-                  {cr.pay && (
-                    <div className="min-w-28 text-right">
-                      <p className="tabular-nums text-[15px] font-semibold text-foreground">
-                        {money(cr.pay.earned)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {cr.pay.posts} {cr.pay.posts === 1 ? "post" : "posts"} ·{" "}
-                        {money(cr.pay.payable)} due now
+                      <p className="truncate text-sm text-muted-foreground">
+                        {PLATFORM_LABELS[cr.platform]} @{cr.handle}
+                        {cr.proofUrl && (
+                          <>
+                            {" · "}
+                            <a
+                              href={cr.proofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold text-primary underline underline-offset-2"
+                            >
+                              View post
+                            </a>
+                          </>
+                        )}
                       </p>
                     </div>
-                  )}
-                  <p className="min-w-20 text-right tabular-nums text-[15px] font-semibold text-foreground">
-                    {cr.views.toLocaleString()}{" "}
-                    <span className="text-xs font-normal text-muted-foreground">
-                      views
-                    </span>
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        )
+                    <StatusBadge tone={cs.tone}>{cs.label}</StatusBadge>
+                    {cr.pay && (
+                      <div className="min-w-28 text-right">
+                        <p className="tabular-nums text-[15px] font-semibold text-foreground">
+                          {money(cr.pay.earned)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {cr.pay.posts} {cr.pay.posts === 1 ? "post" : "posts"}{" "}
+                          · {money(cr.pay.payable)} due now
+                        </p>
+                      </div>
+                    )}
+                    <p className="min-w-20 text-right tabular-nums text-[15px] font-semibold text-foreground">
+                      {cr.views.toLocaleString()}{" "}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        views
+                      </span>
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       }
     />
   );

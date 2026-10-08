@@ -100,7 +100,7 @@ export function AccountShell({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col lg:min-h-[calc(100vh-3.5rem)] lg:flex-row">
+    <div className="flex w-full flex-col lg:min-h-[calc(100vh-3.5rem)] lg:flex-row">
       <aside className="shrink-0 border-b border-border/70 lg:w-60 lg:border-r lg:border-b-0">
         <div className="flex flex-col items-center px-4 pt-6 pb-4 text-center lg:pt-8">
           <Avatar name={person.name} url={person.avatarUrl} size={88} />
@@ -134,7 +134,7 @@ export function AccountShell({
         </nav>
       </aside>
 
-      <div className="min-w-0 flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="min-w-0 max-w-4xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-6 flex items-center gap-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
             <Icon className="size-5" />

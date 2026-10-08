@@ -14,7 +14,13 @@ import { parsePostTerms, payFor } from "@/lib/post-terms";
 
 type PostRow = Pick<
   Database["public"]["Tables"]["assignment_posts"]["Row"],
-  "id" | "assignment_id" | "state" | "author_verified" | "views" | "submitted_at" | "window_ends_at"
+  | "id"
+  | "assignment_id"
+  | "state"
+  | "author_verified"
+  | "views"
+  | "submitted_at"
+  | "window_ends_at"
 >;
 
 export type BrandCreator = {
@@ -39,6 +45,7 @@ export type BrandCampaign = {
   platform: PlatformEnum;
   status: "open" | "filled" | "closed";
   createdAt: string;
+  logoUrl: string | null;
   creators: BrandCreator[];
   totalViews: number;
 };
@@ -50,7 +57,7 @@ export async function getBrandCampaigns(
 
   const { data: jobs } = await db
     .from("jobs")
-    .select("id, title, platform, status, created_at, post_terms")
+    .select("id, title, platform, status, created_at, post_terms, logo_url")
     .eq("brand_account_id", brandId)
     .order("created_at", { ascending: false });
   if (!jobs || jobs.length === 0) return [];
@@ -165,6 +172,7 @@ export async function getBrandCampaigns(
       platform: job.platform,
       status: job.status,
       createdAt: job.created_at,
+      logoUrl: job.logo_url,
       creators,
       totalViews: creators.reduce((n, c) => n + c.views, 0),
     };

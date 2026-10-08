@@ -30,7 +30,7 @@ export function JobFilters({ niches, hasPayRange }: JobFiltersProps) {
     });
   }
 
-  const activeCount = ["platform", "niche", "payout_type", "account_requirement"]
+  const activeCount = ["niche", "payout_type", "account_requirement"]
     .filter((k) => searchParams.get(k))
     .length;
 
@@ -56,21 +56,7 @@ export function JobFilters({ niches, hasPayRange }: JobFiltersProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Platform" htmlFor="filter-platform">
-          <Select
-            id="filter-platform"
-            value={searchParams.get("platform") ?? ""}
-            onChange={(e) => setParam("platform", e.target.value)}
-          >
-            <option value="">All platforms</option>
-            <option value="tiktok">TikTok</option>
-            <option value="instagram">Instagram</option>
-            <option value="youtube_shorts">YouTube Shorts</option>
-            <option value="x">X</option>
-          </Select>
-        </Field>
-
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Niche" htmlFor="filter-niche">
           <Select
             id="filter-niche"
