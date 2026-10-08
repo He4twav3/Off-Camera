@@ -38,6 +38,7 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
       items: [
         { href: "/admin/jobs", label: "Jobs", icon: "jobs", blurb: "Create, edit and close campaigns, and set their pay terms." },
         { href: "/admin/campaigns", label: "Campaign signups", icon: "signups", blurb: "Review sign-ups and count their views." },
+        { href: "/admin/review", label: "Post review", icon: "signups", blurb: "Check each post before it counts toward what a brand owes." },
       ],
     },
     {

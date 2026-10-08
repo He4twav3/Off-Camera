@@ -44,6 +44,11 @@ export const postTermsSchema = z.object({
    * repost and earns view bonuses only. true: every post earns the base.
    */
   repostsEarnBase: z.boolean().default(false),
+  /**
+   * Who checks each post before it is paid: "oncamera" (our team, the default, so brands don't
+   * have to) or "brand". A post is only counted into what is due once it has been approved.
+   */
+  reviewer: z.enum(["oncamera", "brand"]).default("oncamera"),
 });
 
 export type PostTerms = z.infer<typeof postTermsSchema>;
@@ -72,6 +77,7 @@ export const GETIMG_TERMS: PostTerms = {
   keepPublicDays: 90,
   platforms: ["instagram", "tiktok", "youtube_shorts"],
   repostsEarnBase: false,
+  reviewer: "oncamera",
 };
 
 /** The bonus a post has earned: the highest milestone it reached (0 if none). */
@@ -100,6 +106,8 @@ export type PostForPay = {
   windowEndsAt: string | null;
   /** Where it was posted. Decides whether it earns the base (see PostTerms.repostsEarnBase). */
   platform?: string;
+  /** Approved by the reviewer. Undefined means review isn't being tracked (treated as approved). */
+  reviewed?: boolean;
 };
 
 export type PostPay = {
@@ -111,6 +119,8 @@ export type PostPay = {
   windowClosed: boolean;
   /** Posted on a platform other than the main one: the same video again, no base pay. */
   repost?: boolean;
+  /** Still waiting for its review: earned, but not yet counted into what is due. */
+  inReview?: boolean;
   /** Whole days of counting left (0 once closed), or null if the window isn't known yet. */
   daysLeft: number | null;
 };
@@ -121,6 +131,8 @@ export type PayTotals = {
   counted: number;
   /** Unique videos among them (main platform): what the payment cycles are counted in. */
   unique: number;
+  /** Posts still waiting for their review. */
+  awaitingReview: number;
   cyclesCompleted: number;
   /** Everything earned so far, including bonuses that can still change. */
   earned: number;
@@ -192,6 +204,7 @@ export function payFor(
           ? Math.max(0, Math.ceil((windowEnds.getTime() - now.getTime()) / DAY))
           : null,
       repost,
+      inReview: p.reviewed === false,
     };
   });
 
@@ -200,6 +213,8 @@ export function payFor(
   let payable = 0;
   for (const p of posts) {
     earned += cents(p.base) + cents(p.bonus);
+    // Only reviewed posts count into what is due. A post still in review is earned, not payable.
+    if (p.inReview) continue;
     if (p.cycle <= cyclesCompleted) payable += cents(p.base);
     if (p.windowClosed) payable += cents(p.bonus);
   }
@@ -207,6 +222,7 @@ export function payFor(
     posts,
     counted: counted.length,
     unique: uniques.length,
+    awaitingReview: posts.filter((p) => p.inReview).length,
     cyclesCompleted,
     earned: earned / 100,
     payable: payable / 100,

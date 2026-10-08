@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
+import { parsePostTerms } from "@/lib/post-terms";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
 import {
   AVATAR_CONTENT_TYPES,
@@ -234,4 +235,95 @@ export async function denyPostAction(
   revalidatePath("/dashboard/recruiting", "layout");
   revalidatePath("/admin/statements");
   return { success: "Post denied." };
+}
+
+// Shared: the signed-in brand, only if approved.
+async function approvedBrand() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: brand } = await supabase
+    .from("brand_accounts")
+    .select("id, status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  return brand && brand.status === "approved" ? brand : null;
+}
+
+/** The brand approves a post, when it has chosen to review its own posts. */
+export async function approvePostAsBrandAction(
+  _prev: BrandPayState,
+  formData: FormData,
+): Promise<BrandPayState> {
+  const id = z.string().uuid().safeParse(formData.get("post_id"));
+  if (!id.success) return { error: "Check the fields." };
+  const brand = await approvedBrand();
+  if (!brand) return { error: "Your brand account isn't approved yet." };
+
+  const db = createAdminClient();
+  const { data: post } = await db
+    .from("assignment_posts")
+    .select("id, state, assignments(jobs(brand_account_id, post_terms))")
+    .eq("id", id.data)
+    .maybeSingle();
+  const job = post?.assignments?.jobs;
+  if (!post || job?.brand_account_id !== brand.id) return { error: "We couldn't find that post." };
+  if (parsePostTerms(job.post_terms)?.reviewer !== "brand")
+    return { error: "OnCamera reviews the posts on this campaign." };
+  if (post.state === "rejected") return { error: "That post was denied." };
+
+  const { error } = await db
+    .from("assignment_posts")
+    .update({ reviewed_at: new Date().toISOString() } as never)
+    .eq("id", post.id);
+  if (error) return { error: "We couldn't save that. Is post review switched on yet?" };
+  revalidatePath("/brand", "layout");
+  revalidatePath("/dashboard/recruiting", "layout");
+  revalidatePath("/admin/statements");
+  return { success: "Approved." };
+}
+
+const reviewerSchema = z.object({
+  job_id: z.string().uuid(),
+  reviewer: z.enum(["oncamera", "brand"]),
+});
+
+/** The brand chooses who reviews each post on a per-post campaign: OnCamera, or the brand. */
+export async function setPostReviewerAction(
+  _prev: BrandPayState,
+  formData: FormData,
+): Promise<BrandPayState> {
+  const parsed = reviewerSchema.safeParse({
+    job_id: formData.get("job_id"),
+    reviewer: formData.get("reviewer"),
+  });
+  if (!parsed.success) return { error: "Check the fields." };
+  const brand = await approvedBrand();
+  if (!brand) return { error: "Your brand account isn't approved yet." };
+
+  const db = createAdminClient();
+  const { data: job } = await db
+    .from("jobs")
+    .select("id, post_terms")
+    .eq("id", parsed.data.job_id)
+    .eq("brand_account_id", brand.id)
+    .maybeSingle();
+  const terms = job ? parsePostTerms(job.post_terms) : null;
+  if (!job || !terms) return { error: "We couldn't find that campaign." };
+
+  const { error } = await db
+    .from("jobs")
+    .update({ post_terms: { ...terms, reviewer: parsed.data.reviewer } })
+    .eq("id", job.id);
+  if (error) return { error: "We couldn't save that. Please try again." };
+  revalidatePath("/brand", "layout");
+  revalidatePath("/admin/review");
+  return {
+    success:
+      parsed.data.reviewer === "brand"
+        ? "You will review the posts on this campaign."
+        : "OnCamera will review the posts on this campaign.",
+  };
 }

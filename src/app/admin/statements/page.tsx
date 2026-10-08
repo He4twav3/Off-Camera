@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { postReviews, reviewedOf } from "@/lib/post-review";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdminMfa } from "@/lib/admin-mfa";
 import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
@@ -32,6 +33,8 @@ export default async function AdminStatementsPage(props: {
     const key = `${norm(r.campaign)}|${norm(r.handle)}`;
     viewsByKey.set(key, (viewsByKey.get(key) ?? 0) + Number(r.views));
   }
+
+  const review = await postReviews((assignments ?? []).flatMap((a) => a.assignment_posts.map((p) => p.id)));
 
   // One row per statement. An assignment with none yet is one row waiting for its first.
   const rows: StatementRowData[] = (assignments ?? []).flatMap(
@@ -70,6 +73,7 @@ export default async function AdminStatementsPage(props: {
           windowEndsAt: p.window_ends_at,
           rejectReason: p.reject_reason,
           lastError: p.last_error,
+          reviewed: reviewedOf(review, p.id),
         }));
         const pay = payFor(postTerms, posts);
         const statemented = a.direct_payments.reduce(

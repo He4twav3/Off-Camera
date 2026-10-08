@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { postReviews, reviewedOf } from "@/lib/post-review";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SubmissionsView } from "@/components/app/SubmissionsView";
@@ -42,6 +43,9 @@ export default async function SubmissionsPage(props: {
     supabase.from("campaign_views").select("campaign, views"),
   ]);
 
+  const review = await postReviews(
+    (assignments ?? []).flatMap((a) => a.assignment_posts.map((p) => p.id)),
+  );
   const viewsByCampaign = new Map<string, number>();
   for (const v of viewRows ?? []) {
     viewsByCampaign.set(
@@ -64,6 +68,7 @@ export default async function SubmissionsPage(props: {
           views: Number(p.views),
           submittedAt: p.submitted_at,
           windowEndsAt: p.window_ends_at,
+          reviewed: reviewedOf(review, p.id),
         })),
       );
       const counted = a.assignment_posts.filter(

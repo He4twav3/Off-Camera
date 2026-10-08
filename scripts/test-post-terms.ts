@@ -146,5 +146,22 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("older terms without the setting mean one unique video", parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })!.repostsEarnBase === false);
 }
 
+// --- review: only approved posts count into what is due ---
+{
+  const now = new Date("2026-12-20T12:00:00Z");
+  const post = (i: number, reviewed: boolean | undefined) =>
+    ({ id: `p${i}`, platform: "instagram", state: "counting" as const, authorVerified: true, views: 1200, submittedAt: `2026-10-${String(i + 1).padStart(2, "0")}T10:00:00Z`, windowEndsAt: "2026-11-05T00:00:00Z", reviewed });
+  const fifteen = (reviewed: boolean | undefined) => Array.from({ length: 15 }, (_, i) => post(i, reviewed));
+  const allReviewed = payFor(T, fifteen(true), now);
+  const noneReviewed = payFor(T, fifteen(false), now);
+  t("approved posts are due: 15 x ($20 + $2)", allReviewed.payable === 330 && allReviewed.awaitingReview === 0, allReviewed);
+  t("posts still in review earn but are not due", noneReviewed.earned === 330 && noneReviewed.payable === 0 && noneReviewed.awaitingReview === 15, noneReviewed);
+  const half = payFor(T, [...fifteen(true).slice(0, 14), post(14, false)], now);
+  t("one post in review holds back only its own pay", half.payable === 330 - 22 && half.awaitingReview === 1, half);
+  t("review not tracked (undefined) counts as approved", payFor(T, fifteen(undefined), now).payable === 330);
+  const base = { v: 2, basePerPost: 20, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] };
+  t("a campaign is reviewed by OnCamera unless the brand chooses", parsePostTerms(base)!.reviewer === "oncamera" && parsePostTerms({ ...base, reviewer: "brand" })!.reviewer === "brand");
+}
+
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

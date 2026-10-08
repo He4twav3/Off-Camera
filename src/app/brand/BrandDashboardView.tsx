@@ -24,6 +24,7 @@ import {
 } from "@/components/kit/ui";
 import { PayCreatorForm } from "./PayCreatorForm";
 import { CampaignLogoForm } from "./CampaignLogoForm";
+import { ReviewerChoice } from "./ReviewerChoice";
 
 const CREATOR_STATUS: Record<string, { label: string; tone: StatusTone }> = {
   active: { label: "In progress", tone: "open" },
@@ -265,6 +266,7 @@ function CampaignRow({ c }: { c: BrandCampaign }) {
       details={
         <div className="flex flex-col gap-5">
           <CampaignLogoForm jobId={c.id} logoUrl={c.logoUrl} />
+          {c.reviewer && <ReviewerChoice jobId={c.id} reviewer={c.reviewer} />}
           {c.creators.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No creators on this campaign yet.

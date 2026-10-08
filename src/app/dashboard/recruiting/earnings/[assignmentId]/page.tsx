@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { postReviews, reviewedOf } from "@/lib/post-review";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -54,6 +55,7 @@ export default async function CampaignEarningsPage(props: {
       .select("platform, handle, verified_at")
       .eq("applicant_id", applicant.id),
   ]);
+  const review = await postReviews((postRows ?? []).map((p) => p.id));
   const posts: PostRowData[] = (postRows ?? []).map((p) => ({
     id: p.id,
     platform: p.platform,
@@ -66,6 +68,7 @@ export default async function CampaignEarningsPage(props: {
     rejectReason: p.reject_reason,
     lastError: p.last_error,
     viewsCountedAt: p.views_counted_at,
+    reviewed: reviewedOf(review, p.id),
   }));
 
   const tracking = buildTracking({

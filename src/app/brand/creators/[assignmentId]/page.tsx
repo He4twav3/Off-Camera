@@ -1,4 +1,5 @@
-import { DenyPostForm } from "../../DenyPostForm";
+import { ApprovePostForm, DenyPostForm } from "../../DenyPostForm";
+import { postReviews, reviewedOf } from "@/lib/post-review";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -70,6 +71,7 @@ export default async function BrandCreatorPage(props: {
         .not("verified_at", "is", null),
     ]);
 
+  const review = await postReviews((postRows ?? []).map((p) => p.id));
   const posts: PostRowData[] = (postRows ?? []).map((p) => ({
     id: p.id,
     platform: p.platform,
@@ -81,6 +83,7 @@ export default async function BrandCreatorPage(props: {
     windowEndsAt: p.window_ends_at,
     rejectReason: p.reject_reason,
     lastError: p.last_error,
+    reviewed: reviewedOf(review, p.id),
   }));
   const paidTotal =
     (payments ?? [])
@@ -97,7 +100,18 @@ export default async function BrandCreatorPage(props: {
     startedAt: assignment.assigned_at,
     handles: handleRows ?? [],
     viewer: "brand",
-    postAction: (post) => <DenyPostForm postId={post.id} />,
+    postAction: (post) => (
+      <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {post.reviewed === true ? (
+          <span className="text-xs font-semibold text-emerald-400">Approved</span>
+        ) : post.reviewed === false && terms.reviewer === "brand" ? (
+          <ApprovePostForm postId={post.id} />
+        ) : post.reviewed === false ? (
+          <span className="text-xs text-muted-foreground">OnCamera is reviewing</span>
+        ) : null}
+        <DenyPostForm postId={post.id} />
+      </span>
+    ),
   });
 
   return (

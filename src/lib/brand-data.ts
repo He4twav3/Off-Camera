@@ -1,4 +1,5 @@
 import "server-only";
+import { postReviews, reviewedOf } from "@/lib/post-review";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, PlatformEnum } from "@/lib/database.types";
 import { parsePostTerms, payFor } from "@/lib/post-terms";
@@ -47,6 +48,8 @@ export type BrandCampaign = {
   status: "open" | "filled" | "closed";
   createdAt: string;
   logoUrl: string | null;
+  /** For a campaign paid per post: who reviews each post. Null for other campaigns. */
+  reviewer?: "oncamera" | "brand" | null;
   creators: BrandCreator[];
   totalViews: number;
 };
@@ -79,6 +82,7 @@ export async function getBrandCampaigns(
         )
         .in("assignment_id", assignmentIds)
     : { data: [] };
+  const review = await postReviews((postRows ?? []).map((p) => p.id));
   const postsByAssignment = new Map<string, PostRow[]>();
   for (const p of postRows ?? []) {
     const list = postsByAssignment.get(p.assignment_id) ?? [];
@@ -147,6 +151,7 @@ export async function getBrandCampaigns(
                 submittedAt: p.submitted_at,
                 windowEndsAt: p.window_ends_at,
                 platform: p.platform,
+                reviewed: reviewedOf(review, p.id),
               })),
             )
           : null;
@@ -175,6 +180,7 @@ export async function getBrandCampaigns(
       status: job.status,
       createdAt: job.created_at,
       logoUrl: job.logo_url,
+      reviewer: parsePostTerms(job.post_terms)?.reviewer ?? null,
       creators,
       totalViews: creators.reduce((n, c) => n + c.views, 0),
     };

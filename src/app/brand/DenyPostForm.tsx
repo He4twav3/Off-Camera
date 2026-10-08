@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { denyPostAction, type BrandPayState } from "./actions";
+import { approvePostAsBrandAction, denyPostAction, type BrandPayState } from "./actions";
 
 function Confirm() {
   const { pending } = useFormStatus();
@@ -55,6 +55,27 @@ export function DenyPostForm({ postId }: { postId: string }) {
         Cancel
       </button>
       {state.error && <p className="w-full text-xs font-semibold text-destructive">{state.error}</p>}
+    </form>
+  );
+}
+
+/** Approve button, for a brand that reviews its own posts. */
+export function ApprovePostForm({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState<BrandPayState, FormData>(approvePostAsBrandAction, {});
+  if (state.success) {
+    return <span className="text-xs font-semibold text-emerald-400">Approved</span>;
+  }
+  return (
+    <form action={action} className="inline">
+      <input type="hidden" name="post_id" value={postId} />
+      <button
+        type="submit"
+        disabled={pending}
+        className="cursor-pointer text-xs font-semibold text-primary underline underline-offset-2"
+      >
+        {pending ? "Approving…" : "Approve"}
+      </button>
+      {state.error && <span className="ml-2 text-xs font-semibold text-destructive">{state.error}</span>}
     </form>
   );
 }

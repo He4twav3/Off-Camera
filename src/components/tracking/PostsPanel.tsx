@@ -116,9 +116,11 @@ export function PostsPanel({
   const noteOf = (p: PostRowData) => {
     const c = calc.get(p.id);
     if (!c) return p.state === "rejected" ? "Rejected" : "Checking";
-    return c.windowClosed
+    const when = c.windowClosed
       ? "Final"
       : `${c.daysLeft} ${c.daysLeft === 1 ? "day" : "days"} left`;
+    const label = c.repost ? `Repost, no base pay · ${when}` : when;
+    return c.inReview ? `${label} · In review` : label;
   };
   const amountOf = (p: PostRowData) => {
     const c = calc.get(p.id);
