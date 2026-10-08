@@ -32,7 +32,7 @@ export default async function DashboardLayout({
   const shell = await getShellData();
   // proxy.ts already guarantees a session exists for anything under
   // /dashboard — this fallback is defensive, not expected to render.
-  const session = shell.session ?? { displayName: "Creator", email: "creator@example.com", initials: "CR" };
+  const session = shell.session ?? { displayName: "Creator", email: "creator@example.com", initials: "CR", username: null };
 
   return (
     // relative z-10: lifts the page above the site's fixed dark vignette (dark-invert.css),
@@ -50,7 +50,7 @@ export default async function DashboardLayout({
           <div className="flex-1">
             <SidebarNav recruitingCounts={shell.recruiting} />
           </div>
-          <SidebarAccount displayName={session.displayName} email={session.email} initials={session.initials} />
+          <SidebarAccount displayName={session.displayName} username={session.username} initials={session.initials} />
         </div>
       </aside>
 

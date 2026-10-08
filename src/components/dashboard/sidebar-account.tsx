@@ -4,11 +4,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
  * drawer) — who's signed in. Logging out lives only on the Account page. */
 export function SidebarAccount({
   displayName,
-  email,
+  username,
   initials,
 }: {
   displayName: string;
-  email: string;
+  username?: string | null;
   initials: string;
 }) {
   return (
@@ -20,8 +20,9 @@ export function SidebarAccount({
           </AvatarFallback>
         </Avatar>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{displayName}</span>
-          <span className="block truncate text-xs text-muted-foreground">{email}</span>
+          <span className="block truncate text-sm font-medium">
+            {username ? `@${username}` : displayName}
+          </span>
         </span>
       </div>
     </div>

@@ -37,7 +37,7 @@ export function MobileNav({ shell }: { shell: ShellData }) {
         <div className="px-3 pb-4">
           <SidebarAccount
             displayName={shell.session.displayName}
-            email={shell.session.email}
+            username={shell.session.username}
             initials={shell.session.initials}
           />
         </div>

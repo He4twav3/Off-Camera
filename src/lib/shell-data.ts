@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export interface ShellData {
   signedIn: boolean;
-  session: { displayName: string; email: string; initials: string } | null;
+  session: { displayName: string; email: string; initials: string; username: string | null } | null;
   recruiting: { applications: number; campaigns: number };
   isAdmin: boolean;
 }
@@ -27,7 +27,7 @@ export async function getShellData(): Promise<ShellData> {
   const supabase = await createClient();
 
   const [applicant, adminCheck] = await Promise.all([
-    supabase.from("applicants").select("id").eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "").maybeSingle(),
+    supabase.from("applicants").select("id, username").eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "").maybeSingle(),
     supabase.rpc("is_admin"),
   ]);
 
@@ -54,6 +54,7 @@ export async function getShellData(): Promise<ShellData> {
       displayName: session.displayName,
       email: session.email,
       initials: session.initials,
+      username: applicant.data?.username ?? null,
     },
     recruiting: {
       applications: applications.count ?? 0,
