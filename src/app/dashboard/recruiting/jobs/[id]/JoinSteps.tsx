@@ -5,7 +5,6 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import { joinCampaignAction, type ApplyState } from "./actions";
 
 function JoinButton() {
@@ -105,7 +104,6 @@ export function JoinSteps({
               </ul>
             </div>
           )}
-          <DisclosureNotice className="mt-4" />
         </div>
 
         <label className="mt-4 flex cursor-pointer items-start gap-3 text-[15px] text-foreground">

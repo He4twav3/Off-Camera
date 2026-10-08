@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { CampaignBanner } from "@/components/app/CampaignBanner";
-import { DisclosureNotice } from "@/components/app/DisclosureNotice";
 import { CommissionNote } from "@/components/app/CommissionNote";
 import {
   describeTerms,
@@ -327,7 +326,6 @@ export function CampaignView({
                   campaign.
                 </p>
               )}
-              <DisclosureNotice className="mt-4" />
               <CommissionNote className="mt-3" />
             </>
           }
