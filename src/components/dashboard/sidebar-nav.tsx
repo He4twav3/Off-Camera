@@ -42,7 +42,7 @@ const MAIN_ITEMS = [
 
 // Quieter, set apart at the bottom. The course is optional: nothing waits on it.
 const SECONDARY_ITEMS = [
-  { href: "/dashboard", label: "Course (coming soon)", icon: GraduationCap },
+  { href: "/dashboard", label: "Course (optional)", icon: GraduationCap },
 ];
 
 // The account area (profile, accounts, videos, payments, settings) is one place
