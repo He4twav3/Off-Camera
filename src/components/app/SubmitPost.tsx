@@ -2,7 +2,8 @@
 
 import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
-import { Plus, X } from "lucide-react";
+import { CheckCircle2, Clock, Plus, X, XCircle } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import {
@@ -78,17 +79,44 @@ export function SubmitPost({ assignmentId }: { assignmentId: string }) {
             />
           </Field>
           {state.error && (
-            <p
+            <div
               role="alert"
-              className="rounded-md bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive"
+              className="flex gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3"
             >
-              {state.error}
-            </p>
+              <XCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
+              <div>
+                <p className="font-semibold text-destructive">Post not added</p>
+                <p className="mt-0.5 text-sm text-foreground">{state.error}</p>
+              </div>
+            </div>
           )}
           {state.success && (
-            <p className="rounded-md bg-muted px-3 py-2 text-sm text-foreground">
-              {state.success}
-            </p>
+            <div
+              role="status"
+              className="flex gap-3 rounded-lg border border-border bg-muted px-4 py-3"
+            >
+              {state.success.startsWith("Post added") ? (
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
+              ) : (
+                <Clock className="mt-0.5 size-5 shrink-0 text-amber-400" />
+              )}
+              <div>
+                <p className="font-semibold text-foreground">
+                  {state.success.startsWith("Post added")
+                    ? "Post added: counting views"
+                    : "Reviewing your post"}
+                </p>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {state.success}
+                </p>
+                <Link
+                  href={`/dashboard/recruiting/earnings/${assignmentId}?tab=posts`}
+                  className="mt-1.5 inline-block text-sm font-semibold text-primary underline underline-offset-2"
+                >
+                  See your posts
+                </Link>
+              </div>
+            </div>
           )}
           <div className="flex gap-2">
             <Send />
