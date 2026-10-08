@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Download, FileText } from "lucide-react";
 import { money } from "@/lib/fees";
+import { PAYMENT_PROVIDERS, providerOfLink } from "@/lib/payment-links";
 import type { StatusTone } from "@/components/ui/status-badge";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { statementState, type StatementState } from "@/lib/direct-pay";
@@ -209,10 +210,26 @@ function PaymentRow({ s }: { s: BrandStatement }) {
               {
                 label: "Pay to",
                 value:
-                  state === "confirmed"
-                    ? "—"
-                    : (s.payTo ??
-                      "The creator hasn't added payment details yet. We've asked them to."),
+                  state === "confirmed" ? (
+                    "—"
+                  ) : providerOfLink(s.payTo) ? (
+                    <span>
+                      <a
+                        href={s.payTo!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-primary underline underline-offset-2"
+                      >
+                        Pay with {PAYMENT_PROVIDERS[providerOfLink(s.payTo)!].label}
+                      </a>
+                      <span className="mt-1 block text-sm text-muted-foreground">
+                        Enter exactly {formatCurrency(s.amount)}.
+                      </span>
+                    </span>
+                  ) : (
+                    (s.payTo ??
+                    "The creator hasn't added payment details yet. We've asked them to.")
+                  ),
               },
               { label: "Due", value: formatDate(s.due_at) },
               { label: "Campaign", value: s.campaign },

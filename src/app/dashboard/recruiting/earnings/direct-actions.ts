@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parsePayoutInstructions, statementState } from "@/lib/direct-pay";
+import { statementState } from "@/lib/direct-pay";
+import { parsePaymentLink } from "@/lib/payment-links";
 
 export interface DirectState {
   error?: string;
@@ -30,7 +31,7 @@ export async function savePayoutInstructionsAction(_prev: DirectState, formData:
   const raw = String(formData.get("payout_instructions") ?? "");
   let value: string | null = null;
   if (raw.trim() !== "") {
-    const parsed = parsePayoutInstructions(raw);
+    const parsed = parsePaymentLink(raw);
     if (!parsed.ok) return { error: parsed.error };
     value = parsed.value;
   }
@@ -40,7 +41,7 @@ export async function savePayoutInstructionsAction(_prev: DirectState, formData:
 
   revalidatePath("/dashboard/recruiting/earnings");
   revalidatePath("/dashboard/account/payments");
-  return { success: value ? "Saved. Brands you work with will see this." : "Removed." };
+  return { success: value ? "Saved. Brands you work with will pay you through this link." : "Removed." };
 }
 
 const idSchema = z.object({ id: z.string().uuid() });
