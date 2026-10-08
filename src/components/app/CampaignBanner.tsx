@@ -30,13 +30,13 @@ export function CampaignBanner({
     return (
       <div
         className={cn(
-          "flex items-center justify-center overflow-hidden bg-muted/60 p-9",
+          "flex items-center justify-center overflow-hidden bg-muted/60 p-5",
           className,
         )}
       >
         <LogoImage
           src={logoUrl}
-          className="max-h-full max-w-[70%] object-contain"
+          className="h-full max-h-full w-auto max-w-[85%] object-contain"
         />
       </div>
     );
