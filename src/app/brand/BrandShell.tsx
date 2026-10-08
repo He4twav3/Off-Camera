@@ -1,31 +1,53 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Logo } from "@/components/site/logo";
-import "@/styles/dark-invert.css";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { BrandNav } from "./BrandNav";
 
-/** The brand side's frame: logo, a link home, settings. Used by app/brand/layout.tsx. */
-export function BrandShell({ children }: { children: ReactNode }) {
+/**
+ * The brand side's own app: a left menu with only what a brand needs (campaigns, creators,
+ * payments, leaderboard, templates, settings). Nothing from the creator side. Used by
+ * app/brand/layout.tsx.
+ */
+export function BrandShell({
+  children,
+  company = "Your brand",
+}: {
+  children: ReactNode;
+  company?: string;
+}) {
   return (
-    <div className="dark-invert flex min-h-screen flex-col bg-background text-foreground">
-      {/* relative z-10 on header and main: the site draws a fixed dark vignette (dark-invert.css)
-          that would otherwise paint over them and dim content near the bottom of the screen. */}
-      <header className="relative z-10 border-b border-border">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Logo />
-          <nav className="flex items-center gap-5">
-            <Link href="/brand" className="text-[15px] font-semibold hover:text-primary">
-              Dashboard
-            </Link>
-            <Link
-              href="/brand/settings"
-              className="text-[15px] font-semibold text-muted-foreground hover:text-foreground"
-            >
-              Settings
-            </Link>
-          </nav>
+    <div className="app-ui relative z-10 flex min-h-full flex-1">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-y-auto border-r border-border/70 bg-card lg:block">
+        <div className="flex min-h-full flex-col px-3 py-4">
+          <div className="px-3 pb-4">
+            <Logo />
+          </div>
+          <div className="flex-1">
+            <BrandNav variant="rail" />
+          </div>
+          <div className="border-t border-border pt-3">
+            <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+              <Avatar className="size-9 shrink-0">
+                <AvatarFallback className="bg-primary/15 text-sm font-medium text-primary">
+                  {company.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{company}</span>
+            </div>
+          </div>
         </div>
-      </header>
-      <main className="relative z-10 flex-1">{children}</main>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <Logo />
+            <span className="truncate text-sm font-medium text-muted-foreground">{company}</span>
+          </div>
+          <BrandNav variant="row" />
+        </header>
+        <main className="w-full flex-1">{children}</main>
+      </div>
     </div>
   );
 }

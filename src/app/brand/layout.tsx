@@ -18,10 +18,10 @@ export default async function BrandLayout({ children }: { children: ReactNode })
 
   const { data: brand } = await supabase
     .from("brand_accounts")
-    .select("id")
+    .select("id, company_name")
     .eq("user_id", user.id)
     .maybeSingle();
   if (!brand) redirect("/dashboard");
 
-  return <BrandShell>{children}</BrandShell>;
+  return <BrandShell company={brand.company_name}>{children}</BrandShell>;
 }

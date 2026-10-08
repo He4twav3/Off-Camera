@@ -5,6 +5,8 @@ import { SidebarAccount } from "@/components/dashboard/sidebar-account";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
 import { Breadcrumb } from "@/components/dashboard/breadcrumb";
 import { getShellData } from "@/lib/shell-data";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -29,6 +31,19 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // A brand account has its own side of the site; none of this creator area is for it.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const [{ data: brand }, { data: creator }] = await Promise.all([
+      supabase.from("brand_accounts").select("id").eq("user_id", user.id).maybeSingle(),
+      supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle(),
+    ]);
+    if (brand && !creator) redirect("/brand");
+  }
+
   const shell = await getShellData();
   // proxy.ts already guarantees a session exists for anything under
   // /dashboard — this fallback is defensive, not expected to render.

@@ -50,7 +50,12 @@ export async function login(
   // Admins go to their own panel, not the creator dashboard.
   const { data: isAdmin } = await supabase.rpc("is_admin");
   if (isAdmin) redirect("/admin");
-  if (user?.user_metadata?.account_type === "brand") redirect("/brand");
+  // A brand account goes to the brand side. The brand row is the source of truth; the sign-up
+  // marker is only a fallback.
+  const { data: brandRow } = user
+    ? await supabase.from("brand_accounts").select("id").eq("user_id", user.id).maybeSingle()
+    : { data: null };
+  if (brandRow || user?.user_metadata?.account_type === "brand") redirect("/brand");
   const { data: applicant } = user
     ? await supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle()
     : { data: null };

@@ -118,10 +118,10 @@ export default async function BrandCreatorPage(props: {
     <PageShell>
       <div className="mx-auto max-w-3xl">
         <Link
-          href="/brand?tab=campaigns"
+          href="/brand/creators"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
-          ← Campaigns
+          ← Creators
         </Link>
         <h1 className="mt-3 font-heading text-xl font-semibold text-foreground sm:text-2xl">
           {assignment.applicants?.name ?? "Creator"}

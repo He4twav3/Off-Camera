@@ -5,7 +5,9 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
-import { parsePostTerms } from "@/lib/post-terms";
+import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
+import { parseLines } from "@/lib/campaign-brief";
+import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
 import {
   AVATAR_CONTENT_TYPES,
@@ -326,4 +328,161 @@ export async function setPostReviewerAction(
         ? "You will review the posts on this campaign."
         : "OnCamera will review the posts on this campaign.",
   };
+}
+
+// --- creating and closing campaigns ---------------------------------------------------------
+
+export interface NewCampaignState {
+  error?: string;
+  /** What was typed, so a mistake doesn't wipe the form. */
+  values?: {
+    fields: Record<string, string>;
+    platforms: string[];
+    msViews: string[];
+    msAmount: string[];
+  };
+}
+
+const PLATFORM_CHOICES = ["tiktok", "instagram", "youtube_shorts"] as const;
+
+const newCampaignSchema = z.object({
+  title: z.string().trim().min(2, "Give the campaign a name.").max(120),
+  niche_id: z.string().uuid("Pick a niche."),
+  about: z.string().trim().max(2000, "Keep the brand note under 2,000 characters.").optional(),
+  base: z.coerce.number().min(0, "Pay can't be negative.").max(100_000),
+  cycle: z.coerce.number().int().min(1, "Videos per payment must be at least 1.").max(200),
+  window: z.coerce.number().int().min(1).max(365),
+  keep_public: z.coerce.number().int().min(0).max(1000),
+  reviewer: z.enum(["oncamera", "brand"]),
+});
+
+/**
+ * A brand creates and posts a campaign. It goes live straight away on this brand's account
+ * (the brand is already approved), paid per video with view bonuses. Written with the service
+ * role only after the brand's own approval is proved.
+ */
+export async function createCampaignAction(
+  _prev: NewCampaignState,
+  formData: FormData,
+): Promise<NewCampaignState> {
+  const values: NewCampaignState["values"] = {
+    fields: Object.fromEntries(
+      [...formData.entries()].filter(([, v]) => typeof v === "string") as [string, string][],
+    ),
+    platforms: formData.getAll("platforms").map(String),
+    msViews: formData.getAll("ms_views").map(String),
+    msAmount: formData.getAll("ms_amount").map(String),
+  };
+  const fail = (error: string): NewCampaignState => ({ error, values });
+
+  const brand = await approvedBrand();
+  if (!brand) return fail("Your brand account isn't approved yet.");
+
+  const parsed = newCampaignSchema.safeParse({
+    title: formData.get("title"),
+    niche_id: formData.get("niche_id"),
+    about: formData.get("about") ?? "",
+    base: formData.get("base"),
+    cycle: formData.get("cycle"),
+    window: formData.get("window"),
+    keep_public: formData.get("keep_public"),
+    reviewer: formData.get("reviewer") ?? "oncamera",
+  });
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Check the fields.");
+  const v = parsed.data;
+
+  const platforms = PLATFORM_CHOICES.filter((p) => formData.getAll("platforms").includes(p));
+  if (platforms.length === 0) return fail("Pick at least one platform.");
+
+  const rules = parseLines(String(formData.get("rules") ?? ""), 12, 300);
+  if (!rules.ok) return fail(`Rules: ${rules.error}`);
+  const formats = parseLines(String(formData.get("formats") ?? ""));
+  if (!formats.ok) return fail(`Formats that work: ${formats.error}`);
+
+  // Bonus milestones: pairs of (views, bonus). Empty rows are ignored; each must be complete.
+  const views = formData.getAll("ms_views").map((x) => String(x).trim());
+  const amounts = formData.getAll("ms_amount").map((x) => String(x).trim());
+  const milestones: { views: number; amount: number }[] = [];
+  for (let i = 0; i < Math.max(views.length, amounts.length); i++) {
+    const a = views[i] ?? "";
+    const b = amounts[i] ?? "";
+    if (!a && !b) continue;
+    const n = Number(a.replace(/,/g, ""));
+    const m = Number(b);
+    if (!Number.isFinite(n) || !Number.isFinite(m) || n <= 0 || m <= 0)
+      return fail("Each bonus needs a number of views and an amount above zero.");
+    milestones.push({ views: Math.round(n), amount: m });
+  }
+  if (new Set(milestones.map((m) => m.views)).size !== milestones.length)
+    return fail("Two bonuses have the same number of views.");
+
+  const terms = postTermsSchema.safeParse({
+    v: 2,
+    basePerPost: v.base,
+    cycleSize: v.cycle,
+    milestones,
+    windowDays: v.window,
+    keepPublicDays: v.keep_public,
+    platforms,
+    repostsEarnBase: false,
+    reviewer: v.reviewer,
+  });
+  if (!terms.success) return fail("Check the pay terms.");
+
+  const db = createAdminClient();
+  const { data: job, error } = await db
+    .from("jobs")
+    .insert({
+      title: v.title,
+      description: rules.lines.join("\n"),
+      platform: platforms[0],
+      niche_id: v.niche_id,
+      payout_type: "flat",
+      payout_amount: v.base,
+      payout_notes: "Pays per video, with view bonuses. See the pay terms on this page.",
+      account_requirement: "new_ok",
+      status: "open",
+      brand_account_id: brand.id,
+      post_terms: terms.data as unknown as Record<string, unknown>,
+      about: v.about || null,
+      formats: formats.lines.length ? formats.lines.join("\n") : null,
+    })
+    .select("id")
+    .single();
+  if (error || !job) return fail("We couldn't create the campaign. Please try again.");
+
+  revalidatePath("/brand", "layout");
+  revalidatePath("/dashboard/recruiting/jobs");
+  revalidatePath("/admin/jobs");
+  redirect(`/brand/campaigns/${job.id}`);
+}
+
+const statusSchema = z.object({
+  job_id: z.string().uuid(),
+  status: z.enum(["open", "closed"]),
+});
+
+/** A brand closes its campaign to new creators, or opens it again. */
+export async function setCampaignStatusAction(
+  _prev: BrandPayState,
+  formData: FormData,
+): Promise<BrandPayState> {
+  const parsed = statusSchema.safeParse({
+    job_id: formData.get("job_id"),
+    status: formData.get("status"),
+  });
+  if (!parsed.success) return { error: "Check the fields." };
+  const brand = await approvedBrand();
+  if (!brand) return { error: "Your brand account isn't approved yet." };
+
+  const { data, error } = await createAdminClient()
+    .from("jobs")
+    .update({ status: parsed.data.status })
+    .eq("id", parsed.data.job_id)
+    .eq("brand_account_id", brand.id)
+    .select("id");
+  if (error || !data || data.length === 0) return { error: "We couldn't find that campaign." };
+  revalidatePath("/brand", "layout");
+  revalidatePath("/dashboard/recruiting/jobs");
+  return { success: parsed.data.status === "open" ? "Campaign reopened." : "Campaign closed to new creators." };
 }

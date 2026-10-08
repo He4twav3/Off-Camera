@@ -35,7 +35,7 @@ export function ReviewerChoice({
   return (
     <div>
       <p className="text-sm font-semibold text-foreground">Who reviews each post before it is paid?</p>
-      <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+      <div className="mt-2 flex flex-col gap-2">
         {option("oncamera", "OnCamera reviews", "We check every post for you. Nothing for you to do.")}
         {option("brand", "I review", "You approve or deny each post yourself.")}
       </div>
