@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Trash2, Upload } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/account/AccountShell";
 import {
@@ -11,19 +11,11 @@ import {
   type AccountState,
 } from "@/app/dashboard/account/actions";
 
-function UploadButton({ disabled }: { disabled: boolean }) {
+function UploadStatus() {
   const { pending } = useFormStatus();
-  return (
-    <Button
-      type="submit"
-      size="lg"
-      className="w-full"
-      disabled={pending || disabled}
-    >
-      <Upload size={16} />
-      {pending ? "Uploading…" : "Upload"}
-    </Button>
-  );
+  return pending ? (
+    <p className="mt-3 text-sm font-semibold text-foreground">Uploading…</p>
+  ) : null;
 }
 
 function RemoveButton() {
@@ -54,7 +46,6 @@ export function PictureField({
     removeAvatarAction,
     {},
   );
-  const [picked, setPicked] = useState<string | null>(null);
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -86,35 +77,30 @@ export function PictureField({
                   const dt = new DataTransfer();
                   dt.items.add(f);
                   input.current.files = dt.files;
-                  setPicked(f.name);
+                  input.current.form?.requestSubmit();
                 }
               }}
               className={`rounded-xl border-2 border-dashed px-4 py-5 text-center transition-colors ${over ? "border-primary bg-primary/5" : "border-border"}`}
             >
-              {/* A real button that opens the file picker itself, so it works in every browser. */}
-              <button
-                type="button"
-                onClick={() => input.current?.click()}
-                className="flex w-full cursor-pointer flex-col items-center gap-1.5 text-sm text-muted-foreground"
-              >
-                <Upload className="size-6" />
-                <span>{picked ?? "Click to upload or drag and drop"}</span>
-                <span className="text-xs">
-                  Supported files: .jpg, .png, .gif, .webp
-                </span>
-              </button>
+              {/* A plain file field, always clickable. The picture uploads as soon as one is chosen. */}
+              <p className="mb-3 text-xs text-muted-foreground">
+                Choose a picture, or drop one here. It uploads straight away.
+                Supported files: .jpg, .png, .gif, .webp
+              </p>
               <input
                 ref={input}
                 id="avatar-file"
                 name="avatar"
                 type="file"
                 accept="image/png,image/jpeg,image/gif,image/webp"
-                className="hidden"
-                onChange={(e) => setPicked(e.target.files?.[0]?.name ?? null)}
+                aria-label="Choose a profile picture"
+                className="block w-full cursor-pointer text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) e.target.form?.requestSubmit();
+                }}
               />
-              <div className="mt-4">
-                <UploadButton disabled={!picked} />
-              </div>
+              <UploadStatus />
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
               Upload a picture to personalise your account (max 2MB)
