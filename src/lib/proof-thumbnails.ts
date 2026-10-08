@@ -55,6 +55,8 @@ export type ProofPoster = {
   video?: string;
   /** The real view count, e.g. "15.1M+". */
   views?: string;
+  /** The real like count, e.g. "122K+". */
+  likes?: string;
   /** The card's own headline, e.g. "No face. Still viral." */
   label: string;
   postUrl?: string;
@@ -193,6 +195,7 @@ export async function getProofPosters(): Promise<ProofPoster[]> {
         // bump remembered every time.
         video: entry.src ? `${entry.src}?v=${videoVersion(entry.src)}` : undefined,
         views: entry.views,
+        likes: entry.likes,
         label: entry.label,
         postUrl: entry.postUrl,
         platform,

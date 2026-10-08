@@ -19,8 +19,8 @@
  * causal claim ("this is why it got views") the evidence doesn't support
  * — describe the mechanism, not a guaranteed outcome.
  *
- * Every `views` figure here is one you gave directly — nothing here is
- * invented. Every entry has a real `postUrl` (the video itself is live)
+ * Every `views`/`likes` figure here is a real public count read off the
+ * post itself — nothing here is invented. Every entry has a real `postUrl` (the video itself is live)
  * but most `breakdown` fields are still pending — a link tells us the
  * video exists, not what's in it, so those stay marked pending until you
  * walk me through each one (or write it yourself).
@@ -72,6 +72,8 @@ export type ProofEntry = {
    * enough extra digits to be worth rounding for that one summary spot.
    */
   statsLabel?: string;
+  /** Real like count as a lower bound, e.g. "122K+". */
+  likes?: string;
   /**
    * Link to the real post, on the real account, e.g.
    * "https://www.tiktok.com/@handle/video/1234567890" — the primary
@@ -101,125 +103,98 @@ export function isPendingBreakdown(text: string): boolean {
 }
 
 export const PROOF_CONTENT: ProofEntry[] = [
+  // Six reels, one per creator and one per format, picked from 13 live posts by
+  // views. `views` and `likes` are the public counts read off each post on
+  // 2026-10-08, written as lower bounds so they stay true as the posts keep
+  // climbing. `src` is a silent 12-second loop of the post for the course
+  // hero carousel; the poster is the post's own cover, self-hosted.
   {
-    id: "flagship-a",
-    // Qualitative headline (same pattern as "no-talking" below) instead
-    // of just restating the number — the real, precise view count still
-    // shows as its own badge next to this one (see proof-showcase.tsx's
-    // badge-pair logic), untouched.
-    label: "No face. Still viral.",
-    views: "15.1M+",
-    // Rounded floor number for the top-of-page quick-stats strip only
-    // (stats.tsx) — the real 15.1M+ above is what actually displays on
-    // this card, never rounded.
-    statsLabel: "15M+",
-    postUrl: "https://vt.tiktok.com/ZSVHkQ1Qb/",
-    // Real, self-hosted export of this exact clip — matched against the
-    // live post by its own on-screen caption ("this generation is
-    // cooked"), which is baked into both. Lets the hero's ring carousel
-    // (hero-carousel.tsx) autoplay it silently, which neither TikTok's
-    // nor Instagram's embed widget will ever do (see platform-embed.tsx).
-    src: "/proof-videos/flagship-a.mp4",
+    id: "heidi",
+    label: "Talking head, screenshots on top.",
+    views: "1.99M+",
+    statsLabel: "1.9M+",
+    likes: "122K+",
+    postUrl: "https://www.instagram.com/reel/Dcr0Fh-s5aG/",
+    src: "/proof-videos/heidi.mp4",
     breakdown: {
       hook: ANALYSIS_PENDING,
-      // Deliberately a teaser, not the full breakdown — free proof this
-      // is real and worth taking seriously, not the actual mechanism.
-      // The full hook/retention/why-it-worked breakdown is paid-course
-      // content, not a public landing-page giveaway.
-      format: "No face on screen at any point — hands and the product carry the entire video.",
-      retention: ANALYSIS_PENDING,
-      whyItWorked:
-        "There's a specific reason the first couple seconds stop the scroll here. Not luck, and not unique to this video — Module 1 breaks down exactly what it is.",
-      lesson: ANALYSIS_PENDING,
-    },
-  },
-  {
-    id: "flagship-b",
-    label: "5.3M+ views",
-    views: "5.3M+",
-    postUrl: "https://vt.tiktok.com/ZSVHkPN9t/",
-    breakdown: {
-      hook: ANALYSIS_PENDING,
-      format: "Same principle as the 15.1M+ video above — no face shown, no talking, still 5.3M+ views.",
-      retention: ANALYSIS_PENDING,
-      whyItWorked:
-        "A different hook mechanism than the video above, same underlying system behind both. Module 1 covers it.",
-      lesson: ANALYSIS_PENDING,
-    },
-  },
-  {
-    id: "flagship-c",
-    label: "3M+ views",
-    views: "3M+",
-    postUrl:
-      "https://www.tiktok.com/@career.craftai/video/7634288638553083144",
-    breakdown: {
-      hook: ANALYSIS_PENDING,
-      format: "Same account, same principle as the two videos above — no face shown, no talking, still 3M+ views.",
-      retention: ANALYSIS_PENDING,
-      whyItWorked:
-        "A third example of the same underlying system, a different angle again. All three breakdowns land in Module 1.",
-      lesson: ANALYSIS_PENDING,
-    },
-  },
-  {
-    id: "no-talking",
-    label: "No talking. Still viral.",
-    views: "1.1M+",
-    postUrl: "https://www.instagram.com/reel/DalTZPbRXSg/",
-    // Real export of this exact reel — matched against the live post by
-    // its own on-screen caption ("Making a doctors salary in 30 seconds
-    // without saying a word"), which is baked into both. See flagship-a's
-    // own note on why this is what makes real autoplay possible at all.
-    src: "/proof-videos/no-talking.mp4",
-    breakdown: {
-      hook: ANALYSIS_PENDING,
-      format: "Silent product demonstration — no speaking, no on-camera face.",
-      retention: ANALYSIS_PENDING,
-      // Same discretion as flagship-a/b/c above — a teaser, not the
-      // mechanism. This used to spell out exactly what makes the opening
-      // text work as a hook, which gave away on the free page what
-      // Module 1 is supposed to be worth paying for.
-      whyItWorked:
-        "There's a specific reason this stops the scroll before the product ever appears. Not a guess — Module 1 breaks down exactly what it is.",
-      lesson: ANALYSIS_PENDING,
-    },
-  },
-  {
-    id: "flagship-d",
-    label: "1.7M+ views",
-    views: "1.7M+",
-    postUrl: "https://vt.tiktok.com/ZSVgHKLM3/",
-    // Nothing here is assumed from the account it shares with flagship-c
-    // — every field below stays pending until actually watched and
-    // written up, same as the others were before their format lines got
-    // filled in.
-    breakdown: {
-      hook: ANALYSIS_PENDING,
-      format: ANALYSIS_PENDING,
+      format: "Straight to camera, with screenshots of each step popping up over the shot.",
       retention: ANALYSIS_PENDING,
       whyItWorked: ANALYSIS_PENDING,
       lesson: ANALYSIS_PENDING,
     },
   },
-  // One more real, live post from the same account — `views` is
-  // deliberately left unset (see the header note: every number here is
-  // one you gave directly, never fetched or guessed). TikTok's own video
-  // page never publishes a raw view count in the first place — only
-  // likes, comments and shares are public there; the real number lives
-  // in the account's private analytics. Once you have it, add
-  // `views: "X+"` (and a matching `statsLabel` only if it needs
-  // rounding for the top-of-page strip, see flagship-a).
   {
-    id: "flagship-f",
-    // Paraphrase of the real on-screen caption ("14 failed interviews
-    // and now I find this lol").
-    label: "14 failed interviews. Then this.",
-    postUrl: "https://vt.tiktok.com/ZSVHkbvdR/",
-    src: "/proof-videos/flagship-f.mp4",
+    id: "austin",
+    label: "Point at the screen. That's it.",
+    views: "1.09M+",
+    statsLabel: "1M+",
+    likes: "74.9K+",
+    postUrl: "https://www.instagram.com/reel/DaCD0ogMoz_/",
+    src: "/proof-videos/austin.mp4",
     breakdown: {
       hook: ANALYSIS_PENDING,
-      format: ANALYSIS_PENDING,
+      format: "Phone filming the laptop screen, a pen pointing out each click, quick cuts to the creator's face.",
+      retention: ANALYSIS_PENDING,
+      whyItWorked: ANALYSIS_PENDING,
+      lesson: ANALYSIS_PENDING,
+    },
+  },
+  {
+    id: "patrick",
+    label: "One take. No edits.",
+    views: "312K+",
+    likes: "27.6K+",
+    postUrl: "https://www.instagram.com/reel/DZxqzMAOuHX/",
+    src: "/proof-videos/patrick.mp4",
+    breakdown: {
+      hook: ANALYSIS_PENDING,
+      format: "One continuous sit-down shot, talking to camera, captions only.",
+      retention: ANALYSIS_PENDING,
+      whyItWorked: ANALYSIS_PENDING,
+      lesson: ANALYSIS_PENDING,
+    },
+  },
+  {
+    id: "jake",
+    label: "Under 40 seconds, on a timer.",
+    views: "309K+",
+    likes: "10.3K+",
+    postUrl: "https://www.instagram.com/reel/DeKroo5tACY/",
+    src: "/proof-videos/jake.mp4",
+    breakdown: {
+      hook: ANALYSIS_PENDING,
+      format: "Split screen: hands on the keyboard with a running stopwatch above, the screen recording of each step below.",
+      retention: ANALYSIS_PENDING,
+      whyItWorked: ANALYSIS_PENDING,
+      lesson: ANALYSIS_PENDING,
+    },
+  },
+  {
+    id: "gigi",
+    label: "Selfie hook, then the walkthrough.",
+    views: "224K+",
+    likes: "6K+",
+    postUrl: "https://www.instagram.com/reel/DdIvMvUOzE0/",
+    src: "/proof-videos/gigi.mp4",
+    breakdown: {
+      hook: ANALYSIS_PENDING,
+      format: "Opens on a selfie with a one-line text hook, then a filmed phone-and-laptop walkthrough with text steps.",
+      retention: ANALYSIS_PENDING,
+      whyItWorked: ANALYSIS_PENDING,
+      lesson: ANALYSIS_PENDING,
+    },
+  },
+  {
+    id: "tony",
+    label: "Dressed up, cut with b-roll.",
+    views: "146K+",
+    likes: "17K+",
+    postUrl: "https://www.instagram.com/reel/DdS4MWwtTmX/",
+    src: "/proof-videos/tony.mp4",
+    breakdown: {
+      hook: ANALYSIS_PENDING,
+      format: "Suited talking head on a styled set, cut with screen shots and cinematic b-roll.",
       retention: ANALYSIS_PENDING,
       whyItWorked: ANALYSIS_PENDING,
       lesson: ANALYSIS_PENDING,
