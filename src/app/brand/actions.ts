@@ -177,7 +177,7 @@ export async function setCampaignLogoAction(
 
   revalidatePath("/brand");
   revalidatePath("/dashboard/recruiting/jobs");
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   return { success: logoUrl ? "Logo updated." : "Logo removed." };
 }
 
@@ -453,7 +453,7 @@ export async function createCampaignAction(
 
   revalidatePath("/brand", "layout");
   revalidatePath("/dashboard/recruiting/jobs");
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   redirect(`/brand/campaigns/${job.id}`);
 }
 
@@ -591,6 +591,6 @@ export async function updateCampaignAction(
 
   revalidatePath("/brand", "layout");
   revalidatePath("/dashboard/recruiting/jobs", "layout");
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   return { success: "Saved. Creators see the changes now." };
 }
