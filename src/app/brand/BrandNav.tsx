@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CheckCircle2, FileText, Megaphone, Menu, Settings, Users, Wallet, X } from "lucide-react";
+import { CheckCircle2, Megaphone, Menu, Settings, Users, Wallet, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // In the order a brand works: set up the campaign, approve videos, see creators, pay them.
@@ -12,7 +12,6 @@ const ITEMS = [
   { href: "/brand/approvals", label: "Approvals", icon: CheckCircle2 },
   { href: "/brand/creators", label: "Creators", icon: Users },
   { href: "/brand/payments", label: "Payments", icon: Wallet },
-  { href: "/brand/templates", label: "Templates", icon: FileText },
   { href: "/brand/settings", label: "Settings", icon: Settings },
 ];
 

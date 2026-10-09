@@ -1,16 +1,6 @@
-import type { Metadata } from "next";
-import { PageHeader, PageShell } from "@/components/kit/ui";
-import { BrandResources } from "../BrandParts";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Templates" };
-
-export default function BrandTemplatesPage() {
-  return (
-    <PageShell>
-      <PageHeader title="Templates" />
-      <div className="-mt-8">
-        <BrandResources />
-      </div>
-    </PageShell>
-  );
+/** The brand templates are gone: the contract and the New campaign form replace them. */
+export default function BrandTemplatesRedirect() {
+  redirect("/brand");
 }
