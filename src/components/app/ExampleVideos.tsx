@@ -24,8 +24,7 @@ export async function ExampleVideos({ urls }: { urls: string[] }) {
 
   return (
     <section className="mt-6">
-      <h2 className="font-heading text-base font-semibold text-foreground">Examples</h2>
-      <p className="mt-0.5 mb-3 text-sm text-muted-foreground">What this campaign is after. Open any to see it.</p>
+      <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Examples</h2>
       <ul className="grid grid-cols-3 gap-2 sm:gap-4">
         {items.map((it, i) => (
           <li key={it.url} className="min-w-0">
@@ -44,7 +43,6 @@ export async function ExampleVideos({ urls }: { urls: string[] }) {
               <p className="mt-1.5 truncate text-xs font-medium text-foreground sm:text-sm">
                 {it.platform ? (PLATFORM_LABELS[it.platform as keyof typeof PLATFORM_LABELS] ?? it.platform) : it.host}
               </p>
-              <p className="truncate text-[11px] text-muted-foreground sm:text-xs">{it.platform ? "Watch example" : "Open link"}</p>
             </a>
           </li>
         ))}

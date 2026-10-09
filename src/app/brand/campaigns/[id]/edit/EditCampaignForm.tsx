@@ -60,7 +60,7 @@ export function EditCampaignForm({
         <Field label="Formats that work" htmlFor="formats" hint="One line each. Up to 8 lines.">
           <Textarea id="formats" name="formats" defaultValue={campaign.formats} />
         </Field>
-        <Field label="Example videos and links" htmlFor="examples" hint="Show creators what you want. A TikTok, Instagram or YouTube post shows as a video card; any other link (a Drive folder, a website) shows as a link card. Up to 6, full https:// links.">
+        <Field label="Example videos and links" htmlFor="examples" hint="Show creators what you want. TikTok, Instagram and YouTube posts show as video cards; other links show as link cards. Up to 6 full https:// links.">
           <ExampleLinksField initial={campaign.examples} />
         </Field>
       </section>

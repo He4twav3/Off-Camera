@@ -25,10 +25,7 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
   return (
     <section aria-label="How creators see your campaign" className="overflow-hidden rounded-xl border border-border/70">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/30 bg-primary/10 px-4 py-2">
-        <p className="text-sm font-semibold text-foreground">
-          This is how creators see your campaign.
-          <span className="ml-1 font-normal text-muted-foreground">Nothing here can be submitted.</span>
-        </p>
+        <p className="text-sm font-semibold text-foreground">How creators see it</p>
         <Button size="sm" nativeButton={false} render={<Link href={`/brand/campaigns/${jobId}/edit`} />}>
           <Pencil className="size-3.5" />
           Edit campaign

@@ -24,7 +24,7 @@ export function ExampleLinksField({ initial = "" }: { initial?: string }) {
               type="url"
               value={r}
               onChange={(e) => set(i, e.target.value)}
-              placeholder="https://www.tiktok.com/@brand/video/…  or any link"
+              placeholder="Paste a link"
               aria-label={`Example link ${i + 1}`}
               className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
             />
