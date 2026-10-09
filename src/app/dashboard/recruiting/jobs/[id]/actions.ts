@@ -303,3 +303,52 @@ export async function submitPostAction(_prev: ApplyState, formData: FormData): P
   revalidatePath("/admin/statements");
   return { success: result.message };
 }
+
+const agreeSchema = z.object({ assignment_id: z.string().uuid() });
+
+/**
+ * A creator who is already on a campaign agrees to the brand's contract (when the brand has signed it, or has changed
+ * the pay terms since the creator last agreed). Recorded against their own assignment, which is proved first by reading
+ * it as them (RLS); the write uses the service role.
+ */
+export async function agreeToContractAction(_prev: ApplyState, formData: FormData): Promise<ApplyState> {
+  const parsed = agreeSchema.safeParse({ assignment_id: formData.get("assignment_id") });
+  if (!parsed.success) return { error: "Something was off. Try again." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be logged in." };
+
+  // RLS: a creator only sees their own assignments.
+  const { data: assignment } = await supabase
+    .from("assignments")
+    .select("id, job_id, applicant_id")
+    .eq("id", parsed.data.assignment_id)
+    .maybeSingle();
+  if (!assignment) return { error: "We couldn't find your place on that campaign." };
+
+  const admin = createAdminClient();
+  const { data: job } = await admin.from("jobs").select("post_terms").eq("id", assignment.job_id).maybeSingle();
+  const post = job ? parsePostTerms(job.post_terms) : null;
+  if (!post?.contract || contractStatus(post) !== "signed") return { error: "The brand hasn't signed this contract yet." };
+
+  const { error } = await (admin as unknown as { from: (n: string) => ReturnType<typeof admin.from> })
+    .from("contract_acceptances")
+    .upsert(
+      {
+        assignment_id: assignment.id,
+        job_id: assignment.job_id,
+        applicant_id: assignment.applicant_id,
+        accepted_at: new Date().toISOString(),
+        contract_agreed_at: post.contract.agreedAt,
+      } as never,
+      { onConflict: "assignment_id" },
+    );
+  if (error) return { error: "We couldn't save that yet. Please try again later." };
+
+  revalidatePath(`/dashboard/recruiting/jobs/${assignment.job_id}`);
+  revalidatePath("/admin", "layout");
+  return { success: "Thanks, you agreed to the contract." };
+}

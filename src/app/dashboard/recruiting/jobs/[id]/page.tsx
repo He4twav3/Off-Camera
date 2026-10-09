@@ -120,13 +120,13 @@ export default async function JobDetailPage(props: {
       .eq("assignment_id", assignment.id);
     // Once you're on a campaign whose brand has signed its contract, you can read all of it here.
     if (postTerms.contract && contractStatus(postTerms) === "signed") {
-      const { data: accepted } = await (
+      const { data: accepted, error: acceptError } = await (
         createAdminClient() as unknown as {
-          from: (n: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: { accepted_at: string } | null }> } } };
+          from: (n: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: { accepted_at: string; contract_agreed_at: string | null } | null; error: unknown }> } } };
         }
       )
         .from("contract_acceptances")
-        .select("accepted_at")
+        .select("accepted_at, contract_agreed_at")
         .eq("assignment_id", assignment.id)
         .maybeSingle();
       below = (
@@ -134,6 +134,12 @@ export default async function JobDetailPage(props: {
           brand={postTerms.contract.legalName}
           brandAgreedAt={postTerms.contract.agreedAt}
           creatorAgreedAt={accepted?.accepted_at ?? null}
+          // Asked to agree until they have agreed to the brand's current version. Not asked when it can't be recorded yet.
+          agree={
+            !acceptError && (!accepted || accepted.contract_agreed_at !== postTerms.contract.agreedAt)
+              ? { assignmentId: assignment.id, changed: Boolean(accepted) }
+              : undefined
+          }
           sections={contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: postTerms.contract })}
         />
       );
