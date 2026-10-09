@@ -20,6 +20,7 @@ import {
   describePostTerms,
   postTermsChips,
   type PostTerms,
+  cpmPhrases,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
@@ -75,7 +76,9 @@ export function CampaignView({
               label: `${usd(postTerms.basePerPost)} per post`,
             }
           : null,
-        topBonus
+        postTerms?.cpm?.length
+          ? { icon: TrendingUp, label: cpmPhrases(postTerms.cpm).join(", ") }
+          : topBonus
           ? {
               icon: TrendingUp,
               label: `Bonus up to ${usd(topBonus.amount)} per post`,

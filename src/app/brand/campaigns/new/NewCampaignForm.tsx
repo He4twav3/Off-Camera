@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
 import { RequirementsFields } from "@/components/RequirementsFields";
+import { CpmRows } from "@/components/PayTermsFields";
 import { HowYouPay } from "../../HowYouPay";
 import { createCampaignAction, type NewCampaignState } from "../../actions";
 
@@ -18,13 +19,6 @@ function Submit() {
   );
 }
 
-
-const DEFAULT_BONUSES = [
-  { views: "1000", amount: "2" },
-  { views: "5000", amount: "10" },
-  { views: "10000", amount: "20" },
-  { views: "100000", amount: "200" },
-];
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -95,7 +89,7 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
         </Field>
       </Section>
 
-      <Section title="Pay" hint="Creators are paid per unique video, plus a bonus when it reaches a view milestone. Bonuses don't stack.">
+      <Section title="Pay" hint="Creators are paid per unique video, plus a CPM on their views.">
         <HowYouPay />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Pay per video ($)" htmlFor="base">
@@ -111,18 +105,12 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
             <Input id="keep_public" name="keep_public" type="number" inputMode="numeric" min={0} defaultValue={val("keep_public", "90")} required />
           </Field>
         </div>
-        <div>
-          <p className="text-[15px] font-semibold text-foreground">View bonuses</p>
-          <p className="text-sm text-muted-foreground">Leave a row empty to skip it.</p>
-          <div className="mt-2 grid gap-2">
-            {DEFAULT_BONUSES.map((b, i) => (
-              <div key={i} className="grid grid-cols-2 gap-3">
-                <Input name="ms_views" type="number" inputMode="numeric" min={1} defaultValue={state.values ? (state.values.msViews[i] ?? "") : b.views} aria-label={`Bonus ${i + 1}: views`} placeholder="Views" />
-                <Input name="ms_amount" type="number" inputMode="decimal" min={0} step="0.01" defaultValue={state.values ? (state.values.msAmount[i] ?? "") : b.amount} aria-label={`Bonus ${i + 1}: amount`} placeholder="Bonus ($)" />
-              </div>
-            ))}
-          </div>
-        </div>
+        <CpmRows
+          rows={Array.from({ length: 4 }, (_, i) => {
+            const rate = state.values?.cpmRate[i] ?? "";
+            return rate === "" ? null : { rate: Number(rate), from: Number(state.values?.cpmFrom[i] || 0) };
+          })}
+        />
       </Section>
 
 

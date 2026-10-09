@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
 import { parseRequirements } from "@/lib/requirements";
+import { mergePayTerms, parsePayTermsFields } from "@/lib/pay-terms-form";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -299,49 +300,28 @@ export interface PayTermsState {
 export async function updatePayTermsAction(_prev: PayTermsState, formData: FormData): Promise<PayTermsState> {
   const jobId = z.string().uuid().safeParse(formData.get("job_id"));
   if (!jobId.success) return { error: "Check the fields." };
-  const num = (k: string) => Number(String(formData.get(k) ?? "").replace(/,/g, "").trim());
+  const pay = parsePayTermsFields((k) => String(formData.get(k) ?? ""), (k) => formData.getAll(k).map(String));
+  if (!pay.ok) return { error: pay.error };
 
-  const platforms = ["tiktok", "instagram", "youtube_shorts"].filter((p) => formData.getAll("platforms").includes(p));
-  if (platforms.length === 0) return { error: "Pick at least one platform." };
-
-  const views = formData.getAll("ms_views").map((x) => String(x).trim());
-  const amounts = formData.getAll("ms_amount").map((x) => String(x).trim());
-  const milestones: { views: number; amount: number }[] = [];
-  for (let i = 0; i < Math.max(views.length, amounts.length); i++) {
-    const a = views[i] ?? "";
-    const b = amounts[i] ?? "";
-    if (!a && !b) continue;
-    const n = Number(a.replace(/,/g, ""));
-    const m = Number(b);
-    if (!Number.isFinite(n) || !Number.isFinite(m) || n <= 0 || m <= 0)
-      return { error: "Each bonus needs a number of views and an amount above zero." };
-    milestones.push({ views: Math.round(n), amount: m });
-  }
-  if (new Set(milestones.map((m) => m.views)).size !== milestones.length)
-    return { error: "Two bonuses have the same number of views." };
+  const supabase = await createClient();
+  // What is already saved: kept when this form does not change it (the signed contract, the repost rule, the fixed bonuses).
+  const { data: before } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
+  const keptTerms = parsePostTerms(before?.post_terms);
 
   const reviewer = formData.get("reviewer") === "brand" ? "brand" : "oncamera";
   const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
   if (!requirements.ok) return { error: requirements.error };
   const terms = postTermsSchema.safeParse({
+    ...mergePayTerms({ milestones: keptTerms?.milestones ?? [], cpm: keptTerms?.cpm }, pay.value),
     v: 2,
-    basePerPost: num("base"),
-    cycleSize: num("cycle"),
-    milestones,
-    windowDays: num("window"),
-    keepPublicDays: num("keep_public"),
-    platforms,
-    repostsEarnBase: formData.get("reposts_earn_base") === "on",
+    repostsEarnBase: keptTerms?.repostsEarnBase ?? false,
     reviewer,
     requirements: requirements.value,
   });
   if (!terms.success)
     return { error: terms.error.issues[0]?.message === "Required" ? "Fill in every pay field." : "Check the pay terms: every number must be valid." };
 
-  const supabase = await createClient();
   // Saving pay terms must not wipe a contract the brand has already agreed to.
-  const { data: before } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
-  const keptTerms = parsePostTerms(before?.post_terms);
   const kept = keptTerms?.contract;
   const { data, error } = await supabase
     .from("jobs")

@@ -128,7 +128,7 @@ export function PostsPanel({
   const byRecent = (a: PostRowData, b: PostRowData) =>
     new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
 
-  const tiers = [...terms.milestones].sort((a, b) => b.views - a.views);
+  const tiers = (terms.cpm?.length ? terms.cpm.filter((t) => t.from > 0).map((t) => ({ views: t.from })) : [...terms.milestones]).sort((a, b) => b.views - a.views);
   const groups: { label: string; items: PostRowData[] }[] = [];
   if (sort === "views") {
     let rest = [...counted].sort((a, b) => b.views - a.views);

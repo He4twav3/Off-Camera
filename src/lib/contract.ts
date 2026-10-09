@@ -4,7 +4,7 @@
  * and the tests all produce the same text. A DRAFT: a lawyer must review the wording before it is relied on.
  */
 import { STATEMENT_DUE_DAYS } from "@/lib/direct-pay";
-import type { ContractDetails, PostTerms } from "@/lib/post-terms";
+import { cpmPhrases, type ContractDetails, type PostTerms } from "@/lib/post-terms";
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: Math.round(n * 100) % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
 const views = (n: number) => (n >= 1_000_000 ? `${n / 1_000_000}M` : n >= 1_000 ? `${n / 1_000}K` : String(n));
@@ -16,6 +16,8 @@ export function termsFingerprint(t: PostTerms): string {
     b: t.basePerPost,
     c: t.cycleSize,
     m: [...t.milestones].sort((a, b) => a.views - b.views).map((m) => [m.views, m.amount]),
+    // Only when there are bands, so a contract signed before CPM existed still matches its own terms.
+    ...(t.cpm?.length ? { q: [...t.cpm].sort((a, b) => a.from - b.from).map((c) => [c.from, c.rate]) } : {}),
     w: t.windowDays,
     k: t.keepPublicDays,
     p: [...t.platforms].sort(),
@@ -68,7 +70,9 @@ export function contractSections(input: {
             ? `Base pay: ${usd(t.basePerPost)} for each approved post.`
             : `Base pay: ${usd(t.basePerPost)} for each unique video on the creator's main platform. A repost earns view bonuses only, not base pay.`
           : "There is no base pay per video.",
-        ...(t.milestones.length > 0
+        ...(t.cpm?.length
+          ? [`Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm).join(", then ")}. Each band pays only for the views inside it.`]
+          : t.milestones.length > 0
           ? [
               `Bonus for each post, at the highest milestone it reaches: ${t.milestones.map((m) => `${views(m.views)} views, ${usd(m.amount)}`).join("; ")}.`,
               "Bonuses do not stack: a post that reaches a higher milestone earns that milestone's amount in total, so the creator is paid the difference.",

@@ -22,6 +22,7 @@ const DEFAULT: PostTerms = {
   basePerPost: 20,
   cycleSize: 15,
   milestones: [],
+  cpm: undefined,
   windowDays: 30,
   keepPublicDays: 90,
   platforms: ["tiktok", "instagram", "youtube_shorts"],

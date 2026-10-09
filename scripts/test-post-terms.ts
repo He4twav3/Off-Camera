@@ -1,4 +1,4 @@
-import { GETIMG_TERMS as T, averagePerPost, cycleHistory, describePostTerms, moneyBar, type PostRowData, milestoneBonus, parsePostTerms, payFor, postTermsChips, suggestedStatement, windowEnd, mainPlatformOf, type PostForPay } from "../src/lib/post-terms";
+import { GETIMG_TERMS as T, averagePerPost, cycleHistory, describePostTerms, moneyBar, type PostRowData, milestoneBonus, cpmBonus, cpmPhrases, bonusFor, parsePostTerms, payFor, postTermsChips, suggestedStatement, windowEnd, mainPlatformOf, type PostForPay } from "../src/lib/post-terms";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -161,6 +161,31 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("review not tracked (undefined) counts as approved", payFor(T, fifteen(undefined), now).payable === 330);
   const base = { v: 2, basePerPost: 20, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] };
   t("a campaign is reviewed by OnCamera unless the brand chooses", parsePostTerms(base)!.reviewer === "oncamera" && parsePostTerms({ ...base, reviewer: "brand" })!.reviewer === "brand");
+}
+
+
+// ---- view pay as CPM bands
+{
+  const bands = [{ from: 0, rate: 1 }, { from: 1000, rate: 2 }];
+  t("under the first band's end, its rate applies to every view", cpmBonus(500, bands) === 0.5, cpmBonus(500, bands));
+  t("exactly at the boundary is the first band in full", cpmBonus(1000, bands) === 1, cpmBonus(1000, bands));
+  t("views over the boundary earn the second rate only for the extra views", cpmBonus(3000, bands) === 5, cpmBonus(3000, bands));
+  t("one rate for everything", cpmBonus(25_000, [{ from: 0, rate: 2 }]) === 50, cpmBonus(25_000, [{ from: 0, rate: 2 }]));
+  t("a band that starts later pays nothing before it", cpmBonus(1500, [{ from: 1000, rate: 2 }]) === 1, cpmBonus(1500, [{ from: 1000, rate: 2 }]));
+  t("zero views earn nothing", cpmBonus(0, bands) === 0);
+  t("the tiers can be given in any order", cpmBonus(3000, [...bands].reverse()) === 5);
+  t("bonusFor uses the CPM bands when there are some", bonusFor(3000, { milestones: T.milestones, cpm: bands }) === 5);
+  t("bonusFor keeps the milestones for a campaign without bands", bonusFor(5400, { milestones: T.milestones, cpm: undefined }) === milestoneBonus(5400, T.milestones));
+  const cpmTerms = { ...T, milestones: [], cpm: bands };
+  const paid = payFor(cpmTerms, [post({ views: 3000 })], now);
+  t("a post's view pay comes from the CPM bands", paid.posts[0].bonus === 5, paid.posts[0]);
+  t("the strip says it in CPM words", postTermsChips(cpmTerms).some((c) => c === "$1 CPM until 1K views, $2 CPM over 1K views"), postTermsChips(cpmTerms));
+  t("the sentence says it too", describePostTerms(cpmTerms).some((l) => /Views pay a CPM/.test(l) && /\$1 CPM until 1K views, then \$2 CPM over 1K views/.test(l)), describePostTerms(cpmTerms));
+  t("phrases read in order", cpmPhrases(bands).join("|") === "$1 CPM until 1K views|$2 CPM over 1K views");
+  t("a single rate reads simply", cpmPhrases([{ from: 0, rate: 2 }]).join("|") === "$2 CPM");
+  const parsed = parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], cpm: [...bands].reverse(), windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] });
+  t("saved bands come back sorted", parsed?.cpm?.[0].from === 0 && parsed?.cpm?.[1].from === 1000, parsed?.cpm);
+  t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");

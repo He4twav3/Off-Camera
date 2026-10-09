@@ -8,7 +8,7 @@ import { BRAND_METHODS } from "@/lib/direct-pay";
 import { parsePostTerms, postTermsSchema, type PostTerms } from "@/lib/post-terms";
 import { termsFingerprint } from "@/lib/contract";
 import { parseRequirements } from "@/lib/requirements";
-import { parsePayTermsFields } from "@/lib/pay-terms-form";
+import { mergePayTerms, parseCpmRows, parsePayTermsFields } from "@/lib/pay-terms-form";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -341,8 +341,8 @@ export interface NewCampaignState {
   values?: {
     fields: Record<string, string>;
     platforms: string[];
-    msViews: string[];
-    msAmount: string[];
+    cpmFrom: string[];
+    cpmRate: string[];
   };
 }
 
@@ -373,8 +373,8 @@ export async function createCampaignAction(
       [...formData.entries()].filter(([, v]) => typeof v === "string") as [string, string][],
     ),
     platforms: formData.getAll("platforms").map(String),
-    msViews: formData.getAll("ms_views").map(String),
-    msAmount: formData.getAll("ms_amount").map(String),
+    cpmFrom: formData.getAll("cpm_from").map(String),
+    cpmRate: formData.getAll("cpm_rate").map(String),
   };
   const fail = (error: string): NewCampaignState => ({ error, values });
 
@@ -406,28 +406,16 @@ export async function createCampaignAction(
   const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
   if (!requirements.ok) return fail(requirements.error);
 
-  // Bonus milestones: pairs of (views, bonus). Empty rows are ignored; each must be complete.
-  const views = formData.getAll("ms_views").map((x) => String(x).trim());
-  const amounts = formData.getAll("ms_amount").map((x) => String(x).trim());
-  const milestones: { views: number; amount: number }[] = [];
-  for (let i = 0; i < Math.max(views.length, amounts.length); i++) {
-    const a = views[i] ?? "";
-    const b = amounts[i] ?? "";
-    if (!a && !b) continue;
-    const n = Number(a.replace(/,/g, ""));
-    const m = Number(b);
-    if (!Number.isFinite(n) || !Number.isFinite(m) || n <= 0 || m <= 0)
-      return fail("Each bonus needs a number of views and an amount above zero.");
-    milestones.push({ views: Math.round(n), amount: m });
-  }
-  if (new Set(milestones.map((m) => m.views)).size !== milestones.length)
-    return fail("Two bonuses have the same number of views.");
+  // View pay: CPM rows (a CPM and the views it starts at). Blank rows are skipped.
+  const cpm = parseCpmRows((k) => formData.getAll(k).map(String));
+  if (!cpm.ok) return fail(cpm.error);
 
   const terms = postTermsSchema.safeParse({
     v: 2,
     basePerPost: v.base,
     cycleSize: v.cycle,
-    milestones,
+    milestones: [],
+    cpm: cpm.value,
     windowDays: v.window,
     keepPublicDays: v.keep_public,
     platforms,
@@ -596,8 +584,7 @@ export async function updateCampaignAction(
     const pay = parsePayTermsFields((k) => String(formData.get(k) ?? ""), (k) => formData.getAll(k).map(String));
     if (!pay.ok) return { error: pay.error };
     const merged = postTermsSchema.safeParse({
-      ...currentTerms,
-      ...pay.value,
+      ...mergePayTerms(currentTerms, pay.value),
       v: 2,
       requirements: requirements.value,
     });

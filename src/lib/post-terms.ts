@@ -42,6 +42,17 @@ export const requirementsSchema = z.object({
 });
 export type Requirements = z.infer<typeof requirementsSchema>;
 
+/**
+ * View pay as a CPM (dollars per 1,000 views), in bands: "$1 CPM until 1,000 views, then $2 CPM over 1,000 views" is
+ * [{ from: 0, rate: 1 }, { from: 1000, rate: 2 }]. Each band pays only for the views inside it. When a campaign has
+ * these, they replace the fixed milestone bonuses.
+ */
+export const cpmTierSchema = z.object({
+  from: z.number().int().min(0).max(1_000_000_000),
+  rate: z.number().positive().max(1000),
+});
+export type CpmTier = z.infer<typeof cpmTierSchema>;
+
 export const postTermsSchema = z.object({
   v: z.literal(2),
   basePerPost: z.number().min(0).max(100_000),
@@ -56,6 +67,8 @@ export const postTermsSchema = z.object({
       }),
     )
     .max(10),
+  /** CPM bands for view pay, lowest first. When present they replace `milestones`. */
+  cpm: z.array(cpmTierSchema).max(6).optional(),
   /** Views count for this many days after the post goes live, then freeze. */
   windowDays: z.number().int().min(1).max(365),
   /** The creator keeps each approved post public for this long. */
@@ -87,6 +100,7 @@ export function parsePostTerms(raw: unknown): PostTerms | null {
   return {
     ...parsed.data,
     milestones: [...parsed.data.milestones].sort((a, b) => a.views - b.views),
+    ...(parsed.data.cpm?.length ? { cpm: [...parsed.data.cpm].sort((a, b) => a.from - b.from) } : { cpm: undefined }),
   };
 }
 
@@ -117,6 +131,23 @@ export function milestoneBonus(
   for (const m of milestones)
     if (views >= m.views && m.amount > best) best = m.amount;
   return best;
+}
+
+/** What a post's views earn under CPM bands: each band pays its rate per 1,000 views for the views inside it. */
+export function cpmBonus(views: number, tiers: CpmTier[]): number {
+  const sorted = [...tiers].sort((a, b) => a.from - b.from);
+  let cents = 0;
+  sorted.forEach((t, i) => {
+    const end = sorted[i + 1]?.from ?? Infinity;
+    const inBand = Math.max(0, Math.min(views, end) - t.from);
+    cents += (inBand / 1000) * t.rate * 100;
+  });
+  return Math.round(cents) / 100;
+}
+
+/** The view pay a post has earned: by CPM bands when the campaign has them, otherwise by milestone. */
+export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "cpm">): number {
+  return terms.cpm?.length ? cpmBonus(views, terms.cpm) : milestoneBonus(views, terms.milestones);
 }
 
 /** The last moment views count for a post published at `postedAt`. */
@@ -224,7 +255,7 @@ export function payFor(
       id: p.id,
       cycle,
       base: repost ? 0 : terms.basePerPost,
-      bonus: milestoneBonus(p.views, terms.milestones),
+      bonus: bonusFor(p.views, terms),
       windowClosed,
       daysLeft: windowClosed
         ? 0
@@ -269,12 +300,25 @@ export function suggestedStatement(
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: Math.round(n * 100) % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
 const views = (n: number) => (n >= 1000 ? `${n / 1000}K` : String(n));
 
-/** The pay as short labels for a strip: base, milestones, cycle, window. */
+/** CPM bands in words: "$1 CPM until 1K views", "$2 CPM over 1K views". */
+export function cpmPhrases(tiers: CpmTier[]): string[] {
+  const sorted = [...tiers].sort((a, b) => a.from - b.from);
+  return sorted.map((t, i) => {
+    const next = sorted[i + 1];
+    if (i === 0) return t.from > 0 ? `${usd(t.rate)} CPM over ${views(t.from)} views` : `${usd(t.rate)} CPM${next ? ` until ${views(next.from)} views` : ""}`;
+    return `${usd(t.rate)} CPM over ${views(t.from)} views`;
+  });
+}
+
+/** The pay as short labels for a strip: base, CPM or milestones, cycle, window. */
 export function postTermsChips(terms: PostTerms): string[] {
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
-  const top = terms.milestones.at(-1);
-  if (top) chips.push(`Bonus up to ${usd(top.amount)} per post`);
+  if (terms.cpm?.length) chips.push(cpmPhrases(terms.cpm).join(", "));
+  else {
+    const top = terms.milestones.at(-1);
+    if (top) chips.push(`Bonus up to ${usd(top.amount)} per post`);
+  }
   chips.push(`Paid every ${terms.cycleSize} posts`);
   chips.push(`${terms.windowDays}-day counting window`);
   return chips;
@@ -291,7 +335,9 @@ export function describePostTerms(terms: PostTerms): string[] {
       lines.push("Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost: it earns view bonuses only.");
     }
   }
-  if (terms.milestones.length > 0) {
+  if (terms.cpm?.length) {
+    lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm).join(", then ")}. Each band pays only for the views inside it.`);
+  } else if (terms.milestones.length > 0) {
     lines.push(
       `Bonus per post, at the highest milestone it reaches: ${terms.milestones.map((m) => `${views(m.views)} views, ${usd(m.amount)}`).join(" · ")}.`,
     );
