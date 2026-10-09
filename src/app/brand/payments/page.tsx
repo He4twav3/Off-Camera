@@ -73,10 +73,17 @@ export default async function BrandPaymentsPage(props: { searchParams: Promise<{
         </RowList>
       )}
 
-      <Link href="/brand/payments?archive=1" className="mt-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-        Archive ({done.length})
-        <ChevronRight className="size-3" />
-      </Link>
+      <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground">
+        <Link href="/brand/payments?archive=1" className="inline-flex items-center gap-1 hover:text-foreground">
+          Archive ({done.length})
+          <ChevronRight className="size-3" />
+        </Link>
+        {statements.length > 0 && (
+          <a href="/brand/payments/export" className="hover:text-foreground">
+            Download as spreadsheet (CSV)
+          </a>
+        )}
+      </div>
     </PageShell>
   );
 }
