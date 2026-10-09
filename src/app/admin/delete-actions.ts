@@ -62,6 +62,20 @@ export async function deleteBrandAction(_prev: DeleteState, formData: FormData):
   return { success: "Deleted." };
 }
 
+/** Delete one campaign signup from the list (an older, stand-alone list: it has no account or money attached). */
+export async function deleteSignupAction(_prev: DeleteState, formData: FormData): Promise<DeleteState> {
+  const id = idSchema.safeParse({ id: formData.get("id") });
+  if (!id.success) return { error: "Invalid request." };
+  const blocked = await adminGuard();
+  if (blocked) return { error: blocked };
+
+  const { error } = await createAdminClient().from("campaign_signups").delete().eq("id", id.data.id);
+  if (error) return { error: "This signup can't be deleted." };
+  revalidatePath("/admin/campaigns");
+  revalidatePath("/admin");
+  return { success: "Deleted." };
+}
+
 /** Delete one application from the list. */
 export async function deleteApplicationAction(_prev: DeleteState, formData: FormData): Promise<DeleteState> {
   const id = idSchema.safeParse({ id: formData.get("id") });

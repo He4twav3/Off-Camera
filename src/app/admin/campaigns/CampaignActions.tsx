@@ -4,6 +4,8 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { reviewSignupAction, type CampaignAdminState } from "./actions";
+import { ConfirmDelete } from "@/components/admin/confirm-delete";
+import { deleteSignupAction } from "../delete-actions";
 
 function Submit({
   children,
@@ -20,7 +22,7 @@ function Submit({
   );
 }
 
-export function CampaignActions({ id, status }: { id: string; status: string }) {
+export function CampaignActions({ id, status, name = "this signup" }: { id: string; status: string; name?: string }) {
   const [state, formAction] = useActionState<CampaignAdminState, FormData>(
     reviewSignupAction,
     {},
@@ -41,6 +43,7 @@ export function CampaignActions({ id, status }: { id: string; status: string }) 
         {status === "approved" && button("refresh", "Refresh views", "outline")}
         {status !== "rejected" && button("reject", "Reject", "destructive")}
       </div>
+      <ConfirmDelete action={deleteSignupAction} id={id} what={name} />
       {state.error && <p className="text-sm font-medium text-destructive">{state.error}</p>}
       {state.success && <p className="text-sm text-muted-foreground">{state.success}</p>}
     </div>

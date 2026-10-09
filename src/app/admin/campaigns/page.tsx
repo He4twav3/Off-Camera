@@ -92,7 +92,7 @@ export default async function AdminCampaignsPage() {
                         </p>
                       )}
                     </div>
-                    <CampaignActions id={s.id} status={s.status} />
+                    <CampaignActions id={s.id} status={s.status} name={s.creator_name} />
                   </CardContent>
                 </Card>
               </li>
