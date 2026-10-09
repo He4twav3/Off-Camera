@@ -51,14 +51,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Already signed in — /login and /signup don't make sense to revisit.
-  if (user && (path === "/login" || path === "/signup" || path === "/create-account")) {
-    const url = request.nextUrl.clone();
-    const { data: isAdminHere } = await supabase.rpc("is_admin");
-    url.pathname = isAdminHere ? "/admin" : "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
+  // Signed in people may still open /login and the sign-up pages: this team uses a different
+  // email for each role, so they need to be able to switch accounts without logging out first.
+  // Signing in as someone else simply replaces the current session.
 
   // Signed in: the landing page is never a destination, whichever logo or
   // link points at "/". The only way back to it is logging out, which
