@@ -36,10 +36,10 @@ export function JobFilters({ niches, hasPayRange }: JobFiltersProps) {
 
   return (
     <div
-      className="rounded-lg border border-border bg-card p-5"
+      className="rounded-lg border border-border bg-card p-3 sm:p-5"
       aria-busy={isPending}
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-2 flex items-center justify-between gap-3 sm:mb-4">
         <h2 className="font-heading text-base font-semibold text-foreground">
           Filter jobs
         </h2>
@@ -56,7 +56,7 @@ export function JobFilters({ niches, hasPayRange }: JobFiltersProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <Field label="Niche" htmlFor="filter-niche">
           <Select
             id="filter-niche"
@@ -98,7 +98,7 @@ export function JobFilters({ niches, hasPayRange }: JobFiltersProps) {
         </Field>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-3 flex flex-col gap-3 border-t border-border pt-3 sm:mt-4 sm:flex-row sm:pt-4 sm:items-center sm:justify-between">
         <Field label="Sort by" htmlFor="filter-sort" >
           <Select
             id="filter-sort"

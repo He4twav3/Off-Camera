@@ -41,7 +41,7 @@ export function JobCard({ job, href }: JobCardProps) {
           headline={headline}
           caption={PLATFORM_LABELS[job.platform]}
           logoUrl={job.logo_url}
-          className="aspect-[2/1] transition-transform duration-300 group-hover:scale-[1.02]"
+          className="aspect-[3/1] transition-transform sm:aspect-[2/1] duration-300 group-hover:scale-[1.02]"
         />
         <span className="absolute top-3 left-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border/60 backdrop-blur">
           {PLATFORM_LABELS[job.platform]}
@@ -53,7 +53,7 @@ export function JobCard({ job, href }: JobCardProps) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-5">
+      <div className="flex flex-1 flex-col gap-3 p-4 sm:gap-4 sm:p-5">
         <div className="min-w-0">
           <h3 className="truncate font-heading text-lg font-semibold text-foreground">
             {job.title}

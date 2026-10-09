@@ -129,15 +129,15 @@ export function CampaignView({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-8">
         {/* Left panel: the campaign, where you are in it, and the button, pinned at the bottom. */}
-        <aside className="flex flex-col gap-5 lg:sticky lg:top-6 lg:h-[calc(100vh-7rem)]">
+        <aside className="flex flex-col gap-3 lg:gap-5 lg:sticky lg:top-6 lg:h-[calc(100vh-7rem)]">
           <div className="relative">
             <CampaignBanner
               seed={job.id}
               headline={headline}
               caption={PLATFORM_LABELS[job.platform]}
-              className="aspect-[16/10] max-h-56 rounded-xl lg:max-h-none"
+              className="aspect-[16/10] max-h-28 rounded-xl sm:max-h-56 lg:max-h-none"
               logoUrl={job.logo_url}
             />
             <Link
@@ -148,14 +148,14 @@ export function CampaignView({
             </Link>
           </div>
 
-          <div>
+          <div className="hidden lg:block">
             <h1 className="font-heading text-lg leading-snug font-semibold text-foreground">
               {job.title}
             </h1>
             {sub && <p className="mt-1 text-sm text-muted-foreground">{sub}</p>}
           </div>
 
-          <nav aria-label="Campaign" className="flex flex-col gap-0.5">
+          <nav aria-label="Campaign" className="hidden flex-col gap-0.5 lg:flex">
             <span
               aria-current="page"
               className="flex min-h-10 items-center gap-3 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground"
@@ -183,7 +183,7 @@ export function CampaignView({
           {
             <>
               <div className="mt-5 flex flex-wrap items-baseline justify-between gap-3">
-                <h2 className="font-heading text-2xl font-semibold text-foreground">
+                <h2 className="font-heading text-xl font-semibold text-foreground sm:text-2xl">
                   {job.title}
                 </h2>
                 <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -207,7 +207,7 @@ export function CampaignView({
               <section className="mt-5">
                 <h2 className="sr-only">How this campaign pays</h2>
                 {stats.length > 0 ? (
-                  <ul className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border border-border/70 bg-card px-5 py-3.5">
+                  <ul className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-xl border border-border/70 bg-card px-4 py-2.5 sm:gap-x-6 sm:gap-y-2 sm:px-5 sm:py-3.5">
                     {stats.map((st) => (
                       <li
                         key={st.label}
@@ -241,7 +241,7 @@ export function CampaignView({
 
               {/* What the brand says about itself and the content it wants. */}
               {job.about && (
-                <section className="mt-6 rounded-xl border border-border/70 bg-card px-5 py-4">
+                <section className="mt-4 rounded-xl sm:mt-6 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">
                   <h2 className="font-heading text-base font-semibold text-foreground">
                     About the brand
                   </h2>
@@ -252,7 +252,7 @@ export function CampaignView({
               )}
 
               {formatList.length > 0 && (
-                <section className="mt-6 rounded-xl border border-border/70 bg-card px-5 py-4">
+                <section className="mt-4 rounded-xl sm:mt-6 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">
                   <h2 className="font-heading text-base font-semibold text-foreground">
                     Formats that work
                   </h2>
@@ -299,7 +299,7 @@ export function CampaignView({
               )}
 
               {rules.length > 0 && (
-                <section className="mt-8 rounded-xl border border-border/70 bg-card px-5 py-4">
+                <section className="mt-5 rounded-xl sm:mt-8 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">
                   <h2 className="font-heading text-base font-semibold text-foreground">
                     The brief
                   </h2>
