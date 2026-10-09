@@ -22,10 +22,9 @@ import {
   type PostTerms,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
-import { postIdentity } from "@/lib/post-key";
-import { PlatformIcon } from "@/components/account/PlatformIcons";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
+import { ExampleVideos } from "@/components/app/ExampleVideos";
 
 /**
  * One campaign: a left panel (banner, tags, and the one thing to do next, passed
@@ -123,10 +122,6 @@ export function CampaignView({
     .split(/\n+/)
     .map((l) => l.trim())
     .filter(Boolean);
-  const examples = (job.example_urls ?? []).flatMap((url) => {
-    const id = postIdentity(url);
-    return id.ok ? [{ url: id.url, platform: id.platform }] : [];
-  });
 
   const sub = job.niches?.label ?? "";
 
@@ -272,36 +267,7 @@ export function CampaignView({
                 </section>
               )}
 
-              {examples.length > 0 && (
-                <section className="mt-6">
-                  <h2 className="font-heading text-base font-semibold text-foreground">
-                    Examples
-                  </h2>
-                  <p className="mt-0.5 mb-3 text-sm text-muted-foreground">
-                    Posts that show the kind of content this campaign is after.
-                  </p>
-                  <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {examples.map((e) => (
-                      <li key={e.url}>
-                        <a
-                          href={e.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex aspect-[4/3] flex-col justify-between rounded-lg border border-border/70 bg-card p-3 transition-colors hover:border-primary/40"
-                        >
-                          <PlatformIcon
-                            platform={e.platform}
-                            className="size-6"
-                          />
-                          <span className="text-sm font-medium text-foreground">
-                            Watch example
-                          </span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
+              <ExampleVideos urls={job.example_urls ?? []} />
 
               {rules.length > 0 && (
                 <section className="mt-5 rounded-xl sm:mt-8 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">

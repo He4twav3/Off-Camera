@@ -22,6 +22,8 @@ t("empty means none", JSON.stringify(parseExampleLinks("  \n")) === JSON.stringi
 t("a profile link is refused", !parseExampleLinks("https://www.tiktok.com/@a").ok);
 t("a short tiktok link is refused with advice", (() => { const r = parseExampleLinks("https://vm.tiktok.com/ZMabc/"); return !r.ok && /full address/.test(r.error); })());
 t("a javascript link is refused", !parseExampleLinks("javascript:alert(1)").ok);
+t("any other https link is kept (a Drive folder, a website)", (() => { const r = parseExampleLinks("https://drive.google.com/drive/folders/abc123\nhttps://example.com/inspo"); return r.ok && r.urls.length === 2; })());
+t("a link of another site twice is kept once", (() => { const r = parseExampleLinks("https://example.com/a\nhttps://example.com/a"); return r.ok && r.urls.length === 1; })());
 t("an http link is refused", !parseExampleLinks("http://www.tiktok.com/@a/video/7391234567890123456").ok);
 t("the error says which line is wrong", (() => { const r = parseExampleLinks("https://www.tiktok.com/@a/video/7391234567890123456\nnot a link"); return !r.ok && r.error.includes("not a link"); })());
 t(`more than ${MAX_EXAMPLES} is refused`, !parseExampleLinks(Array.from({ length: 7 }, (_, i) => `https://www.tiktok.com/@a/video/73912345678901234${10 + i}`).join("\n")).ok);

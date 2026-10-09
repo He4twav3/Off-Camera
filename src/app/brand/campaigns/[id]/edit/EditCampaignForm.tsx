@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { ExampleLinksField } from "@/components/ExampleLinksField";
 import { updateCampaignAction, type EditCampaignState } from "../../../actions";
 
 function Save() {
@@ -59,8 +60,8 @@ export function EditCampaignForm({
         <Field label="Formats that work" htmlFor="formats" hint="One line each. Up to 8 lines.">
           <Textarea id="formats" name="formats" defaultValue={campaign.formats} />
         </Field>
-        <Field label="Example videos" htmlFor="examples" hint="Full links to public TikTok, Instagram or YouTube posts, one per line, up to 6.">
-          <Textarea id="examples" name="examples" defaultValue={campaign.examples} placeholder="https://www.tiktok.com/@brand/video/…" />
+        <Field label="Example videos and links" htmlFor="examples" hint="Show creators what you want. A TikTok, Instagram or YouTube post shows as a video card; any other link (a Drive folder, a website) shows as a link card. Up to 6, full https:// links.">
+          <ExampleLinksField initial={campaign.examples} />
         </Field>
       </section>
       {state.error && (

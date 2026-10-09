@@ -399,6 +399,8 @@ export async function createCampaignAction(
   if (!rules.ok) return fail(`Rules: ${rules.error}`);
   const formats = parseLines(String(formData.get("formats") ?? ""));
   if (!formats.ok) return fail(`Formats that work: ${formats.error}`);
+  const examples = parseExampleLinks(String(formData.get("examples") ?? ""));
+  if (!examples.ok) return fail(`Example links: ${examples.error}`);
 
   // Bonus milestones: pairs of (views, bonus). Empty rows are ignored; each must be complete.
   const views = formData.getAll("ms_views").map((x) => String(x).trim());
@@ -447,6 +449,7 @@ export async function createCampaignAction(
       post_terms: terms.data as unknown as Record<string, unknown>,
       about: v.about || null,
       formats: formats.lines.length ? formats.lines.join("\n") : null,
+      example_urls: examples.urls,
     })
     .select("id")
     .single();

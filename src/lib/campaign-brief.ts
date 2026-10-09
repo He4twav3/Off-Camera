@@ -22,7 +22,14 @@ export function parseLines(raw: string, max = MAX_FORMATS, maxLength = MAX_FORMA
   return { ok: true, lines };
 }
 
-/** Example videos: each line must be the full link to a post on TikTok, Instagram or YouTube. */
+const PLATFORM_HOSTS = ["tiktok.com", "instagram.com", "youtube.com", "youtu.be"];
+const isPlatformHost = (host: string) => PLATFORM_HOSTS.some((b) => host === b || host.endsWith(`.${b}`));
+
+/**
+ * Example links: a link on TikTok, Instagram or YouTube must be the full link to one post (so it can be shown as a
+ * video with its cover). Any other link is fine too (a Drive folder, a website, a reference page) as long as it starts
+ * with https://.
+ */
 export function parseExampleLinks(raw: string): { ok: true; urls: string[] } | { ok: false; error: string } {
   const lines = raw
     .split(/\r?\n/)
@@ -33,6 +40,22 @@ export function parseExampleLinks(raw: string): { ok: true; urls: string[] } | {
   const urls: string[] = [];
   const seen = new Set<string>();
   for (const line of lines) {
+    let parsed: URL | null = null;
+    try {
+      parsed = new URL(line);
+    } catch {
+      /* not a link: reported below */
+    }
+    if (!parsed) return { ok: false, error: `"${line.slice(0, 60)}": that doesn't look like a link. Paste the full address.` };
+    if (parsed.protocol !== "https:") return { ok: false, error: `"${line.slice(0, 60)}": links must start with https://` };
+    if (!isPlatformHost(parsed.hostname.toLowerCase())) {
+      const plain = parsed.toString();
+      if (!seen.has(plain)) {
+        seen.add(plain);
+        urls.push(plain);
+      }
+      continue;
+    }
     const id = postIdentity(line);
     if (!id.ok) return { ok: false, error: `"${line.slice(0, 60)}": ${id.error}` };
     // The same video twice is one example.
