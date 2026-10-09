@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { describeTerms, parsePayoutTerms } from "@/lib/payout-terms";
 import { PLATFORM_COMMISSION_PERCENT } from "@/lib/commission";
 import { siteConfig } from "@/lib/site-config";
+import { parsePostTerms } from "@/lib/post-terms";
+import { contractSections, contractStatus } from "@/lib/contract";
+import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Campaign contract · Admin",
@@ -22,10 +25,39 @@ export default async function ContractPage(props: {
   const supabase = await createClient();
   const { data: job } = await supabase
     .from("jobs")
-    .select("title, description, platform, payout_terms, brand_account_id")
+    .select("title, description, platform, payout_terms, post_terms, brand_account_id")
     .eq("id", id)
     .maybeSingle();
   if (!job) notFound();
+
+  // A campaign paid per post has the new contract: the platform's own terms plus the brand's details.
+  const postTerms = parsePostTerms(job.post_terms);
+  if (postTerms) {
+    const signed = postTerms.contract;
+    const status = contractStatus(postTerms);
+    return (
+      <div className="mx-auto max-w-3xl px-5 py-10 text-foreground">
+        <p className="text-sm font-semibold text-destructive">Draft: have a lawyer review this before relying on it</p>
+        <h1 className="mt-2 font-heading text-3xl font-semibold">Campaign contract: {job.title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {signed
+            ? `${status === "signed" ? "Signed" : "Pay terms changed since signing"}: agreed by ${signed.signatory} (${signed.agreedByEmail}) on ${formatDate(signed.agreedAt)}.`
+            : "Not signed by the brand yet. The blanks below are what they fill in."}{" "}
+          <a href={`/admin/jobs/${id}/contract/word`} className="font-semibold text-primary underline underline-offset-2">
+            Download as a Word file
+          </a>
+        </p>
+        {contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: signed }).map((s) => (
+          <section key={s.heading} className="mt-8 space-y-2 text-[15px] leading-relaxed">
+            <h2 className="font-heading text-xl font-semibold">{s.heading}</h2>
+            {s.lines.map((l) => (
+              <p key={l}>{l}</p>
+            ))}
+          </section>
+        ))}
+      </div>
+    );
+  }
 
   const terms = parsePayoutTerms(job.payout_terms);
   const { data: brandRow } = job.brand_account_id

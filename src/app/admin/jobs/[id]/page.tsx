@@ -8,7 +8,8 @@ import { ChevronRight } from "lucide-react";
 import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { getSent } from "@/lib/admin-payments";
 import { campaignTasks } from "@/lib/admin-tasks";
-import { Todo, waitingOnBrand } from "@/components/admin/todo";
+import { Todo, brandNotes } from "@/components/admin/todo";
+import { contractStatus } from "@/lib/contract";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
@@ -66,9 +67,32 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
         </div>
       </header>
 
+      {c.terms && (
+        <section className="mb-4 rounded-xl border border-border/70 bg-card px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Contract</h2>
+            <Link href={`/admin/jobs/${c.id}/contract`} className="font-semibold text-primary underline underline-offset-2">
+              Open contract
+            </Link>
+          </div>
+          {c.terms.contract ? (
+            <p className="mt-1 text-foreground">
+              {contractStatus(c.terms) === "signed" ? "Signed" : "Pay terms changed since signing"} · {c.terms.contract.legalName},{" "}
+              {c.terms.contract.address}, {c.terms.contract.country} · agreed by {c.terms.contract.signatory}
+              {c.terms.contract.signatoryRole ? ` (${c.terms.contract.signatoryRole})` : ""}, {c.terms.contract.agreedByEmail}, on{" "}
+              {formatDate(c.terms.contract.agreedAt)}
+            </p>
+          ) : (
+            <p className="mt-1 text-muted-foreground">
+              {c.brandId ? "The brand hasn't agreed to the contract yet." : "No brand is attached yet. The brand agrees to it once you link them."}
+            </p>
+          )}
+        </section>
+      )}
+
       <section className="mb-6 rounded-xl border border-border/70 bg-card px-4 py-3">
         <h2 className="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">To do on this campaign</h2>
-        <Todo tasks={campaignTasks(c, new Set(sent.keys()))} waiting={waitingOnBrand(c)} />
+        <Todo tasks={campaignTasks(c, new Set(sent.keys()))} notes={brandNotes(c)} />
       </section>
 
       <SectionTitle>Creators</SectionTitle>

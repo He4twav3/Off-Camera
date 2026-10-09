@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader, PageShell } from "@/components/kit/ui";
 import { postTermsChips, parsePostTerms } from "@/lib/post-terms";
-import { requireBrand } from "../../../_brand";
+import { requireBrand, requireContractsSigned } from "../../../_brand";
 import { PendingNotice } from "../../../PendingNotice";
 import { EditCampaignForm } from "./EditCampaignForm";
 
@@ -14,6 +14,7 @@ export const metadata: Metadata = { title: "Edit campaign" };
 export default async function EditCampaignPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const brand = await requireBrand(`/brand/campaigns/${id}/edit`);
+  await requireContractsSigned(brand);
   if (brand.status !== "approved")
     return (
       <PageShell>

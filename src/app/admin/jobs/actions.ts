@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { postTermsSchema } from "@/lib/post-terms";
+import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -335,9 +335,12 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
     return { error: terms.error.issues[0]?.message === "Required" ? "Fill in every pay field." : "Check the pay terms: every number must be valid." };
 
   const supabase = await createClient();
+  // Saving pay terms must not wipe a contract the brand has already agreed to.
+  const { data: before } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
+  const kept = parsePostTerms(before?.post_terms)?.contract;
   const { data, error } = await supabase
     .from("jobs")
-    .update({ post_terms: terms.data as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
+    .update({ post_terms: (kept ? { ...terms.data, contract: kept } : terms.data) as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
     .eq("id", jobId.data)
     .select("id");
   if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };

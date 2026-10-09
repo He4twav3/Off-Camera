@@ -9,7 +9,7 @@ import { getSent } from "@/lib/admin-payments";
 import { campaignTasks } from "@/lib/admin-tasks";
 import { PLATFORM_LABELS, formatCurrency } from "@/lib/utils";
 import { JobForm } from "./jobs/JobForm";
-import { Todo, waitingOnBrand } from "@/components/admin/todo";
+import { Todo, brandNotes } from "@/components/admin/todo";
 import { setupIssues } from "@/lib/setup-check";
 
 export const metadata: Metadata = { title: "Campaigns · Admin" };
@@ -83,7 +83,7 @@ export default async function AdminHomePage() {
                   <StatusBadge tone={jobStatusTone(c.status)}>{STATUS[c.status]}</StatusBadge>
                 </Td>
                 <Td>
-                  <Todo tasks={campaignTasks(c, new Set(sent.keys()))} waiting={waitingOnBrand(c)} />
+                  <Todo tasks={campaignTasks(c, new Set(sent.keys()))} notes={brandNotes(c)} />
                 </Td>
                 <Td right>{c.creators.length}</Td>
                 <Td right>{c.views.toLocaleString()}</Td>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, PageShell } from "@/components/kit/ui";
-import { requireBrand } from "../../_brand";
+import { requireBrand, requireContractsSigned } from "../../_brand";
 import { PendingNotice } from "../../PendingNotice";
 import { NewCampaignForm } from "./NewCampaignForm";
 
@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "New campaign" };
 
 export default async function NewCampaignPage() {
   const brand = await requireBrand("/brand/campaigns/new");
+  await requireContractsSigned(brand);
   const supabase = await createClient();
   const { data: niches } = await supabase.from("niches").select("id, label").eq("is_active", true).order("label");
   return (

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
 import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
+import { termsFingerprint } from "@/lib/contract";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -593,4 +594,71 @@ export async function updateCampaignAction(
   revalidatePath("/dashboard/recruiting/jobs", "layout");
   revalidatePath("/admin");
   return { success: "Saved. Creators see the changes now." };
+}
+
+// --- the campaign contract ------------------------------------------------------------------
+
+const contractFormSchema = z.object({
+  job_id: z.string().uuid(),
+  legal_name: z.string().trim().min(2, "Enter the company's legal name.").max(160),
+  address: z.string().trim().min(5, "Enter the company's address.").max(400),
+  country: z.string().trim().min(2, "Enter the country.").max(80),
+  signatory: z.string().trim().min(2, "Enter the name of the person agreeing.").max(120),
+  role: z.string().trim().max(120).optional(),
+  agree: z.literal("on", { message: "Tick the box to agree to the contract." }),
+});
+
+/**
+ * The brand fills in its contract details on its own campaign page, ticks "I agree", and saves. They are kept with
+ * the campaign's pay terms (no separate table), with who agreed, when, and the pay terms as they stood. Admin sees
+ * the same record on the campaign. The campaign must be this brand's own.
+ */
+export async function saveContractAction(_prev: BrandPayState, formData: FormData): Promise<BrandPayState> {
+  const parsed = contractFormSchema.safeParse({
+    job_id: formData.get("job_id"),
+    legal_name: formData.get("legal_name"),
+    address: formData.get("address"),
+    country: formData.get("country"),
+    signatory: formData.get("signatory"),
+    role: formData.get("role") ?? "",
+    agree: formData.get("agree"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
+  const brand = await approvedBrand();
+  if (!brand) return { error: "Your brand account isn't approved yet." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const db = createAdminClient();
+  const { data: job } = await db
+    .from("jobs")
+    .select("id, post_terms")
+    .eq("id", parsed.data.job_id)
+    .eq("brand_account_id", brand.id)
+    .maybeSingle();
+  const terms = job ? parsePostTerms(job.post_terms) : null;
+  if (!job || !terms) return { error: "We couldn't find that campaign." };
+
+  const contract = {
+    legalName: parsed.data.legal_name,
+    address: parsed.data.address,
+    country: parsed.data.country,
+    signatory: parsed.data.signatory,
+    signatoryRole: parsed.data.role ?? "",
+    agreedAt: new Date().toISOString(),
+    agreedByEmail: user?.email ?? "",
+    terms: termsFingerprint(terms),
+  };
+  const { error } = await db
+    .from("jobs")
+    .update({ post_terms: { ...terms, contract } as unknown as Record<string, unknown> })
+    .eq("id", job.id);
+  if (error) return { error: "We couldn't save that. Please try again." };
+
+  revalidatePath("/brand", "layout");
+  revalidatePath("/admin", "layout");
+  return { success: "Saved. OnCamera can see your signed contract." };
 }

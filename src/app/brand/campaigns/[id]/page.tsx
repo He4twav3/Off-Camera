@@ -9,6 +9,8 @@ import { postTermsChips } from "@/lib/post-terms";
 import { cpm, platformSplit } from "@/lib/brand-stats";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { loadBrandPage } from "../../_brand";
+import { ContractCard } from "../../ContractCard";
+import { contractSections, contractStatus } from "@/lib/contract";
 import { PendingNotice } from "../../PendingNotice";
 import { CampaignLogoForm } from "../../CampaignLogoForm";
 import { ReviewerChoice } from "../../ReviewerChoice";
@@ -81,6 +83,16 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
           How paying works →
         </Link>
       </p>
+
+      {c.terms && (
+        <ContractCard
+          jobId={c.id}
+          status={contractStatus(c.terms)}
+          contract={c.terms.contract ?? null}
+          sections={contractSections({ campaign: c.title, agency: "OnCamera", terms: c.terms, brand: c.terms.contract })}
+          wordHref={`/brand/campaigns/${c.id}/contract/word`}
+        />
+      )}
 
       {c.reviewer && (
         <section className="mb-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5">

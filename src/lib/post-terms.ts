@@ -18,6 +18,21 @@ import { STATEMENT_DUE_DAYS } from "@/lib/direct-pay";
  * tests all work out the same dollars the same way.
  */
 
+/** The brand's contract details, filled in on its own campaign page and kept with the campaign's pay terms. */
+export const contractSchema = z.object({
+  legalName: z.string().trim().min(2).max(160),
+  address: z.string().trim().min(5).max(400),
+  country: z.string().trim().min(2).max(80),
+  signatory: z.string().trim().min(2).max(120),
+  signatoryRole: z.string().trim().max(120).default(""),
+  /** When the brand agreed, and who (their sign-in email). */
+  agreedAt: z.string(),
+  agreedByEmail: z.string().max(200),
+  /** The pay terms as they were when the brand agreed, to tell if they have changed since. */
+  terms: z.string().max(2000),
+});
+export type ContractDetails = z.infer<typeof contractSchema>;
+
 export const postTermsSchema = z.object({
   v: z.literal(2),
   basePerPost: z.number().min(0).max(100_000),
@@ -50,6 +65,8 @@ export const postTermsSchema = z.object({
    * have to) or "brand". A post is only counted into what is due once it has been approved.
    */
   reviewer: z.enum(["oncamera", "brand"]).default("oncamera"),
+  /** Set once the brand has filled in and agreed to the contract (see lib/contract.ts). */
+  contract: contractSchema.optional(),
 });
 
 export type PostTerms = z.infer<typeof postTermsSchema>;
