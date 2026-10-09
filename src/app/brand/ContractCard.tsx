@@ -92,9 +92,9 @@ export function ContractCard({
     <section className="mb-6 rounded-xl border border-primary/40 bg-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-heading text-base font-semibold text-foreground">Contract</h2>
-        <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-400">
-          {status === "changed" ? "Pay terms changed: agree again" : "To do"}
-        </span>
+        {status === "changed" && (
+          <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-400">Pay terms changed: agree again</span>
+        )}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
         Fill in your company details and agree. The pay terms are already in the contract.
