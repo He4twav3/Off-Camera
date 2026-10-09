@@ -37,11 +37,12 @@ export default async function BrandCampaignsPage() {
         <EmptyState title="No campaigns yet" body="Post your first campaign and creators can join straight away." />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+          <table className="w-full min-w-[46rem] text-left text-sm">
             <thead className="border-b border-border/70 text-xs text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Campaign</th>
                 <th className="px-3 py-3 font-medium">Status</th>
+                <th className="px-3 py-3 font-medium">To do</th>
                 <th className="px-3 py-3 text-right font-medium">Creators</th>
                 <th className="px-3 py-3 text-right font-medium">Videos</th>
                 <th className="px-3 py-3 text-right font-medium">Views</th>
@@ -62,6 +63,20 @@ export default async function BrandCampaignsPage() {
                   </td>
                   <td className="px-3 py-3">
                     <StatusBadge tone={STATUS[c.status].tone}>{STATUS[c.status].label}</StatusBadge>
+                  </td>
+                  <td className="px-3 py-3">
+                    {(() => {
+                      const toApprove = c.reviewer === "brand" ? c.awaitingReview : 0;
+                      const toPay = Math.max(0, c.payable - c.paid);
+                      if (toApprove === 0 && toPay <= 0) return <span className="text-xs text-muted-foreground">All done</span>;
+                      return (
+                        <Link href={toApprove > 0 ? `/brand/campaigns/${c.id}` : "/brand/payments"} className="text-xs font-semibold text-primary hover:underline">
+                          {toApprove > 0
+                            ? `${toApprove} ${toApprove === 1 ? "video" : "videos"} to approve`
+                            : `${formatCurrency(toPay)} to pay`}
+                        </Link>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.creators.length}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.postsCounted}</td>

@@ -48,6 +48,7 @@ export default async function BrandOverviewPage() {
   const paid = ws.campaigns.reduce((n, c) => n + c.paid, 0);
   const due = Math.max(0, ws.campaigns.reduce((n, c) => n + c.payable, 0) - paid);
   const awaiting = ws.campaigns.reduce((n, c) => n + (c.reviewer === "brand" ? c.awaitingReview : 0), 0);
+  const needs = ws.campaigns.filter((c) => c.reviewer === "brand" && c.awaitingReview > 0);
   const cost = cpm(earned, views);
   const split = platformSplit(ws.posts);
   const best = topPosts(ws.posts, 5);
@@ -74,7 +75,7 @@ export default async function BrandOverviewPage() {
 
       {awaiting > 0 && (
         <Link
-          href="/brand/campaigns"
+          href={needs.length === 1 ? `/brand/campaigns/${needs[0].id}` : "/brand/campaigns"}
           className="mb-6 block rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground"
         >
           {awaiting} {awaiting === 1 ? "video is" : "videos are"} waiting for your approval →

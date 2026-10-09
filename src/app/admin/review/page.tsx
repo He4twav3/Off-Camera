@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { requireAdminMfa } from "@/lib/admin-mfa";
 import { createClient } from "@/lib/supabase/server";
 import { postReviews } from "@/lib/post-review";
@@ -94,6 +96,16 @@ export default async function AdminReviewPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {review.available && (
+        <Link
+          href="/admin/review/archive"
+          className="mt-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          Archive
+          <ChevronRight className="size-3" />
+        </Link>
       )}
     </div>
   );

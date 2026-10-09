@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { EmptyState, Notice, PageHeader, PageShell, RowList, Stat, StatGrid } from "@/components/kit/ui";
 import { statementState } from "@/lib/direct-pay";
 import { getBrandStatements } from "@/lib/direct-pay-data";
@@ -34,7 +36,6 @@ export default async function BrandPaymentsPage() {
         <Stat label="Earned by creators" value={formatCurrency(earned)} />
         <Stat label="Paid" value={formatCurrency(paid)} />
         <Stat label="To pay now" value={formatCurrency(toPay)} attention={toPay > 0} hint={open.length ? `${open.length} ${open.length === 1 ? "statement" : "statements"} open` : "All paid"} />
-        <Stat label="Creators" value={String(rows.length)} />
       </StatGrid>
 
       <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Each creator</h2>
@@ -49,20 +50,28 @@ export default async function BrandPaymentsPage() {
                 <th className="px-3 py-3 font-medium">Campaign</th>
                 <th className="px-3 py-3 text-right font-medium">Earned</th>
                 <th className="px-3 py-3 text-right font-medium">Due now</th>
-                <th className="px-4 py-3 text-right font-medium">Paid</th>
+                <th className="px-3 py-3 text-right font-medium">Paid</th>
+                <th className="w-10 px-3 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border/70">
               {rows.map((c) => (
                 <tr key={c.assignmentId}>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-foreground">{c.name}</span>
+                    <Link href={`/brand/creators/${c.assignmentId}`} className="font-medium text-foreground hover:underline">
+                      {c.name}
+                    </Link>
                     <span className="block text-xs text-muted-foreground">@{c.handle}</span>
                   </td>
                   <td className="px-3 py-3 text-muted-foreground">{c.campaignTitle}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(Math.max(0, c.payable - c.paid))}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(c.paid)}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.paid)}</td>
+                  <td className="px-3 py-3 text-right">
+                    <Link href={`/brand/creators/${c.assignmentId}`} aria-label={`Open ${c.name}`}>
+                      <ChevronRight className="size-4 text-muted-foreground" />
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

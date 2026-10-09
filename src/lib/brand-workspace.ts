@@ -26,6 +26,8 @@ export type WPost = {
   /** undefined when review isn't tracked yet */
   reviewed: boolean | undefined;
   submittedAt: string;
+  /** When it was approved, if it has been. */
+  approvedAt: string | null;
   windowEndsAt: string | null;
   repost: boolean;
   earned: number;
@@ -161,6 +163,7 @@ export async function loadBrandWorkspace(brandId: string): Promise<Workspace> {
               verified: p.author_verified,
               reviewed: reviewedOf(review, p.id),
               submittedAt: p.submitted_at,
+              approvedAt: review.approvedAt.get(p.id) ?? null,
               windowEndsAt: p.window_ends_at,
               repost: Boolean(calc?.repost),
               earned: calc ? calc.base + calc.bonus : 0,

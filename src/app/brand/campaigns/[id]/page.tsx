@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { EmptyState, Facts, PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
+import { ChevronRight } from "lucide-react";
+import { EmptyState, PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { postTermsChips } from "@/lib/post-terms";
@@ -36,6 +37,7 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
   const split = platformSplit(c.posts);
   const queue = c.posts.filter((p) => p.counted && p.reviewed === false);
   const ownReview = c.reviewer === "brand";
+  const archived = c.posts.filter((p) => p.counted && p.reviewed === true).length;
 
   return (
     <PageShell>
@@ -120,6 +122,15 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
                 </ul>
               </>
             )}
+            {ws.reviewAvailable && (
+              <Link
+                href={`/brand/campaigns/${c.id}/archive`}
+                className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Archive ({archived})
+                <ChevronRight className="size-3" />
+              </Link>
+            )}
           </section>
 
           <section className="rounded-xl border border-border/70 bg-card p-5">
@@ -135,7 +146,8 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
                       <th className="px-3 py-2 text-right font-medium">Videos</th>
                       <th className="px-3 py-2 text-right font-medium">Views</th>
                       <th className="px-3 py-2 text-right font-medium">Earned</th>
-                      <th className="py-2 pl-3 text-right font-medium">Paid</th>
+                      <th className="px-3 py-2 text-right font-medium">Paid</th>
+                      <th className="w-8 py-2" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/70">
@@ -150,7 +162,12 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
                         <td className="px-3 py-2.5 text-right tabular-nums">{cr.postsCounted}</td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{cr.views.toLocaleString()}</td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{formatCurrency(cr.earned)}</td>
-                        <td className="py-2.5 pl-3 text-right tabular-nums">{formatCurrency(cr.paid)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{formatCurrency(cr.paid)}</td>
+                        <td className="py-2.5 text-right">
+                          <Link href={`/brand/creators/${cr.assignmentId}`} aria-label={`Open ${cr.name}`}>
+                            <ChevronRight className="size-4 text-muted-foreground" />
+                          </Link>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -186,15 +203,6 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
             <h2 className="font-heading text-base font-semibold text-foreground">Settings</h2>
             {c.reviewer && <ReviewerChoice jobId={c.id} reviewer={c.reviewer} />}
             <CampaignLogoForm jobId={c.id} logoUrl={c.logoUrl} />
-            {c.terms && (
-              <Facts
-                items={[
-                  { label: "Pay per video", value: formatCurrency(c.terms.basePerPost) },
-                  { label: "Paid every", value: `${c.terms.cycleSize} videos` },
-                  { label: "Counting window", value: `${c.terms.windowDays} days` },
-                ]}
-              />
-            )}
           </section>
         </div>
       </div>
