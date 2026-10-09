@@ -1,6 +1,7 @@
 import "server-only";
 import { postReviews } from "@/lib/post-review";
 import { getSent } from "@/lib/admin-payments";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type SetupIssue = { title: string; fix: string; sql?: string };
 
@@ -11,6 +12,15 @@ export type SetupIssue = { title: string; fix: string; sql?: string };
 export async function setupIssues(): Promise<SetupIssue[]> {
   const [review, sent] = await Promise.all([postReviews([]), getSent()]);
   const issues: SetupIssue[] = [];
+  const probe = await (createAdminClient() as unknown as { from: (n: string) => { select: (c: string, o?: object) => { limit: (n: number) => Promise<{ error: unknown }> } } })
+    .from("contract_acceptances")
+    .select("id")
+    .limit(1);
+  if (probe.error)
+    issues.push({
+      title: "Creators' contract agreements aren't recorded",
+      fix: "Run migration 0025 (supabase/migrations/0025_contract_acceptances.sql) in the Supabase SQL editor. Creators still tick the box to join; it just isn't saved until then.",
+    });
   if (!review.available)
     issues.push({
       title: "Post approval and the archive are switched off",

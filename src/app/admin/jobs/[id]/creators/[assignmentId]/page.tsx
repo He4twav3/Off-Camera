@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,7 +8,7 @@ import { CopyButton } from "@/components/admin/copy-button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { STATE_LABEL } from "@/lib/direct-pay";
 import { PLATFORM_RULES } from "@/lib/handles";
-import { PLATFORM_LABELS, formatCurrency } from "@/lib/utils";
+import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Creator · Admin" };
 
@@ -24,6 +25,16 @@ export default async function AdminCreatorPage(props: { params: Promise<{ id: st
   const verified = cr.accounts.filter((a) => a.verified);
   const videos = cr.posts.filter((p) => p.counted);
   const owed = Math.max(0, cr.statemented - cr.paid);
+  // Did this creator tick the brand's contract when they joined? (Recorded once migration 0025 is in.)
+  const { data: accepted } = await (
+    (await createClient()) as unknown as {
+      from: (n: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: { accepted_at: string } | null }> } } };
+    }
+  )
+    .from("contract_acceptances")
+    .select("accepted_at")
+    .eq("assignment_id", assignmentId)
+    .maybeSingle();
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-8">
@@ -43,6 +54,9 @@ export default async function AdminCreatorPage(props: { params: Promise<{ id: st
             {cr.email}
             <CopyButton value={cr.email} />
           </span>
+          {c.terms?.contract && (
+            <span>{accepted ? `Agreed to the contract on ${formatDate(accepted.accepted_at)}` : "Contract agreement not recorded"}</span>
+          )}
         </p>
       </header>
 

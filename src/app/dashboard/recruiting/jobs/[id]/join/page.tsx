@@ -12,6 +12,7 @@ import {
 } from "@/lib/post-terms";
 import { formatPayoutSummary } from "@/lib/utils";
 import { JoinSteps } from "../JoinSteps";
+import { contractSections, contractStatus } from "@/lib/contract";
 
 export const metadata: Metadata = { title: "Apply to campaign" };
 
@@ -105,6 +106,11 @@ export default async function JoinPage(props: {
             title={job.title}
             brief={job.description}
             payLines={postTerms ? describePostTerms(postTerms) : []}
+            contract={
+              postTerms && contractStatus(postTerms) === "signed"
+                ? contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: postTerms.contract })
+                : null
+            }
             campaignPath={campaignPath}
           />
         </div>

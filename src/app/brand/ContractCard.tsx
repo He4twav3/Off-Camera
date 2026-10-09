@@ -41,6 +41,14 @@ export function ContractCard({
 }) {
   const [state, action] = useActionState<BrandPayState, FormData>(saveContractAction, {});
   const [editing, setEditing] = useState(false);
+  const [f, setF] = useState({
+    legal_name: contract?.legalName ?? "",
+    country: contract?.country ?? "",
+    address: contract?.address ?? "",
+    signatory: contract?.signatory ?? "",
+    role: contract?.signatoryRole ?? "",
+  });
+  const on = (k: keyof typeof f) => ({ value: f[k], onChange: (e: { target: { value: string } }) => setF((s) => ({ ...s, [k]: e.target.value })) });
   const signed = status === "signed" && !editing;
 
   const text = (
@@ -96,21 +104,21 @@ export function ContractCard({
         <input type="hidden" name="job_id" value={jobId} />
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Company legal name" htmlFor="legal_name">
-            <Input id="legal_name" name="legal_name" defaultValue={contract?.legalName ?? ""} required />
+            <Input id="legal_name" name="legal_name" {...on("legal_name")} required />
           </Field>
           <Field label="Country" htmlFor="country">
-            <Input id="country" name="country" defaultValue={contract?.country ?? ""} required />
+            <Input id="country" name="country" {...on("country")} required />
           </Field>
         </div>
         <Field label="Company address" htmlFor="address">
-          <Textarea id="address" name="address" rows={2} defaultValue={contract?.address ?? ""} required />
+          <Textarea id="address" name="address" rows={2} {...on("address")} required />
         </Field>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Name of the person agreeing" htmlFor="signatory">
-            <Input id="signatory" name="signatory" defaultValue={contract?.signatory ?? ""} required />
+            <Input id="signatory" name="signatory" {...on("signatory")} required />
           </Field>
           <Field label="Their role (optional)" htmlFor="role">
-            <Input id="role" name="role" defaultValue={contract?.signatoryRole ?? ""} />
+            <Input id="role" name="role" {...on("role")} />
           </Field>
         </div>
         <label className="flex items-start gap-2 text-sm text-foreground">

@@ -9,6 +9,8 @@ import { submitPost } from "@/lib/post-tracking";
 import { sendApplicationReceivedEmail } from "@/lib/email/notifications";
 import { parseDriveLink } from "@/lib/drive-link";
 import { pickVideoIds } from "@/lib/creator-videos";
+import { parsePostTerms } from "@/lib/post-terms";
+import { contractStatus } from "@/lib/contract";
 
 export interface ApplyState {
   error?: string;
@@ -179,7 +181,7 @@ export async function joinCampaignAction(
 
   const { data: job } = await supabase
     .from("jobs")
-    .select("id, status, sample_required, payout_amount, payout_terms")
+    .select("id, status, sample_required, payout_amount, payout_terms, post_terms")
     .eq("id", parsed.data.job_id)
     .maybeSingle();
   if (!job) return { error: "That campaign no longer exists." };
@@ -207,16 +209,36 @@ export async function joinCampaignAction(
     ? calculatePayout(terms, 0).total
     : Number(job.payout_amount ?? 0);
 
-  const { error } = await createAdminClient().from("assignments").insert({
-    job_id: job.id,
-    applicant_id: applicant.id,
-    applicant_payout_amount: amount,
-    status: "active",
-  });
+  const admin = createAdminClient();
+  const { data: created, error } = await admin
+    .from("assignments")
+    .insert({
+      job_id: job.id,
+      applicant_id: applicant.id,
+      applicant_payout_amount: amount,
+      status: "active",
+    })
+    .select("id")
+    .single();
   if (error) {
     if (error.code === "23505")
       return { success: "You're already on this campaign." };
     return { error: "We couldn't add you to this campaign. Please try again." };
+  }
+
+  // The tick covered the brand's signed contract, if it has one: record that this creator agreed to it.
+  // Not recorded (and not fatal) until migration 0025 has been run.
+  const post = parsePostTerms(job.post_terms);
+  if (created && post?.contract && contractStatus(post) === "signed") {
+    const { error: recordError } = await (admin as unknown as { from: (n: string) => ReturnType<typeof admin.from> })
+      .from("contract_acceptances")
+      .insert({
+        assignment_id: created.id,
+        job_id: job.id,
+        applicant_id: applicant.id,
+        contract_agreed_at: post.contract.agreedAt,
+      } as never);
+    if (recordError) console.warn("contract acceptance not recorded:", recordError.message);
   }
 
   revalidatePath(`/dashboard/recruiting/jobs/${job.id}`);

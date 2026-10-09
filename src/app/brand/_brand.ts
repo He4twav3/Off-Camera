@@ -37,16 +37,6 @@ export function pendingContracts(ws: Workspace): WCampaign[] {
   return ws.campaigns.filter((c) => c.terms && contractStatus(c.terms) !== "signed");
 }
 
-/**
- * The contract comes first: until the brand has agreed to the contract on every campaign, no brand page opens
- * except Settings (log out) and the contract itself.
- */
-export async function requireContractsSigned(brand: CurrentBrand): Promise<void> {
-  if (brand.status !== "approved") return;
-  const ws = await loadBrandWorkspace(brand.id);
-  if (pendingContracts(ws).length > 0) redirect("/brand/contract");
-}
-
 /** The brand and everything about its campaigns (empty until the account is approved). */
 export async function loadBrandPage(next: string): Promise<{ brand: CurrentBrand; ws: Workspace; approved: boolean }> {
   const brand = await requireBrand(next);
@@ -54,6 +44,5 @@ export async function loadBrandPage(next: string): Promise<{ brand: CurrentBrand
   const ws = approved
     ? await loadBrandWorkspace(brand.id)
     : { campaigns: [], creators: [], posts: [], reviewAvailable: false };
-  if (approved && pendingContracts(ws).length > 0) redirect("/brand/contract");
   return { brand, ws, approved };
 }

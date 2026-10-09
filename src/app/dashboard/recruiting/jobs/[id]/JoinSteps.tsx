@@ -22,6 +22,7 @@ export function JoinSteps({
   title,
   brief,
   payLines = [],
+  contract = null,
   campaignPath,
 }: {
   jobId: string;
@@ -29,6 +30,8 @@ export function JoinSteps({
   brief: string | null;
   /** The pay rules in plain sentences, for a campaign paid per post. Part of what you accept. */
   payLines?: string[];
+  /** The brand's signed contract, in sections, when it has one. The tick below then covers it. */
+  contract?: { heading: string; lines: string[] }[] | null;
   campaignPath: string;
 }) {
   const [state, formAction] = useActionState<ApplyState, FormData>(
@@ -106,6 +109,22 @@ export function JoinSteps({
           )}
         </div>
 
+        {contract && (
+          <details className="mt-4 rounded-xl border border-border/70 bg-card px-4 py-3 text-sm">
+            <summary className="cursor-pointer font-semibold text-foreground">Read the contract with the brand</summary>
+            <div className="mt-3 space-y-3 text-muted-foreground">
+              {contract.map((sec) => (
+                <div key={sec.heading}>
+                  <p className="font-semibold text-foreground">{sec.heading}</p>
+                  {sec.lines.map((l) => (
+                    <p key={l}>{l}</p>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
         <label className="mt-4 flex cursor-pointer items-start gap-3 text-[15px] text-foreground">
           <input
             type="checkbox"
@@ -113,7 +132,7 @@ export function JoinSteps({
             required
             className="mt-1 size-4 shrink-0 accent-[var(--color-primary)]"
           />
-          <span>I accept the guidelines for {title}.</span>
+          <span>{contract ? `I have read the contract and the guidelines for ${title}, and I agree to them.` : `I accept the guidelines for ${title}.`}</span>
         </label>
       </section>
 
