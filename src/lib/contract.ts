@@ -72,7 +72,7 @@ export function contractSections(input: {
           : "There is no base pay per video.",
         ...(t.cpm?.length
           ? [
-              `Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm).join(", then ")}. Each band pays only for the views inside it.`,
+              `Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm, t.cpmCap).join(", then ")}. Each band pays only for the views inside it.`,
               ...(t.cpmCap ? [`Views count up to ${views(t.cpmCap)} on each post. Views past that earn nothing more.`] : []),
             ]
           : t.milestones.length > 0

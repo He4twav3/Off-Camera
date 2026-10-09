@@ -306,10 +306,13 @@ const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits
 const views = (n: number) => (n >= 1000 ? `${n / 1000}K` : String(n));
 
 /** CPM bands in words: "$1 CPM until 1K views", "$2 CPM over 1K views". */
-export function cpmPhrases(tiers: CpmTier[]): string[] {
+export function cpmPhrases(tiers: CpmTier[], cap?: number): string[] {
   const sorted = [...tiers].sort((a, b) => a.from - b.from);
   return sorted.map((t, i) => {
     const next = sorted[i + 1];
+    const last = !next;
+    // With a cap the last band ends at it: "$2 CPM from 1K to 5K views".
+    if (last && cap) return t.from > 0 ? `${usd(t.rate)} CPM from ${views(t.from)} to ${views(cap)} views` : `${usd(t.rate)} CPM up to ${views(cap)} views`;
     if (i === 0) return t.from > 0 ? `${usd(t.rate)} CPM over ${views(t.from)} views` : `${usd(t.rate)} CPM${next ? ` until ${views(next.from)} views` : ""}`;
     return `${usd(t.rate)} CPM over ${views(t.from)} views`;
   });
@@ -320,7 +323,7 @@ export function postTermsChips(terms: PostTerms): string[] {
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
   if (terms.cpm?.length) {
-    chips.push(cpmPhrases(terms.cpm).join(", "));
+    chips.push(cpmPhrases(terms.cpm, terms.cpmCap).join(", "));
     if (terms.cpmCap) chips.push(`Up to ${usd(cpmBonus(terms.cpmCap, terms.cpm))} per post, counting up to ${views(terms.cpmCap)} views`);
   }
   else {
@@ -344,7 +347,7 @@ export function describePostTerms(terms: PostTerms): string[] {
     }
   }
   if (terms.cpm?.length) {
-    lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm).join(", then ")}. Each band pays only for the views inside it.`);
+    lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm, terms.cpmCap).join(", then ")}. Each band pays only for the views inside it.`);
     if (terms.cpmCap)
       lines.push(`Views count up to ${views(terms.cpmCap)} on each post, so view pay tops out at ${usd(cpmBonus(terms.cpmCap, terms.cpm))} a post. Views past that earn nothing more.`);
   } else if (terms.milestones.length > 0) {

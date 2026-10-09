@@ -78,7 +78,7 @@ export function CampaignView({
             }
           : null,
         postTerms?.cpm?.length
-          ? { icon: TrendingUp, label: cpmPhrases(postTerms.cpm).join(", ") }
+          ? { icon: TrendingUp, label: cpmPhrases(postTerms.cpm, postTerms.cpmCap).join(", ") }
           : topBonus
           ? {
               icon: TrendingUp,
