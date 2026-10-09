@@ -125,24 +125,35 @@ export default async function BrandOverviewPage() {
           )}
         </section>
 
-        <section className="rounded-xl border border-border/70 bg-card p-5 lg:col-span-2">
-          <h2 className="font-heading text-base font-semibold text-foreground">Best videos</h2>
+        <section className="lg:col-span-2">
+          <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Best videos</h2>
           {best.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">Videos appear here once they are counting.</p>
+            <p className="rounded-xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
+              Videos appear here once they are counting.
+            </p>
           ) : (
-            <ul className="mt-3 divide-y divide-border/70">
-              {best.map((p) => (
-                <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
-                  <span className="font-medium text-foreground">{p.creatorName}</span>
-                  <span className="text-muted-foreground">
-                    {label(p.platform)} · {p.campaignTitle}
-                  </span>
-                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline underline-offset-2">
-                    Watch
-                  </a>
-                  <span className="ml-auto font-heading text-base font-semibold tabular-nums text-foreground">
-                    {p.views.toLocaleString()} views
-                  </span>
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {best.map((p, i) => (
+                <li key={p.id} className="flex flex-col rounded-xl border border-border/70 bg-card p-5">
+                  <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
+                    <span>#{i + 1}</span>
+                    <span>{label(p.platform)}</span>
+                  </div>
+                  <p className="mt-3 font-heading text-2xl font-semibold tabular-nums text-foreground">
+                    {p.views.toLocaleString()}
+                    <span className="ml-1.5 text-sm font-medium text-muted-foreground">views</span>
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-foreground">{p.creatorName}</p>
+                  <p className="text-sm text-muted-foreground">{p.campaignTitle}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 w-full"
+                    nativeButton={false}
+                    render={<a href={p.url} target="_blank" rel="noopener noreferrer" />}
+                  >
+                    Watch video
+                  </Button>
                 </li>
               ))}
             </ul>
