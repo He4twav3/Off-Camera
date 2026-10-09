@@ -13,7 +13,7 @@
 export const DOOR_COOKIE = "oc_door";
 
 /** Used on the live site when ADMIN_DOOR_PATH is not set. Change it by setting that variable. */
-const BUILT_IN_DOOR = "/hq-083e1821594ca0f4";
+const BUILT_IN_DOOR = "/hq-onyx-falcon-meadow-4821";
 
 export function doorPath(env: { ADMIN_DOOR_PATH?: string; VERCEL_ENV?: string }): string | null {
   const set = (env.ADMIN_DOOR_PATH ?? "").trim();
@@ -23,10 +23,15 @@ export function doorPath(env: { ADMIN_DOOR_PATH?: string; VERCEL_ENV?: string })
 
 export type DoorDecision = "pass" | "open" | "block";
 
+/** Lower case, with any dots, commas or slashes pasted on the end removed. */
+function tidy(path: string): string {
+  return path.toLowerCase().replace(/[.,;:!?)\]\s/]+$/, "");
+}
+
 export function doorDecision(input: { path: string; cookie: string | undefined; door: string | null }): DoorDecision {
   const { path, cookie, door } = input;
   if (!door) return "pass";
-  if (path === door || path === `${door}/`) return "open";
+  if (tidy(path) === tidy(door)) return "open";
   const isAdmin = path === "/admin" || path.startsWith("/admin/");
   if (isAdmin && cookie !== door) return "block";
   return "pass";
