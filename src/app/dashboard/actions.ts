@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { ALL_LESSON_IDS } from "@/lib/curriculum";
 import { getSession } from "@/lib/auth";
 import { getUser, setLessonCompletion, resetUserProgress, changePassword } from "@/lib/profiles";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getBaseUrl } from "@/lib/request-url";
+import { sendEmail } from "@/lib/mailer";
+import { VerifyEmailEmail } from "@/emails/verify-email";
 
 const VALID_IDS = new Set(ALL_LESSON_IDS);
 
@@ -65,8 +68,8 @@ export async function changePasswordAction(
 
 export type ResendVerificationState = { error?: string; sent?: boolean };
 
-/** Resends Supabase's own confirmation email — see signup/actions.ts
- * for why that's the one sending it now, not our own Resend template. */
+/** Resends the verification email through our own dark template: a
+ * magic link, which confirms the address when it's opened. */
 export async function resendVerificationAction(
   _prevState: ResendVerificationState,
   _formData: FormData
@@ -74,9 +77,20 @@ export async function resendVerificationAction(
   const session = await getSession();
   if (!session) return { error: "You're not signed in." };
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resend({ type: "signup", email: session.email });
-  if (error) return { error: error.message };
+  const baseUrl = await getBaseUrl();
+  const { data, error } = await createAdminClient().auth.admin.generateLink({
+    type: "magiclink",
+    email: session.email,
+    options: { redirectTo: `${baseUrl}/auth/confirm?next=/dashboard` },
+  });
+  if (error || !data.properties?.action_link) return { error: "Couldn't send the email. Try again." };
+
+  await sendEmail({
+    to: session.email,
+    subject: "Verify your email — On Camera",
+    react: VerifyEmailEmail({ verifyUrl: data.properties.action_link }),
+    text: `Verify your On Camera email:\n\n${data.properties.action_link}\n\nThis link expires in 24 hours.`,
+  });
 
   revalidatePath("/dashboard/account");
   return { sent: true };

@@ -1,6 +1,8 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/mailer";
+import { ResetPasswordEmail } from "@/emails/reset-password-email";
 import { getBaseUrl } from "@/lib/request-url";
 import { clientIp, rateLimit, TOO_MANY } from "@/lib/rate-limit";
 
@@ -16,14 +18,10 @@ export type ForgotPasswordState = {
  * response. `resetPasswordForEmail` itself already returns `{error:
  * null}` either way for exactly this reason.
  *
- * Uses Supabase's own resetPasswordForEmail (not admin.generateLink)
- * deliberately — this is the one call in the auth flow that produces a
- * PKCE-flow link compatible with the existing /auth/callback route.
- * admin.generateLink can never do that (see the merge's Phase 1 notes:
- * it always issues implicit/hash-fragment tokens, regardless of client
- * flowType), so recovery here means accepting Supabase's own default
- * email styling rather than the branded ResetPasswordEmail template —
- * same tradeoff already made for signup confirmations.
+ * Mints the recovery link with admin.generateLink and sends it through our
+ * own branded ResetPasswordEmail (Supabase's default template is white).
+ * That link is implicit-flow, so it lands on /auth/confirm, which sets the
+ * session client-side, then continues to /reset-password.
  */
 export async function requestReset(
   _prevState: ForgotPasswordState,
@@ -37,11 +35,21 @@ export async function requestReset(
     return { error: "Enter a valid email address." };
   }
 
-  const supabase = await createClient();
   const baseUrl = await getBaseUrl();
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${baseUrl}/auth/callback?next=/reset-password`,
+  const { data, error } = await createAdminClient().auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: `${baseUrl}/auth/confirm?next=/reset-password` },
   });
+  // Unknown email: stay silent so the response never reveals who has an account.
+  if (!error && data.properties?.action_link) {
+    await sendEmail({
+      to: email,
+      subject: "Reset your password — On Camera",
+      react: ResetPasswordEmail({ resetUrl: data.properties.action_link }),
+      text: `Reset your On Camera password:\n\n${data.properties.action_link}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
+    });
+  }
 
   return { submitted: true };
 }

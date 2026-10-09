@@ -8,7 +8,6 @@ import {
   Img,
   Link,
   Preview,
-  Section,
   Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
@@ -62,6 +61,11 @@ import { siteConfig } from "@/lib/site-config";
 // hop entirely instead of hoping every client chases it.
 const EMAIL_ASSET_BASE_URL = "https://www.oncameraugc.com";
 
+// Gmail's dark mode recolours plain background-colors (turning this dark card
+// light) but leaves background images alone, so every dark surface also gets
+// a flat gradient of the same colour.
+const solid = (c: string) => ({ backgroundColor: c, backgroundImage: `linear-gradient(${c},${c})` });
+
 const colors = {
   background: "#16151a",
   card: "#16151a",
@@ -71,6 +75,22 @@ const colors = {
   border: "#2d2b32",
   mutedForeground: "#706c68",
 };
+
+/** Full-width block with its padding on the cell, not the table: a padded
+ * table at width 100% overflows to the right and sits off-centre. */
+function Pad({ padding, align, children }: { padding: string; align?: "center"; children: ReactNode }) {
+  return (
+    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} {...{ bgcolor: colors.card }} style={{ ...solid(colors.card) }}>
+      <tbody>
+        <tr>
+          <td align={align} {...{ bgcolor: colors.card }} style={{ padding, textAlign: align, ...solid(colors.card) }}>
+            {children}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
 
 export function EmailLayout({
   preview,
@@ -82,31 +102,45 @@ export function EmailLayout({
   children: ReactNode;
 }) {
   return (
-    <Html style={{ backgroundColor: colors.background }}>
+    <Html style={{ ...solid(colors.background) }}>
       <Head>
         {/* Tell iOS Mail / Apple Mail this email already handles dark mode
             so it doesn't re-colour it, and give clients that ignore the
             meta tags the same hint in CSS. */}
-        <meta name="color-scheme" content="dark light" />
-        <meta name="supported-color-schemes" content="dark light" />
-        <style>{`:root{color-scheme:dark light;supported-color-schemes:dark light;}`}</style>
+        <meta name="color-scheme" content="dark" />
+        <meta name="supported-color-schemes" content="dark" />
+        <style>{`:root{color-scheme:dark;supported-color-schemes:dark;}html,body{background-color:${colors.background} !important;}`}</style>
       </Head>
       <Preview>{preview}</Preview>
       <Body
         {...{ bgcolor: colors.background }}
-        style={{ backgroundColor: colors.background, margin: 0, padding: "40px 16px" }}
+        style={{ ...solid(colors.background), margin: 0, padding: "40px 16px" }}
       >
+        {/* Full-width table carrying the ground colour: clients that drop
+            <body> styles (Gmail, Outlook) would otherwise show white around
+            the card. */}
+        <table
+          role="presentation"
+          width="100%"
+          cellPadding={0}
+          cellSpacing={0}
+          {...{ bgcolor: colors.background }}
+          style={{ ...solid(colors.background), width: "100%" }}
+        >
+          <tbody>
+            <tr>
+              <td align="center" {...{ bgcolor: colors.background }} style={{ ...solid(colors.background) }}>
         <Container
           {...{ bgcolor: colors.card }}
           style={{
             maxWidth: 480,
             margin: "0 auto",
-            backgroundColor: colors.card,
+            ...solid(colors.card),
             borderRadius: 20,
             overflow: "hidden",
           }}
         >
-          <Section {...{ bgcolor: colors.card }} style={{ padding: "36px 32px 0", textAlign: "center", backgroundColor: colors.card }}>
+          <Pad padding="36px 32px 0" align="center">
             {/* The viewfinder mark only, white with the crimson tally.
                 Drawn 4x (336px) and shown at 84px so it stays sharp on
                 retina phones. The PNG has the same solid #16151a as the
@@ -121,12 +155,12 @@ export function EmailLayout({
               alt="OnCamera"
               style={{ display: "block", margin: "0 auto" }}
             />
-          </Section>
+          </Pad>
 
-          <Section {...{ bgcolor: colors.card }} style={{ padding: "24px 40px 40px", backgroundColor: colors.card }}>{children}</Section>
+          <Pad padding="24px 40px 40px">{children}</Pad>
 
           <Hr style={{ borderColor: colors.border, margin: 0 }} />
-          <Section {...{ bgcolor: colors.card }} style={{ padding: "18px 32px", textAlign: "center", backgroundColor: colors.card }}>
+          <Pad padding="18px 32px" align="center">
             <Text
               style={{
                 margin: 0,
@@ -139,8 +173,12 @@ export function EmailLayout({
                 {siteConfig.url.replace(/^https?:\/\//, "")}
               </Link>
             </Text>
-          </Section>
+          </Pad>
         </Container>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </Body>
     </Html>
   );
@@ -148,7 +186,7 @@ export function EmailLayout({
 
 export function EmailHeading({
   children,
-  align = "left",
+  align = "center",
 }: {
   children: ReactNode;
   align?: "left" | "center";
@@ -177,7 +215,7 @@ export function EmailHeading({
 
 export function EmailText({
   children,
-  align = "left",
+  align = "center",
 }: {
   children: ReactNode;
   align?: "left" | "center";
@@ -201,44 +239,48 @@ export function EmailText({
 export function EmailButton({
   href,
   children,
-  align = "left",
+  align = "center",
 }: {
   href: string;
   children: ReactNode;
   align?: "left" | "center";
 }) {
   return (
-    <table
-      role="presentation"
-      cellPadding={0}
-      cellSpacing={0}
-      align={align}
-      style={{ margin: align === "center" ? "4px auto 8px" : "4px 0 24px" }}
-    >
-      <tr>
-        <td
-          style={{
-            backgroundColor: colors.accent,
-            border: `2px solid ${colors.ink}`,
-            borderRadius: 999,
-          }}
-        >
-          <Link
-            href={href}
-            style={{
-              display: "inline-block",
-              padding: "12px 28px",
-              fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
-              fontWeight: 700,
-              fontSize: 15,
-              color: colors.accentForeground,
-              textDecoration: "none",
-            }}
-          >
-            {children}
-          </Link>
-        </td>
-      </tr>
+    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ width: "100%", margin: align === "center" ? "4px 0 8px" : "4px 0 24px" }}>
+      <tbody>
+        <tr>
+          <td align={align} style={{ textAlign: align }}>
+            <table role="presentation" align={align} cellPadding={0} cellSpacing={0} style={{ margin: align === "center" ? "0 auto" : undefined }}>
+              <tbody>
+                <tr>
+                  <td
+                    style={{
+                      backgroundColor: colors.accent,
+                      border: `2px solid ${colors.ink}`,
+                      borderRadius: 999,
+                    }}
+                  >
+                    <Link
+                      href={href}
+                      style={{
+                        display: "inline-block",
+                        padding: "12px 28px",
+                        fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
+                        fontWeight: 700,
+                        fontSize: 15,
+                        color: colors.accentForeground,
+                        textDecoration: "none",
+                      }}
+                    >
+                      {children}
+                    </Link>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
     </table>
   );
 }
@@ -248,6 +290,7 @@ export function EmailLinkFallback({ href }: { href: string }) {
     <Text
       style={{
         margin: 0,
+        textAlign: "center",
         fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
         fontSize: 12,
         color: colors.mutedForeground,
@@ -265,7 +308,7 @@ export function EmailLinkFallback({ href }: { href: string }) {
 /** Small print — disclaimers and "why you got this" lines. 12px, muted. */
 export function EmailFinePrint({
   children,
-  align = "left",
+  align = "center",
 }: {
   children: ReactNode;
   align?: "left" | "center";
