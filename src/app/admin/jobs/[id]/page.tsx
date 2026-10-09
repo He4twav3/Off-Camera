@@ -11,6 +11,8 @@ import { campaignTasks } from "@/lib/admin-tasks";
 import { Todo, brandNotes } from "@/components/admin/todo";
 import { contractStatus } from "@/lib/contract";
 import { requirementItems } from "@/lib/requirements";
+import { getFeeBands } from "@/lib/campaign-fees";
+import { describeFee } from "@/lib/fee";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
@@ -30,6 +32,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
     supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),
   ]);
   const c = ws.campaigns.find((x) => x.id === id);
+  const fees = await getFeeBands([id]);
   if (!job || !c) notFound();
 
   return (
@@ -96,6 +99,15 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
                 <dd className="min-w-0 flex-1 text-foreground">{r.value}</dd>
               </div>
             ))}
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+              <dt className="w-28 shrink-0 text-muted-foreground">Our fee</dt>
+              <dd className="min-w-0 flex-1 text-foreground">
+                {describeFee(fees.bands.get(c.id) ?? [])}{" "}
+                <Link href={`/admin/jobs/${c.id}/terms`} className="font-semibold text-primary underline underline-offset-2">
+                  Edit
+                </Link>
+              </dd>
+            </div>
             <div className="flex flex-wrap gap-x-4 gap-y-0.5">
               <dt className="w-28 shrink-0 text-muted-foreground">Contract</dt>
               <dd className="min-w-0 flex-1 text-foreground">

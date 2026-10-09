@@ -6,6 +6,7 @@ import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
 import { parsePostTerms, payFor, suggestedStatement } from "@/lib/post-terms";
 import { statementState } from "@/lib/direct-pay";
 import { StatementsView, type StatementRowData } from "./StatementsView";
+import { getFeeBands } from "@/lib/campaign-fees";
 
 export const metadata: Metadata = { title: "Statements · Admin" };
 
@@ -21,7 +22,7 @@ export default async function AdminStatementsPage(props: {
   const { data: assignments } = await supabase
     .from("assignments")
     .select(
-      "id, status, proof_url, assigned_at, applicants(name, email, handle), jobs(title, payout_terms, post_terms, brand_account_id, brand_accounts(company_name)), assignment_posts(id, platform, url, state, author_verified, views, submitted_at, window_ends_at, reject_reason, last_error), direct_payments(id, cycle, amount, issued_at, due_at, brand_paid_at, brand_method, brand_reference, creator_confirmed_at, creator_disputed_at, creator_dispute_note, our_fee, fee_received_at)",
+      "id, job_id, status, proof_url, assigned_at, applicants(name, email, handle), jobs(title, payout_terms, post_terms, brand_account_id, brand_accounts(company_name)), assignment_posts(id, platform, url, state, author_verified, views, submitted_at, window_ends_at, reject_reason, last_error), direct_payments(id, cycle, amount, issued_at, due_at, brand_paid_at, brand_method, brand_reference, creator_confirmed_at, creator_disputed_at, creator_dispute_note, our_fee, fee_received_at)",
     )
     .order("assigned_at", { ascending: false });
 
@@ -33,6 +34,13 @@ export default async function AdminStatementsPage(props: {
     const key = `${norm(r.campaign)}|${norm(r.handle)}`;
     viewsByKey.set(key, (viewsByKey.get(key) ?? 0) + Number(r.views));
   }
+
+  // The fee set for each campaign, and how much creator pay each campaign has already been billed: the fee on a new
+  // statement is worked out from both, so it is filled in rather than typed.
+  const fees = await getFeeBands([...new Set((assignments ?? []).map((a) => a.job_id))]);
+  const billedBefore = new Map<string, number>();
+  for (const a of assignments ?? [])
+    billedBefore.set(a.job_id, (billedBefore.get(a.job_id) ?? 0) + a.direct_payments.reduce((n, d) => n + Number(d.amount), 0));
 
   const review = await postReviews((assignments ?? []).flatMap((a) => a.assignment_posts.map((p) => p.id)));
 
@@ -111,6 +119,7 @@ export default async function AdminStatementsPage(props: {
                   suggested: due,
                   direct_payments: null,
                   state: null,
+                  fee: { bands: fees.bands.get(a.job_id) ?? [], before: billedBefore.get(a.job_id) ?? 0 },
                 },
               ]
             : [];

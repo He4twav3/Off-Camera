@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { STATEMENT_DUE_DAYS } from "@/lib/direct-pay";
+import { feeForPayment, type FeeBand } from "@/lib/fee";
 import { issueStatementAction, type StatementActionState } from "./actions";
 
 function SubmitButton() {
@@ -19,11 +20,20 @@ function SubmitButton() {
 export function IssueForm({
   assignmentId,
   suggestedAmount,
+  feeBands,
+  billedBefore,
 }: {
   assignmentId: string;
   suggestedAmount: number | null;
+  feeBands: FeeBand[];
+  billedBefore: number;
 }) {
   const [state, formAction] = useActionState<StatementActionState, FormData>(issueStatementAction, {});
+  // The fee follows the amount, from this campaign's fee, until it is typed over by hand.
+  const [amount, setAmount] = useState(suggestedAmount ? suggestedAmount.toFixed(2) : "");
+  const [feeTyped, setFeeTyped] = useState<string | null>(null);
+  const auto = feeForPayment(billedBefore, Number(amount) || 0, feeBands);
+  const fee = feeTyped ?? (feeBands.length ? auto.toFixed(2) : "0");
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -40,12 +50,13 @@ export function IssueForm({
             type="number"
             min={0.01}
             step="0.01"
-            defaultValue={suggestedAmount ? suggestedAmount.toFixed(2) : ""}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
             required
           />
         </Field>
-        <Field label="Our fee ($)" htmlFor={`fee-${assignmentId}`} hint="Admin-only. What we invoice the brand separately. Never shown to creators or brands.">
-          <Input id={`fee-${assignmentId}`} name="our_fee" type="number" min={0} step="0.01" defaultValue="0" />
+        <Field label="Our fee ($)" htmlFor={`fee-${assignmentId}`} hint={feeBands.length ? "Filled in from this campaign's fee. Admin-only: what we invoice the brand separately." : "No fee set for this campaign. Admin-only: what we invoice the brand separately."}>
+          <Input id={`fee-${assignmentId}`} name="our_fee" type="number" min={0} step="0.01" value={fee} onChange={(e) => setFeeTyped(e.target.value)} />
         </Field>
         <Field label="Brand has (days)" htmlFor={`due-${assignmentId}`} hint="To pay the creator.">
           <Input id={`due-${assignmentId}`} name="due_days" type="number" min={1} max={90} step="1" defaultValue={STATEMENT_DUE_DAYS} />

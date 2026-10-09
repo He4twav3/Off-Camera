@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { SectionTitle } from "@/components/admin/table";
 import { PayTermsForm } from "../PayTermsForm";
+import { FeeForm } from "../FeeForm";
+import { getFeeBands } from "@/lib/campaign-fees";
 import { deleteEmptyJobAction } from "../../actions";
 
 export const metadata: Metadata = { title: "Pay terms · Admin" };
@@ -12,6 +14,7 @@ export const metadata: Metadata = { title: "Pay terms · Admin" };
 export default async function AdminPayTermsPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const c = (await getAdminWorkspace()).campaigns.find((x) => x.id === id);
+  const fees = await getFeeBands([id]);
   if (!c) notFound();
 
   return (
@@ -29,6 +32,15 @@ export default async function AdminPayTermsPage(props: { params: Promise<{ id: s
 
       <div className="rounded-xl border border-border/70 bg-card p-5">
         <PayTermsForm jobId={c.id} terms={c.terms} />
+      </div>
+
+      <SectionTitle>OnCamera fee</SectionTitle>
+      <div className="rounded-xl border border-border/70 bg-card p-5">
+        <p className="mb-3 text-sm text-muted-foreground">
+          What we invoice this brand on top of creator pay, in bands of the campaign&apos;s total creator pay. Only admins see this.
+          {fees.available ? "" : " Run migration 0026 in Supabase before it can be saved."}
+        </p>
+        <FeeForm jobId={c.id} bands={fees.bands.get(c.id) ?? []} />
       </div>
 
       <SectionTitle>Remove campaign</SectionTitle>
