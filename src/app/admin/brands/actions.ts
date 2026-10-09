@@ -31,7 +31,7 @@ export async function setBrandStatusAction(
   if (error) return { error: "Couldn't update that brand." };
 
   revalidatePath("/admin/brands");
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   revalidatePath("/brand");
   return { success: parsed.data.status === "approved" ? "Approved." : "Updated." };
 }

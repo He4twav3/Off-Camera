@@ -266,7 +266,7 @@ export async function saveJobAction(
   if (oldLogoPath && logoUrl !== undefined)
     await supabase.storage.from("campaign-logos").remove([oldLogoPath]);
 
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   revalidatePath("/dashboard/recruiting/jobs");
   revalidatePath("/brand");
   return { success: id ? "Job updated." : "Job created." };
@@ -279,7 +279,7 @@ export async function deleteJobAction(formData: FormData) {
   const supabase = await createClient();
   await supabase.from("jobs").delete().eq("id", id);
 
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   revalidatePath("/dashboard/recruiting/jobs");
 }
 
@@ -342,8 +342,8 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
     .select("id");
   if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };
 
-  revalidatePath(`/admin/jobs/${jobId.data}`);
-  revalidatePath("/admin/jobs");
+  revalidatePath(`/admin/jobs/${jobId.data}`, "layout");
+  revalidatePath("/admin");
   revalidatePath("/dashboard/recruiting", "layout");
   revalidatePath("/brand", "layout");
   return { success: "Pay terms saved. Every creator's figures now use them." };
@@ -357,7 +357,7 @@ export async function deleteEmptyJobAction(formData: FormData): Promise<void> {
   const { count } = await supabase.from("assignments").select("*", { count: "exact", head: true }).eq("job_id", id.data);
   if ((count ?? 0) > 0) return;
   await supabase.from("jobs").delete().eq("id", id.data);
-  revalidatePath("/admin/jobs");
+  revalidatePath("/admin");
   revalidatePath("/dashboard/recruiting/jobs");
-  redirect("/admin/jobs");
+  redirect("/admin");
 }

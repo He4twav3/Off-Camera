@@ -37,7 +37,7 @@ export async function adminBadges(ws: AdminWorkspace): Promise<AdminBadges> {
   return {
     counts: {
       "/admin/brands": n(brands),
-      "/admin/jobs": noBrand,
+      "/admin": noBrand,
       "/admin/applicants": n(creators),
       "/admin/applications": n(apps),
       "/admin/campaigns": n(signups),
