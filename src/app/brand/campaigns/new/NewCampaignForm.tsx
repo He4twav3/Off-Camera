@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { HowYouPay } from "../../HowYouPay";
 import { createCampaignAction, type NewCampaignState } from "../../actions";
 
 function Submit() {
@@ -103,6 +104,7 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
       </Section>
 
       <Section title="Pay" hint="Creators are paid per unique video, plus a bonus when it reaches a view milestone. Bonuses don't stack.">
+        <HowYouPay />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Pay per video ($)" htmlFor="base">
             <Input id="base" name="base" type="number" inputMode="decimal" min={0} step="0.01" defaultValue={val("base", "20")} required />

@@ -75,6 +75,13 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
         </p>
       )}
 
+      <p className="-mt-3 mb-6 text-sm text-muted-foreground">
+        You pay each creator directly through their Stripe or Wise link.{" "}
+        <Link href="/brand/payments" className="font-semibold text-primary hover:underline">
+          How paying works →
+        </Link>
+      </p>
+
       {c.reviewer && (
         <section className="mb-6 rounded-xl border border-border/70 bg-card p-5">
           <ReviewerChoice jobId={c.id} reviewer={c.reviewer} />

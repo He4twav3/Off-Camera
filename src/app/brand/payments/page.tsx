@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { EmptyState, Notice, PageHeader, PageShell, RowList, Stat, StatGrid } from "@/components/kit/ui";
+import { EmptyState, PageHeader, PageShell, RowList, Stat, StatGrid } from "@/components/kit/ui";
 import { statementState } from "@/lib/direct-pay";
 import { getBrandStatements } from "@/lib/direct-pay-data";
 import { formatCurrency } from "@/lib/utils";
 import { loadBrandPage } from "../_brand";
 import { PendingNotice } from "../PendingNotice";
 import { PaymentRow } from "../BrandParts";
+import { HowYouPay } from "../HowYouPay";
 
 export const metadata: Metadata = { title: "Payments" };
 
@@ -58,20 +59,18 @@ export default async function BrandPaymentsPage(props: { searchParams: Promise<{
         <Stat label="Paid so far" value={formatCurrency(paid)} />
       </StatGrid>
 
+      <div className="mb-6">
+        <HowYouPay />
+      </div>
+
       {open.length === 0 ? (
         <EmptyState title="Nothing to pay" body="When a payment is due, it appears here with the creator's payment link." />
       ) : (
-        <div className="flex flex-col gap-4">
-          <Notice>
-            You pay each creator directly through their payment link, from your own account. Send the full amount in US
-            dollars and cover any fees so they receive all of it. Then mark it as paid so they can confirm.
-          </Notice>
-          <RowList>
-            {open.map((s) => (
-              <PaymentRow key={s.id} s={s} />
-            ))}
-          </RowList>
-        </div>
+        <RowList>
+          {open.map((s) => (
+            <PaymentRow key={s.id} s={s} />
+          ))}
+        </RowList>
       )}
 
       <Link href="/brand/payments?archive=1" className="mt-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
