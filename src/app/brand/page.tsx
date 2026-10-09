@@ -51,7 +51,7 @@ export default async function BrandOverviewPage() {
   const needs = ws.campaigns.filter((c) => c.reviewer === "brand" && c.awaitingReview > 0);
   const cost = cpm(earned, views);
   const split = platformSplit(ws.posts);
-  const best = topPosts(ws.posts, 5);
+  const best = topPosts(ws.posts, 3);
   const maxCampaign = Math.max(1, ...ws.campaigns.map((c) => c.views));
 
   return (
