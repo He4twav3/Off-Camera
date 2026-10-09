@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import { ChevronRight, Trophy } from "lucide-react";
 import { EmptyState, PageHeader, PageShell } from "@/components/kit/ui";
 import { leaderboard } from "@/lib/brand-stats";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -20,6 +20,13 @@ export default async function BrandLeaderboardPage(props: { searchParams: Promis
     posts: c.posts.map((p) => ({ id: p.id, platform: p.platform, views: p.views, counted: p.counted, earned: p.earned })),
   }));
   const rows = leaderboard(creators);
+  // A creator's page is per campaign: the chosen one, or their biggest when showing all.
+  const openOf = (applicantId: string) => {
+    const mine = (chosen ? chosen.creators : ws.creators)
+      .filter((c) => c.applicantId === applicantId)
+      .sort((a, b) => b.views - a.views)[0];
+    return mine ? `/brand/creators/${mine.assignmentId}` : "/brand/creators";
+  };
 
   return (
     <PageShell>
@@ -60,7 +67,8 @@ export default async function BrandLeaderboardPage(props: { searchParams: Promis
                     <th className="px-3 py-3 text-right font-medium">Views</th>
                     <th className="px-3 py-3 text-right font-medium">Best video</th>
                     <th className="px-3 py-3 text-right font-medium">Average</th>
-                    <th className="px-4 py-3 text-right font-medium">Earned</th>
+                    <th className="px-3 py-3 text-right font-medium">Earned</th>
+                    <th className="w-10 px-3 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/70">
@@ -70,14 +78,21 @@ export default async function BrandLeaderboardPage(props: { searchParams: Promis
                         {r.rank === 1 ? <Trophy className="size-4 text-amber-400" aria-label="First" /> : r.rank}
                       </td>
                       <td className="px-3 py-3">
-                        <span className="font-medium text-foreground">{r.name}</span>
+                        <Link href={openOf(r.applicantId)} className="font-medium text-foreground hover:underline">
+                          {r.name}
+                        </Link>
                         <span className="block text-xs text-muted-foreground">@{r.handle}</span>
                       </td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.posts}</td>
                       <td className="px-3 py-3 text-right font-semibold tabular-nums">{r.views.toLocaleString()}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.bestPost.toLocaleString()}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.avgViews.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(r.earned)}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(r.earned)}</td>
+                      <td className="px-3 py-3 text-right">
+                        <Link href={openOf(r.applicantId)} aria-label={`Open ${r.name}`}>
+                          <ChevronRight className="size-4 text-muted-foreground" />
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

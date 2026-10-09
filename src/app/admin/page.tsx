@@ -10,6 +10,7 @@ import { campaignTasks } from "@/lib/admin-tasks";
 import { PLATFORM_LABELS, formatCurrency } from "@/lib/utils";
 import { JobForm } from "./jobs/JobForm";
 import { Todo } from "@/components/admin/todo";
+import { setupIssues } from "@/lib/setup-check";
 
 export const metadata: Metadata = { title: "Campaigns · Admin" };
 
@@ -18,9 +19,10 @@ const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 // The home page: every campaign, one row each. Open a campaign for its creators, views and money.
 export default async function AdminHomePage() {
   const supabase = await createClient();
-  const [ws, { sent }, { data: niches }, { data: brands }] = await Promise.all([
+  const [ws, { sent }, issues, { data: niches }, { data: brands }] = await Promise.all([
     getAdminWorkspace(),
     getSent(),
+    setupIssues(),
     supabase.from("niches").select("id, label").eq("is_active", true).order("label"),
     supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),
   ]);
@@ -31,6 +33,21 @@ export default async function AdminHomePage() {
         <h1 className="font-heading text-2xl font-semibold text-foreground">Campaigns</h1>
         <JobForm niches={niches ?? []} brands={brands ?? []} />
       </header>
+
+      {issues.length > 0 && (
+        <section className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <h2 className="font-semibold text-foreground">Setup needed</h2>
+          <ul className="mt-2 flex flex-col gap-3">
+            {issues.map((i) => (
+              <li key={i.title}>
+                <p className="font-medium text-foreground">{i.title}</p>
+                <p className="text-muted-foreground">{i.fix}</p>
+                {i.sql && <code className="mt-1 block overflow-x-auto rounded bg-background px-2 py-1 text-xs">{i.sql}</code>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {ws.campaigns.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">

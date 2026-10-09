@@ -8,6 +8,16 @@ import { BrandNav } from "./BrandNav";
  * payments, leaderboard, templates, settings). Nothing from the creator side. Used by
  * app/brand/layout.tsx.
  */
+/** The logo with a "Brand" tag, like the admin has an "Admin" tag. */
+function BrandLogo() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <Logo />
+      <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">Brand</span>
+    </div>
+  );
+}
+
 export function BrandShell({
   children,
   company = "Your brand",
@@ -20,7 +30,7 @@ export function BrandShell({
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-y-auto border-r border-border/70 bg-card lg:block">
         <div className="flex min-h-full flex-col px-3 py-4">
           <div className="px-3 pb-4">
-            <Logo />
+            <BrandLogo />
           </div>
           <div className="flex-1">
             <BrandNav variant="rail" />
@@ -41,7 +51,7 @@ export function BrandShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
-            <Logo />
+            <BrandLogo />
             <span className="truncate text-sm font-medium text-muted-foreground">{company}</span>
           </div>
           <BrandNav variant="row" />
