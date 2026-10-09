@@ -59,6 +59,7 @@ export function adminNavGroups(directPay: boolean, hide: string[] = []): AdminNa
       label: "Settings",
       items: [
         { href: "/admin/security", label: "Security", icon: "security", blurb: "Two-step sign-in for your account." },
+        { href: "/admin/cleanup", label: "Clean up", icon: "security", blurb: "Delete test accounts and placeholder campaigns. Admins and Getimg are kept." },
         { href: "/admin/settings", label: "Account", icon: "security", blurb: "Your account, and logging out." },
       ],
     },
