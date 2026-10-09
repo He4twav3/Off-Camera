@@ -40,6 +40,7 @@ export function CampaignView({
   notice,
   below,
   back = { href: "/dashboard/recruiting/jobs", label: "← Campaigns" },
+  emptyExamplesHref,
 }: {
   job: Job & { niches: { label: string } | null };
   terms: PayoutTerms | null;
@@ -53,6 +54,8 @@ export function CampaignView({
   below?: ReactNode;
   /** Where the small link over the banner goes (a brand previewing its own campaign goes back to its page). */
   back?: { href: string; label: string } | null;
+  /** Only for the brand's own view: empty player boxes for the missing examples, linking here. */
+  emptyExamplesHref?: string;
 }) {
   const chips = postTerms
     ? postTermsChips(postTerms)
@@ -267,7 +270,7 @@ export function CampaignView({
                 </section>
               )}
 
-              <ExampleVideos urls={job.example_urls ?? []} />
+              <ExampleVideos urls={job.example_urls ?? []} emptyHref={emptyExamplesHref} />
 
               {rules.length > 0 && (
                 <section className="mt-5 rounded-xl sm:mt-8 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">

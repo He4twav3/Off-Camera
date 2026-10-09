@@ -7,7 +7,7 @@ import { PLATFORM_LABELS } from "@/lib/utils";
  * The brand's example links as cards, for the creator: a video from TikTok, Instagram or YouTube shows as a video
  * card (cover and a play mark); any other link shows as a link card with its website. Every card opens in a new tab.
  */
-export async function ExampleVideos({ urls }: { urls: string[] }) {
+export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; emptyHref?: string }) {
   const items = urls.map((raw) => {
     const id = postIdentity(raw);
     if (id.ok) return { url: id.url, platform: id.platform as string, host: null as string | null };
@@ -19,7 +19,9 @@ export async function ExampleVideos({ urls }: { urls: string[] }) {
     }
     return { url: raw, platform: null, host };
   });
-  if (items.length === 0) return null;
+  // The brand's own view fills up to three slots with empty player boxes that open Edit. Creators never see them.
+  const empties = emptyHref ? Math.max(0, 3 - items.length) : 0;
+  if (items.length === 0 && empties === 0) return null;
   const posters = await Promise.all(items.map((i) => (i.platform ? posterFor(i.platform, i.url) : Promise.resolve(null))));
 
   return (
@@ -43,6 +45,17 @@ export async function ExampleVideos({ urls }: { urls: string[] }) {
               <p className="mt-1.5 truncate text-xs font-medium text-foreground sm:text-sm">
                 {it.platform ? (PLATFORM_LABELS[it.platform as keyof typeof PLATFORM_LABELS] ?? it.platform) : it.host}
               </p>
+            </a>
+          </li>
+        ))}
+        {Array.from({ length: empties }, (_, k) => (
+          <li key={`empty-${k}`} className="min-w-0">
+            <a href={emptyHref} aria-label="Add an example link" className="block">
+              <div className="mx-auto flex aspect-[9/16] w-full max-w-[13rem] items-center justify-center rounded-lg border border-dashed border-border bg-card/40 transition-colors hover:border-primary/50 sm:rounded-xl">
+                <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground sm:size-12">
+                  <Play className="size-4 fill-current sm:size-5" />
+                </span>
+              </div>
             </a>
           </li>
         ))}

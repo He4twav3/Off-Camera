@@ -42,6 +42,7 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
           </Button>
         }
         back={null}
+        emptyExamplesHref={`/brand/campaigns/${jobId}/edit`}
       />
     </section>
   );
