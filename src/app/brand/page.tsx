@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EmptyState, PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
+import { PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
 import { cpm, topPosts } from "@/lib/brand-stats";
 import { cn, formatCurrency } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
 import { loadBrandPage } from "./_brand";
+import { NewCampaignForm } from "./campaigns/new/NewCampaignForm";
 import { PendingNotice } from "./PendingNotice";
 import { BestVideos } from "./BestVideos";
 import { ReviewerChoice } from "./ReviewerChoice";
@@ -34,16 +36,21 @@ export default async function BrandHomePage(props: { searchParams: Promise<{ c?:
       </PageShell>
     );
 
-  if (ws.campaigns.length === 0)
+  // No campaign yet: the page is the empty form itself, so there is nothing to click through to.
+  if (ws.campaigns.length === 0) {
+    const { data: niches } = await (await createClient()).from("niches").select("id, label").eq("is_active", true).order("label");
     return (
       <PageShell>
-        <PageHeader title={brand.companyName} actions={newCampaign} />
-        <EmptyState
-          title="Launch your first campaign"
-          body="Choose who approves your videos, set what you pay per video and write a short brief. Creators can join straight away."
-        />
+        <div className="mx-auto max-w-3xl">
+          <PageHeader
+            title="Create your first campaign"
+            summary="Fill this in and post it. Creators can join as soon as it is live, and you can change it any time."
+          />
+          <NewCampaignForm niches={niches ?? []} />
+        </div>
       </PageShell>
     );
+  }
 
   const chosen = ws.campaigns.find((x) => x.id === c) ?? ws.campaigns[0];
   const counted = ws.posts.filter((p) => p.counted);
