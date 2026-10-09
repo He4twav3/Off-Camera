@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
 import { RequirementsFields } from "@/components/RequirementsFields";
-import { CpmRows } from "@/components/PayTermsFields";
+import { CpmRows } from "@/components/CpmRows";
 import { HowYouPay } from "../../HowYouPay";
 import { createCampaignAction, type NewCampaignState } from "../../actions";
 
