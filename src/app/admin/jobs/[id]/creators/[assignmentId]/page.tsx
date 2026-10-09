@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { loadAdminWorkspace } from "@/lib/admin-workspace";
+import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { Body, Figures, Head, SectionTitle, Table, Td, Th } from "@/components/admin/table";
 import { CopyButton } from "@/components/admin/copy-button";
 import { PayoutCell } from "@/components/admin/payout-cell";
@@ -17,7 +17,7 @@ const label = (p: string) => PLATFORM_LABELS[p as keyof typeof PLATFORM_LABELS] 
 
 export default async function AdminCreatorPage(props: { params: Promise<{ id: string; assignmentId: string }> }) {
   const { id, assignmentId } = await props.params;
-  const ws = await loadAdminWorkspace(await createClient());
+  const ws = await getAdminWorkspace();
   const c = ws.campaigns.find((x) => x.id === id);
   const cr = c?.creators.find((x) => x.assignmentId === assignmentId);
   if (!c || !cr) notFound();

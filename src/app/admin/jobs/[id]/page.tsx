@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { Body, Figures, Head, SectionTitle, Table, Td, Th } from "@/components/admin/table";
 import { PayoutCell } from "@/components/admin/payout-cell";
-import { loadAdminWorkspace } from "@/lib/admin-workspace";
+import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
@@ -20,7 +20,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
   const { id } = await props.params;
   const supabase = await createClient();
   const [ws, { data: job }, { data: niches }, { data: brands }] = await Promise.all([
-    loadAdminWorkspace(supabase),
+    getAdminWorkspace(),
     supabase.from("jobs").select("*, niches(label)").eq("id", id).maybeSingle(),
     supabase.from("niches").select("id, label").eq("is_active", true).order("label"),
     supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),

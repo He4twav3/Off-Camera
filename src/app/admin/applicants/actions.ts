@@ -3,11 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import {
-  sendApplicantApprovedEmail,
-  sendApplicantRejectedEmail,
-  sendAssignmentEmail,
-} from "@/lib/email/notifications";
+import { sendApplicantApprovedEmail, sendApplicantRejectedEmail } from "@/lib/email/notifications";
 
 export interface AdminActionState {
   error?: string;
@@ -52,69 +48,4 @@ export async function setApplicantStatusAction(
 
   revalidatePath("/admin/applicants");
   return { success: `Marked ${parsed.data.status}.` };
-}
-
-const assignSchema = z.object({
-  applicant_id: z.string().uuid(),
-  job_id: z.string().uuid("Pick a job."),
-  applicant_payout_amount: z.coerce
-    .number()
-    .min(0, "Payout can't be negative."),
-});
-
-export async function assignApplicantAction(
-  _prev: AdminActionState,
-  formData: FormData,
-): Promise<AdminActionState> {
-  const parsed = assignSchema.safeParse({
-    applicant_id: formData.get("applicant_id"),
-    job_id: formData.get("job_id"),
-    applicant_payout_amount: formData.get("applicant_payout_amount"),
-  });
-
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
-  }
-
-  const supabase = await createClient();
-
-  const { data: applicant } = await supabase
-    .from("applicants")
-    .select("name, email, status")
-    .eq("id", parsed.data.applicant_id)
-    .single();
-
-  if (!applicant) return { error: "Applicant not found." };
-  if (applicant.status !== "approved") {
-    return { error: "Approve this applicant before assigning them a job." };
-  }
-
-  const { error } = await supabase.from("assignments").insert({
-    applicant_id: parsed.data.applicant_id,
-    job_id: parsed.data.job_id,
-    applicant_payout_amount: parsed.data.applicant_payout_amount,
-    status: "active",
-  });
-
-  if (error) {
-    return { error: "Couldn't create that assignment." };
-  }
-
-  const { data: job } = await supabase
-    .from("jobs")
-    .select("title")
-    .eq("id", parsed.data.job_id)
-    .single();
-
-  await sendAssignmentEmail(
-    applicant.email,
-    applicant.name,
-    job?.title ?? "your campaign",
-    parsed.data.applicant_payout_amount,
-  );
-
-  revalidatePath("/admin/applicants");
-  revalidatePath("/admin/payouts");
-  revalidatePath("/dashboard/recruiting");
-  return { success: "Assigned — the creator has been emailed." };
 }

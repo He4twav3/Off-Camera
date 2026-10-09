@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { loadAdminWorkspace, type ACreator } from "@/lib/admin-workspace";
+import { getAdminWorkspace, type ACreator } from "@/lib/admin-workspace";
 import { Body, Head, Table, Td, Th } from "@/components/admin/table";
 import { CopyButton } from "@/components/admin/copy-button";
 import { PayoutCell } from "@/components/admin/payout-cell";
@@ -13,7 +13,7 @@ type Person = { applicantId: string; name: string; email: string; handle: string
 
 export default async function AdminPayoutDetailsPage(props: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await props.searchParams;
-  const ws = await loadAdminWorkspace(await createClient());
+  const ws = await getAdminWorkspace();
 
   // One row per creator, across every campaign they are on.
   const byPerson = new Map<string, Person>();

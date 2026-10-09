@@ -1,5 +1,6 @@
 import "server-only";
-import type { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
+import { createClient } from "@/lib/supabase/server";
 import { parsePostTerms, payFor, type PostTerms } from "@/lib/post-terms";
 import { postReviews, reviewedOf } from "@/lib/post-review";
 import { statementState, type StatementState } from "@/lib/direct-pay";
@@ -43,6 +44,8 @@ export type APost = {
   counted: boolean;
 };
 
+export type AAccount = { platform: string; handle: string; verified: boolean };
+
 export type APayout = { raw: string | null; link: string | null; provider: string | null };
 
 export type ACreator = {
@@ -54,6 +57,8 @@ export type ACreator = {
   email: string;
   handle: string;
   payout: APayout;
+  /** Their connected social accounts, and whether each is verified. */
+  accounts: AAccount[];
   status: string;
   posts: APost[];
   statements: AStatement[];
@@ -114,7 +119,7 @@ export function payoutOf(raw: string | null | undefined): APayout {
 }
 
 export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorkspace> {
-  const [{ data: jobs }, { data: assignments }, { data: postRows }] = await Promise.all([
+  const [{ data: jobs }, { data: assignments }, { data: postRows }, { data: handleRows }] = await Promise.all([
     supabase
       .from("jobs")
       .select("id, title, status, platform, created_at, post_terms, brand_account_id, niches(label), brand_accounts(company_name)")
@@ -127,6 +132,7 @@ export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorks
     supabase
       .from("assignment_posts")
       .select("id, assignment_id, platform, url, state, author_verified, views, submitted_at, window_ends_at, reject_reason"),
+    supabase.from("applicant_handles").select("applicant_id, platform, handle, verified_at"),
   ]);
   const review = await postReviews((postRows ?? []).map((p) => p.id));
 
@@ -197,6 +203,9 @@ export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorks
           email: a.applicants?.email ?? "",
           handle: a.applicants?.handle ?? "",
           payout: payoutOf(a.applicants?.payout_instructions),
+          accounts: (handleRows ?? [])
+            .filter((h) => h.applicant_id === a.applicant_id)
+            .map((h) => ({ platform: h.platform, handle: h.handle, verified: Boolean(h.verified_at) })),
           status: a.status,
           posts,
           statements,
@@ -238,3 +247,6 @@ export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorks
 
   return { campaigns, creators: campaigns.flatMap((c) => c.creators), reviewAvailable: review.available };
 }
+
+/** The workspace for this request, loaded once however many places ask for it (the menu counts and the page). */
+export const getAdminWorkspace = cache(async () => loadAdminWorkspace(await createClient()));

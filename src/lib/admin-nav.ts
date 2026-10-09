@@ -22,32 +22,38 @@ export type AdminIcon =
 export type AdminNavItem = { href: string; label: string; icon: AdminIcon; blurb: string };
 export type AdminNavGroup = { label: string | null; items: AdminNavItem[] };
 
-export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
-  return [
-    { label: null, items: [{ href: "/admin", label: "Overview", icon: "overview", blurb: "What needs you today." }] },
+/**
+ * The menu follows the work, in the order it happens: onboard brands and set up their campaigns,
+ * look after the creators and their videos, then the money. A number beside an item means that
+ * many things there are waiting on you (see lib/admin-badges.ts). `hide` leaves out older pages
+ * that have nothing in them.
+ */
+export function adminNavGroups(directPay: boolean, hide: string[] = []): AdminNavGroup[] {
+  const groups: AdminNavGroup[] = [
+    { label: null, items: [{ href: "/admin", label: "Overview", icon: "overview", blurb: "Every campaign, its creators, their views and earnings, my earnings, and payouts." }] },
     {
-      label: "People",
+      label: "1 · Brands and campaigns",
       items: [
-        { href: "/admin/applications", label: "Applications", icon: "applications", blurb: "Decide which creators get which campaigns." },
-        { href: "/admin/applicants", label: "Creators", icon: "creators", blurb: "Approve or reject creator profiles." },
-        { href: "/admin/brands", label: "Brands", icon: "brands", blurb: "Approve brand accounts and see their campaigns." },
+        { href: "/admin/brands", label: "Brands", icon: "brands", blurb: "Approve new brands. Delete ones you don't want." },
+        { href: "/admin/jobs", label: "Campaigns", icon: "jobs", blurb: "Create campaigns, attach a brand, set the pay terms, and see each campaign's creators." },
+        { href: "/admin/campaigns", label: "Campaign signups", icon: "signups", blurb: "Older campaign sign-ups to review and count." },
       ],
     },
     {
-      label: "Campaigns",
+      label: "2 · Creators and videos",
       items: [
-        { href: "/admin/jobs", label: "Campaigns", icon: "jobs", blurb: "Every campaign: its creators, videos, pay terms and payments." },
-        { href: "/admin/campaigns", label: "Campaign signups", icon: "signups", blurb: "Review sign-ups and count their views." },
-        { href: "/admin/review", label: "Post review", icon: "signups", blurb: "Check each post before it counts toward what a brand owes." },
+        { href: "/admin/applicants", label: "Creators", icon: "creators", blurb: "Approve or reject new creators." },
+        { href: "/admin/applications", label: "Applications", icon: "applications", blurb: "Applications to campaigns that ask for a sample video: accept or decline." },
+        { href: "/admin/review", label: "Post review", icon: "signups", blurb: "Check each video before it counts toward what a brand owes." },
       ],
     },
     {
-      label: "Money",
+      label: "3 · Money",
       items: directPay
         ? [
-            { href: "/admin/statements", label: "Statements", icon: "statements", blurb: "Issue statements and track who has paid." },
+            { href: "/admin/statements", label: "Statements", icon: "statements", blurb: "Issue what a brand owes a creator, and track who has paid." },
+            { href: "/admin/fees", label: "Fees", icon: "fees", blurb: "Our fee on each statement: what each brand owes us, and what has arrived." },
             { href: "/admin/payout-details", label: "Payout details", icon: "payouts", blurb: "Each creator's email and payment link, to copy or open." },
-            { href: "/admin/fees", label: "Fees", icon: "fees", blurb: "What each brand owes us, per campaign and creator." },
           ]
         : [
             { href: "/admin/payouts", label: "Payouts", icon: "payouts", blurb: "Release creators' pay once the brand has paid." },
@@ -62,6 +68,7 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
       ],
     },
   ];
+  return groups.map((g) => ({ ...g, items: g.items.filter((i) => !hide.includes(i.href)) })).filter((g) => g.items.length > 0);
 }
 
 /** Overview is exact-match only; every other item also matches its sub-pages. */

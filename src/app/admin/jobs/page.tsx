@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { Body, Head, Table, Td, Th } from "@/components/admin/table";
-import { loadAdminWorkspace } from "@/lib/admin-workspace";
+import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "./JobForm";
@@ -15,7 +15,7 @@ const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 export default async function AdminJobsPage() {
   const supabase = await createClient();
   const [ws, { data: niches }, { data: brands }] = await Promise.all([
-    loadAdminWorkspace(supabase),
+    getAdminWorkspace(),
     supabase.from("niches").select("id, label").eq("is_active", true).order("label"),
     supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),
   ]);

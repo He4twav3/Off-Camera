@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StatusBadge, applicantStatusTone } from "@/components/ui/status-badge";
 import { Body, Head, Table, Td, Th } from "@/components/admin/table";
 import { ConfirmDelete } from "@/components/admin/confirm-delete";
-import { StatusButtons, AssignForm } from "./ApplicantActions";
+import { StatusButtons } from "./ApplicantActions";
 import { deleteCreatorAction } from "../delete-actions";
 import { formatDate, PLATFORM_LABELS } from "@/lib/utils";
 
@@ -13,10 +13,7 @@ const STATUS_LABELS: Record<string, string> = { pending: "Pending", approved: "A
 
 export default async function AdminApplicantsPage() {
   const supabase = await createClient();
-  const [{ data: applicants }, { data: openJobs }] = await Promise.all([
-    supabase.from("applicants").select("*, niches(label)").order("created_at", { ascending: false }),
-    supabase.from("jobs").select("id, title, payout_amount").eq("status", "open").order("created_at", { ascending: false }),
-  ]);
+  const { data: applicants } = await supabase.from("applicants").select("*, niches(label)").order("created_at", { ascending: false });
   const all = applicants ?? [];
   const pending = all.filter((a) => a.status === "pending").length;
   // Waiting first, then the rest by date.
@@ -51,7 +48,7 @@ export default async function AdminApplicantsPage() {
                   <span className="font-medium text-foreground">{a.name}</span>
                   <span className="ml-2 text-xs text-muted-foreground">@{a.handle}</span>
                   <span className="block text-xs text-muted-foreground">{a.email}</span>
-                  {(a.bio || a.portfolio_url || a.availability_notes || a.status === "approved") && (
+                  {(a.bio || a.portfolio_url || a.availability_notes || a.discord_username) && (
                     <details className="mt-1">
                       <summary className="cursor-pointer text-xs font-medium text-primary">Details</summary>
                       <div className="mt-2 flex flex-col gap-1.5 text-xs text-muted-foreground">
@@ -66,11 +63,6 @@ export default async function AdminApplicantsPage() {
                           </p>
                         )}
                         {a.bio && <p className="max-w-xl whitespace-pre-line">{a.bio}</p>}
-                        {a.status === "approved" && (openJobs ?? []).length > 0 && (
-                          <div className="mt-1">
-                            <AssignForm applicantId={a.id} openJobs={openJobs ?? []} />
-                          </div>
-                        )}
                       </div>
                     </details>
                   )}
