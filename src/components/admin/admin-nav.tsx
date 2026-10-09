@@ -36,7 +36,7 @@ const ICONS: Record<AdminIcon, typeof LayoutDashboard> = {
 };
 
 /** The grouped admin menu. Used in the desktop sidebar and the phone drawer. */
-export function AdminNav({ groups, badges = {} }: { groups: AdminNavGroup[]; badges?: Record<string, number> }) {
+export function AdminNav({ groups, badges = {}, what = {} }: { groups: AdminNavGroup[]; badges?: Record<string, number>; what?: Record<string, string> }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Admin" className="flex flex-col gap-5">
@@ -66,7 +66,8 @@ export function AdminNav({ groups, badges = {} }: { groups: AdminNavGroup[]; bad
                   {(badges[item.href] ?? 0) > 0 && (
                     <span
                       className="min-w-5 rounded-md bg-primary px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums text-primary-foreground"
-                      aria-label={`${badges[item.href]} waiting`}
+                      title={`${badges[item.href]} ${what[item.href] ?? "waiting"}`}
+                      aria-label={`${badges[item.href]} ${what[item.href] ?? "waiting"}`}
                     >
                       {badges[item.href]}
                     </span>
@@ -82,7 +83,7 @@ export function AdminNav({ groups, badges = {} }: { groups: AdminNavGroup[]; bad
 }
 
 /** Phone and tablet: a button that opens the same menu. Closes when you pick a page. */
-export function AdminMobileMenu({ groups, email, badges = {} }: { groups: AdminNavGroup[]; email: string; badges?: Record<string, number> }) {
+export function AdminMobileMenu({ groups, email, badges = {}, what = {} }: { groups: AdminNavGroup[]; email: string; badges?: Record<string, number>; what?: Record<string, string> }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -104,7 +105,7 @@ export function AdminMobileMenu({ groups, email, badges = {} }: { groups: AdminN
             if ((e.target as HTMLElement).closest("a")) setOpen(false);
           }}
         >
-          <AdminNav groups={groups} badges={badges} />
+          <AdminNav groups={groups} badges={badges} what={what} />
           <div className="mt-5 border-t border-border pt-4">
             <p className="truncate px-3 text-xs text-muted-foreground">{email}</p>
             <AdminSignOut />

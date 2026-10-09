@@ -22,11 +22,13 @@ export function AdminShell({
   groups,
   email,
   badges = {},
+  what = {},
   children,
 }: {
   groups: AdminNavGroup[];
   email: string;
   badges?: Record<string, number>;
+  what?: Record<string, string>;
   children: ReactNode;
 }) {
   return (
@@ -39,7 +41,7 @@ export function AdminShell({
             <Brand />
           </div>
           <div className="flex-1">
-            <AdminNav groups={groups} badges={badges} />
+            <AdminNav groups={groups} badges={badges} what={what} />
           </div>
           <div className="border-t border-border pt-3">
             <p className="truncate px-3 text-xs text-muted-foreground">{email}</p>
@@ -51,7 +53,7 @@ export function AdminShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="relative z-40 flex items-center justify-between gap-3 border-b border-border/70 bg-card px-4 py-3 lg:hidden">
           <Brand />
-          <AdminMobileMenu groups={groups} email={email} badges={badges} />
+          <AdminMobileMenu groups={groups} email={email} badges={badges} what={what} />
         </header>
         <main className="flex-1 bg-background">{children}</main>
       </div>

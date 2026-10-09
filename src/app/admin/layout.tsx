@@ -29,7 +29,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const badges = await adminBadges(await getAdminWorkspace());
 
   return (
-    <AdminShell groups={adminNavGroups(isDirectPay(), badges.empty)} email={user.email ?? ""} badges={badges.counts}>
+    <AdminShell groups={adminNavGroups(isDirectPay(), badges.empty)} email={user.email ?? ""} badges={badges.counts} what={badges.what}>
       {children}
     </AdminShell>
   );
