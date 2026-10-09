@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import type { StatusTone } from "@/components/ui/status-badge";
@@ -112,7 +114,9 @@ export function StatementsView({
   };
 
   // Open on the first tab that has something in it.
-  const firstWithItems = TABS.find((k) => lists[k].length > 0) ?? "ready";
+  // The paid list is the archive: never opened by default.
+  const firstWithItems =
+    TABS.find((k) => k !== "paid" && lists[k].length > 0) ?? "ready";
   const active: TabKey = (TABS as readonly string[]).includes(tab ?? "")
     ? (tab as TabKey)
     : firstWithItems;
@@ -138,7 +142,6 @@ export function StatementsView({
       attention: true,
     },
     { key: "waiting", label: "Waiting", count: lists.waiting.length },
-    { key: "paid", label: "Paid", count: lists.paid.length },
   ].map((t) => ({ ...t, href: `/admin/statements?tab=${t.key}` }));
 
   const items = lists[active];
@@ -172,7 +175,14 @@ export function StatementsView({
         />
       </StatGrid>
 
-      <Tabs items={tabs} active={active} />
+      {active === "paid" ? (
+        <Link href="/admin/statements" className="mb-4 inline-block text-sm text-muted-foreground hover:text-foreground">
+          ← Payments
+        </Link>
+      ) : (
+        <Tabs items={tabs} active={active} />
+      )}
+      {active === "paid" && <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Archive</h2>}
 
       {items.length === 0 ? (
         <EmptyState title={EMPTY[active].title} body={EMPTY[active].body} />
@@ -186,6 +196,16 @@ export function StatementsView({
             ),
           )}
         </RowList>
+      )}
+
+      {active !== "paid" && (
+        <Link
+          href="/admin/statements?tab=paid"
+          className="mt-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          Archive ({lists.paid.length})
+          <ChevronRight className="size-3" />
+        </Link>
       )}
     </PageShell>
   );
@@ -205,8 +225,8 @@ const EMPTY: Record<TabKey, { title: string; body: string }> = {
     body: "Issued statements that brands haven't paid yet show up here.",
   },
   paid: {
-    title: "Nothing paid yet",
-    body: "Statements the creator has confirmed receiving show up here.",
+    title: "Nothing archived yet",
+    body: "Payments the creator has confirmed receiving are kept here.",
   },
 };
 

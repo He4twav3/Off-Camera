@@ -6,7 +6,7 @@ import { Check, Copy, Mail } from "lucide-react";
 import { markEmailedAction, type MarkState } from "@/app/admin/payout-details/actions";
 import { mailtoHref } from "@/lib/payment-emails";
 
-function MarkButton() {
+function MarkButton({ label = "Mark as sent" }: { label?: string }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -14,7 +14,7 @@ function MarkButton() {
       disabled={pending}
       className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
     >
-      {pending ? "Saving…" : "Mark as sent"}
+      {pending ? "Saving…" : label}
     </button>
   );
 }
@@ -41,7 +41,10 @@ export function EmailDraft({
   const [body, setBody] = useState(initial.body);
   const [copied, setCopied] = useState(false);
   const [state, action] = useActionState<MarkState, FormData>(markEmailedAction, {});
-  const done = sent ?? (state.success ? { by: "you", at: new Date().toISOString() } : null);
+  const done =
+    state.success === "undone"
+      ? null
+      : (sent ?? (state.success === "sent" ? { by: "you", at: new Date().toISOString() } : null));
 
   async function copy() {
     try {
@@ -92,13 +95,20 @@ export function EmailDraft({
           {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
           {copied ? "Copied" : "Copy email"}
         </button>
-        {!done && (
-          <form action={action} className="ml-auto">
-            <input type="hidden" name="kind" value={kind} />
-            <input type="hidden" name="ids" value={ids.join(",")} />
+        <form action={action} className="ml-auto">
+          <input type="hidden" name="kind" value={kind} />
+          <input type="hidden" name="ids" value={ids.join(",")} />
+          {done ? (
+            <>
+              <input type="hidden" name="mode" value="undo" />
+              <button type="submit" className="cursor-pointer text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+                Undo
+              </button>
+            </>
+          ) : (
             <MarkButton />
-          </form>
-        )}
+          )}
+        </form>
       </div>
       {state.error && <p className="mt-2 text-sm font-semibold text-destructive">{state.error}</p>}
     </section>

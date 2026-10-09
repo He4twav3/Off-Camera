@@ -8,7 +8,7 @@ import { ChevronRight } from "lucide-react";
 import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { getSent } from "@/lib/admin-payments";
 import { campaignTasks } from "@/lib/admin-tasks";
-import { Todo } from "@/components/admin/todo";
+import { Todo, waitingOnBrand } from "@/components/admin/todo";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
@@ -68,7 +68,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
 
       <section className="mb-6 rounded-xl border border-border/70 bg-card px-4 py-3">
         <h2 className="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">To do on this campaign</h2>
-        <Todo tasks={campaignTasks(c, new Set(sent.keys()))} />
+        <Todo tasks={campaignTasks(c, new Set(sent.keys()))} waiting={waitingOnBrand(c)} />
       </section>
 
       <SectionTitle>Creators</SectionTitle>

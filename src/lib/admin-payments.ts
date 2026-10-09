@@ -30,6 +30,9 @@ export type BrandContact = { id: string; company: string; contactName: string; e
 
 export const EMAILED_BRAND = "emailed_brand";
 export const EMAILED_CREATOR = "emailed_creator";
+/** Undoing a "sent" is a later entry in the log, so the log itself is never edited. */
+export const UNSENT_BRAND = "unsent_brand";
+export const UNSENT_CREATOR = "unsent_creator";
 
 /** Which payment emails have been sent, keyed "emailed_brand:<statement id>". One cheap lookup, used by the menu counts too. */
 export const getSent = cache(async (): Promise<{ sent: Map<string, Sent>; ids: string[]; auditAvailable: boolean }> => {
@@ -42,11 +45,16 @@ export const getSent = cache(async (): Promise<{ sent: Map<string, Sent>; ids: s
     const { data, error } = await supabase
       .from("admin_audit")
       .select("action, target_id, admin_email, created_at")
-      .in("action", [EMAILED_BRAND, EMAILED_CREATOR])
+      .in("action", [EMAILED_BRAND, EMAILED_CREATOR, UNSENT_BRAND, UNSENT_CREATOR])
       .in("target_id", ids)
       .order("created_at", { ascending: true });
     if (error) auditAvailable = false;
-    for (const row of data ?? []) sent.set(`${row.action}:${row.target_id}`, { by: row.admin_email, at: row.created_at });
+    for (const row of data ?? []) {
+      const undone = row.action === UNSENT_BRAND || row.action === UNSENT_CREATOR;
+      const key = `${undone ? row.action.replace("unsent_", "emailed_") : row.action}:${row.target_id}`;
+      if (undone) sent.delete(key);
+      else sent.set(key, { by: row.admin_email, at: row.created_at });
+    }
   }
   return { sent, ids, auditAvailable };
 });
