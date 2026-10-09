@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
 import { adminNeedsMfa } from "@/lib/admin-mfa-gate";
+import { DOOR_COOKIE, doorPath } from "@/lib/admin-door";
 
 // Routes that require a signed-in user. Everything recruiting-related
 // (profile-setup, jobs, applications) lands under /dashboard/recruiting/*
@@ -83,7 +84,15 @@ export async function updateSession(request: NextRequest) {
     // Postgres can never drift apart.
     const { data: isAdmin } = await supabase.rpc("is_admin");
     if (!isAdmin) {
-      // Not an admin: to this person /admin simply doesn't exist.
+      // Someone who has just used the secret address but is signed in with a non-admin account is
+      // shown which account that is (and how to switch). Anyone else: /admin doesn't exist.
+      const door = doorPath(process.env as { ADMIN_DOOR_PATH?: string; VERCEL_ENV?: string });
+      if (door && request.cookies.get(DOOR_COOKIE)?.value === door) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/whoami";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
       return new NextResponse("Not found", { status: 404 });
     }
 
