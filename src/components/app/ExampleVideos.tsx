@@ -1,4 +1,5 @@
 import { Globe, Play } from "lucide-react";
+import { ExampleVideoCard } from "@/components/app/ExampleVideoCard";
 import { postIdentity } from "@/lib/post-key";
 import { posterFor } from "@/lib/video-poster";
 import { PLATFORM_LABELS } from "@/lib/utils";
@@ -30,22 +31,25 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
       <ul className="grid grid-cols-3 gap-2 sm:gap-4">
         {items.map((it, i) => (
           <li key={it.url} className="min-w-0">
-            <a href={it.url} target="_blank" rel="noopener noreferrer" className="group block">
-              <div className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] overflow-hidden rounded-lg border border-border/70 bg-gradient-to-b from-muted to-card sm:rounded-xl">
-                {posters[i] && (
-                  // eslint-disable-next-line @next/next/no-img-element -- signed platform CDN images
-                  <img src={posters[i]!} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
-                )}
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex size-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur sm:size-12">
-                    {it.platform ? <Play className="size-4 fill-current sm:size-5" /> : <Globe className="size-4 sm:size-5" />}
+            {it.platform ? (
+              <ExampleVideoCard
+                url={it.url}
+                platform={it.platform}
+                poster={posters[i]}
+                label={PLATFORM_LABELS[it.platform as keyof typeof PLATFORM_LABELS] ?? it.platform}
+              />
+            ) : (
+              <a href={it.url} target="_blank" rel="noopener noreferrer" className="group block">
+                <div className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] overflow-hidden rounded-lg border border-border/70 bg-gradient-to-b from-muted to-card sm:rounded-xl">
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur sm:size-12">
+                      <Globe className="size-4 sm:size-5" />
+                    </span>
                   </span>
-                </span>
-              </div>
-              <p className="mt-1.5 truncate text-xs font-medium text-foreground sm:text-sm">
-                {it.platform ? (PLATFORM_LABELS[it.platform as keyof typeof PLATFORM_LABELS] ?? it.platform) : it.host}
-              </p>
-            </a>
+                </div>
+                <p className="mt-1.5 truncate text-xs font-medium text-foreground sm:text-sm">{it.host}</p>
+              </a>
+            )}
           </li>
         ))}
         {Array.from({ length: empties }, (_, k) => (
