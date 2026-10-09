@@ -33,59 +33,10 @@ export function OverviewView({ summary, queue, ws }: { summary: string; queue: Q
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8">
-      <header className="mb-4">
+      <header className="mb-5">
         <h1 className="font-heading text-2xl font-semibold text-foreground">Overview</h1>
         <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
       </header>
-
-      <section aria-labelledby="needs-you" className="mb-5">
-        <h2 id="needs-you" className="sr-only">
-          Needs you
-        </h2>
-        {waiting.length > 0 ? (
-          <ul className="flex flex-wrap gap-2">
-            {waiting.map((q) => (
-              <li key={q.label}>
-                <Link
-                  href={q.href}
-                  className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/15"
-                >
-                  <span className="rounded bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-foreground">{q.value}</span>
-                  {q.label}
-                  <ChevronRight className="size-3.5 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">Nothing is waiting on you.</p>
-        )}
-        {quiet.length > 0 && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Clear:{" "}
-            {quiet.map((q, i) => (
-              <span key={q.label}>
-                {i > 0 && " · "}
-                <Link href={q.href} className="hover:text-foreground hover:underline">
-                  {q.label}
-                </Link>
-              </span>
-            ))}
-          </p>
-        )}
-      </section>
-
-      <Figures
-        items={[
-          { label: "Views", value: total((c) => c.views).toLocaleString() },
-          { label: "Videos", value: total((c) => c.videos).toLocaleString() },
-          { label: "Creators", value: String(people.size) },
-          { label: "Creators earned", value: formatCurrency(total((c) => c.earned)) },
-          { label: "Brands owe", value: formatCurrency(owed), attention: owed > 0 },
-          { label: "Paid out", value: formatCurrency(paid) },
-          { label: "My earnings", value: formatCurrency(total((c) => c.ourFees)), hint: `${formatCurrency(total((c) => c.feesOutstanding))} not received`, attention: total((c) => c.feesOutstanding) > 0 },
-        ]}
-      />
 
       <SectionTitle aside={<Link href="/admin/jobs" className="text-sm font-medium text-primary hover:underline">All campaigns</Link>}>
         Campaigns and their creators
@@ -189,6 +140,55 @@ export function OverviewView({ summary, queue, ws }: { summary: string; queue: Q
           </Body>
         </Table>
       )}
+      <section aria-labelledby="needs-you" className="mt-10">
+        <h2 id="needs-you" className="sr-only">
+          Needs you
+        </h2>
+        {waiting.length > 0 ? (
+          <ul className="flex flex-wrap gap-2">
+            {waiting.map((q) => (
+              <li key={q.label}>
+                <Link
+                  href={q.href}
+                  className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/15"
+                >
+                  <span className="rounded bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-foreground">{q.value}</span>
+                  {q.label}
+                  <ChevronRight className="size-3.5 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Nothing is waiting on you.</p>
+        )}
+        {quiet.length > 0 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Clear:{" "}
+            {quiet.map((q, i) => (
+              <span key={q.label}>
+                {i > 0 && " · "}
+                <Link href={q.href} className="hover:text-foreground hover:underline">
+                  {q.label}
+                </Link>
+              </span>
+            ))}
+          </p>
+        )}
+      </section>
+
+      <div className="mt-10"><Figures
+        items={[
+          { label: "Views", value: total((c) => c.views).toLocaleString() },
+          { label: "Videos", value: total((c) => c.videos).toLocaleString() },
+          { label: "Creators", value: String(people.size) },
+          { label: "Creators earned", value: formatCurrency(total((c) => c.earned)) },
+          { label: "Brands owe", value: formatCurrency(owed), attention: owed > 0 },
+          { label: "Paid out", value: formatCurrency(paid) },
+          { label: "My earnings", value: formatCurrency(total((c) => c.ourFees)), hint: `${formatCurrency(total((c) => c.feesOutstanding))} not received`, attention: total((c) => c.feesOutstanding) > 0 },
+        ]}
+      />
+      </div>
     </div>
   );
 }
