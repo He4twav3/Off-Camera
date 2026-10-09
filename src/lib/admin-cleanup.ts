@@ -96,6 +96,36 @@ export async function deleteJobCascade(db: Db, jobId: string): Promise<string | 
   return error ? `campaign: ${error.message}` : null;
 }
 
+/** A creator and everything they made: their work and money on every campaign, then the profile, then the sign-in. */
+export async function deleteApplicantCascade(db: Db, applicantId: string): Promise<string | null> {
+  const { data: person } = await db.from("applicants").select("id, user_id").eq("id", applicantId).maybeSingle();
+  if (!person) return null;
+  const { data: rows } = await db.from("assignments").select("id").eq("applicant_id", person.id);
+  const err = await deleteAssignments(db, (rows ?? []).map((r) => r.id));
+  if (err) return err;
+  for (const table of ["balance_entries", "withdrawals"]) {
+    const { error } = await t(db, table).delete().eq("applicant_id", person.id);
+    if (error) return `${table}: ${error.message}`;
+  }
+  const { error } = await db.from("applicants").delete().eq("id", person.id);
+  if (error) return `creator profile: ${error.message}`;
+  if (person.user_id) {
+    const { error: authError } = await db.auth.admin.deleteUser(person.user_id);
+    if (authError) return `sign-in: ${authError.message}`;
+  }
+  return null;
+}
+
+/** An admin's email is never deleted from the admin pages. */
+export async function isAdminUser(db: Db, userId: string | null): Promise<boolean> {
+  if (!userId) return false;
+  const { data } = await db.auth.admin.getUserById(userId);
+  const email = data.user?.email?.toLowerCase();
+  if (!email) return false;
+  const { data: admins } = await db.from("admin_emails").select("email");
+  return (admins ?? []).some((a) => a.email.toLowerCase() === email);
+}
+
 /** One account and everything it made: creator work and money, brand profile, then the sign-in. */
 export async function deleteAccountCascade(db: Db, userId: string): Promise<string | null> {
   const { data: person } = await db.from("applicants").select("id").eq("user_id", userId).maybeSingle();

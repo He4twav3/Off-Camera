@@ -23,13 +23,20 @@ export function ConfirmDelete({
   action,
   id,
   what,
+  forceAction,
+  forceLabel = "Delete everything they made",
 }: {
   action: (prev: State, formData: FormData) => Promise<State>;
   id: string;
   what: string;
+  /** A deliberate second step, offered only after the safe delete refuses. */
+  forceAction?: (prev: State, formData: FormData) => Promise<State>;
+  forceLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<State, FormData>(action, {});
+  const [forceState, forceFormAction] = useActionState<State, FormData>(forceAction ?? action, {});
+  if (forceAction && forceState.success) return <span className="text-xs font-semibold text-muted-foreground">Deleted</span>;
   if (state.success) return <span className="text-xs font-semibold text-muted-foreground">Deleted</span>;
   if (!open)
     return (
@@ -50,6 +57,19 @@ export function ConfirmDelete({
         Cancel
       </button>
       {state.error && <span className="w-full text-xs font-semibold text-destructive">{state.error}</span>}
+      {state.error && forceAction && (
+        <span className="flex w-full flex-wrap items-center gap-2 text-xs">
+          <button
+            type="submit"
+            formAction={forceFormAction}
+            className="cursor-pointer rounded-md border border-destructive px-2.5 py-1 font-semibold text-destructive hover:bg-destructive/10"
+          >
+            {forceLabel}
+          </button>
+          <span className="text-muted-foreground">Removes their videos and payments too. Can&apos;t be undone.</span>
+        </span>
+      )}
+      {forceState.error && <span className="w-full text-xs font-semibold text-destructive">{forceState.error}</span>}
     </form>
   );
 }

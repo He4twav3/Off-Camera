@@ -4,7 +4,7 @@ import { StatusBadge, applicantStatusTone } from "@/components/ui/status-badge";
 import { Body, Head, Table, Td, Th } from "@/components/admin/table";
 import { ConfirmDelete } from "@/components/admin/confirm-delete";
 import { StatusButtons } from "./ApplicantActions";
-import { deleteCreatorAction } from "../delete-actions";
+import { deleteCreatorAction, deleteCreatorEverythingAction } from "../delete-actions";
 import { formatDate, PLATFORM_LABELS } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Creators · Admin" };
@@ -78,7 +78,7 @@ export default async function AdminApplicantsPage() {
                 <Td className="py-2">
                   <div className="flex flex-col gap-1.5">
                     <StatusButtons applicantId={a.id} status={a.status} />
-                    <ConfirmDelete action={deleteCreatorAction} id={a.id} what={a.name} />
+                    <ConfirmDelete action={deleteCreatorAction} id={a.id} what={a.name} forceAction={deleteCreatorEverythingAction} />
                   </div>
                 </Td>
               </tr>

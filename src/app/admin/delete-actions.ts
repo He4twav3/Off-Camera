@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { adminGuard } from "@/lib/admin-guard";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteApplicantCascade, isAdminUser } from "@/lib/admin-cleanup";
 
 export interface DeleteState {
   error?: string;
@@ -33,6 +35,31 @@ export async function deleteCreatorAction(_prev: DeleteState, formData: FormData
   const { error } = await db.from("applicants").delete().eq("id", person.id);
   if (error) return { error: "This creator has activity that must stay on record, so they can't be deleted. Reject them instead." };
   if (person.user_id) await db.auth.admin.deleteUser(person.user_id);
+
+  revalidatePath("/admin/applicants");
+  revalidatePath("/admin");
+  return { success: "Deleted." };
+}
+
+/**
+ * The deliberate second step for a creator who has joined a campaign: delete them AND every video and payment they
+ * have on record. Only reached from the extra button that appears after the safe delete refuses. An admin's own
+ * account is never deleted from here. Each use is written to the admin log.
+ */
+export async function deleteCreatorEverythingAction(_prev: DeleteState, formData: FormData): Promise<DeleteState> {
+  const id = idSchema.safeParse({ id: formData.get("id") });
+  if (!id.success) return { error: "Invalid request." };
+  const blocked = await adminGuard();
+  if (blocked) return { error: blocked };
+
+  const db = createAdminClient();
+  const { data: person } = await db.from("applicants").select("id, user_id, email").eq("id", id.data.id).maybeSingle();
+  if (!person) return { success: "Already gone." };
+  if (await isAdminUser(db, person.user_id)) return { error: "That is an admin account, so it can't be deleted here." };
+
+  const err = await deleteApplicantCascade(db, person.id);
+  if (err) return { error: `Couldn't delete everything (${err}).` };
+  await (await createClient()).rpc("log_admin_action", { p_action: "deleted_creator_with_work", p_target: person.id, p_detail: person.email });
 
   revalidatePath("/admin/applicants");
   revalidatePath("/admin");
