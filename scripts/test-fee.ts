@@ -1,5 +1,5 @@
 /** Tests OnCamera's per-campaign fee (src/lib/fee.ts). Run:  npx tsx scripts/test-fee.ts */
-import { describeFee, feeForPayment, feeTotal, parseFeeRows } from "../src/lib/fee";
+import { describeFee, feeForPayment, feeForStatement, feeTotal, parseFeeRows, parseFeeTerms } from "../src/lib/fee";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -30,5 +30,27 @@ t("a missing percentage is refused", !rows(["5000"], [""]).ok);
 t("a percentage over 100 is refused", !rows(["5000"], ["120"]).ok);
 t("two open bands are refused", !rows(["", ""], ["25", "20"]).ok);
 t("the same limit twice is refused", !rows(["5000", "5000"], ["25", "20"]).ok);
+
+// ---- 15% with a $200 minimum per campaign per month
+{
+  const terms = { bands: [{ upTo: null, percent: 15 }], minimum: 200 };
+  const st = (lifetimeBilled: number, monthBilled: number, monthFees: number, amount: number) => feeForStatement({ lifetimeBilled, monthBilled, monthFees, amount, terms });
+  t("a small first statement pays the minimum", st(0, 0, 0, 300) === 200, st(0, 0, 0, 300));
+  t("a second small statement in the same month adds nothing", st(300, 300, 200, 300) === 0, st(300, 300, 200, 300));
+  t("a later big statement only adds the percentage above the minimum", st(600, 600, 200, 1000) === 40, st(600, 600, 200, 1000));
+  t("in all that month is 15% of $1,600", 200 + 0 + 40 === 15 * 16, 240);
+  t("a busy first statement is just the percentage", st(0, 0, 0, 5000) === 750, st(0, 0, 0, 5000));
+  t("the threshold is $1,333 of creator pay in the month", st(0, 0, 0, 1333) === 200 && st(0, 0, 0, 1500) === 225, [st(0, 0, 0, 1333), st(0, 0, 0, 1500)]);
+  t("5 creators at $300 are $225 in all", st(0, 0, 0, 300) + st(300, 300, 200, 300) + st(600, 600, 200, 300) + st(900, 900, 200, 300) + st(1200, 1200, 200, 300) === 225);
+  t("the next month starts again", st(5000, 0, 0, 300) === 200, st(5000, 0, 0, 300));
+  t("a month with no creator pay costs nothing", st(0, 0, 0, 0) === 0);
+  t("no fee set means no fee", feeForStatement({ lifetimeBilled: 0, monthBilled: 0, monthFees: 0, amount: 500, terms: { bands: [], minimum: 0 } }) === 0);
+  t("a minimum alone works", feeForStatement({ lifetimeBilled: 0, monthBilled: 0, monthFees: 0, amount: 500, terms: { bands: [], minimum: 200 } }) === 200);
+  t("an old array of bands still reads", parseFeeTerms([{ upTo: null, percent: 20 }]).minimum === 0 && parseFeeTerms([{ upTo: null, percent: 20 }]).bands.length === 1);
+  t("the saved shape reads", parseFeeTerms({ bands: [{ upTo: null, percent: 15 }], minimum: 200 }).minimum === 200);
+  t("nothing saved reads as empty", parseFeeTerms(null).bands.length === 0 && parseFeeTerms(undefined).minimum === 0);
+  t("described with the minimum", describeFee([{ upTo: null, percent: 15 }], 200) === "15% on top, minimum $200 a month", describeFee([{ upTo: null, percent: 15 }], 200));
+}
+
 console.log(bad ? `${bad} failed` : "all passed");
 process.exit(bad ? 1 : 0);

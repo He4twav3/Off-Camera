@@ -40,7 +40,7 @@ export default async function AdminPayTermsPage(props: { params: Promise<{ id: s
           What we invoice this brand on top of creator pay, in bands of the campaign&apos;s total creator pay. Only admins see this.
           {fees.available ? "" : " Run migration 0026 in Supabase before it can be saved."}
         </p>
-        <FeeForm jobId={c.id} bands={fees.bands.get(c.id) ?? []} />
+        <FeeForm jobId={c.id} fee={fees.terms.get(c.id) ?? { bands: [], minimum: 0 }} />
       </div>
 
       <SectionTitle>Remove campaign</SectionTitle>

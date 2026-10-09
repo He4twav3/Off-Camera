@@ -39,8 +39,18 @@ export default async function AdminStatementsPage(props: {
   // statement is worked out from both, so it is filled in rather than typed.
   const fees = await getFeeBands([...new Set((assignments ?? []).map((a) => a.job_id))]);
   const billedBefore = new Map<string, number>();
-  for (const a of assignments ?? [])
-    billedBefore.set(a.job_id, (billedBefore.get(a.job_id) ?? 0) + a.direct_payments.reduce((n, d) => n + Number(d.amount), 0));
+  const monthBilled = new Map<string, number>();
+  const monthFees = new Map<string, number>();
+  const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString();
+  for (const a of assignments ?? []) {
+    for (const d of a.direct_payments) {
+      billedBefore.set(a.job_id, (billedBefore.get(a.job_id) ?? 0) + Number(d.amount));
+      if (d.issued_at >= monthStart) {
+        monthBilled.set(a.job_id, (monthBilled.get(a.job_id) ?? 0) + Number(d.amount));
+        monthFees.set(a.job_id, (monthFees.get(a.job_id) ?? 0) + Number(d.our_fee));
+      }
+    }
+  }
 
   const review = await postReviews((assignments ?? []).flatMap((a) => a.assignment_posts.map((p) => p.id)));
 
@@ -119,7 +129,12 @@ export default async function AdminStatementsPage(props: {
                   suggested: due,
                   direct_payments: null,
                   state: null,
-                  fee: { bands: fees.bands.get(a.job_id) ?? [], before: billedBefore.get(a.job_id) ?? 0 },
+                  fee: {
+                    terms: fees.terms.get(a.job_id) ?? { bands: [], minimum: 0 },
+                    lifetimeBilled: billedBefore.get(a.job_id) ?? 0,
+                    monthBilled: monthBilled.get(a.job_id) ?? 0,
+                    monthFees: monthFees.get(a.job_id) ?? 0,
+                  },
                 },
               ]
             : [];

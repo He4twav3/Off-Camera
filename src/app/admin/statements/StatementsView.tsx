@@ -24,7 +24,7 @@ import {
   type TabItem,
 } from "@/components/kit/ui";
 import { IssueForm } from "./IssueForm";
-import type { FeeBand } from "@/lib/fee";
+import type { FeeTerms } from "@/lib/fee";
 import {
   acceptPostAction,
   adminMarkBrandPaidAction,
@@ -61,7 +61,7 @@ export type StatementRowData = {
   } | null;
   state: StatementState | null;
   /** The fee set for this campaign and the creator pay already billed on it, to fill in the fee on a new statement. */
-  fee?: { bands: FeeBand[]; before: number };
+  fee?: { terms: FeeTerms; lifetimeBilled: number; monthBilled: number; monthFees: number };
   /** For a campaign paid per post: the contract's numbers and the posts behind them. */
   perPost?: {
     earned: number;
@@ -275,7 +275,7 @@ function ReadyRow({ row: r }: { row: StatementRowData }) {
               emailed to pay. You&apos;ll record the payment yourself.
             </Notice>
           )}
-          <IssueForm assignmentId={r.id} suggestedAmount={r.suggested} feeBands={r.fee?.bands ?? []} billedBefore={r.fee?.before ?? 0} />
+          <IssueForm assignmentId={r.id} suggestedAmount={r.suggested} fee={r.fee} />
         </div>
       }
       detailsLabel="Issue statement"

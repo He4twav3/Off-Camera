@@ -102,7 +102,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
             <div className="flex flex-wrap gap-x-4 gap-y-0.5">
               <dt className="w-28 shrink-0 text-muted-foreground">Our fee</dt>
               <dd className="min-w-0 flex-1 text-foreground">
-                {describeFee(fees.bands.get(c.id) ?? [])}{" "}
+                {describeFee(fees.terms.get(c.id)?.bands ?? [], fees.terms.get(c.id)?.minimum ?? 0)}{" "}
                 <Link href={`/admin/jobs/${c.id}/terms`} className="font-semibold text-primary underline underline-offset-2">
                   Edit
                 </Link>

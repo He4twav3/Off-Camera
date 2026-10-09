@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
-import type { FeeBand } from "@/lib/fee";
+import type { FeeTerms } from "@/lib/fee";
 import { saveFeeAction, type PayTermsState } from "../actions";
 
 function Save() {
@@ -20,7 +20,8 @@ function Save() {
 type Row = { upTo: string; pct: string };
 
 /** OnCamera's fee for this campaign: a percentage on top of creator pay, in bands. Admin only; never shown to brands or creators. */
-export function FeeForm({ jobId, bands }: { jobId: string; bands: FeeBand[] }) {
+export function FeeForm({ jobId, fee }: { jobId: string; fee: FeeTerms }) {
+  const bands = fee.bands;
   const [state, action] = useActionState<PayTermsState, FormData>(saveFeeAction, {});
   const start: Row[] = bands.map((b) => ({ upTo: b.upTo === null ? "" : String(b.upTo), pct: String(b.percent) }));
   const [rows, setRows] = useState<Row[]>(start.length ? start : [{ upTo: "", pct: "" }]);
@@ -49,6 +50,12 @@ export function FeeForm({ jobId, bands }: { jobId: string; bands: FeeBand[] }) {
           <Plus className="size-4" />
         </button>
       )}
+      <div className="max-w-lg">
+        <label htmlFor="fee_min" className="text-sm font-medium text-foreground">
+          Minimum per month ($), only in a month creators were paid
+        </label>
+        <Input id="fee_min" name="fee_min" type="number" inputMode="decimal" min={0} step="0.01" defaultValue={fee.minimum || ""} className="mt-1" />
+      </div>
       {state.error && <p role="alert" className="rounded-md bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">{state.error}</p>}
       {state.success && <p className="text-sm font-semibold text-emerald-400">{state.success}</p>}
       <div>

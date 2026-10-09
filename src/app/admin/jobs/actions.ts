@@ -360,6 +360,9 @@ export async function saveFeeAction(_prev: PayTermsState, formData: FormData): P
   if (!jobId.success) return { error: "Check the fields." };
   const parsed = parseFeeRows((k) => formData.getAll(k).map(String));
   if (!parsed.ok) return { error: parsed.error };
+  const rawMin = String(formData.get("fee_min") ?? "").replace(/,/g, "").trim();
+  const minimum = rawMin ? Number(rawMin) : 0;
+  if (!Number.isFinite(minimum) || minimum < 0) return { error: "The minimum must be an amount, 0 or more." };
 
   const supabase = (await createClient()) as unknown as {
     from: (n: string) => {
@@ -368,12 +371,12 @@ export async function saveFeeAction(_prev: PayTermsState, formData: FormData): P
     };
   };
   const table = supabase.from("campaign_fees");
-  const { error } = parsed.bands.length
-    ? await table.upsert({ job_id: jobId.data, bands: parsed.bands, updated_at: new Date().toISOString() }, { onConflict: "job_id" })
+  const { error } = parsed.bands.length || minimum > 0
+    ? await table.upsert({ job_id: jobId.data, bands: { bands: parsed.bands, minimum }, updated_at: new Date().toISOString() }, { onConflict: "job_id" })
     : await table.delete().eq("job_id", jobId.data);
   if (error) return { error: "Couldn't save the fee. If this is the first time, run migration 0026 (campaign fees) in Supabase." };
 
   revalidatePath(`/admin/jobs/${jobId.data}`, "layout");
   revalidatePath("/admin/statements");
-  return { success: parsed.bands.length ? "Fee saved. New statements are filled in from it." : "Fee cleared." };
+  return { success: parsed.bands.length || minimum > 0 ? "Fee saved. New statements are filled in from it." : "Fee cleared." };
 }

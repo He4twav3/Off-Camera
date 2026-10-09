@@ -36,18 +36,49 @@ export function feeForPayment(before: number, amount: number, bands: FeeBand[]):
   return cents(feeTotal(before + amount, bands) - feeTotal(before, bands));
 }
 
+/** What is saved for a campaign: the bands, and a minimum for the month (0 for none). An old array of bands still reads. */
+export type FeeTerms = { bands: FeeBand[]; minimum: number };
+
+export function parseFeeTerms(raw: unknown): FeeTerms {
+  if (Array.isArray(raw)) return { bands: raw as FeeBand[], minimum: 0 };
+  if (raw && typeof raw === "object") {
+    const o = raw as { bands?: unknown; minimum?: unknown };
+    const minimum = Number(o.minimum);
+    return { bands: Array.isArray(o.bands) ? (o.bands as FeeBand[]) : [], minimum: Number.isFinite(minimum) && minimum > 0 ? minimum : 0 };
+  }
+  return { bands: [], minimum: 0 };
+}
+
+/**
+ * The fee on a new statement of `amount`, with a minimum per campaign per month. The month's fee is whichever is larger,
+ * the minimum or the percentage on all creator pay billed that month, and this statement carries whatever of it has not
+ * been charged yet. So $300 then $300 in one month is $200 in all (not $200 twice), and a later $1,000 only adds the
+ * extra percentage.
+ *  lifetimeBilled: creator pay already billed on the campaign, ever
+ *  monthBilled / monthFees: creator pay billed and fee charged so far this month
+ */
+export function feeForStatement(input: { lifetimeBilled: number; monthBilled: number; monthFees: number; amount: number; terms: FeeTerms }): number {
+  const { amount, terms } = input;
+  if (amount <= 0 || (terms.bands.length === 0 && terms.minimum <= 0)) return 0;
+  const monthStart = input.lifetimeBilled - input.monthBilled;
+  const percentFee = feeForPayment(monthStart, input.monthBilled + amount, terms.bands);
+  const target = Math.max(terms.minimum, percentFee);
+  return cents(Math.max(0, target - input.monthFees));
+}
+
 const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
 
 /** The bands in words, for admin: "25% on top up to $5,000, then 20% up to $20,000, then 15%". */
-export function describeFee(bands: FeeBand[]): string {
+export function describeFee(bands: FeeBand[], minimum = 0): string {
   const sorted = ordered(bands);
-  if (sorted.length === 0) return "No fee set";
-  return sorted
+  if (sorted.length === 0) return minimum > 0 ? `${usd(minimum)} a month minimum` : "No fee set";
+  const text = sorted
     .map((b, i) => {
       const lead = i === 0 ? `${b.percent}% on top` : `${b.percent}%`;
       return b.upTo === null ? (i === 0 ? lead : `${lead} above that`) : `${lead} up to ${usd(b.upTo)}`;
     })
     .join(", then ");
+  return minimum > 0 ? `${text}, minimum ${usd(minimum)} a month` : text;
 }
 
 /** From the form's rows: a limit (blank on the last row) and a percentage. Both blank skips the row. */
