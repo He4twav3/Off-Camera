@@ -435,7 +435,7 @@ export async function createCampaignAction(
       niche_id: v.niche_id,
       payout_type: "flat",
       payout_amount: v.base,
-      payout_notes: "Pays per video, with view bonuses. See the pay terms on this page.",
+      payout_notes: cpm.value ? "Pays per video, plus a CPM on views. See the pay terms on this page." : "Pays per video. See the pay terms on this page.",
       account_requirement: "new_ok",
       status: "open",
       brand_account_id: brand.id,
@@ -595,7 +595,13 @@ export async function updateCampaignAction(
   const { data, error } = await db
     .from("jobs")
     .update({
-      ...(nextTerms ? { post_terms: nextTerms as unknown as Record<string, unknown>, payout_amount: nextTerms.basePerPost } : {}),
+      ...(nextTerms
+        ? {
+            post_terms: nextTerms as unknown as Record<string, unknown>,
+            payout_amount: nextTerms.basePerPost,
+            payout_notes: nextTerms.cpm?.length ? "Pays per video, plus a CPM on views. See the pay terms on this page." : "Pays per video, with view bonuses. See the pay terms on this page.",
+          }
+        : {}),
       title: parsed.data.title,
       niche_id: parsed.data.niche_id,
       about: parsed.data.about || null,
