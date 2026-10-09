@@ -81,7 +81,7 @@ t("terms from the old formula are not mistaken for these", parsePostTerms({ v: 1
 t("milestones are sorted lowest first", parsePostTerms({ ...T, milestones: [{ views: 5000, amount: 10 }, { views: 1000, amount: 2 }] })!.milestones[0].views === 1000);
 
 // --- wording -----------------------------------------------------------------------------------
-t("chips: base, top bonus, cycle, window", postTermsChips(T).join("|") === "$20 per post|Bonus up to $200 per post|Paid every 15 posts|30-day counting window", postTermsChips(T));
+t("chips: base, top bonus, cycle, window", postTermsChips(T).join("|") === "$20 per post|Up to $200 bonus per video|Paid every 15 posts|30-day counting window", postTermsChips(T));
 const words = describePostTerms(T).join(" ");
 t("the words give the base pay and cycle", /\$20 for each unique video/.test(words) && /every 15 unique videos/.test(words) && /repost/.test(words), words);
 t("the words list every milestone", /1K views, \$2/.test(words) && /5K views, \$10/.test(words) && /10K views, \$20/.test(words) && /100K views, \$200/.test(words), words);
@@ -190,7 +190,7 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("the cap works across bands", cpmBonus(9000, bands, 2000) === 3, cpmBonus(9000, bands, 2000));
   t("bonusFor passes the cap on", bonusFor(500_000, { milestones: [], cpm: [{ from: 0, rate: 2 }], cpmCap: 100_000 }) === 200);
   const capped = { ...T, milestones: [], cpm: [{ from: 0, rate: 1 }, { from: 1000, rate: 2 }], cpmCap: 5000 };
-  t("the strip shows the most a post can earn", postTermsChips(capped).some((c) => c === "Up to $9 per post, counting up to 5K views"), postTermsChips(capped));
+  t("the strip shows the most a post can earn", postTermsChips(capped).some((c) => c === "Up to $9 bonus per video"), postTermsChips(capped));
   t("with a cap the last band ends at it", postTermsChips(capped).some((c) => c === "$1 CPM until 1K views, $2 CPM from 1K to 5K views"), postTermsChips(capped));
   t("a single band with a cap reads simply", cpmPhrases([{ from: 0, rate: 2 }], 100_000).join("|") === "$2 CPM up to 100K views");
   t("the sentence says where it tops out", describePostTerms(capped).some((l) => /tops out at \$9 a post/.test(l)), describePostTerms(capped));

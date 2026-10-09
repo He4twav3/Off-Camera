@@ -324,11 +324,11 @@ export function postTermsChips(terms: PostTerms): string[] {
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
   if (terms.cpm?.length) {
     chips.push(cpmPhrases(terms.cpm, terms.cpmCap).join(", "));
-    if (terms.cpmCap) chips.push(`Up to ${usd(cpmBonus(terms.cpmCap, terms.cpm))} per post, counting up to ${views(terms.cpmCap)} views`);
+    if (terms.cpmCap) chips.push(`Up to ${usd(cpmBonus(terms.cpmCap, terms.cpm))} bonus per video`);
   }
   else {
     const top = terms.milestones.at(-1);
-    if (top) chips.push(`Bonus up to ${usd(top.amount)} per post`);
+    if (top) chips.push(`Up to ${usd(top.amount)} bonus per video`);
   }
   chips.push(`Paid every ${terms.cycleSize} posts`);
   chips.push(`${terms.windowDays}-day counting window`);

@@ -12,6 +12,9 @@ import { mainPlatformOf, parsePostTerms } from "@/lib/post-terms";
 import type { VideoItem } from "@/components/app/VideosCard";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { formatDate } from "@/lib/utils";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { contractSections, contractStatus } from "@/lib/contract";
+import { ContractReader } from "@/components/app/ContractReader";
 
 const APPLICATION_LABELS: Record<string, string> = {
   pending: "Waiting to hear back",
@@ -115,6 +118,26 @@ export default async function JobDetailPage(props: {
       .from("assignment_posts")
       .select("platform, state, author_verified, submitted_at")
       .eq("assignment_id", assignment.id);
+    // Once you're on a campaign whose brand has signed its contract, you can read all of it here.
+    if (postTerms.contract && contractStatus(postTerms) === "signed") {
+      const { data: accepted } = await (
+        createAdminClient() as unknown as {
+          from: (n: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: { accepted_at: string } | null }> } } };
+        }
+      )
+        .from("contract_acceptances")
+        .select("accepted_at")
+        .eq("assignment_id", assignment.id)
+        .maybeSingle();
+      below = (
+        <ContractReader
+          brand={postTerms.contract.legalName}
+          brandAgreedAt={postTerms.contract.agreedAt}
+          creatorAgreedAt={accepted?.accepted_at ?? null}
+          sections={contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: postTerms.contract })}
+        />
+      );
+    }
     cta = (
       <SubmitPost
         assignmentId={assignment.id}

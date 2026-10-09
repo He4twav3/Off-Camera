@@ -82,11 +82,11 @@ export function CampaignView({
           : topBonus
           ? {
               icon: TrendingUp,
-              label: `Bonus up to ${usd(topBonus.amount)} per post`,
+              label: `Up to ${usd(topBonus.amount)} bonus per video`,
             }
           : null,
         postTerms.cpm?.length && postTerms.cpmCap
-          ? { icon: TrendingUp, label: `Up to ${usd(cpmBonus(postTerms.cpmCap, postTerms.cpm))} per post, counting up to ${compactViews(postTerms.cpmCap)} views` }
+          ? { icon: TrendingUp, label: `Up to ${usd(cpmBonus(postTerms.cpmCap, postTerms.cpm))} bonus per video` }
           : null,
         { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` },
         { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
