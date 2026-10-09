@@ -58,6 +58,9 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
           }
           actions={
             <>
+              <Button variant="outline" nativeButton={false} render={<Link href={`/brand/campaigns/${c.id}/preview`} />}>
+                See how creators see it
+              </Button>
               <Button variant="outline" nativeButton={false} render={<Link href={`/brand/campaigns/${c.id}/edit`} />}>
                 Edit campaign
               </Button>

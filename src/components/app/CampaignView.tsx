@@ -40,6 +40,7 @@ export function CampaignView({
   cta,
   notice,
   below,
+  back = { href: "/dashboard/recruiting/jobs", label: "← Campaigns" },
 }: {
   job: Job & { niches: { label: string } | null };
   terms: PayoutTerms | null;
@@ -51,6 +52,8 @@ export function CampaignView({
   cta?: ReactNode;
   notice?: ReactNode;
   below?: ReactNode;
+  /** Where the small link over the banner goes (a brand previewing its own campaign goes back to its page). */
+  back?: { href: string; label: string };
 }) {
   const chips = postTerms
     ? postTermsChips(postTerms)
@@ -141,10 +144,10 @@ export function CampaignView({
               logoUrl={job.logo_url}
             />
             <Link
-              href="/dashboard/recruiting/jobs"
+              href={back.href}
               className="absolute top-2.5 left-2.5 rounded-md bg-black/50 px-2 py-1 text-xs font-medium text-white backdrop-blur hover:bg-black/70"
             >
-              ← Campaigns
+              {back.label}
             </Link>
           </div>
 
