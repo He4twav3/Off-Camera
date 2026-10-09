@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { postTermsSchema } from "@/lib/post-terms";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -279,4 +281,83 @@ export async function deleteJobAction(formData: FormData) {
 
   revalidatePath("/admin/jobs");
   revalidatePath("/dashboard/recruiting/jobs");
+}
+
+// --- the contract's pay terms ---------------------------------------------------------------
+
+export interface PayTermsState {
+  error?: string;
+  success?: string;
+}
+
+/**
+ * Edit a campaign's per-video pay terms: pay per video, videos per payment, bonuses, counting window,
+ * platforms, whether reposts earn the base, and who reviews posts. It changes what is owed on videos
+ * already made, so the page says so. Runs as the signed-in admin (RLS), not the service role.
+ */
+export async function updatePayTermsAction(_prev: PayTermsState, formData: FormData): Promise<PayTermsState> {
+  const jobId = z.string().uuid().safeParse(formData.get("job_id"));
+  if (!jobId.success) return { error: "Check the fields." };
+  const num = (k: string) => Number(String(formData.get(k) ?? "").replace(/,/g, "").trim());
+
+  const platforms = ["tiktok", "instagram", "youtube_shorts"].filter((p) => formData.getAll("platforms").includes(p));
+  if (platforms.length === 0) return { error: "Pick at least one platform." };
+
+  const views = formData.getAll("ms_views").map((x) => String(x).trim());
+  const amounts = formData.getAll("ms_amount").map((x) => String(x).trim());
+  const milestones: { views: number; amount: number }[] = [];
+  for (let i = 0; i < Math.max(views.length, amounts.length); i++) {
+    const a = views[i] ?? "";
+    const b = amounts[i] ?? "";
+    if (!a && !b) continue;
+    const n = Number(a.replace(/,/g, ""));
+    const m = Number(b);
+    if (!Number.isFinite(n) || !Number.isFinite(m) || n <= 0 || m <= 0)
+      return { error: "Each bonus needs a number of views and an amount above zero." };
+    milestones.push({ views: Math.round(n), amount: m });
+  }
+  if (new Set(milestones.map((m) => m.views)).size !== milestones.length)
+    return { error: "Two bonuses have the same number of views." };
+
+  const reviewer = formData.get("reviewer") === "brand" ? "brand" : "oncamera";
+  const terms = postTermsSchema.safeParse({
+    v: 2,
+    basePerPost: num("base"),
+    cycleSize: num("cycle"),
+    milestones,
+    windowDays: num("window"),
+    keepPublicDays: num("keep_public"),
+    platforms,
+    repostsEarnBase: formData.get("reposts_earn_base") === "on",
+    reviewer,
+  });
+  if (!terms.success)
+    return { error: terms.error.issues[0]?.message === "Required" ? "Fill in every pay field." : "Check the pay terms: every number must be valid." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("jobs")
+    .update({ post_terms: terms.data as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
+    .eq("id", jobId.data)
+    .select("id");
+  if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };
+
+  revalidatePath(`/admin/jobs/${jobId.data}`);
+  revalidatePath("/admin/jobs");
+  revalidatePath("/dashboard/recruiting", "layout");
+  revalidatePath("/brand", "layout");
+  return { success: "Pay terms saved. Every creator's figures now use them." };
+}
+
+/** Delete a campaign. Only when nobody has joined it: otherwise there is work and money tied to it. */
+export async function deleteEmptyJobAction(formData: FormData): Promise<void> {
+  const id = z.string().uuid().safeParse(formData.get("id"));
+  if (!id.success) return;
+  const supabase = await createClient();
+  const { count } = await supabase.from("assignments").select("*", { count: "exact", head: true }).eq("job_id", id.data);
+  if ((count ?? 0) > 0) return;
+  await supabase.from("jobs").delete().eq("id", id.data);
+  revalidatePath("/admin/jobs");
+  revalidatePath("/dashboard/recruiting/jobs");
+  redirect("/admin/jobs");
 }

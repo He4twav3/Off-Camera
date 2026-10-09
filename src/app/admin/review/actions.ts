@@ -21,6 +21,7 @@ export async function approvePostAction(formData: FormData): Promise<void> {
     .eq("id", parsed.data.post_id)
     .neq("state", "rejected");
   revalidatePath("/admin/review");
+  revalidatePath("/admin/jobs", "layout");
   revalidatePath("/admin/statements");
   revalidatePath("/dashboard/recruiting", "layout");
 }
@@ -38,6 +39,7 @@ export async function denyPostAsAdminAction(formData: FormData): Promise<void> {
     })
     .eq("id", parsed.data.post_id);
   revalidatePath("/admin/review");
+  revalidatePath("/admin/jobs", "layout");
   revalidatePath("/admin/statements");
   revalidatePath("/dashboard/recruiting", "layout");
 }

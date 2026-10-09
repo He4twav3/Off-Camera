@@ -36,7 +36,7 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
     {
       label: "Campaigns",
       items: [
-        { href: "/admin/jobs", label: "Jobs", icon: "jobs", blurb: "Create, edit and close campaigns, and set their pay terms." },
+        { href: "/admin/jobs", label: "Campaigns", icon: "jobs", blurb: "Every campaign: its creators, videos, pay terms and payments." },
         { href: "/admin/campaigns", label: "Campaign signups", icon: "signups", blurb: "Review sign-ups and count their views." },
         { href: "/admin/review", label: "Post review", icon: "signups", blurb: "Check each post before it counts toward what a brand owes." },
       ],
@@ -46,6 +46,7 @@ export function adminNavGroups(directPay: boolean): AdminNavGroup[] {
       items: directPay
         ? [
             { href: "/admin/statements", label: "Statements", icon: "statements", blurb: "Issue statements and track who has paid." },
+            { href: "/admin/payout-details", label: "Payout details", icon: "payouts", blurb: "Each creator's email and payment link, to copy or open." },
             { href: "/admin/fees", label: "Fees", icon: "fees", blurb: "What each brand owes us, per campaign and creator." },
           ]
         : [

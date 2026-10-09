@@ -1,122 +1,82 @@
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
+import { Body, Head, Table, Td, Th } from "@/components/admin/table";
+import { loadAdminWorkspace } from "@/lib/admin-workspace";
+import { postTermsChips } from "@/lib/post-terms";
+import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "./JobForm";
-import { deleteJobAction } from "./actions";
-import {
-  PLATFORM_LABELS,
-  ACCOUNT_REQUIREMENT_LABELS,
-  formatPayoutSummary,
-  formatDate,
-} from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Jobs · Admin" };
+export const metadata: Metadata = { title: "Campaigns · Admin" };
+
+const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 
 export default async function AdminJobsPage() {
   const supabase = await createClient();
-
-  const [{ data: jobs }, { data: niches }, { data: brands }] = await Promise.all([
-    supabase
-      .from("jobs")
-      .select("*, niches(label)")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("niches")
-      .select("id, label")
-      .eq("is_active", true)
-      .order("label"),
-    supabase
-      .from("brand_accounts")
-      .select("id, company_name")
-      .eq("status", "approved")
-      .order("company_name"),
+  const [ws, { data: niches }, { data: brands }] = await Promise.all([
+    loadAdminWorkspace(supabase),
+    supabase.from("niches").select("id, label").eq("is_active", true).order("label"),
+    supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),
   ]);
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-3xl font-semibold text-foreground">
-            Jobs
-          </h1>
+          <h1 className="font-heading text-3xl font-semibold text-foreground">Campaigns</h1>
           <p className="mt-2 text-[15px] text-muted-foreground">
-            Every campaign here is entered by hand. Nothing is imported from
-            anywhere.
+            Open a campaign to see its creators, their videos and payments, and to edit its pay terms and details.
           </p>
         </div>
         <JobForm niches={niches ?? []} brands={brands ?? []} />
       </header>
 
-      {!jobs || jobs.length === 0 ? (
-        <Card className="border-border/70 py-12 text-center">
-          <CardContent>
-            <h2 className="font-heading text-xl font-semibold text-foreground">
-              No jobs yet
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-[15px] text-muted-foreground">
-              Create your first campaign with the “New job” button above.
-            </p>
-          </CardContent>
-        </Card>
+      {ws.campaigns.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
+          No campaigns yet. Create the first with the button above.
+        </p>
       ) : (
-        <ul className="flex flex-col gap-4">
-          {jobs.map((job) => (
-            <li key={job.id}>
-              <Card className="border-border/70">
-                <CardContent>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge tone={jobStatusTone(job.status)}>
-                        {job.status === "open"
-                          ? "Open"
-                          : job.status === "filled"
-                            ? "Filled"
-                            : "Closed"}
-                      </StatusBadge>
-                      <StatusBadge tone="neutral">
-                        {PLATFORM_LABELS[job.platform]}
-                      </StatusBadge>
-                      {job.niches && (
-                        <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>
-                      )}
-                    </div>
-                    <h2 className="mt-3 font-heading text-lg font-semibold text-foreground">
-                      {job.title}
-                    </h2>
-                    <p className="mt-1 text-[15px] text-muted-foreground">
-                      {formatPayoutSummary(job.payout_type, job.payout_amount)}{" "}
-                      · {ACCOUNT_REQUIREMENT_LABELS[job.account_requirement]} ·
-                      Created {formatDate(job.created_at)}
-                    </p>
-                  </div>
-
-                  <div className="flex shrink-0 gap-3">
-                    <JobForm niches={niches ?? []} brands={brands ?? []} job={job} />
-                    <Link
-                      href={`/admin/jobs/${job.id}/contract`}
-                      className="flex min-h-9 items-center text-sm font-semibold text-primary underline underline-offset-2"
-                    >
-                      Contract
-                    </Link>
-                    <form action={deleteJobAction}>
-                      <input type="hidden" name="id" value={job.id} />
-                      <button
-                        type="submit"
-                        className="min-h-9 cursor-pointer px-2 text-sm font-semibold text-destructive underline underline-offset-2 transition-opacity duration-200 hover:opacity-80"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </div>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
-        </ul>
+        <Table min="60rem">
+          <Head>
+            <Th>Campaign</Th>
+            <Th>Brand</Th>
+            <Th>Status</Th>
+            <Th>Pay</Th>
+            <Th right>Creators</Th>
+            <Th right>Videos</Th>
+            <Th right>Views</Th>
+            <Th right>Earned</Th>
+            <Th right>Brand owes</Th>
+            <Th right>In review</Th>
+          </Head>
+          <Body>
+            {ws.campaigns.map((c) => (
+              <tr key={c.id} className="hover:bg-muted/30">
+                <Td>
+                  <Link href={`/admin/jobs/${c.id}`} className="font-medium text-foreground hover:underline">
+                    {c.title}
+                  </Link>
+                  <span className="block text-xs text-muted-foreground">
+                    {PLATFORM_LABELS[c.platform as keyof typeof PLATFORM_LABELS] ?? c.platform}
+                    {c.nicheLabel ? ` · ${c.nicheLabel}` : ""} · {formatDate(c.createdAt)}
+                  </span>
+                </Td>
+                <Td muted>{c.brandName ?? "No brand yet"}</Td>
+                <Td>
+                  <StatusBadge tone={jobStatusTone(c.status)}>{STATUS[c.status]}</StatusBadge>
+                </Td>
+                <Td muted>{c.terms ? postTermsChips(c.terms)[0] : "Older formula"}</Td>
+                <Td right>{c.creators.length}</Td>
+                <Td right>{c.videos}</Td>
+                <Td right>{c.views.toLocaleString()}</Td>
+                <Td right>{formatCurrency(c.earned)}</Td>
+                <Td right>{formatCurrency(Math.max(0, c.statemented - c.paid))}</Td>
+                <Td right>{c.awaitingReview}</Td>
+              </tr>
+            ))}
+          </Body>
+        </Table>
       )}
     </div>
   );

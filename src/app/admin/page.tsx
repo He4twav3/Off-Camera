@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/utils";
 import { isDirectPay, statementState } from "@/lib/direct-pay";
-import { adminNavGroups } from "@/lib/admin-nav";
 import { OverviewView, type QueueItem } from "@/components/admin/overview-view";
+import { loadAdminWorkspace } from "@/lib/admin-workspace";
 
 export const metadata: Metadata = { title: "Overview · Admin" };
 
@@ -73,5 +73,6 @@ export default async function AdminHomePage() {
     queue.push({ label: "Disputes open", value: String(n(disputed)), href: "/admin/payouts", urgent: n(disputed) > 0 });
   }
 
-  return <OverviewView summary={summary} queue={queue} groups={adminNavGroups(direct)} />;
+  const ws = await loadAdminWorkspace(supabase);
+  return <OverviewView summary={summary} queue={queue} ws={ws} />;
 }
