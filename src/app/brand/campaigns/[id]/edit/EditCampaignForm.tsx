@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
 import { RequirementsFields } from "@/components/RequirementsFields";
-import type { Requirements } from "@/lib/post-terms";
+import { PayTermsFields } from "@/components/PayTermsFields";
+import type { PostTerms, Requirements } from "@/lib/post-terms";
 import { updateCampaignAction, type EditCampaignState } from "../../../actions";
 
 function Save() {
@@ -32,7 +33,10 @@ export function EditCampaignForm({
     formats: string;
     examples: string;
     platforms: string[];
+    platformValues: string[];
     requirements?: Requirements;
+    pay: PostTerms | null;
+    hasCreators: boolean;
   };
   niches: { id: string; label: string }[];
 }) {
@@ -42,12 +46,17 @@ export function EditCampaignForm({
       <input type="hidden" name="job_id" value={campaign.id} />
       <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
         <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
-        <p className="text-sm text-foreground">
-          <span className="text-muted-foreground">Post on </span>
-          {campaign.platforms.join(", ")}
-        </p>
-        <RequirementsFields initial={campaign.requirements} />
+        <RequirementsFields initial={campaign.requirements} platforms={campaign.platformValues} />
       </section>
+      {campaign.pay && (
+        <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
+          <h2 className="font-heading text-base font-semibold text-foreground">Pay</h2>
+          <PayTermsFields terms={campaign.pay} />
+          {campaign.hasCreators && (
+            <p className="text-sm text-muted-foreground">Creators are already on this campaign: a change applies to all their videos, and you will be asked to agree to the contract again.</p>
+          )}
+        </section>
+      )}
       <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
         <Field label="Campaign name" htmlFor="title">
           <Input id="title" name="title" required maxLength={120} defaultValue={campaign.title} />

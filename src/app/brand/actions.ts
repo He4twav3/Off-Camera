@@ -5,9 +5,10 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
-import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
+import { parsePostTerms, postTermsSchema, type PostTerms } from "@/lib/post-terms";
 import { termsFingerprint } from "@/lib/contract";
 import { parseRequirements } from "@/lib/requirements";
+import { parsePayTermsFields } from "@/lib/pay-terms-form";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -585,16 +586,29 @@ export async function updateCampaignAction(
   const brand = await approvedBrand();
   if (!brand) return { error: "Your brand account isn't approved yet." };
 
-  // The requirements live with the pay terms; the rest of the terms stay exactly as they are.
+  // Pay terms and requirements are saved together with the brief. Who approves and the signed contract stay as they are:
+  // if the pay terms changed, the contract no longer matches and the brand is asked to agree to it again.
   const db = createAdminClient();
   const { data: current } = await db.from("jobs").select("post_terms").eq("id", parsed.data.job_id).eq("brand_account_id", brand.id).maybeSingle();
   const currentTerms = current ? parsePostTerms(current.post_terms) : null;
-  const nextTerms = currentTerms ? { ...currentTerms, requirements: requirements.value } : null;
+  let nextTerms: PostTerms | null = null;
+  if (currentTerms) {
+    const pay = parsePayTermsFields((k) => String(formData.get(k) ?? ""), (k) => formData.getAll(k).map(String));
+    if (!pay.ok) return { error: pay.error };
+    const merged = postTermsSchema.safeParse({
+      ...currentTerms,
+      ...pay.value,
+      v: 2,
+      requirements: requirements.value,
+    });
+    if (!merged.success) return { error: "Check the pay terms: every number must be valid." };
+    nextTerms = merged.data;
+  }
 
   const { data, error } = await db
     .from("jobs")
     .update({
-      ...(nextTerms ? { post_terms: nextTerms as unknown as Record<string, unknown> } : {}),
+      ...(nextTerms ? { post_terms: nextTerms as unknown as Record<string, unknown>, payout_amount: nextTerms.basePerPost } : {}),
       title: parsed.data.title,
       niche_id: parsed.data.niche_id,
       about: parsed.data.about || null,

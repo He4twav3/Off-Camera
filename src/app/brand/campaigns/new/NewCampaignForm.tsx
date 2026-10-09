@@ -18,11 +18,6 @@ function Submit() {
   );
 }
 
-const PLATFORMS = [
-  { value: "tiktok", label: "TikTok" },
-  { value: "instagram", label: "Instagram" },
-  { value: "youtube_shorts", label: "YouTube" },
-];
 
 const DEFAULT_BONUSES = [
   { views: "1000", amount: "2" },
@@ -47,22 +42,10 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
   // After a mistake the form is put back as it was typed, so nothing is lost.
   const f = state.values?.fields ?? {};
   const val = (name: string, fallback = "") => f[name] ?? fallback;
-  const platformOn = (p: string) => (state.values ? state.values.platforms.includes(p) : true);
   return (
     <form action={action} className="flex flex-col gap-5">
       <Section title="Requirements" hint="The first thing creators read. Set what you expect.">
-        <fieldset>
-          <legend className="text-[15px] font-semibold text-foreground">Where creators post</legend>
-          <div className="mt-2 flex flex-wrap gap-4">
-            {PLATFORMS.map((p) => (
-              <label key={p.value} className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                <input type="checkbox" name="platforms" value={p.value} defaultChecked={platformOn(p.value)} className="size-4" />
-                {p.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <RequirementsFields />
+        <RequirementsFields platforms={state.values ? state.values.platforms : undefined} />
       </Section>
 
       <Section title="Approving videos" hint="Every video is checked before it is paid. You can change this later.">
