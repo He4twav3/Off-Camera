@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { BrandShell } from "./BrandShell";
 import { createClient } from "@/lib/supabase/server";
+import { loadBrandWorkspace } from "@/lib/brand-workspace";
 
 /**
  * The brand side's own shell — separate from the creator/course dashboard,
@@ -18,10 +19,18 @@ export default async function BrandLayout({ children }: { children: ReactNode })
 
   const { data: brand } = await supabase
     .from("brand_accounts")
-    .select("id, company_name")
+    .select("id, company_name, status")
     .eq("user_id", user.id)
     .maybeSingle();
   if (!brand) redirect("/dashboard");
 
-  return <BrandShell company={brand.company_name}>{children}</BrandShell>;
+  // The number beside Approvals: videos this brand has chosen to approve itself and hasn't yet.
+  const ws = brand.status === "approved" ? await loadBrandWorkspace(brand.id) : null;
+  const approvals = (ws?.campaigns ?? []).reduce((n, c) => n + (c.reviewer === "brand" ? c.awaitingReview : 0), 0);
+
+  return (
+    <BrandShell company={brand.company_name} approvals={approvals}>
+      {children}
+    </BrandShell>
+  );
 }

@@ -15,7 +15,7 @@ export default async function NewCampaignPage() {
   return (
     <PageShell>
       <div className="mx-auto max-w-3xl">
-        <Link href="/brand/campaigns" className="text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/brand" className="text-sm text-muted-foreground hover:text-foreground">
           ← Campaigns
         </Link>
         <div className="mt-3">

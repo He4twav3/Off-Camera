@@ -1,24 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Megaphone, Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState, PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
-import { cpm, platformSplit, topPosts } from "@/lib/brand-stats";
-import { PLATFORM_LABELS, formatCurrency } from "@/lib/utils";
+import { cpm, topPosts } from "@/lib/brand-stats";
+import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { loadBrandPage } from "./_brand";
 import { PendingNotice } from "./PendingNotice";
 
-export const metadata: Metadata = { title: "Overview" };
+export const metadata: Metadata = { title: "Campaigns" };
 
 const label = (p: string) => PLATFORM_LABELS[p as keyof typeof PLATFORM_LABELS] ?? p;
+const STATUS = {
+  open: { label: "Open", tone: "open" as const },
+  filled: { label: "Filled", tone: "closed" as const },
+  closed: { label: "Closed", tone: "closed" as const },
+};
 
-export default async function BrandOverviewPage() {
+/**
+ * The brand's home: the whole picture (views, what creators earned, what is still to pay), then each campaign,
+ * which opens to edit it and see its creators. Overview and Campaigns used to be two pages saying the same thing.
+ */
+export default async function BrandHomePage() {
   const { brand, ws, approved } = await loadBrandPage("/brand");
-  const heading = <PageHeader title={brand.companyName} />;
+  const newCampaign = (
+    <Button nativeButton={false} render={<Link href="/brand/campaigns/new" />}>
+      <Plus className="size-4" />
+      New campaign
+    </Button>
+  );
   if (!approved)
     return (
       <PageShell>
-        {heading}
+        <PageHeader title={brand.companyName} />
         <PendingNotice status={brand.status} />
       </PageShell>
     );
@@ -26,18 +41,10 @@ export default async function BrandOverviewPage() {
   if (ws.campaigns.length === 0)
     return (
       <PageShell>
-        <PageHeader
-          title={brand.companyName}
-          actions={
-            <Button nativeButton={false} render={<Link href="/brand/campaigns/new" />}>
-              <Plus className="size-4" />
-              New campaign
-            </Button>
-          }
-        />
+        <PageHeader title={brand.companyName} actions={newCampaign} />
         <EmptyState
           title="Launch your first campaign"
-          body="Set what you pay per video, write a short brief, and creators can join straight away."
+          body="Choose who approves your videos, set what you pay per video and write a short brief. Creators can join straight away."
         />
       </PageShell>
     );
@@ -47,124 +54,123 @@ export default async function BrandOverviewPage() {
   const earned = ws.campaigns.reduce((n, c) => n + c.earned, 0);
   const paid = ws.campaigns.reduce((n, c) => n + c.paid, 0);
   const due = Math.max(0, ws.campaigns.reduce((n, c) => n + c.payable, 0) - paid);
-  const awaiting = ws.campaigns.reduce((n, c) => n + (c.reviewer === "brand" ? c.awaitingReview : 0), 0);
-  const needs = ws.campaigns.filter((c) => c.reviewer === "brand" && c.awaitingReview > 0);
   const cost = cpm(earned, views);
-  const split = platformSplit(ws.posts);
   const best = topPosts(ws.posts, 3);
-  const maxCampaign = Math.max(1, ...ws.campaigns.map((c) => c.views));
+  const people = new Set(ws.creators.map((c) => c.applicantId)).size;
 
   return (
     <PageShell>
-      <PageHeader
-        title={brand.companyName}
-        actions={
-          <Button nativeButton={false} render={<Link href="/brand/campaigns/new" />}>
-            <Plus className="size-4" />
-            New campaign
-          </Button>
-        }
-      />
+      <PageHeader title={brand.companyName} actions={newCampaign} />
 
       <StatGrid>
         <Stat label="Total views" value={views.toLocaleString()} />
-        <Stat label="Videos" value={counted.length.toLocaleString()} hint={`${new Set(ws.creators.map((c) => c.applicantId)).size} creators`} />
+        <Stat label="Videos" value={counted.length.toLocaleString()} hint={`${people} ${people === 1 ? "creator" : "creators"}`} />
         <Stat label="Earned by creators" value={formatCurrency(earned)} hint={cost === null ? "No views yet" : `${formatCurrency(cost)} per 1,000 views`} />
         <Stat label="Still to pay" value={formatCurrency(due)} attention={due > 0} hint={`${formatCurrency(paid)} paid so far`} />
       </StatGrid>
 
-      {awaiting > 0 && (
-        <Link
-          href={needs.length === 1 ? `/brand/campaigns/${needs[0].id}` : "/brand/campaigns"}
-          className="mb-6 block rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground"
-        >
-          {awaiting} {awaiting === 1 ? "video is" : "videos are"} waiting for your approval →
-        </Link>
-      )}
+      <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Your campaigns</h2>
+      <div className="mb-8 overflow-x-auto rounded-xl border border-border/70 bg-card">
+        <table className="w-full min-w-[46rem] text-left text-sm">
+          <thead className="border-b border-border/70 text-xs text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3 font-medium">Campaign</th>
+              <th className="px-3 py-3 font-medium">Status</th>
+              <th className="px-3 py-3 font-medium">To do</th>
+              <th className="px-3 py-3 text-right font-medium">Creators</th>
+              <th className="px-3 py-3 text-right font-medium">Videos</th>
+              <th className="px-3 py-3 text-right font-medium">Views</th>
+              <th className="px-3 py-3 text-right font-medium">Earned</th>
+              <th className="w-10 px-3 py-3" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/70">
+            {ws.campaigns.map((c) => {
+              const toApprove = c.reviewer === "brand" ? c.awaitingReview : 0;
+              const toPay = Math.max(0, c.payable - c.paid);
+              return (
+                <tr key={c.id} className="hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <Link href={`/brand/campaigns/${c.id}`} className="font-medium text-foreground hover:underline">
+                      {c.title}
+                    </Link>
+                    <span className="block text-xs text-muted-foreground">
+                      {label(c.platform)} · Started {formatDate(c.createdAt)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3">
+                    <StatusBadge tone={STATUS[c.status].tone}>{STATUS[c.status].label}</StatusBadge>
+                  </td>
+                  <td className="px-3 py-3">
+                    {toApprove === 0 && toPay <= 0 ? (
+                      <span className="text-xs text-muted-foreground">All done</span>
+                    ) : (
+                      <ul className="flex flex-col gap-0.5 text-xs font-semibold">
+                        {toApprove > 0 && (
+                          <li>
+                            <Link href="/brand/approvals" className="text-primary hover:underline">
+                              {toApprove} {toApprove === 1 ? "video" : "videos"} to approve
+                            </Link>
+                          </li>
+                        )}
+                        {toPay > 0 && (
+                          <li>
+                            <Link href="/brand/payments" className="text-primary hover:underline">
+                              {formatCurrency(toPay)} to pay
+                            </Link>
+                          </li>
+                        )}
+                      </ul>
+                    )}
+                  </td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.creators.length}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.postsCounted}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.views.toLocaleString()}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
+                  <td className="px-3 py-3 text-right">
+                    <Link href={`/brand/campaigns/${c.id}`} aria-label={`Open ${c.title}`}>
+                      <ChevronRight className="size-4 text-muted-foreground" />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-border/70 bg-card p-5">
-          <h2 className="font-heading text-base font-semibold text-foreground">Views by campaign</h2>
-          <ul className="mt-4 flex flex-col gap-3">
-            {ws.campaigns.map((c) => (
-              <li key={c.id}>
-                <Link href={`/brand/campaigns/${c.id}`} className="block">
-                  <div className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="truncate font-medium text-foreground">{c.title}</span>
-                    <span className="tabular-nums text-muted-foreground">{c.views.toLocaleString()} views</span>
-                  </div>
-                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(2, (c.views / maxCampaign) * 100)}%` }} />
-                  </div>
-                </Link>
+      {best.length > 0 && (
+        <section>
+          <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Best videos</h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {best.map((p, i) => (
+              <li key={p.id} className="flex flex-col rounded-xl border border-border/70 bg-card p-5">
+                <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
+                  <span>#{i + 1}</span>
+                  <span>{label(p.platform)}</span>
+                </div>
+                <p className="mt-3 font-heading text-2xl font-semibold tabular-nums text-foreground">
+                  {p.views.toLocaleString()}
+                  <span className="ml-1.5 text-sm font-medium text-muted-foreground">views</span>
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">{p.creatorName}</p>
+                <p className="text-sm text-muted-foreground">{p.campaignTitle}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 w-full"
+                  nativeButton={false}
+                  render={<a href={p.url} target="_blank" rel="noopener noreferrer" />}
+                >
+                  Watch video
+                </Button>
               </li>
             ))}
           </ul>
         </section>
+      )}
 
-        <section className="rounded-xl border border-border/70 bg-card p-5">
-          <h2 className="font-heading text-base font-semibold text-foreground">Views by platform</h2>
-          {split.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">No videos are counting yet.</p>
-          ) : (
-            <ul className="mt-4 flex flex-col gap-3">
-              {split.map((s) => (
-                <li key={s.platform}>
-                  <div className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="font-medium text-foreground">{label(s.platform)}</span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {s.views.toLocaleString()} views · {s.posts} {s.posts === 1 ? "video" : "videos"}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(2, (s.views / Math.max(1, split[0].views)) * 100)}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="lg:col-span-2">
-          <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Best videos</h2>
-          {best.length === 0 ? (
-            <p className="rounded-xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
-              Videos appear here once they are counting.
-            </p>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {best.map((p, i) => (
-                <li key={p.id} className="flex flex-col rounded-xl border border-border/70 bg-card p-5">
-                  <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
-                    <span>#{i + 1}</span>
-                    <span>{label(p.platform)}</span>
-                  </div>
-                  <p className="mt-3 font-heading text-2xl font-semibold tabular-nums text-foreground">
-                    {p.views.toLocaleString()}
-                    <span className="ml-1.5 text-sm font-medium text-muted-foreground">views</span>
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-foreground">{p.creatorName}</p>
-                  <p className="text-sm text-muted-foreground">{p.campaignTitle}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-4 w-full"
-                    nativeButton={false}
-                    render={<a href={p.url} target="_blank" rel="noopener noreferrer" />}
-                  >
-                    Watch video
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-        <Megaphone className="size-4" />
-        Views are read from each platform about once a day.
-      </p>
+      <p className="mt-6 text-sm text-muted-foreground">Views are read from each platform about once a day.</p>
     </PageShell>
   );
 }

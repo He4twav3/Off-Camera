@@ -21,9 +21,12 @@ function BrandLogo() {
 export function BrandShell({
   children,
   company = "Your brand",
+  approvals = 0,
 }: {
   children: ReactNode;
   company?: string;
+  /** Videos waiting for this brand to approve. */
+  approvals?: number;
 }) {
   return (
     <div className="app-ui relative z-10 flex min-h-full flex-1">
@@ -33,7 +36,7 @@ export function BrandShell({
             <BrandLogo />
           </div>
           <div className="flex-1">
-            <BrandNav variant="rail" />
+            <BrandNav variant="rail" approvals={approvals} />
           </div>
           <div className="border-t border-border pt-3">
             <div className="flex items-center gap-3 rounded-lg px-3 py-2">
@@ -54,7 +57,7 @@ export function BrandShell({
             <BrandLogo />
             <span className="truncate text-sm font-medium text-muted-foreground">{company}</span>
           </div>
-          <BrandNav variant="row" />
+          <BrandNav variant="row" approvals={approvals} />
         </header>
         <main className="w-full flex-1">{children}</main>
       </div>

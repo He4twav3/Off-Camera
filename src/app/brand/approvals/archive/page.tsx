@@ -1,33 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { EmptyState, PageHeader, PageShell } from "@/components/kit/ui";
 import { PLATFORM_LABELS, formatDate } from "@/lib/utils";
-import { loadBrandPage } from "../../../_brand";
-import { PendingNotice } from "../../../PendingNotice";
+import { loadBrandPage } from "../../_brand";
+import { PendingNotice } from "../../PendingNotice";
 
 export const metadata: Metadata = { title: "Archive" };
 
-/** Videos that were approved. They leave the approval list and are kept here. */
-export default async function BrandArchivePage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
-  const { brand, ws, approved } = await loadBrandPage(`/brand/campaigns/${id}/archive`);
+/** Videos the brand approved. They leave the approval list and are kept here. */
+export default async function BrandApprovalsArchivePage() {
+  const { brand, ws, approved } = await loadBrandPage("/brand/approvals/archive");
   if (!approved)
     return (
       <PageShell>
         <PendingNotice status={brand.status} />
       </PageShell>
     );
-  const c = ws.campaigns.find((x) => x.id === id);
-  if (!c) notFound();
-  const rows = c.posts
+  const rows = ws.campaigns
+    .filter((c) => c.reviewer === "brand")
+    .flatMap((c) => c.posts)
     .filter((p) => p.counted && p.reviewed === true)
     .sort((a, b) => new Date(b.approvedAt ?? b.submittedAt).getTime() - new Date(a.approvedAt ?? a.submittedAt).getTime());
 
   return (
     <PageShell>
-      <Link href={`/brand/campaigns/${c.id}`} className="text-sm text-muted-foreground hover:text-foreground">
-        ← {c.title}
+      <Link href="/brand/approvals" className="text-sm text-muted-foreground hover:text-foreground">
+        ← Approvals
       </Link>
       <div className="mt-3">
         <PageHeader title="Archive" summary="Videos you have approved." />
@@ -41,7 +39,7 @@ export default async function BrandArchivePage(props: { params: Promise<{ id: st
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-foreground">{p.creatorName}</p>
                 <p className="text-muted-foreground">
-                  {PLATFORM_LABELS[p.platform as keyof typeof PLATFORM_LABELS] ?? p.platform} · {p.views.toLocaleString()} views
+                  {p.campaignTitle} · {PLATFORM_LABELS[p.platform as keyof typeof PLATFORM_LABELS] ?? p.platform} · {p.views.toLocaleString()} views
                   {p.approvedAt ? ` · approved ${formatDate(p.approvedAt)}` : ""}
                 </p>
               </div>

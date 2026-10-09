@@ -13,7 +13,6 @@ import { PendingNotice } from "../../PendingNotice";
 import { CampaignLogoForm } from "../../CampaignLogoForm";
 import { ReviewerChoice } from "../../ReviewerChoice";
 import { CampaignStatusButton } from "../../CampaignStatusButton";
-import { ApprovePostForm, DenyPostForm } from "../../DenyPostForm";
 
 export const metadata: Metadata = { title: "Campaign" };
 
@@ -35,13 +34,12 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
   const due = Math.max(0, c.payable - c.paid);
   const cost = cpm(c.earned, views);
   const split = platformSplit(c.posts);
-  const queue = c.posts.filter((p) => p.counted && p.reviewed === false);
+  const awaiting = c.posts.filter((p) => p.counted && p.reviewed === false).length;
   const ownReview = c.reviewer === "brand";
-  const archived = c.posts.filter((p) => p.counted && p.reviewed === true).length;
 
   return (
     <PageShell>
-      <Link href="/brand/campaigns" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link href="/brand" className="text-sm text-muted-foreground hover:text-foreground">
         ← Campaigns
       </Link>
       <div className="mt-3">
@@ -77,6 +75,23 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
         </p>
       )}
 
+      {c.reviewer && (
+        <section className="mb-6 rounded-xl border border-border/70 bg-card p-5">
+          <ReviewerChoice jobId={c.id} reviewer={c.reviewer} />
+          {ownReview && (
+            <p className="mt-3 text-sm">
+              {awaiting > 0 ? (
+                <Link href="/brand/approvals" className="font-semibold text-primary hover:underline">
+                  {awaiting} {awaiting === 1 ? "video is" : "videos are"} waiting for you → Approvals
+                </Link>
+              ) : (
+                <span className="text-muted-foreground">Nothing waiting for you right now.</span>
+              )}
+            </p>
+          )}
+        </section>
+      )}
+
       <StatGrid>
         <Stat label="Views" value={views.toLocaleString()} />
         <Stat label="Videos" value={c.postsCounted.toLocaleString()} hint={`${c.creators.length} ${c.creators.length === 1 ? "creator" : "creators"}`} />
@@ -86,53 +101,6 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <section className="rounded-xl border border-border/70 bg-card p-5">
-            <h2 className="font-heading text-base font-semibold text-foreground">
-              Videos waiting for approval{queue.length > 0 ? ` (${queue.length})` : ""}
-            </h2>
-            {!ws.reviewAvailable ? (
-              <p className="mt-3 text-sm text-muted-foreground">Video approval is being switched on for your account.</p>
-            ) : queue.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">Nothing waiting. New videos appear here once their account is checked.</p>
-            ) : (
-              <>
-                {!ownReview && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    OnCamera is reviewing these for you. You can still deny any video.
-                  </p>
-                )}
-                <ul className="mt-3 divide-y divide-border/70">
-                  {queue.map((p) => (
-                    <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3 text-sm">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">{p.creatorName}</p>
-                        <p className="text-muted-foreground">
-                          {label(p.platform)} · {p.views.toLocaleString()} views · added {formatDate(p.submittedAt)}
-                        </p>
-                      </div>
-                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline underline-offset-2">
-                        Watch
-                      </a>
-                      <span className="flex items-center gap-3">
-                        {ownReview && <ApprovePostForm postId={p.id} />}
-                        <DenyPostForm postId={p.id} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {ws.reviewAvailable && (
-              <Link
-                href={`/brand/campaigns/${c.id}/archive`}
-                className="mt-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                Archive ({archived})
-                <ChevronRight className="size-3" />
-              </Link>
-            )}
-          </section>
-
           <section className="rounded-xl border border-border/70 bg-card p-5">
             <h2 className="font-heading text-base font-semibold text-foreground">Creators</h2>
             {c.creators.length === 0 ? (
@@ -200,8 +168,7 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
           </section>
 
           <section className="flex flex-col gap-5 rounded-xl border border-border/70 bg-card p-5">
-            <h2 className="font-heading text-base font-semibold text-foreground">Settings</h2>
-            {c.reviewer && <ReviewerChoice jobId={c.id} reviewer={c.reviewer} />}
+            <h2 className="font-heading text-base font-semibold text-foreground">Logo</h2>
             <CampaignLogoForm jobId={c.id} logoUrl={c.logoUrl} />
           </section>
         </div>

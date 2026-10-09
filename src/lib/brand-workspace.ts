@@ -1,3 +1,4 @@
+import { cache } from "react";
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parsePostTerms, payFor, type PostTerms } from "@/lib/post-terms";
@@ -78,7 +79,7 @@ export type Workspace = { campaigns: WCampaign[]; creators: WCreator[]; posts: W
 
 const sum = (n: number[]) => Math.round(n.reduce((a, b) => a + b, 0) * 100) / 100;
 
-export async function loadBrandWorkspace(brandId: string): Promise<Workspace> {
+async function loadBrandWorkspaceUncached(brandId: string): Promise<Workspace> {
   const db = createAdminClient();
   const empty: Workspace = { campaigns: [], creators: [], posts: [], reviewAvailable: false };
 
@@ -218,3 +219,6 @@ export async function loadBrandWorkspace(brandId: string): Promise<Workspace> {
     reviewAvailable: review.available,
   };
 }
+
+/** One load per request, shared by the menu badge and the page. */
+export const loadBrandWorkspace = cache(loadBrandWorkspaceUncached);

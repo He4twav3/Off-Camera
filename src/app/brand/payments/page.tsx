@@ -11,7 +11,9 @@ import { PaymentRow } from "../BrandParts";
 
 export const metadata: Metadata = { title: "Payments" };
 
-export default async function BrandPaymentsPage() {
+export default async function BrandPaymentsPage(props: { searchParams: Promise<{ archive?: string }> }) {
+  const { archive } = await props.searchParams;
+  const showArchive = archive === "1";
   const { brand, ws, approved } = await loadBrandPage("/brand/payments");
   if (!approved)
     return (
@@ -24,64 +26,40 @@ export default async function BrandPaymentsPage() {
   const statements = await getBrandStatements(brand.id);
   const open = statements.filter((s) => statementState(s) !== "confirmed");
   const done = statements.filter((s) => statementState(s) === "confirmed");
-  const earned = ws.creators.reduce((n, c) => n + c.earned, 0);
   const paid = ws.creators.reduce((n, c) => n + c.paid, 0);
   const toPay = open.filter((s) => !s.brand_paid_at && !s.creator_confirmed_at).reduce((n, s) => n + s.amount, 0);
-  const rows = [...ws.creators].filter((c) => c.earned > 0 || c.paid > 0).sort((a, b) => b.earned - a.earned);
+
+  if (showArchive)
+    return (
+      <PageShell>
+        <Link href="/brand/payments" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Payments
+        </Link>
+        <div className="mt-3">
+          <PageHeader title="Archive" summary="Payments the creator has confirmed receiving." />
+        </div>
+        {done.length === 0 ? (
+          <EmptyState title="Nothing archived yet" body="Confirmed payments are kept here." />
+        ) : (
+          <RowList>
+            {done.map((s) => (
+              <PaymentRow key={s.id} s={s} />
+            ))}
+          </RowList>
+        )}
+      </PageShell>
+    );
 
   return (
     <PageShell>
-      <PageHeader title="Payments" summary="What each creator has earned, what is due, and what you have paid." />
+      <PageHeader title="Payments" summary="What you owe each creator. Pay through their link, then mark it paid." />
       <StatGrid>
-        <Stat label="Earned by creators" value={formatCurrency(earned)} />
-        <Stat label="Paid" value={formatCurrency(paid)} />
-        <Stat label="To pay now" value={formatCurrency(toPay)} attention={toPay > 0} hint={open.length ? `${open.length} ${open.length === 1 ? "statement" : "statements"} open` : "All paid"} />
+        <Stat label="To pay now" value={formatCurrency(toPay)} attention={toPay > 0} hint={open.length ? `${open.length} ${open.length === 1 ? "payment" : "payments"} open` : "All paid"} />
+        <Stat label="Paid so far" value={formatCurrency(paid)} />
       </StatGrid>
 
-      <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Each creator</h2>
-      {rows.length === 0 ? (
-        <EmptyState title="Nothing earned yet" body="Creators' earnings appear here as their videos are approved and counted." />
-      ) : (
-        <div className="mb-8 overflow-x-auto rounded-xl border border-border/70 bg-card">
-          <table className="w-full min-w-[38rem] text-left text-sm">
-            <thead className="border-b border-border/70 text-xs text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Creator</th>
-                <th className="px-3 py-3 font-medium">Campaign</th>
-                <th className="px-3 py-3 text-right font-medium">Earned</th>
-                <th className="px-3 py-3 text-right font-medium">Due now</th>
-                <th className="px-3 py-3 text-right font-medium">Paid</th>
-                <th className="w-10 px-3 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/70">
-              {rows.map((c) => (
-                <tr key={c.assignmentId}>
-                  <td className="px-4 py-3">
-                    <Link href={`/brand/creators/${c.assignmentId}`} className="font-medium text-foreground hover:underline">
-                      {c.name}
-                    </Link>
-                    <span className="block text-xs text-muted-foreground">@{c.handle}</span>
-                  </td>
-                  <td className="px-3 py-3 text-muted-foreground">{c.campaignTitle}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(Math.max(0, c.payable - c.paid))}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.paid)}</td>
-                  <td className="px-3 py-3 text-right">
-                    <Link href={`/brand/creators/${c.assignmentId}`} aria-label={`Open ${c.name}`}>
-                      <ChevronRight className="size-4 text-muted-foreground" />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Statements</h2>
-      {statements.length === 0 ? (
-        <EmptyState title="No statements yet" body="When a payment is due, it appears here with the creator's payment link." />
+      {open.length === 0 ? (
+        <EmptyState title="Nothing to pay" body="When a payment is due, it appears here with the creator's payment link." />
       ) : (
         <div className="flex flex-col gap-4">
           <Notice>
@@ -89,12 +67,17 @@ export default async function BrandPaymentsPage() {
             dollars and cover any fees so they receive all of it. Then mark it as paid so they can confirm.
           </Notice>
           <RowList>
-            {[...open, ...done].map((s) => (
+            {open.map((s) => (
               <PaymentRow key={s.id} s={s} />
             ))}
           </RowList>
         </div>
       )}
+
+      <Link href="/brand/payments?archive=1" className="mt-6 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+        Archive ({done.length})
+        <ChevronRight className="size-3" />
+      </Link>
     </PageShell>
   );
 }

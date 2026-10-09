@@ -13,7 +13,7 @@ export default async function BrandCreatorsPage() {
   const rows = [...ws.creators].sort((a, b) => b.views - a.views);
   return (
     <PageShell>
-      <PageHeader title="Creators" summary="Everyone working on your campaigns." />
+      <PageHeader title="Creators" summary="Everyone working on your campaigns, ranked by views." />
       {!approved ? (
         <PendingNotice status={brand.status} />
       ) : rows.length === 0 ? (
@@ -23,7 +23,8 @@ export default async function BrandCreatorsPage() {
           <table className="w-full min-w-[40rem] text-left text-sm">
             <thead className="border-b border-border/70 text-xs text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-medium">Creator</th>
+                <th className="w-12 px-4 py-3 font-medium">#</th>
+                <th className="px-3 py-3 font-medium">Creator</th>
                 <th className="px-3 py-3 font-medium">Campaign</th>
                 <th className="px-3 py-3 text-right font-medium">Videos</th>
                 <th className="px-3 py-3 text-right font-medium">Views</th>
@@ -33,9 +34,10 @@ export default async function BrandCreatorsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/70">
-              {rows.map((c) => (
+              {rows.map((c, i) => (
                 <tr key={c.assignmentId} className="hover:bg-muted/30">
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 font-heading font-semibold tabular-nums text-muted-foreground">{i + 1}</td>
+                  <td className="px-3 py-3">
                     <Link href={`/brand/creators/${c.assignmentId}`} className="font-medium text-foreground hover:underline">
                       {c.name}
                     </Link>

@@ -34,10 +34,10 @@ export function ReviewerChoice({
   );
   return (
     <div>
-      <p className="text-sm font-semibold text-foreground">Who reviews each post before it is paid?</p>
+      <p className="text-sm font-semibold text-foreground">Who approves each video before it is paid?</p>
       <div className="mt-2 flex flex-col gap-2">
-        {option("oncamera", "OnCamera reviews", "We check every post for you. Nothing for you to do.")}
-        {option("brand", "I review", "You approve or deny each post yourself.")}
+        {option("oncamera", "OnCamera approves", "We check every video for you. Nothing for you to do.")}
+        {option("brand", "I approve", "You approve or deny each video yourself, in Approvals.")}
       </div>
       {state.error && <p className="mt-2 text-xs font-semibold text-destructive">{state.error}</p>}
     </div>

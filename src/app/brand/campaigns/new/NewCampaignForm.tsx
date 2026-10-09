@@ -47,6 +47,22 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
   const platformOn = (p: string) => (state.values ? state.values.platforms.includes(p) : true);
   return (
     <form action={action} className="flex flex-col gap-5">
+      <Section title="Approving videos" hint="Every video is checked before it is paid. You can change this later.">
+        <fieldset className="grid gap-2 sm:grid-cols-2">
+          <legend className="sr-only">Who reviews each video</legend>
+          <label className="cursor-pointer rounded-lg border border-border/70 p-3 has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
+            <input type="radio" name="reviewer" value="oncamera" defaultChecked={val("reviewer", "oncamera") === "oncamera"} className="mr-2" />
+            <span className="text-sm font-semibold text-foreground">OnCamera approves</span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">We check every video for you. Nothing for you to do.</span>
+          </label>
+          <label className="cursor-pointer rounded-lg border border-border/70 p-3 has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
+            <input type="radio" name="reviewer" value="brand" defaultChecked={val("reviewer") === "brand"} className="mr-2" />
+            <span className="text-sm font-semibold text-foreground">I approve</span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">You approve or deny each video yourself.</span>
+          </label>
+        </fieldset>
+      </Section>
+
       <Section title="The campaign">
         <Field label="Campaign name" htmlFor="title" hint="What creators see on the campaign card.">
           <Input id="title" name="title" required maxLength={120} defaultValue={val("title")} placeholder="e.g. Spring launch" />
@@ -115,21 +131,6 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
         </div>
       </Section>
 
-      <Section title="Approving videos" hint="Every video is checked before it is paid.">
-        <fieldset className="grid gap-2 sm:grid-cols-2">
-          <legend className="sr-only">Who reviews each video</legend>
-          <label className="cursor-pointer rounded-lg border border-border/70 p-3 has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
-            <input type="radio" name="reviewer" value="oncamera" defaultChecked={val("reviewer", "oncamera") === "oncamera"} className="mr-2" />
-            <span className="text-sm font-semibold text-foreground">OnCamera reviews</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">We check every video for you. Nothing for you to do.</span>
-          </label>
-          <label className="cursor-pointer rounded-lg border border-border/70 p-3 has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
-            <input type="radio" name="reviewer" value="brand" defaultChecked={val("reviewer") === "brand"} className="mr-2" />
-            <span className="text-sm font-semibold text-foreground">I review</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">You approve or deny each video yourself.</span>
-          </label>
-        </fieldset>
-      </Section>
 
       {state.error && (
         <p role="alert" className="rounded-md bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">

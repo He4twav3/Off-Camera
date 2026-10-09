@@ -2,33 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  FileText,
-  LayoutDashboard,
-  Megaphone,
-  Settings,
-  Trophy,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { CheckCircle2, FileText, Megaphone, Settings, Users, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// In the order a brand works: set up the campaign, approve videos, see creators, pay them.
 const ITEMS = [
-  { href: "/brand", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/brand/campaigns", label: "Campaigns", icon: Megaphone },
+  { href: "/brand", label: "Campaigns", icon: Megaphone, exact: true },
+  { href: "/brand/approvals", label: "Approvals", icon: CheckCircle2 },
   { href: "/brand/creators", label: "Creators", icon: Users },
   { href: "/brand/payments", label: "Payments", icon: Wallet },
-  { href: "/brand/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/brand/templates", label: "Templates", icon: FileText },
   { href: "/brand/settings", label: "Settings", icon: Settings },
 ];
 
 function active(pathname: string, href: string, exact?: boolean) {
+  // Every campaign page belongs to Campaigns, which is the home.
+  if (href === "/brand") return pathname === "/brand" || pathname.startsWith("/brand/campaigns");
   return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function Badge({ n }: { n: number }) {
+  if (n <= 0) return null;
+  return (
+    <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center text-[11px] font-semibold tabular-nums text-primary-foreground">
+      {n}
+    </span>
+  );
+}
+
 /** The brand's menu: a left rail on a laptop, a scrolling row on a phone. */
-export function BrandNav({ variant }: { variant: "rail" | "row" }) {
+export function BrandNav({ variant, approvals = 0 }: { variant: "rail" | "row"; approvals?: number }) {
   const pathname = usePathname();
   if (variant === "row") {
     return (
@@ -47,6 +50,7 @@ export function BrandNav({ variant }: { variant: "rail" | "row" }) {
           >
             <Icon className="size-4" />
             {label}
+            {href === "/brand/approvals" && <Badge n={approvals} />}
           </Link>
         ))}
       </nav>
@@ -68,6 +72,7 @@ export function BrandNav({ variant }: { variant: "rail" | "row" }) {
         >
           <Icon className="size-4 shrink-0" />
           {label}
+          {href === "/brand/approvals" && <Badge n={approvals} />}
         </Link>
       ))}
     </nav>
