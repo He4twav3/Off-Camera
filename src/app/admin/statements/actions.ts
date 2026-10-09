@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { parsePostTerms, windowEnd } from "@/lib/post-terms";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import {
   BRAND_METHODS,
   STATEMENT_DUE_DAYS,
@@ -12,8 +11,6 @@ import {
 } from "@/lib/direct-pay";
 import {
   sendBrandMarkedPaidEmail,
-  sendStatementIssuedBrandEmail,
-  sendStatementIssuedCreatorEmail,
 } from "@/lib/email/notifications";
 
 export interface StatementActionState {
@@ -98,47 +95,11 @@ export async function issueStatementAction(
     };
   }
 
-  const jobTitle = assignment.jobs?.title ?? "your campaign";
-  if (assignment.applicants) {
-    await sendStatementIssuedCreatorEmail({
-      to: assignment.applicants.email,
-      name: assignment.applicants.name,
-      jobTitle,
-      amount: parsed.data.amount,
-      due,
-    });
-  }
-
-  // Ask the brand to pay: needs an approved brand account attached to the campaign.
-  let brandNote =
-    " This campaign has no brand account attached, so nobody was emailed to pay. Record the payment yourself once you know.";
-  const brandId = assignment.jobs?.brand_account_id;
-  if (brandId) {
-    const db = createAdminClient();
-    const { data: brand } = await db
-      .from("brand_accounts")
-      .select("user_id, contact_name, status")
-      .eq("id", brandId)
-      .maybeSingle();
-    if (brand && brand.status === "approved") {
-      const { data: user } = await db.auth.admin.getUserById(brand.user_id);
-      if (user.user?.email) {
-        await sendStatementIssuedBrandEmail({
-          to: user.user.email,
-          contactName: brand.contact_name.split(" ")[0],
-          jobTitle,
-          creatorName: assignment.applicants?.name ?? "The creator",
-          amount: parsed.data.amount,
-          due,
-          payLink: assignment.applicants?.payout_instructions ?? null,
-        });
-        brandNote = " The brand and the creator have both been emailed.";
-      }
-    }
-  }
-
+  // No email goes out by itself: the two ready-written emails (to the brand and to the creator) are on
+  // Payout details, so one of you sends them and marks them sent, and nobody sends them twice.
+  revalidatePath("/admin/payout-details", "layout");
   revalidatePath("/admin/statements");
-  return { success: `Statement issued.${brandNote}` };
+  return { success: "Payment issued. Next: send its two emails from Payout details." };
 }
 
 const markPaidSchema = z.object({

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EmptyState, PageHeader, PageShell, Row, RowList } from "@/components/kit/ui";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState, PageHeader, PageShell } from "@/components/kit/ui";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { loadBrandPage } from "../_brand";
 import { PendingNotice } from "../PendingNotice";
@@ -35,24 +36,47 @@ export default async function BrandCampaignsPage() {
       ) : ws.campaigns.length === 0 ? (
         <EmptyState title="No campaigns yet" body="Post your first campaign and creators can join straight away." />
       ) : (
-        <RowList>
-          {ws.campaigns.map((c) => (
-            <Row
-              key={c.id}
-              title={
-                <Link href={`/brand/campaigns/${c.id}`} className="hover:underline">
-                  {c.title}
-                </Link>
-              }
-              meta={`${PLATFORM_LABELS[c.platform as keyof typeof PLATFORM_LABELS] ?? c.platform} · Started ${formatDate(c.createdAt)} · ${c.creators.length} ${c.creators.length === 1 ? "creator" : "creators"} · ${c.postsCounted} ${c.postsCounted === 1 ? "video" : "videos"}`}
-              status={STATUS[c.status].label}
-              statusTone={STATUS[c.status].tone}
-              figure={c.views.toLocaleString()}
-              figureLabel="Views"
-              figureNote={`${formatCurrency(c.earned)} earned`}
-            />
-          ))}
-        </RowList>
+        <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
+          <table className="w-full min-w-[40rem] text-left text-sm">
+            <thead className="border-b border-border/70 text-xs text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">Campaign</th>
+                <th className="px-3 py-3 font-medium">Status</th>
+                <th className="px-3 py-3 text-right font-medium">Creators</th>
+                <th className="px-3 py-3 text-right font-medium">Videos</th>
+                <th className="px-3 py-3 text-right font-medium">Views</th>
+                <th className="px-3 py-3 text-right font-medium">Earned</th>
+                <th className="w-10 px-3 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/70">
+              {ws.campaigns.map((c) => (
+                <tr key={c.id} className="hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <Link href={`/brand/campaigns/${c.id}`} className="font-medium text-foreground hover:underline">
+                      {c.title}
+                    </Link>
+                    <span className="block text-xs text-muted-foreground">
+                      {PLATFORM_LABELS[c.platform as keyof typeof PLATFORM_LABELS] ?? c.platform} · Started {formatDate(c.createdAt)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3">
+                    <StatusBadge tone={STATUS[c.status].tone}>{STATUS[c.status].label}</StatusBadge>
+                  </td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.creators.length}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.postsCounted}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.views.toLocaleString()}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
+                  <td className="px-3 py-3 text-right">
+                    <Link href={`/brand/campaigns/${c.id}`} aria-label={`Open ${c.title}`}>
+                      <ChevronRight className="size-4 text-muted-foreground" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </PageShell>
   );

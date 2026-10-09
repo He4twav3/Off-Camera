@@ -4,7 +4,11 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { Body, Head, SectionTitle, Table, Td, Th } from "@/components/admin/table";
+import { ChevronRight } from "lucide-react";
 import { getAdminWorkspace } from "@/lib/admin-workspace";
+import { getSent } from "@/lib/admin-payments";
+import { campaignTasks } from "@/lib/admin-tasks";
+import { Todo } from "@/components/admin/todo";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
@@ -16,8 +20,9 @@ const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 export default async function AdminCampaignPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const supabase = await createClient();
-  const [ws, { data: job }, { data: niches }, { data: brands }] = await Promise.all([
+  const [ws, { sent }, { data: job }, { data: niches }, { data: brands }] = await Promise.all([
     getAdminWorkspace(),
+    getSent(),
     supabase.from("jobs").select("*, niches(label)").eq("id", id).maybeSingle(),
     supabase.from("niches").select("id, label").eq("is_active", true).order("label"),
     supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),
@@ -61,6 +66,11 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
         </div>
       </header>
 
+      <section className="mb-6 rounded-xl border border-border/70 bg-card px-4 py-3">
+        <h2 className="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">To do on this campaign</h2>
+        <Todo tasks={campaignTasks(c, new Set(sent.keys()))} />
+      </section>
+
       <SectionTitle>Creators</SectionTitle>
       {c.creators.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
@@ -76,6 +86,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
             <Th right>Earned</Th>
             <Th right>My earnings</Th>
             <Th right>Paid</Th>
+            <Th />
           </Head>
           <Body>
             {[...c.creators].sort((a, b) => b.views - a.views).map((cr) => (
@@ -98,6 +109,11 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
                 <Td right>{formatCurrency(cr.earned)}</Td>
                 <Td right>{formatCurrency(cr.ourFees)}</Td>
                 <Td right>{formatCurrency(cr.paid)}</Td>
+                <Td right>
+                  <Link href={`/admin/jobs/${c.id}/creators/${cr.assignmentId}`} aria-label={`Open ${cr.name}`}>
+                    <ChevronRight className="size-4 text-muted-foreground" />
+                  </Link>
+                </Td>
               </tr>
             ))}
             <tr className="bg-muted/30 font-medium">
@@ -108,6 +124,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
               <Td right>{formatCurrency(c.earned)}</Td>
               <Td right>{formatCurrency(c.ourFees)}</Td>
               <Td right>{formatCurrency(c.paid)}</Td>
+              <Td />
             </tr>
           </Body>
         </Table>

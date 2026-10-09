@@ -3,9 +3,13 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { Body, Head, Table, Td, Th } from "@/components/admin/table";
+import { ChevronRight } from "lucide-react";
 import { getAdminWorkspace } from "@/lib/admin-workspace";
+import { getSent } from "@/lib/admin-payments";
+import { campaignTasks } from "@/lib/admin-tasks";
 import { PLATFORM_LABELS, formatCurrency } from "@/lib/utils";
 import { JobForm } from "./jobs/JobForm";
+import { Todo } from "@/components/admin/todo";
 
 export const metadata: Metadata = { title: "Campaigns · Admin" };
 
@@ -14,8 +18,9 @@ const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 // The home page: every campaign, one row each. Open a campaign for its creators, views and money.
 export default async function AdminHomePage() {
   const supabase = await createClient();
-  const [ws, { data: niches }, { data: brands }] = await Promise.all([
+  const [ws, { sent }, { data: niches }, { data: brands }] = await Promise.all([
     getAdminWorkspace(),
+    getSent(),
     supabase.from("niches").select("id, label").eq("is_active", true).order("label"),
     supabase.from("brand_accounts").select("id, company_name").eq("status", "approved").order("company_name"),
   ]);
@@ -32,16 +37,18 @@ export default async function AdminHomePage() {
           No campaigns yet. Create the first with the button above.
         </p>
       ) : (
-        <Table min="52rem">
+        <Table min="60rem">
           <Head>
             <Th>Campaign</Th>
             <Th>Brand</Th>
             <Th>Status</Th>
+            <Th>To do</Th>
             <Th right>Creators</Th>
             <Th right>Views</Th>
             <Th right>Earned</Th>
             <Th right>Brand owes</Th>
             <Th right>My earnings</Th>
+            <Th />
           </Head>
           <Body>
             {ws.campaigns.map((c) => (
@@ -58,11 +65,19 @@ export default async function AdminHomePage() {
                 <Td>
                   <StatusBadge tone={jobStatusTone(c.status)}>{STATUS[c.status]}</StatusBadge>
                 </Td>
+                <Td>
+                  <Todo tasks={campaignTasks(c, new Set(sent.keys()))} />
+                </Td>
                 <Td right>{c.creators.length}</Td>
                 <Td right>{c.views.toLocaleString()}</Td>
                 <Td right>{formatCurrency(c.earned)}</Td>
                 <Td right>{formatCurrency(Math.max(0, c.statemented - c.paid))}</Td>
                 <Td right>{formatCurrency(c.ourFees)}</Td>
+                <Td right>
+                  <Link href={`/admin/jobs/${c.id}`} aria-label={`Open ${c.title}`}>
+                    <ChevronRight className="size-4 text-muted-foreground" />
+                  </Link>
+                </Td>
               </tr>
             ))}
           </Body>

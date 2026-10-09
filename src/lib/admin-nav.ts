@@ -47,9 +47,8 @@ export function adminNavGroups(directPay: boolean, hide: string[] = []): AdminNa
       label: "Money",
       items: directPay
         ? [
-            { href: "/admin/statements", label: "Statements", icon: "statements", blurb: "Issue what a brand owes a creator, and track who has paid." },
-            { href: "/admin/fees", label: "Fees", icon: "fees", blurb: "Our fee on each statement: what each brand owes us, and what has arrived." },
-            { href: "/admin/payout-details", label: "Payout details", icon: "payouts", blurb: "Each creator's email and payment link, to copy or open." },
+            { href: "/admin/statements", label: "Payments", icon: "statements", blurb: "Issue a payment when one is due, mark it paid, and see our fee on each." },
+            { href: "/admin/payout-details", label: "Payout details", icon: "payouts", blurb: "The emails to send, already written: one for each creator and brand." },
           ]
         : [
             { href: "/admin/payouts", label: "Payouts", icon: "payouts", blurb: "Release creators' pay once the brand has paid." },

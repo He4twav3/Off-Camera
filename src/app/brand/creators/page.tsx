@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { EmptyState, PageHeader, PageShell } from "@/components/kit/ui";
 import { formatCurrency } from "@/lib/utils";
 import { loadBrandPage } from "../_brand";
@@ -27,7 +28,8 @@ export default async function BrandCreatorsPage() {
                 <th className="px-3 py-3 text-right font-medium">Videos</th>
                 <th className="px-3 py-3 text-right font-medium">Views</th>
                 <th className="px-3 py-3 text-right font-medium">Earned</th>
-                <th className="px-4 py-3 text-right font-medium">Paid</th>
+                <th className="px-3 py-3 text-right font-medium">Paid</th>
+                <th className="w-10 px-3 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border/70">
@@ -43,7 +45,12 @@ export default async function BrandCreatorsPage() {
                   <td className="px-3 py-3 text-right tabular-nums">{c.postsCounted}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.views.toLocaleString()}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(c.paid)}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.paid)}</td>
+                  <td className="px-3 py-3 text-right">
+                    <Link href={`/brand/creators/${c.assignmentId}`} aria-label={`Open ${c.name}`}>
+                      <ChevronRight className="size-4 text-muted-foreground" />
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
