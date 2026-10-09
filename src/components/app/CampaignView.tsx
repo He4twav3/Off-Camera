@@ -53,7 +53,7 @@ export function CampaignView({
   notice?: ReactNode;
   below?: ReactNode;
   /** Where the small link over the banner goes (a brand previewing its own campaign goes back to its page). */
-  back?: { href: string; label: string };
+  back?: { href: string; label: string } | null;
 }) {
   const chips = postTerms
     ? postTermsChips(postTerms)
@@ -143,12 +143,14 @@ export function CampaignView({
               className="aspect-[16/10] max-h-28 rounded-xl sm:max-h-56 lg:max-h-none"
               logoUrl={job.logo_url}
             />
-            <Link
-              href={back.href}
-              className="absolute top-2.5 left-2.5 rounded-md bg-black/50 px-2 py-1 text-xs font-medium text-white backdrop-blur hover:bg-black/70"
-            >
-              {back.label}
-            </Link>
+            {back && (
+              <Link
+                href={back.href}
+                className="absolute top-2.5 left-2.5 rounded-md bg-black/50 px-2 py-1 text-xs font-medium text-white backdrop-blur hover:bg-black/70"
+              >
+                {back.label}
+              </Link>
+            )}
           </div>
 
           <div className="hidden lg:block">

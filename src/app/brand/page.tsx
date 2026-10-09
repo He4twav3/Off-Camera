@@ -1,29 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState, PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
 import { cpm, topPosts } from "@/lib/brand-stats";
-import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { loadBrandPage } from "./_brand";
 import { PendingNotice } from "./PendingNotice";
 import { BestVideos } from "./BestVideos";
+import { ReviewerChoice } from "./ReviewerChoice";
+import { CreatorView } from "./CreatorView";
 
 export const metadata: Metadata = { title: "Campaigns" };
 
-const label = (p: string) => PLATFORM_LABELS[p as keyof typeof PLATFORM_LABELS] ?? p;
-const STATUS = {
-  open: { label: "Open", tone: "open" as const },
-  filled: { label: "Filled", tone: "closed" as const },
-  closed: { label: "Closed", tone: "closed" as const },
-};
-
 /**
- * The brand's home: the whole picture (views, what creators earned, what is still to pay), then each campaign,
- * which opens to edit it and see its creators. Overview and Campaigns used to be two pages saying the same thing.
+ * The brand's one main page: the totals in a single strip, who approves the videos, and the campaign exactly as
+ * creators see it, with Edit on it. A brand with several campaigns picks one at the top.
  */
-export default async function BrandHomePage() {
+export default async function BrandHomePage(props: { searchParams: Promise<{ c?: string }> }) {
+  const { c } = await props.searchParams;
   const { brand, ws, approved } = await loadBrandPage("/brand");
   const newCampaign = (
     <Button nativeButton={false} render={<Link href="/brand/campaigns/new" />}>
@@ -50,14 +45,15 @@ export default async function BrandHomePage() {
       </PageShell>
     );
 
+  const chosen = ws.campaigns.find((x) => x.id === c) ?? ws.campaigns[0];
   const counted = ws.posts.filter((p) => p.counted);
   const views = counted.reduce((n, p) => n + p.views, 0);
-  const earned = ws.campaigns.reduce((n, c) => n + c.earned, 0);
-  const paid = ws.campaigns.reduce((n, c) => n + c.paid, 0);
-  const due = Math.max(0, ws.campaigns.reduce((n, c) => n + c.payable, 0) - paid);
+  const earned = ws.campaigns.reduce((n, x) => n + x.earned, 0);
+  const paid = ws.campaigns.reduce((n, x) => n + x.paid, 0);
+  const due = Math.max(0, ws.campaigns.reduce((n, x) => n + x.payable, 0) - paid);
   const cost = cpm(earned, views);
-  const best = topPosts(ws.posts, 3);
-  const people = new Set(ws.creators.map((c) => c.applicantId)).size;
+  const people = new Set(ws.creators.map((x) => x.applicantId)).size;
+  const waiting = chosen.reviewer === "brand" ? chosen.posts.filter((p) => p.counted && p.reviewed === false).length : 0;
 
   return (
     <PageShell>
@@ -70,78 +66,45 @@ export default async function BrandHomePage() {
         <Stat label="Still to pay" value={formatCurrency(due)} attention={due > 0} hint={`${formatCurrency(paid)} paid so far`} />
       </StatGrid>
 
-      <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Your campaigns</h2>
-      <div className="mb-8 overflow-x-auto rounded-xl border border-border/70 bg-card">
-        <table className="w-full min-w-0 text-left text-sm">
-          <thead className="border-b border-border/70 text-xs text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 font-medium">Campaign</th>
-              <th className="px-3 py-3 font-medium">Status</th>
-              <th className="px-3 py-3 font-medium">To do</th>
-              <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Creators</th>
-              <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Videos</th>
-              <th className="px-3 py-3 text-right font-medium">Views</th>
-              <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Earned</th>
-              <th className="w-10 px-3 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/70">
-            {ws.campaigns.map((c) => {
-              const toApprove = c.reviewer === "brand" ? c.awaitingReview : 0;
-              const toPay = Math.max(0, c.payable - c.paid);
-              return (
-                <tr key={c.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <Link href={`/brand/campaigns/${c.id}`} className="font-medium text-foreground hover:underline">
-                      {c.title}
-                    </Link>
-                    <span className="block text-xs text-muted-foreground">
-                      {label(c.platform)} · Started {formatDate(c.createdAt)}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3">
-                    <StatusBadge tone={STATUS[c.status].tone}>{STATUS[c.status].label}</StatusBadge>
-                  </td>
-                  <td className="px-3 py-3">
-                    {toApprove === 0 && toPay <= 0 ? (
-                      <span className="text-xs text-muted-foreground">All done</span>
-                    ) : (
-                      <ul className="flex flex-col gap-0.5 text-xs font-semibold">
-                        {toApprove > 0 && (
-                          <li>
-                            <Link href="/brand/approvals" className="text-primary hover:underline">
-                              {toApprove} {toApprove === 1 ? "video" : "videos"} to approve
-                            </Link>
-                          </li>
-                        )}
-                        {toPay > 0 && (
-                          <li>
-                            <Link href="/brand/payments" className="text-primary hover:underline">
-                              {formatCurrency(toPay)} to pay
-                            </Link>
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                  </td>
-                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{c.creators.length}</td>
-                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{c.postsCounted}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{c.views.toLocaleString()}</td>
-                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{formatCurrency(c.earned)}</td>
-                  <td className="px-3 py-3 text-right">
-                    <Link href={`/brand/campaigns/${c.id}`} aria-label={`Open ${c.title}`}>
-                      <ChevronRight className="size-4 text-muted-foreground" />
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      {ws.campaigns.length > 1 && (
+        <nav aria-label="Campaign" className="mb-4 flex flex-wrap gap-2">
+          {ws.campaigns.map((x) => (
+            <Link
+              key={x.id}
+              href={`/brand?c=${x.id}`}
+              className={cn(
+                "rounded-md border px-3 py-1.5 text-sm font-medium",
+                x.id === chosen.id ? "border-primary/40 bg-primary/10 text-foreground" : "border-border/70 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {x.title}
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      {chosen.reviewer && (
+        <section className="mb-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
+          <ReviewerChoice jobId={chosen.id} reviewer={chosen.reviewer} />
+          {chosen.reviewer === "brand" && (
+            <p className="mt-3 text-sm">
+              {waiting > 0 ? (
+                <Link href="/brand/approvals" className="font-semibold text-primary hover:underline">
+                  {waiting} {waiting === 1 ? "video is" : "videos are"} waiting for you → Approvals
+                </Link>
+              ) : (
+                <span className="text-muted-foreground">Nothing waiting for you right now.</span>
+              )}
+            </p>
+          )}
+        </section>
+      )}
+
+      <div className="mb-8">
+        <CreatorView jobId={chosen.id} brandId={brand.id} />
       </div>
 
-      <BestVideos videos={best} />
-
+      <BestVideos videos={topPosts(ws.posts, 3)} />
       <p className="mt-6 text-sm text-muted-foreground">Views are read from each platform about once a day.</p>
     </PageShell>
   );

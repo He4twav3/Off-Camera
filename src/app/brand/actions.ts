@@ -455,7 +455,7 @@ export async function createCampaignAction(
   revalidatePath("/brand", "layout");
   revalidatePath("/dashboard/recruiting/jobs");
   revalidatePath("/admin");
-  redirect(`/brand/campaigns/${job.id}`);
+  redirect(`/brand?c=${job.id}`);
 }
 
 const statusSchema = z.object({

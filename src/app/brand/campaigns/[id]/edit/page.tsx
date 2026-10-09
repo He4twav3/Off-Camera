@@ -8,6 +8,8 @@ import { postTermsChips, parsePostTerms } from "@/lib/post-terms";
 import { requireBrand } from "../../../_brand";
 import { PendingNotice } from "../../../PendingNotice";
 import { EditCampaignForm } from "./EditCampaignForm";
+import { CampaignLogoForm } from "../../../CampaignLogoForm";
+import { CampaignStatusButton } from "../../../CampaignStatusButton";
 
 export const metadata: Metadata = { title: "Edit campaign" };
 
@@ -24,7 +26,7 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
   // Only the brand's own campaign (the service role is used after matching the brand id).
   const { data: job } = await createAdminClient()
     .from("jobs")
-    .select("id, title, niche_id, about, description, formats, example_urls, post_terms")
+    .select("id, title, niche_id, about, description, formats, example_urls, post_terms, logo_url, status")
     .eq("id", id)
     .eq("brand_account_id", brand.id)
     .maybeSingle();
@@ -36,7 +38,7 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
   return (
     <PageShell>
       <div className="mx-auto max-w-3xl">
-        <Link href={`/brand/campaigns/${job.id}`} className="text-sm text-muted-foreground hover:text-foreground">
+        <Link href={`/brand?c=${job.id}`} className="text-sm text-muted-foreground hover:text-foreground">
           ← {job.title}
         </Link>
         <div className="mt-3">
@@ -54,6 +56,13 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
           }}
           niches={niches ?? []}
         />
+        <section className="mt-5 flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
+          <h2 className="font-heading text-base font-semibold text-foreground">Logo and status</h2>
+          <CampaignLogoForm jobId={job.id} logoUrl={job.logo_url} />
+          <div>
+            <CampaignStatusButton jobId={job.id} status={job.status} />
+          </div>
+        </section>
         {terms && (
           <section className="mt-5 rounded-xl border border-border/70 bg-card p-5">
             <h2 className="font-heading text-base font-semibold text-foreground">Pay terms</h2>
