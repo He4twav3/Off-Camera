@@ -42,7 +42,7 @@ export function brandEmail(input: { to: string; contactName: string; dashboardUr
         ? `${items[0].creatorName} has finished their work on ${items[0].campaign}. Based on their views, the amount owed is ${usd(items[0].amount)}, due by ${day(items[0].dueAt)}.`
         : `Here is what is due to your creators, ${usd(total)} in total.`) +
       `\n\n${lines}\n\n` +
-      `You pay each creator directly through their link. Please enter exactly the amount shown, and cover any transfer fees so they receive all of it. ` +
+      `You pay each creator directly through their link. Please enter exactly the amount shown, and cover any transfer fees so they receive all of it. The amounts are in US dollars: if your account is in another currency, paying from a Wise account is usually the cheapest way to convert. ` +
       `Once it is sent, mark it as paid in your dashboard so they can confirm: ${input.dashboardUrl}\n\n${SIGN_OFF}`,
   };
 }

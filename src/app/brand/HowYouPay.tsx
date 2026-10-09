@@ -12,6 +12,9 @@ export function HowYouPay() {
         <li>You pay the creator directly from your own Stripe or Wise account, through their payment link. OnCamera never holds the money.</li>
         <li>Send the full amount in US dollars and cover any fees. Then press &ldquo;Mark as paid&rdquo;, and the creator confirms.</li>
       </ol>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Not paying from a US dollar account? Paying from a Wise account is usually the cheapest way to convert.
+      </p>
     </div>
   );
 }

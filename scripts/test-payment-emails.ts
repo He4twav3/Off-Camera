@@ -22,6 +22,7 @@ t("each creator is listed", /Maria Lopez/.test(many.body) && /Leo Park/.test(man
 const c = creatorEmail({ to: "m@x.com", creatorName: "Maria Lopez", brandName: "Getimg", item: item(), earningsUrl: "https://www.oncameraugc.com/dashboard/recruiting/earnings", hasLink: true });
 t("creator email says what is owed and who pays", c.subject === "$332 owed to you for Getimg" && /Getimg has been asked to pay you directly/.test(c.body));
 t("and asks them to confirm when it arrives", /confirm it/.test(c.body));
+t("the brand email mentions Wise for converting dollars", /Wise account/.test(one.body));
 t("with no link saved it asks for one", /Stripe or Wise link/.test(creatorEmail({ to: "m@x.com", creatorName: "M", brandName: null, item: item({ payTo: null }), earningsUrl: "u", hasLink: false }).body));
 
 const href = mailtoHref(one);

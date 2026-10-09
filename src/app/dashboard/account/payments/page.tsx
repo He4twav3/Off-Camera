@@ -29,7 +29,7 @@ export default async function PaymentsPage() {
     >
       <Section
         title="Payment details"
-        summary="Brands pay you directly. They see this to know where to send your money. We never hold it."
+        summary="Brands pay you directly. They see this to know where to send your money. We never hold it. Amounts are in US dollars, so create your link in USD."
       >
         <PayoutInstructionsForm current={data?.payout_instructions ?? null} />
       </Section>

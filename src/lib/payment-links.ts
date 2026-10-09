@@ -27,14 +27,14 @@ export const PAYMENT_PROVIDERS: Record<
     signupUrl: "https://dashboard.stripe.com/register",
     blurb: "The easiest for brands: they pay by card, no account needed. Not available in every country.",
     howTo:
-      "In Stripe, open Payment links, create one, and copy it. It starts with buy.stripe.com.",
+      "In Stripe, open Payment links, create one in US dollars (USD) so it matches your statements, and copy it. It starts with buy.stripe.com.",
   },
   wise: {
     label: "Wise",
     hosts: ["wise.com", "www.wise.com", "wise.me"],
     signupUrl: "https://wise.com/register",
     blurb: "Usually the cheapest for larger bank transfers.",
-    howTo: "In Wise, create a payment link and copy it.",
+    howTo: "In Wise, create a payment link in US dollars (USD) so it matches your statements, and copy it.",
   },
 };
 
