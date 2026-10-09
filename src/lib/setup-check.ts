@@ -2,6 +2,7 @@ import "server-only";
 import { postReviews } from "@/lib/post-review";
 import { getSent } from "@/lib/admin-payments";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { looksLikeTestEmail, looksLikeTestName } from "@/lib/test-data";
 
 export type SetupIssue = { title: string; fix: string; sql?: string };
 
@@ -32,5 +33,27 @@ export async function setupIssues(): Promise<SetupIssue[]> {
       title: "“Mark as sent” can't be saved",
       fix: "Run migration 0017 (supabase/migrations/0017_withdrawal_safeguards.sql, the admin audit log) in the Supabase SQL editor. Emails still work; the sent marks won't show.",
     });
+
+  // Test or placeholder data on the real site: named so it is noticed, never deleted automatically.
+  const db = createAdminClient();
+  const [{ data: list }, { data: jobs }, { data: niches }] = await Promise.all([
+    db.auth.admin.listUsers({ page: 1, perPage: 200 }),
+    db.from("jobs").select("title"),
+    db.from("niches").select("label"),
+  ]);
+  const accounts = (list?.users ?? []).map((u) => u.email ?? "").filter((e) => e && looksLikeTestEmail(e));
+  const campaigns = (jobs ?? []).map((j) => j.title).filter(looksLikeTestName);
+  const testNiches = (niches ?? []).map((n) => n.label).filter(looksLikeTestName);
+  if (accounts.length + campaigns.length + testNiches.length > 0) {
+    const parts = [
+      accounts.length ? `${accounts.length} test ${accounts.length === 1 ? "account" : "accounts"} (${accounts.slice(0, 3).join(", ")}${accounts.length > 3 ? ", …" : ""})` : "",
+      campaigns.length ? `${campaigns.length} test ${campaigns.length === 1 ? "campaign" : "campaigns"} (${campaigns.slice(0, 3).join(", ")})` : "",
+      testNiches.length ? `a test niche (${testNiches.join(", ")})` : "",
+    ].filter(Boolean);
+    issues.push({
+      title: "Test data is on this site",
+      fix: `${parts.join("; ")}. Open Settings, then Clean up, to delete accounts and campaigns.${testNiches.length ? " A test niche is removed in Supabase, under the niches table." : ""}`,
+    });
+  }
   return issues;
 }
