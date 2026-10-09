@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { Play } from "lucide-react";
+import { Heart, Play } from "lucide-react";
 import type { ProofReel } from "@/lib/proof-reel";
 import { CountUp } from "./count-up";
 import { FadeIn } from "./fade-in";
@@ -20,7 +20,7 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
               Content that stops the scroll
             </h3>
           </FadeIn>
-          <ul className="-mx-5 mt-8 flex scroll-px-5 snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible md:px-0 md:pb-0">
+          <ul className="-mx-5 mt-8 flex scroll-px-5 snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:gap-4 lg:grid-cols-6 md:overflow-visible md:px-0 md:pb-0">
             {reel.posts.map((p, i) => (
               <FadeIn key={p.id} delay={i * 70} className="w-[58%] shrink-0 snap-start sm:w-[36%] md:w-auto">
                 <li className="list-none">
@@ -38,7 +38,16 @@ export function ProvenReach({ reel }: { reel: ProofReel }) {
                       </span>
                     )}
                     <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                    <span className="absolute inset-x-0 bottom-0 p-3.5 text-xl font-bold tracking-[-0.02em] tabular-nums">{p.views}</span>
+                    <span className="absolute inset-x-0 bottom-0 p-3.5">
+                      <span className="block text-xl font-bold tracking-[-0.02em] tabular-nums">{p.views}</span>
+                      {p.likes && (
+                        <span className="mt-0.5 flex items-center gap-1 text-sm font-semibold text-white/80 tabular-nums">
+                          <Heart className="size-3.5 fill-current" aria-hidden />
+                          {p.likes}
+                          <span className="sr-only">likes</span>
+                        </span>
+                      )}
+                    </span>
                   </a>
                 </li>
               </FadeIn>

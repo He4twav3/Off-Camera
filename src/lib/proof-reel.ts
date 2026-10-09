@@ -25,6 +25,7 @@ export type ReelPost = {
   handle: string | null;
   views: string; // as written, e.g. "15.1M+"
   viewsNum: number; // lower bound
+  likes: string | null; // as written, e.g. "122K+"
   thumbnail: string | null;
   postUrl: string;
 };
@@ -93,6 +94,7 @@ export async function getProofReel(): Promise<ProofReel> {
       handle: await resolveHandle(platform, postUrl),
       views,
       viewsNum,
+      likes: p.likes ?? null,
       thumbnail: p.thumbnail,
       postUrl,
     })),
