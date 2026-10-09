@@ -5,13 +5,14 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import type { PostTerms } from "@/lib/post-terms";
+import { RequirementsFields } from "@/components/RequirementsFields";
 import { updatePayTermsAction, type PayTermsState } from "../actions";
 
 function Save() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Saving…" : "Save pay terms"}
+      {pending ? "Saving…" : "Save"}
     </Button>
   );
 }
@@ -41,6 +42,11 @@ export function PayTermsForm({ jobId, terms }: { jobId: string; terms: PostTerms
   const rows = Array.from({ length: 6 }, (_, i) => t.milestones[i] ?? null);
   return (
     <form action={action} className="flex flex-col gap-5">
+      <section className="flex flex-col gap-3">
+        <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
+        <RequirementsFields initial={t.requirements} />
+      </section>
+      <h2 className="font-heading text-base font-semibold text-foreground">Pay terms</h2>
       <input type="hidden" name="job_id" value={jobId} />
       {!terms && (
         <p className="rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-sm text-muted-foreground">

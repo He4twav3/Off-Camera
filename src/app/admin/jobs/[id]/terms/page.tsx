@@ -25,7 +25,7 @@ export default async function AdminPayTermsPage(props: { params: Promise<{ id: s
           {c.title}
         </Link>
       </nav>
-      <h1 className="mb-5 mt-3 font-heading text-2xl font-semibold text-foreground">Pay terms</h1>
+      <h1 className="mb-5 mt-3 font-heading text-2xl font-semibold text-foreground">Requirements and pay terms</h1>
 
       <div className="rounded-xl border border-border/70 bg-card p-5">
         <PayTermsForm jobId={c.id} terms={c.terms} />

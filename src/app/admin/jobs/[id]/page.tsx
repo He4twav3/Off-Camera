@@ -10,6 +10,7 @@ import { getSent } from "@/lib/admin-payments";
 import { campaignTasks } from "@/lib/admin-tasks";
 import { Todo, brandNotes } from "@/components/admin/todo";
 import { contractStatus } from "@/lib/contract";
+import { requirementItems } from "@/lib/requirements";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
@@ -59,34 +60,63 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
         <div className="flex flex-wrap items-center gap-3">
           <JobForm niches={niches ?? []} brands={brands ?? []} job={job} />
           <Link href={`/admin/jobs/${c.id}/terms`} className="text-sm font-semibold text-primary underline underline-offset-2">
-            Pay terms
+            Requirements and pay terms
           </Link>
-          <Link href={`/admin/jobs/${c.id}/contract`} className="text-sm font-semibold text-primary underline underline-offset-2">
-            Contract
+          <Link href={`/admin/jobs/${c.id}/preview`} className="text-sm font-semibold text-primary underline underline-offset-2">
+            See as creator
           </Link>
         </div>
       </header>
 
       {c.terms && (
         <section className="mb-4 rounded-xl border border-border/70 bg-card px-4 py-3 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Contract</h2>
-            <Link href={`/admin/jobs/${c.id}/contract`} className="font-semibold text-primary underline underline-offset-2">
-              Open contract
-            </Link>
-          </div>
-          {c.terms.contract ? (
-            <p className="mt-1 text-foreground">
-              {contractStatus(c.terms) === "signed" ? "Signed" : "Pay terms changed since signing"} · {c.terms.contract.legalName},{" "}
-              {c.terms.contract.address}, {c.terms.contract.country} · agreed by {c.terms.contract.signatory}
-              {c.terms.contract.signatoryRole ? ` (${c.terms.contract.signatoryRole})` : ""}, {c.terms.contract.agreedByEmail}, on{" "}
-              {formatDate(c.terms.contract.agreedAt)}
-            </p>
-          ) : (
-            <p className="mt-1 text-muted-foreground">
-              {c.brandId ? "The brand hasn't agreed to the contract yet." : "No brand is attached yet. The brand agrees to it once you link them."}
-            </p>
-          )}
+          <h2 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Campaign setup</h2>
+          <dl className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+              <dt className="w-28 shrink-0 text-muted-foreground">Approved by</dt>
+              <dd className="min-w-0 flex-1 text-foreground">
+                {c.terms.reviewer === "brand" ? "The brand" : "OnCamera"}
+                {c.awaitingReview > 0 && (
+                  <>
+                    {" · "}
+                    {c.terms.reviewer === "brand" ? (
+                      <span className="text-muted-foreground">{c.awaitingReview} waiting on the brand</span>
+                    ) : (
+                      <Link href="/admin/review" className="font-semibold text-primary underline underline-offset-2">
+                        {c.awaitingReview} to review
+                      </Link>
+                    )}
+                  </>
+                )}
+              </dd>
+            </div>
+            {requirementItems(c.terms).map((r) => (
+              <div key={r.label} className="flex flex-wrap gap-x-4 gap-y-0.5">
+                <dt className="w-28 shrink-0 text-muted-foreground">{r.label}</dt>
+                <dd className="min-w-0 flex-1 text-foreground">{r.value}</dd>
+              </div>
+            ))}
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+              <dt className="w-28 shrink-0 text-muted-foreground">Contract</dt>
+              <dd className="min-w-0 flex-1 text-foreground">
+                {c.terms.contract ? (
+                  <>
+                    {contractStatus(c.terms) === "signed" ? "Signed" : "Pay terms changed since signing"} · {c.terms.contract.legalName},{" "}
+                    {c.terms.contract.address}, {c.terms.contract.country} · {c.terms.contract.signatory}
+                    {c.terms.contract.signatoryRole ? ` (${c.terms.contract.signatoryRole})` : ""}, {c.terms.contract.agreedByEmail},{" "}
+                    {formatDate(c.terms.contract.agreedAt)}
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">
+                    {c.brandId ? "The brand hasn't agreed yet" : "No brand attached yet"}
+                  </span>
+                )}{" "}
+                <Link href={`/admin/jobs/${c.id}/contract`} className="font-semibold text-primary underline underline-offset-2">
+                  Open
+                </Link>
+              </dd>
+            </div>
+          </dl>
         </section>
       )}
 

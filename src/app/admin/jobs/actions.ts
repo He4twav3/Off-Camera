@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
+import { parseRequirements } from "@/lib/requirements";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -320,6 +321,8 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
     return { error: "Two bonuses have the same number of views." };
 
   const reviewer = formData.get("reviewer") === "brand" ? "brand" : "oncamera";
+  const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
+  if (!requirements.ok) return { error: requirements.error };
   const terms = postTermsSchema.safeParse({
     v: 2,
     basePerPost: num("base"),
@@ -330,6 +333,7 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
     platforms,
     repostsEarnBase: formData.get("reposts_earn_base") === "on",
     reviewer,
+    requirements: requirements.value,
   });
   if (!terms.success)
     return { error: terms.error.issues[0]?.message === "Required" ? "Fill in every pay field." : "Check the pay terms: every number must be valid." };
@@ -339,10 +343,9 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
   const { data: before } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
   const keptTerms = parsePostTerms(before?.post_terms);
   const kept = keptTerms?.contract;
-  const keptRequirements = keptTerms?.requirements;
   const { data, error } = await supabase
     .from("jobs")
-    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}), ...(keptRequirements ? { requirements: keptRequirements } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
+    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
     .eq("id", jobId.data)
     .select("id");
   if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };
