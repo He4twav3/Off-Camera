@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
 import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
-import { parseLines } from "@/lib/campaign-brief";
+import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
 import {
@@ -531,4 +531,66 @@ export async function saveBusinessDetailsAction(
   revalidatePath("/brand", "layout");
   revalidatePath("/admin/brands");
   return { success: "Saved." };
+}
+
+// --- editing a campaign ---------------------------------------------------------------------
+
+export interface EditCampaignState {
+  error?: string;
+  success?: string;
+}
+
+const editSchema = z.object({
+  job_id: z.string().uuid(),
+  title: z.string().trim().min(2, "Give the campaign a name.").max(120),
+  niche_id: z.string().uuid("Pick a niche."),
+  about: z.string().trim().max(2000, "Keep the brand note under 2,000 characters.").optional(),
+});
+
+/**
+ * A brand edits the brief of a campaign it owns: name, niche, brand note, rules, formats and
+ * example videos. The pay terms are NOT editable here: changing them would change what is owed
+ * on videos already made, so that goes through OnCamera. Saved with the service role only after
+ * the brand's ownership of the campaign is proved.
+ */
+export async function updateCampaignAction(
+  _prev: EditCampaignState,
+  formData: FormData,
+): Promise<EditCampaignState> {
+  const parsed = editSchema.safeParse({
+    job_id: formData.get("job_id"),
+    title: formData.get("title"),
+    niche_id: formData.get("niche_id"),
+    about: formData.get("about") ?? "",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
+  const rules = parseLines(String(formData.get("rules") ?? ""), 12, 300);
+  if (!rules.ok) return { error: `Rules: ${rules.error}` };
+  const formats = parseLines(String(formData.get("formats") ?? ""));
+  if (!formats.ok) return { error: `Formats that work: ${formats.error}` };
+  const examples = parseExampleLinks(String(formData.get("examples") ?? ""));
+  if (!examples.ok) return { error: `Example videos: ${examples.error}` };
+
+  const brand = await approvedBrand();
+  if (!brand) return { error: "Your brand account isn't approved yet." };
+
+  const { data, error } = await createAdminClient()
+    .from("jobs")
+    .update({
+      title: parsed.data.title,
+      niche_id: parsed.data.niche_id,
+      about: parsed.data.about || null,
+      description: rules.lines.join("\n"),
+      formats: formats.lines.length ? formats.lines.join("\n") : null,
+      example_urls: examples.urls,
+    })
+    .eq("id", parsed.data.job_id)
+    .eq("brand_account_id", brand.id)
+    .select("id");
+  if (error || !data || data.length === 0) return { error: "We couldn't save that campaign." };
+
+  revalidatePath("/brand", "layout");
+  revalidatePath("/dashboard/recruiting/jobs", "layout");
+  revalidatePath("/admin/jobs");
+  return { success: "Saved. Creators see the changes now." };
 }

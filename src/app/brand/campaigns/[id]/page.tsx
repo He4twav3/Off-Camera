@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EmptyState, Facts, PageHeader, PageShell, Stat, StatGrid } from "@/components/kit/ui";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Button } from "@/components/ui/button";
 import { postTermsChips } from "@/lib/post-terms";
 import { cpm, platformSplit } from "@/lib/brand-stats";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
@@ -53,7 +54,14 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
               <span>Started {formatDate(c.createdAt)}</span>
             </span>
           }
-          actions={<CampaignStatusButton jobId={c.id} status={c.status} />}
+          actions={
+            <>
+              <Button variant="outline" nativeButton={false} render={<Link href={`/brand/campaigns/${c.id}/edit`} />}>
+                Edit campaign
+              </Button>
+              <CampaignStatusButton jobId={c.id} status={c.status} />
+            </>
+          }
         />
       </div>
 
