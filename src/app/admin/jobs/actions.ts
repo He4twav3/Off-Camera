@@ -337,10 +337,12 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
   const supabase = await createClient();
   // Saving pay terms must not wipe a contract the brand has already agreed to.
   const { data: before } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
-  const kept = parsePostTerms(before?.post_terms)?.contract;
+  const keptTerms = parsePostTerms(before?.post_terms);
+  const kept = keptTerms?.contract;
+  const keptRequirements = keptTerms?.requirements;
   const { data, error } = await supabase
     .from("jobs")
-    .update({ post_terms: (kept ? { ...terms.data, contract: kept } : terms.data) as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
+    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}), ...(keptRequirements ? { requirements: keptRequirements } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
     .eq("id", jobId.data)
     .select("id");
   if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };

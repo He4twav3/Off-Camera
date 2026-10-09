@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
+import { RequirementsFields } from "@/components/RequirementsFields";
 import { HowYouPay } from "../../HowYouPay";
 import { createCampaignAction, type NewCampaignState } from "../../actions";
 
@@ -49,6 +50,21 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
   const platformOn = (p: string) => (state.values ? state.values.platforms.includes(p) : true);
   return (
     <form action={action} className="flex flex-col gap-5">
+      <Section title="Requirements" hint="The first thing creators read. Set what you expect.">
+        <fieldset>
+          <legend className="text-[15px] font-semibold text-foreground">Where creators post</legend>
+          <div className="mt-2 flex flex-wrap gap-4">
+            {PLATFORMS.map((p) => (
+              <label key={p.value} className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                <input type="checkbox" name="platforms" value={p.value} defaultChecked={platformOn(p.value)} className="size-4" />
+                {p.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <RequirementsFields />
+      </Section>
+
       <Section title="Approving videos" hint="Every video is checked before it is paid. You can change this later.">
         <fieldset className="grid gap-2 sm:grid-cols-2">
           <legend className="sr-only">Who reviews each video</legend>
@@ -79,17 +95,6 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
             ))}
           </Select>
         </Field>
-        <fieldset>
-          <legend className="text-[15px] font-semibold text-foreground">Where creators post</legend>
-          <div className="mt-2 flex flex-wrap gap-4">
-            {PLATFORMS.map((p) => (
-              <label key={p.value} className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                <input type="checkbox" name="platforms" value={p.value} defaultChecked={platformOn(p.value)} className="size-4" />
-                {p.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
         <Field label="About your brand" htmlFor="about" hint="Two or three sentences creators see before they join.">
           <Textarea id="about" name="about" maxLength={2000} defaultValue={val("about")} />
         </Field>

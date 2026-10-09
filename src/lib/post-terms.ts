@@ -33,6 +33,15 @@ export const contractSchema = z.object({
 });
 export type ContractDetails = z.infer<typeof contractSchema>;
 
+/** What every creator must know before joining: how much to post, how long, and anything else. The brand sets it first. */
+export const requirementsSchema = z.object({
+  count: z.number().int().min(1).max(1000).optional(),
+  period: z.enum(["day", "week", "month"]).default("week"),
+  length: z.string().trim().max(60).default(""),
+  note: z.string().trim().max(300).default(""),
+});
+export type Requirements = z.infer<typeof requirementsSchema>;
+
 export const postTermsSchema = z.object({
   v: z.literal(2),
   basePerPost: z.number().min(0).max(100_000),
@@ -67,6 +76,7 @@ export const postTermsSchema = z.object({
   reviewer: z.enum(["oncamera", "brand"]).default("oncamera"),
   /** Set once the brand has filled in and agreed to the contract (see lib/contract.ts). */
   contract: contractSchema.optional(),
+  requirements: requirementsSchema.optional(),
 });
 
 export type PostTerms = z.infer<typeof postTermsSchema>;

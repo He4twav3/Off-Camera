@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader, PageShell } from "@/components/kit/ui";
+import { PLATFORM_LABELS } from "@/lib/utils";
 import { postTermsChips, parsePostTerms } from "@/lib/post-terms";
 import { requireBrand } from "../../../_brand";
 import { PendingNotice } from "../../../PendingNotice";
@@ -26,7 +27,7 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
   // Only the brand's own campaign (the service role is used after matching the brand id).
   const { data: job } = await createAdminClient()
     .from("jobs")
-    .select("id, title, niche_id, about, description, formats, example_urls, post_terms, logo_url, status")
+    .select("id, title, platform, niche_id, about, description, formats, example_urls, post_terms, logo_url, status")
     .eq("id", id)
     .eq("brand_account_id", brand.id)
     .maybeSingle();
@@ -53,6 +54,8 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
             rules: job.description,
             formats: job.formats ?? "",
             examples: (job.example_urls ?? []).join("\n"),
+            platforms: (terms?.platforms ?? [job.platform]).map((p) => PLATFORM_LABELS[p as keyof typeof PLATFORM_LABELS] ?? p),
+            requirements: terms?.requirements,
           }}
           niches={niches ?? []}
         />

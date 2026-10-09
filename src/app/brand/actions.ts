@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
 import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
 import { termsFingerprint } from "@/lib/contract";
+import { parseRequirements } from "@/lib/requirements";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -401,6 +402,8 @@ export async function createCampaignAction(
   if (!formats.ok) return fail(`Formats that work: ${formats.error}`);
   const examples = parseExampleLinks(String(formData.get("examples") ?? ""));
   if (!examples.ok) return fail(`Example links: ${examples.error}`);
+  const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
+  if (!requirements.ok) return fail(requirements.error);
 
   // Bonus milestones: pairs of (views, bonus). Empty rows are ignored; each must be complete.
   const views = formData.getAll("ms_views").map((x) => String(x).trim());
@@ -429,6 +432,7 @@ export async function createCampaignAction(
     platforms,
     repostsEarnBase: false,
     reviewer: v.reviewer,
+    requirements: requirements.value,
   });
   if (!terms.success) return fail("Check the pay terms.");
 
@@ -575,12 +579,22 @@ export async function updateCampaignAction(
   const examples = parseExampleLinks(String(formData.get("examples") ?? ""));
   if (!examples.ok) return { error: `Example videos: ${examples.error}` };
 
+  const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
+  if (!requirements.ok) return { error: requirements.error };
+
   const brand = await approvedBrand();
   if (!brand) return { error: "Your brand account isn't approved yet." };
 
-  const { data, error } = await createAdminClient()
+  // The requirements live with the pay terms; the rest of the terms stay exactly as they are.
+  const db = createAdminClient();
+  const { data: current } = await db.from("jobs").select("post_terms").eq("id", parsed.data.job_id).eq("brand_account_id", brand.id).maybeSingle();
+  const currentTerms = current ? parsePostTerms(current.post_terms) : null;
+  const nextTerms = currentTerms ? { ...currentTerms, requirements: requirements.value } : null;
+
+  const { data, error } = await db
     .from("jobs")
     .update({
+      ...(nextTerms ? { post_terms: nextTerms as unknown as Record<string, unknown> } : {}),
       title: parsed.data.title,
       niche_id: parsed.data.niche_id,
       about: parsed.data.about || null,

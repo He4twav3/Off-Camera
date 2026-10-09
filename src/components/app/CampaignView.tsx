@@ -25,6 +25,7 @@ import { compactViews } from "@/lib/format";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
 import { ExampleVideos } from "@/components/app/ExampleVideos";
+import { requirementItems } from "@/lib/requirements";
 
 /**
  * One campaign: a left panel (banner, tags, and the one thing to do next, passed
@@ -206,6 +207,20 @@ export function CampaignView({
                       : "Closed"}
                 </StatusBadge>
               </div>
+
+              {postTerms && (
+                <section aria-label="Requirements" className="mt-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
+                  <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
+                  <dl className="mt-2 flex flex-col gap-1.5 text-sm">
+                    {requirementItems(postTerms).map((r) => (
+                      <div key={r.label} className="flex flex-wrap gap-x-4">
+                        <dt className="w-20 shrink-0 text-muted-foreground">{r.label}</dt>
+                        <dd className="min-w-0 flex-1 font-medium text-foreground">{r.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              )}
 
               <section className="mt-5">
                 <h2 className="sr-only">How this campaign pays</h2>

@@ -5,6 +5,8 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
+import { RequirementsFields } from "@/components/RequirementsFields";
+import type { Requirements } from "@/lib/post-terms";
 import { updateCampaignAction, type EditCampaignState } from "../../../actions";
 
 function Save() {
@@ -29,6 +31,8 @@ export function EditCampaignForm({
     rules: string;
     formats: string;
     examples: string;
+    platforms: string[];
+    requirements?: Requirements;
   };
   niches: { id: string; label: string }[];
 }) {
@@ -36,6 +40,14 @@ export function EditCampaignForm({
   return (
     <form action={action} className="flex flex-col gap-5">
       <input type="hidden" name="job_id" value={campaign.id} />
+      <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
+        <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
+        <p className="text-sm text-foreground">
+          <span className="text-muted-foreground">Post on </span>
+          {campaign.platforms.join(", ")}
+        </p>
+        <RequirementsFields initial={campaign.requirements} />
+      </section>
       <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
         <Field label="Campaign name" htmlFor="title">
           <Input id="title" name="title" required maxLength={120} defaultValue={campaign.title} />
