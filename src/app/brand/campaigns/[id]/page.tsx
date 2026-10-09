@@ -83,7 +83,7 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
       </p>
 
       {c.reviewer && (
-        <section className="mb-6 rounded-xl border border-border/70 bg-card p-5">
+        <section className="mb-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
           <ReviewerChoice jobId={c.id} reviewer={c.reviewer} />
           {ownReview && (
             <p className="mt-3 text-sm">
@@ -108,7 +108,7 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <section className="rounded-xl border border-border/70 bg-card p-5">
+          <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
             <h2 className="font-heading text-base font-semibold text-foreground">Creators</h2>
             {c.creators.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">No creators have joined yet.</p>
@@ -153,7 +153,7 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
-          <section className="rounded-xl border border-border/70 bg-card p-5">
+          <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
             <h2 className="font-heading text-base font-semibold text-foreground">Views by platform</h2>
             {split.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">No videos are counting yet.</p>
@@ -174,7 +174,7 @@ export default async function BrandCampaignPage(props: { params: Promise<{ id: s
             )}
           </section>
 
-          <section className="flex flex-col gap-5 rounded-xl border border-border/70 bg-card p-5">
+          <section className="flex flex-col gap-5 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
             <h2 className="font-heading text-base font-semibold text-foreground">Logo</h2>
             <CampaignLogoForm jobId={c.id} logoUrl={c.logoUrl} />
           </section>

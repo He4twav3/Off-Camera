@@ -71,16 +71,16 @@ export default async function BrandHomePage() {
 
       <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Your campaigns</h2>
       <div className="mb-8 overflow-x-auto rounded-xl border border-border/70 bg-card">
-        <table className="w-full min-w-[46rem] text-left text-sm">
+        <table className="w-full min-w-0 text-left text-sm">
           <thead className="border-b border-border/70 text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">Campaign</th>
               <th className="px-3 py-3 font-medium">Status</th>
               <th className="px-3 py-3 font-medium">To do</th>
-              <th className="px-3 py-3 text-right font-medium">Creators</th>
-              <th className="px-3 py-3 text-right font-medium">Videos</th>
+              <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Creators</th>
+              <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Videos</th>
               <th className="px-3 py-3 text-right font-medium">Views</th>
-              <th className="px-3 py-3 text-right font-medium">Earned</th>
+              <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Earned</th>
               <th className="w-10 px-3 py-3" />
             </tr>
           </thead>
@@ -123,10 +123,10 @@ export default async function BrandHomePage() {
                       </ul>
                     )}
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums">{c.creators.length}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{c.postsCounted}</td>
+                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{c.creators.length}</td>
+                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{c.postsCounted}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.views.toLocaleString()}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
+                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{formatCurrency(c.earned)}</td>
                   <td className="px-3 py-3 text-right">
                     <Link href={`/brand/campaigns/${c.id}`} aria-label={`Open ${c.title}`}>
                       <ChevronRight className="size-4 text-muted-foreground" />
@@ -142,14 +142,14 @@ export default async function BrandHomePage() {
       {best.length > 0 && (
         <section>
           <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Best videos</h2>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {best.map((p, i) => (
-              <li key={p.id} className="flex flex-col rounded-xl border border-border/70 bg-card p-5">
+              <li key={p.id} className="flex flex-col rounded-xl border border-border/70 bg-card p-3.5 sm:p-5">
                 <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
                   <span>#{i + 1}</span>
                   <span>{label(p.platform)}</span>
                 </div>
-                <p className="mt-3 font-heading text-2xl font-semibold tabular-nums text-foreground">
+                <p className="mt-2 font-heading text-xl font-semibold tabular-nums text-foreground sm:mt-3 sm:text-2xl">
                   {p.views.toLocaleString()}
                   <span className="ml-1.5 text-sm font-medium text-muted-foreground">views</span>
                 </p>
@@ -158,7 +158,7 @@ export default async function BrandHomePage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="mt-4 w-full"
+                  className="mt-3 w-full sm:mt-4"
                   nativeButton={false}
                   render={<a href={p.url} target="_blank" rel="noopener noreferrer" />}
                 >

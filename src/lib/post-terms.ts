@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STATEMENT_DUE_DAYS } from "@/lib/direct-pay";
 
 /**
  * Pay for a campaign whose contract pays per video (the Getimg contract is the first).
@@ -272,6 +273,7 @@ export function describePostTerms(terms: PostTerms): string[] {
   lines.push(`Every post is measured on its own. Only views within ${terms.windowDays} days of the post going live count, then the number is final.`);
   lines.push("Your post has to be on one of your own verified accounts, and go live after you connected that account and joined.");
   if (terms.keepPublicDays > 0) lines.push(`Keep each post public for ${terms.keepPublicDays} days.`);
+  lines.push(`After each payment, the brand has ${STATEMENT_DUE_DAYS} days to pay you directly through your payment link. Amounts are in US dollars, so create your link in USD.`);
   lines.push("Views are updated about once a day.");
   return lines;
 }

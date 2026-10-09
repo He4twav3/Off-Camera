@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 export function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
       {children}
     </div>
   );
@@ -62,26 +62,26 @@ export function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-card px-4 py-3.5">
-      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+    <div className="rounded-xl border border-border/70 bg-card px-3 py-2.5 sm:px-4 sm:py-3.5">
+      <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase sm:text-xs">
         {label}
       </p>
       <p
         className={cn(
-          "mt-1 font-heading text-2xl font-semibold tabular-nums",
+          "mt-0.5 font-heading text-xl font-semibold tabular-nums sm:mt-1 sm:text-2xl",
           attention ? "text-primary" : "text-foreground",
         )}
       >
         {value}
       </p>
-      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">{hint}</p>}
     </div>
   );
 }
 
 export function StatGrid({ children }: { children: ReactNode }) {
   return (
-    <dl className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 [&>div]:min-w-0">
+    <dl className="mb-5 grid grid-cols-2 gap-2 sm:mb-6 sm:gap-3 lg:grid-cols-4 [&>div]:min-w-0">
       {children}
     </dl>
   );

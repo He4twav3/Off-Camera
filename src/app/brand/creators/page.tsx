@@ -20,16 +20,16 @@ export default async function BrandCreatorsPage() {
         <EmptyState title="No creators yet" body="Creators who join your campaigns appear here with their videos and earnings." />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+          <table className="w-full min-w-0 text-left text-sm">
             <thead className="border-b border-border/70 text-xs text-muted-foreground">
               <tr>
                 <th className="w-12 px-4 py-3 font-medium">#</th>
                 <th className="px-3 py-3 font-medium">Creator</th>
-                <th className="px-3 py-3 font-medium">Campaign</th>
-                <th className="px-3 py-3 text-right font-medium">Videos</th>
+                <th className="hidden px-3 py-3 font-medium md:table-cell">Campaign</th>
+                <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Videos</th>
                 <th className="px-3 py-3 text-right font-medium">Views</th>
                 <th className="px-3 py-3 text-right font-medium">Earned</th>
-                <th className="px-3 py-3 text-right font-medium">Paid</th>
+                <th className="hidden px-3 py-3 text-right font-medium md:table-cell">Paid</th>
                 <th className="w-10 px-3 py-3" />
               </tr>
             </thead>
@@ -42,12 +42,13 @@ export default async function BrandCreatorsPage() {
                       {c.name}
                     </Link>
                     <span className="block text-xs text-muted-foreground">@{c.handle}</span>
+                    <span className="block text-xs text-muted-foreground md:hidden">{c.campaignTitle}</span>
                   </td>
-                  <td className="px-3 py-3 text-muted-foreground">{c.campaignTitle}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{c.postsCounted}</td>
+                  <td className="hidden px-3 py-3 text-muted-foreground md:table-cell">{c.campaignTitle}</td>
+                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{c.postsCounted}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.views.toLocaleString()}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.earned)}</td>
-                  <td className="px-3 py-3 text-right tabular-nums">{formatCurrency(c.paid)}</td>
+                  <td className="hidden px-3 py-3 text-right tabular-nums md:table-cell">{formatCurrency(c.paid)}</td>
                   <td className="px-3 py-3 text-right">
                     <Link href={`/brand/creators/${c.assignmentId}`} aria-label={`Open ${c.name}`}>
                       <ChevronRight className="size-4 text-muted-foreground" />

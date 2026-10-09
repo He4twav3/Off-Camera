@@ -23,7 +23,7 @@ export function ReviewerChoice({
         type="submit"
         disabled={pending}
         aria-current={current === value ? "true" : undefined}
-        className={`w-full cursor-pointer rounded-lg border p-3 text-left transition-colors ${
+        className={`w-full cursor-pointer rounded-lg border p-2.5 text-left sm:p-3 transition-colors ${
           current === value ? "border-primary ring-1 ring-primary" : "border-border/70 hover:border-primary/40"
         }`}
       >

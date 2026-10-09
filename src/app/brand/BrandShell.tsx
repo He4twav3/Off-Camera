@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/site/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { BrandNav } from "./BrandNav";
+import { BrandMobileMenu, BrandNav } from "./BrandNav";
 
 /**
  * The brand side's own app: a left menu with only what a brand needs (campaigns, creators,
@@ -52,12 +52,11 @@ export function BrandShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur lg:hidden">
-          <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-2">
             <BrandLogo />
-            <span className="truncate text-sm font-medium text-muted-foreground">{company}</span>
+            <BrandMobileMenu approvals={approvals} company={company} />
           </div>
-          <BrandNav variant="row" approvals={approvals} />
         </header>
         <main className="w-full flex-1">{children}</main>
       </div>

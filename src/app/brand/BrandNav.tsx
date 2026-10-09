@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CheckCircle2, FileText, Megaphone, Settings, Users, Wallet } from "lucide-react";
+import { CheckCircle2, FileText, Megaphone, Menu, Settings, Users, Wallet, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // In the order a brand works: set up the campaign, approve videos, see creators, pay them.
@@ -76,5 +77,35 @@ export function BrandNav({ variant, approvals = 0 }: { variant: "rail" | "row"; 
         </Link>
       ))}
     </nav>
+  );
+}
+
+/** The phone menu: a hamburger button that opens the same list as the rail. Picking a page closes it. */
+export function BrandMobileMenu({ approvals = 0, company }: { approvals?: number; company: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={open ? "Close menu" : "Open menu"}
+        className="relative flex size-10 cursor-pointer items-center justify-center rounded-lg text-foreground hover:bg-muted"
+      >
+        {open ? <X className="size-5" /> : <Menu className="size-5" />}
+        {!open && approvals > 0 && <span aria-hidden className="absolute top-2 right-2 size-2 rounded-full bg-primary" />}
+      </button>
+      {open && (
+        <div
+          className="absolute inset-x-0 top-full max-h-[80vh] overflow-y-auto border-b border-border bg-card px-3 py-3 shadow-lg"
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("a")) setOpen(false);
+          }}
+        >
+          <p className="truncate px-3 pb-2 text-xs text-muted-foreground">{company}</p>
+          <BrandNav variant="rail" approvals={approvals} />
+        </div>
+      )}
+    </div>
   );
 }
