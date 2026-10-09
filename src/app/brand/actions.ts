@@ -409,6 +409,9 @@ export async function createCampaignAction(
   // View pay: CPM rows (a CPM and the views it starts at). Blank rows are skipped.
   const cpm = parseCpmRows((k) => formData.getAll(k).map(String));
   if (!cpm.ok) return fail(cpm.error);
+  const rawCap = String(formData.get("cpm_cap") ?? "").replace(/,/g, "").trim();
+  const cpmCap = rawCap ? Number(rawCap) : undefined;
+  if (cpmCap !== undefined && (!Number.isInteger(cpmCap) || cpmCap < 1)) return fail("The view cap must be a whole number of views, 1 or more.");
 
   const terms = postTermsSchema.safeParse({
     v: 2,
@@ -416,6 +419,7 @@ export async function createCampaignAction(
     cycleSize: v.cycle,
     milestones: [],
     cpm: cpm.value,
+    cpmCap: cpm.value ? cpmCap : undefined,
     windowDays: v.window,
     keepPublicDays: v.keep_public,
     platforms,

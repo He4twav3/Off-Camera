@@ -6,7 +6,7 @@ const views = (n: number) => (n >= 1000 ? `${n / 1000}K` : String(n));
 const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
 
 /** The pay inputs: pay per video, how often it is paid, the counting window, how long a post stays public, and the CPM. */
-export function PayTermsFields({ terms }: { terms: Pick<PostTerms, "basePerPost" | "cycleSize" | "windowDays" | "keepPublicDays" | "milestones" | "cpm"> }) {
+export function PayTermsFields({ terms }: { terms: Pick<PostTerms, "basePerPost" | "cycleSize" | "windowDays" | "keepPublicDays" | "milestones" | "cpm" | "cpmCap"> }) {
   const rows = terms.cpm ?? [];
   const fixed = !terms.cpm?.length && terms.milestones.length > 0;
   return (
@@ -25,7 +25,7 @@ export function PayTermsFields({ terms }: { terms: Pick<PostTerms, "basePerPost"
           <Input id="keep_public" name="keep_public" type="number" inputMode="numeric" min={0} defaultValue={terms.keepPublicDays} required />
         </Field>
       </div>
-      <CpmRows rows={rows} />
+      <CpmRows rows={rows} cap={terms.cpmCap} />
       {fixed && (
         <p className="text-sm text-muted-foreground">
           Now paying fixed bonuses: {terms.milestones.map((m) => `${usd(m.amount)} at ${views(m.views)} views`).join(", ")}. Fill in a CPM above to replace them.

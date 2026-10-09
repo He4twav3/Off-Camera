@@ -185,6 +185,14 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("a single rate reads simply", cpmPhrases([{ from: 0, rate: 2 }]).join("|") === "$2 CPM");
   const parsed = parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], cpm: [...bands].reverse(), windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] });
   t("saved bands come back sorted", parsed?.cpm?.[0].from === 0 && parsed?.cpm?.[1].from === 1000, parsed?.cpm);
+  t("views past the cap earn nothing more", cpmBonus(500_000, [{ from: 0, rate: 2 }], 100_000) === 200, cpmBonus(500_000, [{ from: 0, rate: 2 }], 100_000));
+  t("under the cap nothing changes", cpmBonus(3000, bands, 100_000) === 5);
+  t("the cap works across bands", cpmBonus(9000, bands, 2000) === 3, cpmBonus(9000, bands, 2000));
+  t("bonusFor passes the cap on", bonusFor(500_000, { milestones: [], cpm: [{ from: 0, rate: 2 }], cpmCap: 100_000 }) === 200);
+  const capped = { ...T, milestones: [], cpm: [{ from: 0, rate: 1 }, { from: 1000, rate: 2 }], cpmCap: 5000 };
+  t("the strip shows the most a post can earn", postTermsChips(capped).some((c) => c === "Up to $9 per post, counting up to 5K views"), postTermsChips(capped));
+  t("the sentence says where it tops out", describePostTerms(capped).some((l) => /tops out at \$9 a post/.test(l)), describePostTerms(capped));
+  t("a cap without bands is dropped on save", parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], cpmCap: 5000, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.cpmCap === undefined);
   t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }
 

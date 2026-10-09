@@ -21,6 +21,7 @@ import {
   postTermsChips,
   type PostTerms,
   cpmPhrases,
+  cpmBonus,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
@@ -83,6 +84,9 @@ export function CampaignView({
               icon: TrendingUp,
               label: `Bonus up to ${usd(topBonus.amount)} per post`,
             }
+          : null,
+        postTerms.cpm?.length && postTerms.cpmCap
+          ? { icon: TrendingUp, label: `Up to ${usd(cpmBonus(postTerms.cpmCap, postTerms.cpm))} per post, counting up to ${compactViews(postTerms.cpmCap)} views` }
           : null,
         { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` },
         { icon: Eye, label: `${postTerms.windowDays}-day counting window` },

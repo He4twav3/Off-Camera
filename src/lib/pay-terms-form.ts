@@ -15,6 +15,8 @@ export type PayTermsFields = {
   platforms: (typeof PLATFORMS)[number][];
   /** undefined when every CPM row was left blank: the campaign's existing view pay is then left as it is. */
   cpm: CpmTier[] | undefined;
+  /** The most views that earn CPM pay on one post; undefined for no cap. */
+  cpmCap: number | undefined;
 };
 
 /** The CPM rows: a "from views" and a rate. A blank "from" means from the first view. Both blank skips the row. */
@@ -42,6 +44,13 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
   if (platforms.length === 0) return { ok: false, error: "Pick at least one platform." };
   const cpm = parseCpmRows(getAll);
   if (!cpm.ok) return cpm;
+  const rawCap = get("cpm_cap").replace(/,/g, "").trim();
+  let cpmCap: number | undefined;
+  if (rawCap) {
+    const c = Number(rawCap);
+    if (!Number.isInteger(c) || c < 1) return { ok: false, error: "The view cap must be a whole number of views, 1 or more." };
+    cpmCap = c;
+  }
   const value: PayTermsFields = {
     basePerPost: num("base"),
     cycleSize: num("cycle"),
@@ -49,13 +58,14 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
     keepPublicDays: num("keep_public"),
     platforms,
     cpm: cpm.value,
+    cpmCap,
   };
   if (![value.basePerPost, value.cycleSize, value.windowDays, value.keepPublicDays].every(Number.isFinite)) return { ok: false, error: "Fill in every pay field." };
   return { ok: true, value };
 }
 
 /** What the saved pay terms become: the new numbers, and CPM replaces the fixed bonuses only when the brand entered some. */
-export function mergePayTerms<T extends { milestones: { views: number; amount: number }[]; cpm?: CpmTier[] }>(current: T, pay: PayTermsFields) {
-  const { cpm, ...rest } = pay;
-  return cpm ? { ...current, ...rest, cpm, milestones: [] } : { ...current, ...rest };
+export function mergePayTerms<T extends { milestones: { views: number; amount: number }[]; cpm?: CpmTier[]; cpmCap?: number }>(current: T, pay: PayTermsFields) {
+  const { cpm, cpmCap, ...rest } = pay;
+  return cpm ? { ...current, ...rest, cpm, cpmCap, milestones: [] } : { ...current, ...rest };
 }

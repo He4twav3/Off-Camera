@@ -8,7 +8,7 @@ type Row = { from: string; rate: string };
 const MAX_ROWS = 6;
 
 /** The CPM: one row to start, a plus button to add another band (a CPM and the views it starts at). Blank rows are skipped. */
-export function CpmRows({ rows }: { rows: ({ from: number; rate: number } | null)[] }) {
+export function CpmRows({ rows, cap }: { rows: ({ from: number; rate: number } | null)[]; cap?: number | string }) {
   const start: Row[] = rows.filter((r): r is { from: number; rate: number } => r !== null).map((r) => ({ from: String(r.from), rate: String(r.rate) }));
   const [list, setList] = useState<Row[]>(start.length ? start : [{ from: "", rate: "" }]);
   const set = (i: number, k: keyof Row, v: string) => setList((l) => l.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
@@ -46,6 +46,12 @@ export function CpmRows({ rows }: { rows: ({ from: number; rate: number } | null
           <Plus className="size-4" />
         </button>
       )}
+      <div className="mt-3 max-w-md">
+        <label htmlFor="cpm_cap" className="text-sm font-medium text-foreground">
+          Stop counting views after (optional)
+        </label>
+        <Input id="cpm_cap" name="cpm_cap" type="number" inputMode="numeric" min={1} defaultValue={cap ?? ""} placeholder="Views" className="mt-1" />
+      </div>
     </div>
   );
 }

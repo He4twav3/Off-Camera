@@ -69,6 +69,8 @@ export const postTermsSchema = z.object({
     .max(10),
   /** CPM bands for view pay, lowest first. When present they replace `milestones`. */
   cpm: z.array(cpmTierSchema).max(6).optional(),
+  /** The most views that earn CPM pay on one post. Views past it earn nothing more. Unset means no cap. */
+  cpmCap: z.number().int().min(1).max(1_000_000_000).optional(),
   /** Views count for this many days after the post goes live, then freeze. */
   windowDays: z.number().int().min(1).max(365),
   /** The creator keeps each approved post public for this long. */
@@ -100,7 +102,9 @@ export function parsePostTerms(raw: unknown): PostTerms | null {
   return {
     ...parsed.data,
     milestones: [...parsed.data.milestones].sort((a, b) => a.views - b.views),
-    ...(parsed.data.cpm?.length ? { cpm: [...parsed.data.cpm].sort((a, b) => a.from - b.from) } : { cpm: undefined }),
+    ...(parsed.data.cpm?.length
+      ? { cpm: [...parsed.data.cpm].sort((a, b) => a.from - b.from), cpmCap: parsed.data.cpmCap }
+      : { cpm: undefined, cpmCap: undefined }),
   };
 }
 
@@ -134,20 +138,21 @@ export function milestoneBonus(
 }
 
 /** What a post's views earn under CPM bands: each band pays its rate per 1,000 views for the views inside it. */
-export function cpmBonus(views: number, tiers: CpmTier[]): number {
+export function cpmBonus(views: number, tiers: CpmTier[], cap?: number): number {
   const sorted = [...tiers].sort((a, b) => a.from - b.from);
+  const counted = cap ? Math.min(views, cap) : views;
   let cents = 0;
   sorted.forEach((t, i) => {
     const end = sorted[i + 1]?.from ?? Infinity;
-    const inBand = Math.max(0, Math.min(views, end) - t.from);
+    const inBand = Math.max(0, Math.min(counted, end) - t.from);
     cents += (inBand / 1000) * t.rate * 100;
   });
   return Math.round(cents) / 100;
 }
 
 /** The view pay a post has earned: by CPM bands when the campaign has them, otherwise by milestone. */
-export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "cpm">): number {
-  return terms.cpm?.length ? cpmBonus(views, terms.cpm) : milestoneBonus(views, terms.milestones);
+export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "cpm" | "cpmCap">): number {
+  return terms.cpm?.length ? cpmBonus(views, terms.cpm, terms.cpmCap) : milestoneBonus(views, terms.milestones);
 }
 
 /** The last moment views count for a post published at `postedAt`. */
@@ -314,7 +319,10 @@ export function cpmPhrases(tiers: CpmTier[]): string[] {
 export function postTermsChips(terms: PostTerms): string[] {
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
-  if (terms.cpm?.length) chips.push(cpmPhrases(terms.cpm).join(", "));
+  if (terms.cpm?.length) {
+    chips.push(cpmPhrases(terms.cpm).join(", "));
+    if (terms.cpmCap) chips.push(`Up to ${usd(cpmBonus(terms.cpmCap, terms.cpm))} per post, counting up to ${views(terms.cpmCap)} views`);
+  }
   else {
     const top = terms.milestones.at(-1);
     if (top) chips.push(`Bonus up to ${usd(top.amount)} per post`);
@@ -337,6 +345,8 @@ export function describePostTerms(terms: PostTerms): string[] {
   }
   if (terms.cpm?.length) {
     lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm).join(", then ")}. Each band pays only for the views inside it.`);
+    if (terms.cpmCap)
+      lines.push(`Views count up to ${views(terms.cpmCap)} on each post, so view pay tops out at ${usd(cpmBonus(terms.cpmCap, terms.cpm))} a post. Views past that earn nothing more.`);
   } else if (terms.milestones.length > 0) {
     lines.push(
       `Bonus per post, at the highest milestone it reaches: ${terms.milestones.map((m) => `${views(m.views)} views, ${usd(m.amount)}`).join(" · ")}.`,

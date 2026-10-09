@@ -17,7 +17,7 @@ export function termsFingerprint(t: PostTerms): string {
     c: t.cycleSize,
     m: [...t.milestones].sort((a, b) => a.views - b.views).map((m) => [m.views, m.amount]),
     // Only when there are bands, so a contract signed before CPM existed still matches its own terms.
-    ...(t.cpm?.length ? { q: [...t.cpm].sort((a, b) => a.from - b.from).map((c) => [c.from, c.rate]) } : {}),
+    ...(t.cpm?.length ? { q: [...t.cpm].sort((a, b) => a.from - b.from).map((c) => [c.from, c.rate]), ...(t.cpmCap ? { x: t.cpmCap } : {}) } : {}),
     w: t.windowDays,
     k: t.keepPublicDays,
     p: [...t.platforms].sort(),
@@ -71,7 +71,10 @@ export function contractSections(input: {
             : `Base pay: ${usd(t.basePerPost)} for each unique video on the creator's main platform. A repost earns view bonuses only, not base pay.`
           : "There is no base pay per video.",
         ...(t.cpm?.length
-          ? [`Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm).join(", then ")}. Each band pays only for the views inside it.`]
+          ? [
+              `Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm).join(", then ")}. Each band pays only for the views inside it.`,
+              ...(t.cpmCap ? [`Views count up to ${views(t.cpmCap)} on each post. Views past that earn nothing more.`] : []),
+            ]
           : t.milestones.length > 0
           ? [
               `Bonus for each post, at the highest milestone it reaches: ${t.milestones.map((m) => `${views(m.views)} views, ${usd(m.amount)}`).join("; ")}.`,
