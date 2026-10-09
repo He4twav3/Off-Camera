@@ -83,7 +83,7 @@ function platformOf(entry: ProofEntry): ProofPoster["platform"] {
  * is a hard timeout here rather than an unbounded await: a hanging
  * upstream request would otherwise hold up the whole server render.
  */
-async function fetchTikTokPoster(postUrl: string): Promise<string | null> {
+export async function fetchTikTokPoster(postUrl: string): Promise<string | null> {
   try {
     const response = await fetch(
       `https://www.tiktok.com/oembed?url=${encodeURIComponent(postUrl)}`,
@@ -123,7 +123,7 @@ async function fetchTikTokPoster(postUrl: string): Promise<string | null> {
  * typographic tile a resolution failure has always meant here — never a
  * broken image, never a scrape treated as more reliable than it is.
  */
-async function fetchInstagramPoster(postUrl: string): Promise<string | null> {
+export async function fetchInstagramPoster(postUrl: string): Promise<string | null> {
   try {
     const embedUrl = `${postUrl.replace(/\/?$/, "/")}embed/captioned/`;
     const response = await fetch(embedUrl, {

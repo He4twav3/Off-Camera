@@ -8,6 +8,7 @@ import { cpm, topPosts } from "@/lib/brand-stats";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { loadBrandPage } from "./_brand";
 import { PendingNotice } from "./PendingNotice";
+import { BestVideos } from "./BestVideos";
 
 export const metadata: Metadata = { title: "Campaigns" };
 
@@ -139,36 +140,7 @@ export default async function BrandHomePage() {
         </table>
       </div>
 
-      {best.length > 0 && (
-        <section>
-          <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Best videos</h2>
-          <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-            {best.map((p, i) => (
-              <li key={p.id} className="flex flex-col rounded-xl border border-border/70 bg-card p-3.5 sm:p-5">
-                <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
-                  <span>#{i + 1}</span>
-                  <span>{label(p.platform)}</span>
-                </div>
-                <p className="mt-2 font-heading text-xl font-semibold tabular-nums text-foreground sm:mt-3 sm:text-2xl">
-                  {p.views.toLocaleString()}
-                  <span className="ml-1.5 text-sm font-medium text-muted-foreground">views</span>
-                </p>
-                <p className="mt-2 text-sm font-medium text-foreground">{p.creatorName}</p>
-                <p className="text-sm text-muted-foreground">{p.campaignTitle}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3 w-full sm:mt-4"
-                  nativeButton={false}
-                  render={<a href={p.url} target="_blank" rel="noopener noreferrer" />}
-                >
-                  Watch video
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <BestVideos videos={best} />
 
       <p className="mt-6 text-sm text-muted-foreground">Views are read from each platform about once a day.</p>
     </PageShell>
