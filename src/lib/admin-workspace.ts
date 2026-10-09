@@ -66,6 +66,9 @@ export type ACreator = {
   statemented: number;
   /** Marked paid by the brand or confirmed by the creator. */
   paid: number;
+  /** Our own fee on the statements issued for this creator (admin only). */
+  ourFees: number;
+  feesReceived: number;
   awaitingReview: number;
 };
 
@@ -203,6 +206,8 @@ export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorks
           payable: pay?.payable ?? 0,
           statemented: sum(statements.map((s) => s.amount)),
           paid: sum(statements.filter((s) => s.brandPaidAt || s.confirmedAt).map((s) => s.amount)),
+          ourFees: sum(statements.map((s) => s.ourFee)),
+          feesReceived: sum(statements.filter((s) => s.feeReceived).map((s) => s.ourFee)),
           awaitingReview: posts.filter((p) => p.counted && p.reviewed === false).length,
         };
       });

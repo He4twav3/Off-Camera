@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Body, Figures, Head, SectionTitle, Table, Td, Th } from "@/components/admin/table";
+import { CopyButton } from "@/components/admin/copy-button";
+import { PayoutCell } from "@/components/admin/payout-cell";
 import type { AdminWorkspace } from "@/lib/admin-workspace";
 import { PLATFORM_LABELS, formatCurrency } from "@/lib/utils";
 
@@ -16,48 +18,52 @@ export type QueueItem = {
 const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 
 /**
- * The admin home as a working overview: what needs you (a short list, only what is waiting),
- * the figures that matter, every campaign with its numbers, and the creators ranked. Everything
- * links down: campaign -> creator -> posts and payments.
+ * The admin home, in one order: what needs you, then each CAMPAIGN with the CREATORS on it, their VIEWS
+ * and EARNINGS, and MY EARNINGS (our fee); then the PAYOUTS: every creator's email and payment link.
+ * Everything links down to the campaign page and the creator page.
  */
 export function OverviewView({ summary, queue, ws }: { summary: string; queue: QueueItem[]; ws: AdminWorkspace }) {
   const waiting = queue.filter((q) => q.urgent);
   const quiet = queue.filter((q) => !q.urgent);
   const total = (f: (c: AdminWorkspace["campaigns"][number]) => number) => ws.campaigns.reduce((n, c) => n + f(c), 0);
-  const earned = total((c) => c.earned);
   const paid = total((c) => c.paid);
   const owed = Math.max(0, total((c) => c.statemented) - paid);
-  const ranked = [...ws.creators].sort((a, b) => b.views - a.views).slice(0, 10);
+  const people = new Map<string, AdminWorkspace["creators"]>();
+  for (const c of ws.creators) people.set(c.applicantId, [...(people.get(c.applicantId) ?? []), c]);
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10">
-      <header className="mb-6">
-        <h1 className="font-heading text-3xl font-semibold text-foreground">Overview</h1>
-        <p className="mt-2 text-[15px] text-muted-foreground">{summary}</p>
+    <div className="mx-auto max-w-6xl px-5 py-8">
+      <header className="mb-4">
+        <h1 className="font-heading text-2xl font-semibold text-foreground">Overview</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
       </header>
 
-      <section aria-labelledby="needs-you" className="mb-8">
-        <h2 id="needs-you" className="mb-2 font-heading text-lg font-semibold text-foreground">
-          {waiting.length > 0 ? "Needs you" : "Nothing waiting on you"}
+      <section aria-labelledby="needs-you" className="mb-5">
+        <h2 id="needs-you" className="sr-only">
+          Needs you
         </h2>
-        {waiting.length > 0 && (
-          <ul className="divide-y divide-border/70 rounded-xl border border-border/70 bg-card">
+        {waiting.length > 0 ? (
+          <ul className="flex flex-wrap gap-2">
             {waiting.map((q) => (
               <li key={q.label}>
-                <Link href={q.href} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40">
-                  <span className="min-w-8 rounded-md bg-primary px-2 py-0.5 text-center text-sm font-semibold tabular-nums text-primary-foreground">
-                    {q.value}
-                  </span>
-                  <span className="flex-1 text-[15px] font-medium text-foreground">{q.label}</span>
-                  <ChevronRight className="size-4 text-muted-foreground" />
+                <Link
+                  href={q.href}
+                  className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-foreground hover:bg-primary/15"
+                >
+                  <span className="rounded bg-primary px-1.5 text-xs font-semibold tabular-nums text-primary-foreground">{q.value}</span>
+                  {q.label}
+                  <ChevronRight className="size-3.5 text-muted-foreground" />
                 </Link>
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Nothing is waiting on you.</p>
         )}
         {quiet.length > 0 && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Clear: {quiet.map((q, i) => (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Clear:{" "}
+            {quiet.map((q, i) => (
               <span key={q.label}>
                 {i > 0 && " · "}
                 <Link href={q.href} className="hover:text-foreground hover:underline">
@@ -71,96 +77,115 @@ export function OverviewView({ summary, queue, ws }: { summary: string; queue: Q
 
       <Figures
         items={[
-          { label: "Total views", value: total((c) => c.views).toLocaleString() },
-          { label: "Videos counting", value: total((c) => c.videos).toLocaleString() },
-          { label: "Creators", value: new Set(ws.creators.map((c) => c.applicantId)).size.toLocaleString() },
-          { label: "Earned by creators", value: formatCurrency(earned) },
-          { label: "Brands still owe", value: formatCurrency(owed), attention: owed > 0 },
-          { label: "Paid so far", value: formatCurrency(paid) },
-          { label: "Our fees outstanding", value: formatCurrency(total((c) => c.feesOutstanding)), attention: total((c) => c.feesOutstanding) > 0 },
+          { label: "Views", value: total((c) => c.views).toLocaleString() },
+          { label: "Videos", value: total((c) => c.videos).toLocaleString() },
+          { label: "Creators", value: String(people.size) },
+          { label: "Creators earned", value: formatCurrency(total((c) => c.earned)) },
+          { label: "Brands owe", value: formatCurrency(owed), attention: owed > 0 },
+          { label: "Paid out", value: formatCurrency(paid) },
+          { label: "My earnings", value: formatCurrency(total((c) => c.ourFees)), hint: `${formatCurrency(total((c) => c.feesOutstanding))} not received`, attention: total((c) => c.feesOutstanding) > 0 },
         ]}
       />
 
       <SectionTitle aside={<Link href="/admin/jobs" className="text-sm font-medium text-primary hover:underline">All campaigns</Link>}>
-        Campaigns
+        Campaigns and their creators
       </SectionTitle>
       {ws.campaigns.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
-          No campaigns yet.
-        </p>
+        <p className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">No campaigns yet.</p>
       ) : (
-        <Table min="52rem">
-          <Head>
-            <Th>Campaign</Th>
-            <Th>Brand</Th>
-            <Th>Status</Th>
-            <Th right>Creators</Th>
-            <Th right>Videos</Th>
-            <Th right>Views</Th>
-            <Th right>Earned</Th>
-            <Th right>Brand owes</Th>
-            <Th right>Paid</Th>
-          </Head>
-          <Body>
-            {ws.campaigns.map((c) => (
-              <tr key={c.id} className="hover:bg-muted/30">
-                <Td>
-                  <Link href={`/admin/jobs/${c.id}`} className="font-medium text-foreground hover:underline">
+        <div className="flex flex-col gap-4">
+          {ws.campaigns.map((c) => (
+            <section key={c.id} className="overflow-hidden rounded-xl border border-border/70 bg-card">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-border/70 bg-muted/30 px-4 py-2.5">
+                <h3 className="font-heading text-base font-semibold text-foreground">
+                  <Link href={`/admin/jobs/${c.id}`} className="hover:underline">
                     {c.title}
                   </Link>
-                  <span className="block text-xs text-muted-foreground">{PLATFORM_LABELS[c.platform as keyof typeof PLATFORM_LABELS] ?? c.platform}</span>
-                </Td>
-                <Td muted>{c.brandName ?? "No brand yet"}</Td>
-                <Td>
-                  <StatusBadge tone={c.status === "open" ? "open" : "closed"}>{STATUS[c.status]}</StatusBadge>
-                </Td>
-                <Td right>{c.creators.length}</Td>
-                <Td right>{c.videos}</Td>
-                <Td right>{c.views.toLocaleString()}</Td>
-                <Td right>{formatCurrency(c.earned)}</Td>
-                <Td right>{formatCurrency(Math.max(0, c.statemented - c.paid))}</Td>
-                <Td right>{formatCurrency(c.paid)}</Td>
-              </tr>
-            ))}
-          </Body>
-        </Table>
+                </h3>
+                <StatusBadge tone={c.status === "open" ? "open" : "closed"}>{STATUS[c.status]}</StatusBadge>
+                <span className="text-xs text-muted-foreground">
+                  {c.brandName ?? "No brand yet"} · {PLATFORM_LABELS[c.platform as keyof typeof PLATFORM_LABELS] ?? c.platform}
+                </span>
+                <span className="ml-auto flex flex-wrap gap-x-5 text-xs tabular-nums text-muted-foreground">
+                  <span>{c.views.toLocaleString()} views</span>
+                  <span>{formatCurrency(c.earned)} earned</span>
+                  <span>brand owes {formatCurrency(Math.max(0, c.statemented - c.paid))}</span>
+                  <span className="font-medium text-foreground">my earnings {formatCurrency(c.ourFees)}</span>
+                </span>
+              </div>
+              {c.creators.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-muted-foreground">Nobody has joined yet.</p>
+              ) : (
+                <table className="w-full min-w-[40rem] text-left text-sm">
+                  <thead className="text-xs text-muted-foreground">
+                    <tr>
+                      <Th>Creator</Th>
+                      <Th right>Videos</Th>
+                      <Th right>Views</Th>
+                      <Th right>Earned</Th>
+                      <Th right>My earnings</Th>
+                      <Th right>Paid</Th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {[...c.creators].sort((a, b) => b.views - a.views).map((cr) => (
+                      <tr key={cr.assignmentId} className="hover:bg-muted/30">
+                        <Td className="py-1.5">
+                          <Link href={`/admin/jobs/${c.id}/creators/${cr.assignmentId}`} className="font-medium text-foreground hover:underline">
+                            {cr.name}
+                          </Link>
+                          <span className="ml-2 text-xs text-muted-foreground">@{cr.handle}</span>
+                        </Td>
+                        <Td right className="py-1.5">{cr.videos}</Td>
+                        <Td right className="py-1.5">{cr.views.toLocaleString()}</Td>
+                        <Td right className="py-1.5">{formatCurrency(cr.earned)}</Td>
+                        <Td right className="py-1.5">{formatCurrency(cr.ourFees)}</Td>
+                        <Td right className="py-1.5">{formatCurrency(cr.paid)}</Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          ))}
+        </div>
       )}
 
       <SectionTitle aside={<Link href="/admin/payout-details" className="text-sm font-medium text-primary hover:underline">Payout details</Link>}>
-        Creators
+        Payouts: emails and payment links
       </SectionTitle>
-      {ranked.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
-          No creators on a campaign yet.
-        </p>
+      {people.size === 0 ? (
+        <p className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">No creators yet.</p>
       ) : (
-        <Table min="52rem">
+        <Table min="46rem">
           <Head>
             <Th>Creator</Th>
-            <Th>Campaign</Th>
-            <Th right>Videos</Th>
-            <Th right>Views</Th>
-            <Th right>Earned</Th>
-            <Th right>Paid</Th>
-            <Th>Payout</Th>
+            <Th>Email</Th>
+            <Th>Payment link</Th>
+            <Th right>Still owed</Th>
           </Head>
           <Body>
-            {ranked.map((c) => (
-              <tr key={c.assignmentId} className="hover:bg-muted/30">
-                <Td>
-                  <Link href={`/admin/jobs/${c.campaignId}/creators/${c.assignmentId}`} className="font-medium text-foreground hover:underline">
-                    {c.name}
-                  </Link>
-                  <span className="block text-xs text-muted-foreground">{c.email}</span>
-                </Td>
-                <Td muted>{c.campaignTitle}</Td>
-                <Td right>{c.videos}</Td>
-                <Td right>{c.views.toLocaleString()}</Td>
-                <Td right>{formatCurrency(c.earned)}</Td>
-                <Td right>{formatCurrency(c.paid)}</Td>
-                <Td muted>{c.payout.provider ?? (c.payout.raw ? "Old format" : "Not added")}</Td>
-              </tr>
-            ))}
+            {[...people.values()].map((rows) => {
+              const p = rows[0];
+              const still = Math.max(0, rows.reduce((n, r) => n + r.statemented, 0) - rows.reduce((n, r) => n + r.paid, 0));
+              return (
+                <tr key={p.applicantId} className="hover:bg-muted/30">
+                  <Td className="py-1.5">
+                    <span className="font-medium text-foreground">{p.name}</span>
+                  </Td>
+                  <Td className="py-1.5">
+                    <span className="flex flex-wrap items-center gap-x-3">
+                      <span className="text-foreground">{p.email}</span>
+                      <CopyButton value={p.email} />
+                    </span>
+                  </Td>
+                  <Td className="py-1.5">
+                    <PayoutCell payout={p.payout} />
+                  </Td>
+                  <Td right className="py-1.5">{formatCurrency(still)}</Td>
+                </tr>
+              );
+            })}
           </Body>
         </Table>
       )}

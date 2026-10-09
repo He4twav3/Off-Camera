@@ -80,12 +80,13 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
           Nobody has joined this campaign yet.
         </p>
       ) : (
-        <Table min="62rem">
+        <Table min="68rem">
           <Head>
             <Th>Creator</Th>
             <Th right>Videos</Th>
             <Th right>Views</Th>
             <Th right>Earned</Th>
+            <Th right>My earnings</Th>
             <Th right>On statements</Th>
             <Th right>Paid</Th>
             <Th right>In review</Th>
@@ -103,6 +104,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
                 <Td right>{cr.videos}</Td>
                 <Td right>{cr.views.toLocaleString()}</Td>
                 <Td right>{formatCurrency(cr.earned)}</Td>
+                <Td right>{formatCurrency(cr.ourFees)}</Td>
                 <Td right>{formatCurrency(cr.statemented)}</Td>
                 <Td right>{formatCurrency(cr.paid)}</Td>
                 <Td right>{cr.awaitingReview}</Td>
