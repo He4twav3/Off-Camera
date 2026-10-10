@@ -42,6 +42,11 @@ export default async function AdminHomePage() {
               <li key={i.title}>
                 <p className="font-medium text-foreground">{i.title}</p>
                 <p className="text-muted-foreground">{i.fix}</p>
+                {i.href && (
+                  <Link href={i.href} className="mt-1 inline-block font-semibold text-primary underline underline-offset-2">
+                    {i.hrefLabel ?? "Open"}
+                  </Link>
+                )}
                 {i.sql && <code className="mt-1 block overflow-x-auto rounded bg-background px-2 py-1 text-xs">{i.sql}</code>}
               </li>
             ))}

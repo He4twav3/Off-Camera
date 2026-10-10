@@ -4,7 +4,7 @@ import { getSent } from "@/lib/admin-payments";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { looksLikeTestEmail, looksLikeTestName } from "@/lib/test-data";
 
-export type SetupIssue = { title: string; fix: string; sql?: string };
+export type SetupIssue = { title: string; fix: string; sql?: string; href?: string; hrefLabel?: string };
 
 /**
  * What the live database is still missing, so nothing fails quietly. Empty when all is set up.
@@ -52,7 +52,9 @@ export async function setupIssues(): Promise<SetupIssue[]> {
     ].filter(Boolean);
     issues.push({
       title: "Test data is on this site",
-      fix: `${parts.join("; ")}. Open Settings, then Clean up, to delete accounts and campaigns.${testNiches.length ? " A test niche is removed in Supabase, under the niches table." : ""}`,
+      fix: `${parts.join("; ")}.${testNiches.length ? " A test niche is removed in Supabase, under the niches table." : ""}`,
+      href: "/admin/cleanup",
+      hrefLabel: "Open Clean up",
     });
   }
   return issues;
