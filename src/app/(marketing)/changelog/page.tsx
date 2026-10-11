@@ -9,6 +9,16 @@ export const metadata: Metadata = {
 
 const entries = [
   {
+    date: "2026-10-11",
+    title: "Campaigns for creators and brands",
+    body: "Brands can now post campaigns, choose who approves each video, see every creator, view and payment, and agree a contract with the creators who join. Creators join a campaign from their own account, post on their own verified accounts, and are paid per video plus pay for views. Brands pay creators directly and in full; we never hold the money.",
+  },
+  {
+    date: "2026-10-11",
+    title: "Updated Terms and Privacy Policy",
+    body: "Rewrote the Terms of Service and Privacy Policy to cover creator and brand accounts, how payments work, contracts, and what data we collect and who can see it.",
+  },
+  {
     date: "2026-08-23",
     title: "Rebuilt around real results",
     body: "Reworked the site and curriculum around our own videos that reached millions of views, and the repeatable system behind them, hooks, retention, volume, consistency, timing, and iteration, instead of one format. Removed the AI-generated example testimonials and the placeholder rating in favor of real video breakdowns.",

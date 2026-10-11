@@ -51,6 +51,30 @@ export default function AboutPage() {
         </ul>
       </div>
 
+      <div className="card-premium mt-6 rounded-2xl bg-card p-6 sm:p-8">
+        <h2 className="text-lg font-semibold tracking-tight">For creators and brands</h2>
+        <p className="mt-3 text-base leading-relaxed">
+          {siteConfig.name} also runs a platform where brands post paid
+          campaigns and creators get paid for the videos they make. Creators
+          join a campaign, post on their own accounts, and are paid per video
+          plus pay for views. Brands set the pay, choose who approves each
+          video, and see every video, view and payment in one place.
+        </p>
+        <p className="mt-4 text-base leading-relaxed">
+          We check the videos, read the view counts, and keep the records and
+          contracts. We never hold the money: the brand pays the creator
+          directly, in full, and our fee is billed to the brand.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button nativeButton={false} render={<Link href="/create-account" />} className="btn-premium">
+            I&apos;m a creator
+          </Button>
+          <Button variant="outline" nativeButton={false} render={<Link href="/create-account?type=brand" />} className="btn-premium bg-card">
+            I&apos;m a brand
+          </Button>
+        </div>
+      </div>
+
       <div className="mt-8 flex flex-wrap gap-3">
         <Button nativeButton={false} render={<Link href="/course#curriculum" />} className="btn-premium">
           See the course
