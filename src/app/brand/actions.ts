@@ -9,7 +9,7 @@ import { parsePostTerms, postTermsSchema, type PostTerms } from "@/lib/post-term
 import { contractSections, termsFingerprint } from "@/lib/contract";
 import { headers } from "next/headers";
 import { parseRequirements } from "@/lib/requirements";
-import { mergePayTerms, parseCpmRows, parsePayTermsFields, parseReward, parseViewLimits } from "@/lib/pay-terms-form";
+import { mergePayTerms, parseCpmRows, parsePayTermsFields, parseRewards, parseViewLimits } from "@/lib/pay-terms-form";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -344,6 +344,8 @@ export interface NewCampaignState {
     platforms: string[];
     cpmFrom: string[];
     cpmRate: string[];
+    rewardViews: string[];
+    rewardAmount: string[];
   };
 }
 
@@ -376,6 +378,8 @@ export async function createCampaignAction(
     platforms: formData.getAll("platforms").map(String),
     cpmFrom: formData.getAll("cpm_from").map(String),
     cpmRate: formData.getAll("cpm_rate").map(String),
+    rewardViews: formData.getAll("reward_views").map(String),
+    rewardAmount: formData.getAll("reward_amount").map(String),
   };
   const fail = (error: string): NewCampaignState => ({ error, values });
 
@@ -412,7 +416,7 @@ export async function createCampaignAction(
   if (!cpm.ok) return fail(cpm.error);
   const limits = parseViewLimits((k) => String(formData.get(k) ?? ""));
   if (!limits.ok) return fail(limits.error);
-  const reward = parseReward((k) => String(formData.get(k) ?? ""));
+  const reward = parseRewards((k) => formData.getAll(k).map(String));
   if (!reward.ok) return fail(reward.error);
 
   const terms = postTermsSchema.safeParse({

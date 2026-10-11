@@ -70,16 +70,29 @@ export function parseViewLimits(get: (k: string) => string): { ok: true; value: 
   return { ok: true, value: { cpmCap, minViews, maxPerPost } };
 }
 
-/** The optional reward: "views" and "amount" both filled in, or both left blank. */
-export function parseReward(get: (k: string) => string): { ok: true; value: { views: number; amount: number }[] } | { ok: false; error: string } {
-  const v = get("reward_views").replace(/,/g, "").trim();
-  const a = get("reward_amount").replace(/[,$\s]/g, "");
-  if (!v && !a) return { ok: true, value: [] };
-  const views = Number(v);
-  const amount = Number(a);
-  if (!v || !a || !Number.isInteger(views) || views < 1 || !Number.isFinite(amount) || amount <= 0)
-    return { ok: false, error: "A reward needs both the views to reach and an amount above zero." };
-  return { ok: true, value: [{ views, amount: Math.round(amount * 100) / 100 }] };
+/**
+ * The optional rewards: a row needs both the views to reach and an amount, or both blank. A video earns only the highest
+ * one it reaches (they don't add up), so a higher number of views must pay more than a lower one.
+ */
+export function parseRewards(getAll: (k: string) => string[]): { ok: true; value: { views: number; amount: number }[] } | { ok: false; error: string } {
+  const vs = getAll("reward_views").map((x) => x.replace(/,/g, "").trim());
+  const as = getAll("reward_amount").map((x) => x.replace(/[,$\s]/g, ""));
+  const rows: { views: number; amount: number }[] = [];
+  for (let i = 0; i < Math.max(vs.length, as.length); i++) {
+    const v = vs[i] ?? "";
+    const a = as[i] ?? "";
+    if (!v && !a) continue;
+    const views = Number(v);
+    const amount = Number(a);
+    if (!v || !a || !Number.isInteger(views) || views < 1 || !Number.isFinite(amount) || amount <= 0)
+      return { ok: false, error: "A reward needs both the views to reach and an amount above zero." };
+    rows.push({ views, amount: Math.round(amount * 100) / 100 });
+  }
+  rows.sort((x, y) => x.views - y.views);
+  if (new Set(rows.map((r) => r.views)).size !== rows.length) return { ok: false, error: "Two rewards are at the same number of views." };
+  for (let i = 1; i < rows.length; i++)
+    if (rows[i].amount <= rows[i - 1].amount) return { ok: false, error: "A reward at more views has to pay more than the one before it, because only the highest one counts." };
+  return { ok: true, value: rows };
 }
 
 export function parsePayTermsFields(get: (k: string) => string, getAll: (k: string) => string[]): { ok: true; value: PayTermsFields } | { ok: false; error: string } {
@@ -90,7 +103,7 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
   if (!cpm.ok) return cpm;
   const limits = parseViewLimits(get);
   if (!limits.ok) return limits;
-  const reward = parseReward(get);
+  const reward = parseRewards(getAll);
   if (!reward.ok) return reward;
   const value: PayTermsFields = {
     basePerPost: num("base"),

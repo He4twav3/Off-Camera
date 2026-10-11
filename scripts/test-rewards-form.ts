@@ -1,0 +1,12 @@
+import { parseRewards } from "../src/lib/pay-terms-form";
+let bad = 0;
+const t = (n: string, ok: boolean, d?: unknown) => { console.log(`${ok ? "PASS" : "FAIL"} ${n}`, ok ? "" : JSON.stringify(d)); if (!ok) bad++; };
+const get = (m: Record<string, string[]>) => (k: string) => m[k] ?? [];
+const r = parseRewards(get({ reward_views: ["500,000", "250000", "", "1000000"], reward_amount: ["150", "50", "", "$300"] }));
+t("rows are read and sorted, blanks skipped", r.ok && JSON.stringify(r.value) === JSON.stringify([{ views: 250000, amount: 50 }, { views: 500000, amount: 150 }, { views: 1000000, amount: 300 }]), r);
+t("all blank is no rewards", (() => { const x = parseRewards(get({ reward_views: [""], reward_amount: [""] })); return x.ok && x.value.length === 0; })());
+t("a half-filled row is refused", !parseRewards(get({ reward_views: ["1000"], reward_amount: [""] })).ok);
+t("a higher milestone must pay more", !parseRewards(get({ reward_views: ["1000", "5000"], reward_amount: ["10", "10"] })).ok);
+t("two at the same views are refused", !parseRewards(get({ reward_views: ["1000", "1000"], reward_amount: ["10", "20"] })).ok);
+console.log(bad ? `\n${bad} FAILED` : "\nall passed");
+process.exit(bad ? 1 : 0);

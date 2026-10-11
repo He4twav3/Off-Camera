@@ -221,6 +221,13 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("final: $500 max per video", maxPerVideo(final) === 500, maxPerVideo(final));
   t("final: the strip is rate, minimum, maximum", JSON.stringify(postTermsChips(final)) === JSON.stringify(["$2 per 1K views", "1K min views", "$500 max per video"]), postTermsChips(final));
   t("final: the sentences say it", describePostTerms(final).some((l) => l.startsWith("$500 max per video.")) && describePostTerms(final).some((l) => l.startsWith("Reward: $300")), describePostTerms(final));
+  // Several rewards: only the highest reached counts, and the max still holds.
+  const stepped = { ...final, milestones: [{ views: 250_000, amount: 50 }, { views: 500_000, amount: 150 }, { views: 1_000_000, amount: 300 }] };
+  t("stepped: 250K earns $250", bonusFor(250_000, stepped) === 250, bonusFor(250_000, stepped));
+  t("stepped: 500K earns $350", bonusFor(500_000, stepped) === 350, bonusFor(500_000, stepped));
+  t("stepped: 1M earns $500", bonusFor(1_000_000, stepped) === 500, bonusFor(1_000_000, stepped));
+  t("stepped: $500 max per video", maxPerVideo(stepped) === 500, maxPerVideo(stepped));
+  t("stepped: the sentence lists them and says they don't add up", describePostTerms(stepped).some((l) => /^Rewards on top of the CPM: \$50 at 250K views, \$150 at 500K views, \$300 at 1M views\. They don't add up/.test(l)), describePostTerms(stepped));
   t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }
 

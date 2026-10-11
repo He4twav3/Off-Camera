@@ -389,8 +389,10 @@ export function describePostTerms(terms: PostTerms): string[] {
     lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm).join(", then ")}. Each band pays only for the views inside it.`);
     if (terms.minViews) lines.push(`A video starts earning view pay once it reaches ${views(terms.minViews)} views. Below that it earns nothing from views.`);
     if (terms.cpmCap) lines.push(`The CPM counts up to ${views(terms.cpmCap)} views on each video, which is ${usd(cpmBonus(terms.cpmCap, terms.cpm))}.`);
-    for (const m of [...terms.milestones].sort((a, b) => a.views - b.views))
-      lines.push(`Reward: ${usd(m.amount)} on top, once a video reaches ${views(m.views)} views.`);
+    const rewards = [...terms.milestones].sort((a, b) => a.views - b.views);
+    if (rewards.length === 1) lines.push(`Reward: ${usd(rewards[0].amount)} on top, once a video reaches ${views(rewards[0].views)} views.`);
+    else if (rewards.length > 1)
+      lines.push(`Rewards on top of the CPM: ${rewards.map((m) => `${usd(m.amount)} at ${views(m.views)} views`).join(", ")}. They don't add up: a video earns the highest one it reaches.`);
     const max = maxPerVideo(terms);
     if (max !== null) lines.push(`${usd(max)} max per video${terms.basePerPost > 0 ? ", base pay included" : ""}. Views past that earn nothing more.`);
   } else if (terms.milestones.length > 0) {

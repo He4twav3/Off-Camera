@@ -113,8 +113,7 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
           cap={val("cpm_cap")}
           minViews={val("min_views")}
           maxPerVideo={val("max_per_video")}
-          rewardViews={val("reward_views")}
-          rewardAmount={val("reward_amount")}
+          rewards={(state.values?.rewardViews ?? []).map((v, i) => ({ views: v, amount: state.values?.rewardAmount[i] ?? "" })).filter((r) => r.views || r.amount)}
         />
       </Section>
 

@@ -78,7 +78,11 @@ export function contractSections(input: {
               `Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm).join(", then ")}. Each band pays only for the views inside it.`,
               ...(t.minViews ? [`A video starts earning view pay once it reaches ${views(t.minViews)} views. Below that it earns nothing from views.`] : []),
               ...(t.cpmCap ? [`The CPM counts up to ${views(t.cpmCap)} views on each video.`] : []),
-              ...[...t.milestones].sort((a, b) => a.views - b.views).map((m) => `Reward: ${usd(m.amount)} on top, once a video reaches ${views(m.views)} views.`),
+              ...(t.milestones.length === 1
+                ? [`Reward: ${usd(t.milestones[0].amount)} on top, once a video reaches ${views(t.milestones[0].views)} views.`]
+                : t.milestones.length > 1
+                  ? [`Rewards on top of the CPM: ${[...t.milestones].sort((a, b) => a.views - b.views).map((m) => `${usd(m.amount)} at ${views(m.views)} views`).join(", ")}. They do not add up: a video earns the highest one it reaches.`]
+                  : []),
               ...(maxPerVideo(t) !== null ? [`${usd(maxPerVideo(t) as number)} max per video${t.basePerPost > 0 ? ", base pay included" : ""}. Views past that earn nothing more.`] : []),
             ]
           : t.milestones.length > 0

@@ -25,7 +25,7 @@ export function PayTermsFields({ terms }: { terms: Pick<PostTerms, "basePerPost"
           <Input id="keep_public" name="keep_public" type="number" inputMode="numeric" min={0} defaultValue={terms.keepPublicDays} required />
         </Field>
       </div>
-      <CpmRows rows={rows} cap={terms.cpmCap} minViews={terms.minViews} maxPerVideo={terms.maxPerPost} rewardViews={rows.length ? terms.milestones[0]?.views : undefined} rewardAmount={rows.length ? terms.milestones[0]?.amount : undefined} />
+      <CpmRows rows={rows} cap={terms.cpmCap} minViews={terms.minViews} maxPerVideo={terms.maxPerPost} rewards={rows.length ? terms.milestones.map((m) => ({ views: String(m.views), amount: String(m.amount) })) : undefined} />
       {fixed && (
         <p className="text-sm text-muted-foreground">
           Now paying fixed bonuses: {terms.milestones.map((m) => `${usd(m.amount)} at ${views(m.views)} views`).join(", ")}. Fill in a CPM above to replace them.
