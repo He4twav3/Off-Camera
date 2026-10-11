@@ -21,7 +21,7 @@ import {
   postTermsChips,
   type PostTerms,
   cpmPhrases,
-  cpmBonus,
+  maxPerVideo,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
@@ -78,15 +78,18 @@ export function CampaignView({
             }
           : null,
         postTerms?.cpm?.length
-          ? { icon: TrendingUp, label: cpmPhrases(postTerms.cpm, postTerms.cpmCap).join(", ") }
+          ? { icon: TrendingUp, label: cpmPhrases(postTerms.cpm).join(", ") }
           : topBonus
           ? {
               icon: TrendingUp,
               label: `Up to ${usd(topBonus.amount)} bonus per video`,
             }
           : null,
-        postTerms.cpm?.length && postTerms.cpmCap
-          ? { icon: TrendingUp, label: `Up to ${usd(cpmBonus(postTerms.cpmCap, postTerms.cpm))} bonus per video` }
+        postTerms.cpm?.length && postTerms.minViews
+          ? { icon: Eye, label: `${compactViews(postTerms.minViews)} min views` }
+          : null,
+        maxPerVideo(postTerms) !== null
+          ? { icon: TrendingUp, label: `${usd(maxPerVideo(postTerms) as number)} max per video` }
           : null,
         { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` },
         { icon: Eye, label: `${postTerms.windowDays}-day counting window` },

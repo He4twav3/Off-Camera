@@ -9,7 +9,7 @@ import { parsePostTerms, postTermsSchema, type PostTerms } from "@/lib/post-term
 import { contractSections, termsFingerprint } from "@/lib/contract";
 import { headers } from "next/headers";
 import { parseRequirements } from "@/lib/requirements";
-import { mergePayTerms, parseCpmRows, parsePayTermsFields } from "@/lib/pay-terms-form";
+import { mergePayTerms, parseCpmRows, parsePayTermsFields, parseViewLimits } from "@/lib/pay-terms-form";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -410,9 +410,8 @@ export async function createCampaignAction(
   // View pay: CPM rows (a CPM and the views it starts at). Blank rows are skipped.
   const cpm = parseCpmRows((k) => formData.getAll(k).map(String));
   if (!cpm.ok) return fail(cpm.error);
-  const rawCap = String(formData.get("cpm_cap") ?? "").replace(/,/g, "").trim();
-  const cpmCap = rawCap ? Number(rawCap) : undefined;
-  if (cpmCap !== undefined && (!Number.isInteger(cpmCap) || cpmCap < 1)) return fail("The view cap must be a whole number of views, 1 or more.");
+  const limits = parseViewLimits((k) => String(formData.get(k) ?? ""));
+  if (!limits.ok) return fail(limits.error);
 
   const terms = postTermsSchema.safeParse({
     v: 2,
@@ -420,7 +419,8 @@ export async function createCampaignAction(
     cycleSize: v.cycle,
     milestones: [],
     cpm: cpm.value,
-    cpmCap: cpm.value ? cpmCap : undefined,
+    minViews: cpm.value ? limits.value.minViews : undefined,
+    maxPerPost: cpm.value ? limits.value.maxPerPost : undefined,
     windowDays: v.window,
     keepPublicDays: v.keep_public,
     platforms,

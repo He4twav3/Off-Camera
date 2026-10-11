@@ -74,6 +74,10 @@ export const postTermsSchema = z.object({
   cpm: z.array(cpmTierSchema).max(6).optional(),
   /** The most views that earn CPM pay on one post. Views past it earn nothing more. Unset means no cap. */
   cpmCap: z.number().int().min(1).max(1_000_000_000).optional(),
+  /** A post earns no view pay until it reaches this many views; from then on its views count from the first. */
+  minViews: z.number().int().min(1).max(1_000_000_000).optional(),
+  /** The most view pay one post can earn, in dollars. Anything past it earns nothing more. Unset means no maximum. */
+  maxPerPost: z.number().positive().max(10_000_000).optional(),
   /** Views count for this many days after the post goes live, then freeze. */
   windowDays: z.number().int().min(1).max(365),
   /** The creator keeps each approved post public for this long. */
@@ -106,8 +110,8 @@ export function parsePostTerms(raw: unknown): PostTerms | null {
     ...parsed.data,
     milestones: [...parsed.data.milestones].sort((a, b) => a.views - b.views),
     ...(parsed.data.cpm?.length
-      ? { cpm: [...parsed.data.cpm].sort((a, b) => a.from - b.from), cpmCap: parsed.data.cpmCap }
-      : { cpm: undefined, cpmCap: undefined }),
+      ? { cpm: [...parsed.data.cpm].sort((a, b) => a.from - b.from), cpmCap: parsed.data.cpmCap, minViews: parsed.data.minViews, maxPerPost: parsed.data.maxPerPost }
+      : { cpm: undefined, cpmCap: undefined, minViews: undefined, maxPerPost: undefined }),
   };
 }
 
@@ -141,7 +145,8 @@ export function milestoneBonus(
 }
 
 /** What a post's views earn under CPM bands: each band pays its rate per 1,000 views for the views inside it. */
-export function cpmBonus(views: number, tiers: CpmTier[], cap?: number): number {
+export function cpmBonus(views: number, tiers: CpmTier[], cap?: number, minViews?: number, maxPerPost?: number): number {
+  if (minViews && views < minViews) return 0;
   const sorted = [...tiers].sort((a, b) => a.from - b.from);
   const counted = cap ? Math.min(views, cap) : views;
   let cents = 0;
@@ -150,12 +155,25 @@ export function cpmBonus(views: number, tiers: CpmTier[], cap?: number): number 
     const inBand = Math.max(0, Math.min(counted, end) - t.from);
     cents += (inBand / 1000) * t.rate * 100;
   });
-  return Math.round(cents) / 100;
+  const pay = Math.round(cents) / 100;
+  return maxPerPost ? Math.min(pay, maxPerPost) : pay;
 }
 
 /** The view pay a post has earned: by CPM bands when the campaign has them, otherwise by milestone. */
-export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "cpm" | "cpmCap">): number {
-  return terms.cpm?.length ? cpmBonus(views, terms.cpm, terms.cpmCap) : milestoneBonus(views, terms.milestones);
+export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "cpm" | "cpmCap"> & Partial<Pick<PostTerms, "minViews" | "maxPerPost">>): number {
+  return terms.cpm?.length ? cpmBonus(views, terms.cpm, terms.cpmCap, terms.minViews, terms.maxPerPost) : milestoneBonus(views, terms.milestones);
+}
+
+/**
+ * The most one video can earn, as a dollar figure however the brand entered the limit (as dollars, or as a number of
+ * views that stop counting). Null when nothing limits it. Base pay is included, so the creator reads one number.
+ */
+export function maxPerVideo(terms: Pick<PostTerms, "basePerPost" | "cpm" | "cpmCap" | "maxPerPost">): number | null {
+  if (!terms.cpm?.length) return null;
+  const fromViews = terms.cpmCap ? cpmBonus(terms.cpmCap, terms.cpm) : null;
+  const limits = [fromViews, terms.maxPerPost ?? null].filter((n): n is number => n !== null);
+  if (limits.length === 0) return null;
+  return Math.round((Math.min(...limits) + terms.basePerPost) * 100) / 100;
 }
 
 /** The last moment views count for a post published at `postedAt`. */
@@ -326,8 +344,10 @@ export function postTermsChips(terms: PostTerms): string[] {
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
   if (terms.cpm?.length) {
-    chips.push(cpmPhrases(terms.cpm, terms.cpmCap).join(", "));
-    if (terms.cpmCap) chips.push(`Up to ${usd(cpmBonus(terms.cpmCap, terms.cpm))} bonus per video`);
+    chips.push(cpmPhrases(terms.cpm).join(", "));
+    if (terms.minViews) chips.push(`${views(terms.minViews)} min views`);
+    const max = maxPerVideo(terms);
+    if (max !== null) chips.push(`${usd(max)} max per video`);
   }
   else {
     const top = terms.milestones.at(-1);
@@ -350,9 +370,10 @@ export function describePostTerms(terms: PostTerms): string[] {
     }
   }
   if (terms.cpm?.length) {
-    lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm, terms.cpmCap).join(", then ")}. Each band pays only for the views inside it.`);
-    if (terms.cpmCap)
-      lines.push(`Views count up to ${views(terms.cpmCap)} on each post, so view pay tops out at ${usd(cpmBonus(terms.cpmCap, terms.cpm))} a post. Views past that earn nothing more.`);
+    lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm).join(", then ")}. Each band pays only for the views inside it.`);
+    if (terms.minViews) lines.push(`A video starts earning view pay once it reaches ${views(terms.minViews)} views. Below that it earns nothing from views.`);
+    const max = maxPerVideo(terms);
+    if (max !== null) lines.push(`${usd(max)} max per video${terms.basePerPost > 0 ? ", base pay included" : ""}. Views past that earn nothing more.`);
   } else if (terms.milestones.length > 0) {
     lines.push(
       `Bonus per post, at the highest milestone it reaches: ${terms.milestones.map((m) => `${views(m.views)} views, ${usd(m.amount)}`).join(" · ")}.`,

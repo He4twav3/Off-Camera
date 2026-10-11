@@ -4,7 +4,7 @@
  * and the tests all produce the same text. A DRAFT: a lawyer must review the wording before it is relied on.
  */
 import { STATEMENT_DUE_DAYS } from "@/lib/direct-pay";
-import { cpmPhrases, type ContractDetails, type PostTerms } from "@/lib/post-terms";
+import { cpmPhrases, maxPerVideo, type ContractDetails, type PostTerms } from "@/lib/post-terms";
 import { STANDARD_FEE, describeFee } from "@/lib/fee";
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: Math.round(n * 100) % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
@@ -18,7 +18,7 @@ export function termsFingerprint(t: PostTerms): string {
     c: t.cycleSize,
     m: [...t.milestones].sort((a, b) => a.views - b.views).map((m) => [m.views, m.amount]),
     // Only when there are bands, so a contract signed before CPM existed still matches its own terms.
-    ...(t.cpm?.length ? { q: [...t.cpm].sort((a, b) => a.from - b.from).map((c) => [c.from, c.rate]), ...(t.cpmCap ? { x: t.cpmCap } : {}) } : {}),
+    ...(t.cpm?.length ? { q: [...t.cpm].sort((a, b) => a.from - b.from).map((c) => [c.from, c.rate]), ...(t.cpmCap ? { x: t.cpmCap } : {}), ...(t.minViews ? { n: t.minViews } : {}), ...(t.maxPerPost ? { y: t.maxPerPost } : {}) } : {}),
     w: t.windowDays,
     k: t.keepPublicDays,
     p: [...t.platforms].sort(),
@@ -75,8 +75,9 @@ export function contractSections(input: {
           : "There is no base pay per video.",
         ...(t.cpm?.length
           ? [
-              `Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm, t.cpmCap).join(", then ")}. Each band pays only for the views inside it.`,
-              ...(t.cpmCap ? [`Views count up to ${views(t.cpmCap)} on each post. Views past that earn nothing more.`] : []),
+              `Views pay a CPM (dollars per 1,000 views): ${cpmPhrases(t.cpm).join(", then ")}. Each band pays only for the views inside it.`,
+              ...(t.minViews ? [`A video starts earning view pay once it reaches ${views(t.minViews)} views. Below that it earns nothing from views.`] : []),
+              ...(maxPerVideo(t) !== null ? [`${usd(maxPerVideo(t) as number)} max per video${t.basePerPost > 0 ? ", base pay included" : ""}. Views past that earn nothing more.`] : []),
             ]
           : t.milestones.length > 0
           ? [

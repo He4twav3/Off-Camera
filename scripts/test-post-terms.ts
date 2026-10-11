@@ -1,4 +1,4 @@
-import { GETIMG_TERMS as T, averagePerPost, cycleHistory, describePostTerms, moneyBar, type PostRowData, milestoneBonus, cpmBonus, cpmPhrases, bonusFor, parsePostTerms, payFor, postTermsChips, suggestedStatement, windowEnd, mainPlatformOf, type PostForPay } from "../src/lib/post-terms";
+import { GETIMG_TERMS as T, averagePerPost, cycleHistory, describePostTerms, moneyBar, type PostRowData, milestoneBonus, cpmBonus, cpmPhrases, maxPerVideo, bonusFor, parsePostTerms, payFor, postTermsChips, suggestedStatement, windowEnd, mainPlatformOf, type PostForPay } from "../src/lib/post-terms";
 
 let bad = 0;
 const t = (n: string, ok: boolean, got?: unknown) => {
@@ -190,11 +190,26 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("the cap works across bands", cpmBonus(9000, bands, 2000) === 3, cpmBonus(9000, bands, 2000));
   t("bonusFor passes the cap on", bonusFor(500_000, { milestones: [], cpm: [{ from: 0, rate: 2 }], cpmCap: 100_000 }) === 200);
   const capped = { ...T, milestones: [], cpm: [{ from: 0, rate: 1 }, { from: 1000, rate: 2 }], cpmCap: 5000 };
-  t("the strip shows the most a post can earn", postTermsChips(capped).some((c) => c === "Up to $9 bonus per video"), postTermsChips(capped));
-  t("with a cap the last band ends at it", postTermsChips(capped).some((c) => c === "$1 CPM until 1K views, $2 CPM from 1K to 5K views"), postTermsChips(capped));
+  t("the strip says the most a video can earn, base pay included", postTermsChips(capped).some((c) => c === "$29 max per video"), postTermsChips(capped));
+  t("the bands read without the cap", postTermsChips(capped).some((c) => c === "$1 CPM until 1K views, $2 CPM over 1K views"), postTermsChips(capped));
   t("a single band with a cap reads simply", cpmPhrases([{ from: 0, rate: 2 }], 100_000).join("|") === "$2 CPM up to 100K views");
-  t("the sentence says where it tops out", describePostTerms(capped).some((l) => /tops out at \$9 a post/.test(l)), describePostTerms(capped));
+  t("the sentence says the max per video", describePostTerms(capped).some((l) => /^\$29 max per video, base pay included\./.test(l)), describePostTerms(capped));
   t("a cap without bands is dropped on save", parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], cpmCap: 5000, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.cpmCap === undefined);
+  // Tiered, with a minimum and a dollar maximum.
+  const tiered = { ...T, basePerPost: 0, milestones: [], cpm: [{ from: 0, rate: 1.25 }, { from: 2000, rate: 3.5 }], minViews: 1000, maxPerPost: 3500 };
+  t("under the minimum earns nothing", bonusFor(999, tiered) === 0);
+  t("at the minimum the views count from the first", bonusFor(1000, tiered) === 1.25, bonusFor(1000, tiered));
+  t("tiered pay across the bands", bonusFor(10_000, tiered) === 30.5, bonusFor(10_000, tiered));
+  t("100K views", bonusFor(100_000, tiered) === 345.5, bonusFor(100_000, tiered));
+  t("the dollar maximum stops the pay", bonusFor(5_000_000, tiered) === 3500, bonusFor(5_000_000, tiered));
+  t("the strip reads $3,500 max per video", postTermsChips(tiered).includes("$3,500 max per video"), postTermsChips(tiered));
+  t("the strip shows the minimum", postTermsChips(tiered).includes("1K min views"), postTermsChips(tiered));
+  t("the sentence reads $3,500 max per video", describePostTerms(tiered).some((l) => l.startsWith("$3,500 max per video.")), describePostTerms(tiered));
+  t("a cap in views reads as the same dollar phrase", maxPerVideo({ basePerPost: 0, cpm: [{ from: 0, rate: 2 }], cpmCap: 1_750_000, maxPerPost: undefined }) === 3500);
+  t("the smaller of two limits wins", maxPerVideo({ basePerPost: 0, cpm: [{ from: 0, rate: 2 }], cpmCap: 1_750_000, maxPerPost: 1000 }) === 1000);
+  t("no limit, no phrase", maxPerVideo({ basePerPost: 0, cpm: [{ from: 0, rate: 2 }], cpmCap: undefined, maxPerPost: undefined }) === null);
+  t("the limits are kept on save", parsePostTerms({ v: 2, basePerPost: 0, cycleSize: 15, milestones: [], cpm: tiered.cpm, minViews: 1000, maxPerPost: 3500, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.maxPerPost === 3500);
+  t("the limits are dropped without bands", parsePostTerms({ v: 2, basePerPost: 0, cycleSize: 15, milestones: [], minViews: 1000, maxPerPost: 3500, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.minViews === undefined);
   t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }
 
