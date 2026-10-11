@@ -344,16 +344,25 @@ export function cpmPhrases(tiers: CpmTier[], cap?: number): string[] {
   });
 }
 
+/** The rate as one short label: "$2 per 1K views", or "$1.25–$3.50 per 1K views" when it changes with the views. */
+export function ratePhrase(tiers: CpmTier[]): string {
+  const rates = tiers.map((t) => t.rate);
+  const lo = Math.min(...rates);
+  const hi = Math.max(...rates);
+  return lo === hi ? `${usd(lo)} per 1K views` : `${usd(lo)}–${usd(hi)} per 1K views`;
+}
+
 /** The pay as short labels for a strip: base, CPM or milestones, cycle, window. */
 export function postTermsChips(terms: PostTerms): string[] {
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
   if (terms.cpm?.length) {
-    chips.push(cpmPhrases(terms.cpm).join(", "));
+    // The strip is the short version: rate, minimum, maximum. The reward and the rest are in the brief and the contract.
+    chips.push(ratePhrase(terms.cpm));
     if (terms.minViews) chips.push(`${views(terms.minViews)} min views`);
-    for (const m of terms.milestones) chips.push(`+${usd(m.amount)} at ${views(m.views)} views`);
     const max = maxPerVideo(terms);
     if (max !== null) chips.push(`${usd(max)} max per video`);
+    return chips;
   }
   else {
     const top = terms.milestones.at(-1);

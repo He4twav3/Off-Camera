@@ -179,7 +179,7 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   const cpmTerms = { ...T, milestones: [], cpm: bands };
   const paid = payFor(cpmTerms, [post({ views: 3000 })], now);
   t("a post's view pay comes from the CPM bands", paid.posts[0].bonus === 5, paid.posts[0]);
-  t("the strip says it in CPM words", postTermsChips(cpmTerms).some((c) => c === "$1 CPM until 1K views, $2 CPM over 1K views"), postTermsChips(cpmTerms));
+  t("the strip gives the rate per 1K views", postTermsChips(cpmTerms).some((c) => c === "$1–$2 per 1K views"), postTermsChips(cpmTerms));
   t("the sentence says it too", describePostTerms(cpmTerms).some((l) => /Views pay a CPM/.test(l) && /\$1 CPM until 1K views, then \$2 CPM over 1K views/.test(l)), describePostTerms(cpmTerms));
   t("phrases read in order", cpmPhrases(bands).join("|") === "$1 CPM until 1K views|$2 CPM over 1K views");
   t("a single rate reads simply", cpmPhrases([{ from: 0, rate: 2 }]).join("|") === "$2 CPM");
@@ -191,7 +191,7 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("bonusFor passes the cap on", bonusFor(500_000, { milestones: [], cpm: [{ from: 0, rate: 2 }], cpmCap: 100_000 }) === 200);
   const capped = { ...T, milestones: [], cpm: [{ from: 0, rate: 1 }, { from: 1000, rate: 2 }], cpmCap: 5000 };
   t("the strip says the most a video can earn, base pay included", postTermsChips(capped).some((c) => c === "$29 max per video"), postTermsChips(capped));
-  t("the bands read without the cap", postTermsChips(capped).some((c) => c === "$1 CPM until 1K views, $2 CPM over 1K views"), postTermsChips(capped));
+  t("the strip gives the rate range", postTermsChips(capped).includes("$1–$2 per 1K views"), postTermsChips(capped));
   t("a single band with a cap reads simply", cpmPhrases([{ from: 0, rate: 2 }], 100_000).join("|") === "$2 CPM up to 100K views");
   t("the sentence says the max per video", describePostTerms(capped).some((l) => /^\$29 max per video, base pay included\./.test(l)), describePostTerms(capped));
   t("a cap without bands is dropped on save", parsePostTerms({ v: 2, basePerPost: 20, cycleSize: 15, milestones: [], cpmCap: 5000, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.cpmCap === undefined);
@@ -203,7 +203,7 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("100K views", bonusFor(100_000, tiered) === 345.5, bonusFor(100_000, tiered));
   t("the dollar maximum stops the pay", bonusFor(5_000_000, tiered) === 3500, bonusFor(5_000_000, tiered));
   t("the strip reads $3,500 max per video", postTermsChips(tiered).includes("$3,500 max per video"), postTermsChips(tiered));
-  t("the strip shows the minimum", postTermsChips(tiered).includes("1K min views"), postTermsChips(tiered));
+  t("the strip shows the minimum", postTermsChips(tiered).includes("1K min views") && postTermsChips(tiered).includes("$1.25–$3.50 per 1K views"), postTermsChips(tiered));
   t("the sentence reads $3,500 max per video", describePostTerms(tiered).some((l) => l.startsWith("$3,500 max per video.")), describePostTerms(tiered));
   t("a cap in views reads as the same dollar phrase", maxPerVideo({ basePerPost: 0, cpm: [{ from: 0, rate: 2 }], cpmCap: 1_750_000, maxPerPost: undefined }) === 3500);
   t("the smaller of two limits wins", maxPerVideo({ basePerPost: 0, cpm: [{ from: 0, rate: 2 }], cpmCap: 1_750_000, maxPerPost: 1000 }) === 1000);
@@ -219,7 +219,7 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("final: 1M views adds the $300 reward", bonusFor(1_000_000, final) === 500, bonusFor(1_000_000, final));
   t("final: more views do not pay more", bonusFor(9_000_000, final) === 500);
   t("final: $500 max per video", maxPerVideo(final) === 500, maxPerVideo(final));
-  t("final: the strip says it", postTermsChips(final).includes("$500 max per video") && postTermsChips(final).includes("+$300 at 1M views"), postTermsChips(final));
+  t("final: the strip is rate, minimum, maximum", JSON.stringify(postTermsChips(final)) === JSON.stringify(["$2 per 1K views", "1K min views", "$500 max per video"]), postTermsChips(final));
   t("final: the sentences say it", describePostTerms(final).some((l) => l.startsWith("$500 max per video.")) && describePostTerms(final).some((l) => l.startsWith("Reward: $300")), describePostTerms(final));
   t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Check,
+  CircleDollarSign,
   DollarSign,
   Eye,
   LayoutGrid,
@@ -19,8 +20,8 @@ import {
 import {
   describePostTerms,
   postTermsChips,
+  ratePhrase,
   type PostTerms,
-  cpmPhrases,
   maxPerVideo,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
@@ -78,7 +79,7 @@ export function CampaignView({
             }
           : null,
         postTerms?.cpm?.length
-          ? { icon: TrendingUp, label: cpmPhrases(postTerms.cpm).join(", ") }
+          ? { icon: CircleDollarSign, label: ratePhrase(postTerms.cpm) }
           : topBonus
           ? {
               icon: TrendingUp,
@@ -88,14 +89,11 @@ export function CampaignView({
         postTerms.cpm?.length && postTerms.minViews
           ? { icon: Eye, label: `${compactViews(postTerms.minViews)} min views` }
           : null,
-        postTerms.cpm?.length && postTerms.milestones.length
-          ? { icon: TrendingUp, label: postTerms.milestones.map((m) => `+${usd(m.amount)} at ${compactViews(m.views)} views`).join(", ") }
-          : null,
         maxPerVideo(postTerms) !== null
-          ? { icon: TrendingUp, label: `${usd(maxPerVideo(postTerms) as number)} max per video` }
+          ? { icon: DollarSign, label: `${usd(maxPerVideo(postTerms) as number)} max per video` }
           : null,
-        postTerms.basePerPost > 0 ? { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` } : null,
-        { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
+        postTerms.cpm?.length ? null : postTerms.basePerPost > 0 ? { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` } : null,
+        postTerms.cpm?.length ? null : { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
       ].filter(Boolean) as { icon: typeof Eye; label: string }[])
     : ([
         terms?.cpm
