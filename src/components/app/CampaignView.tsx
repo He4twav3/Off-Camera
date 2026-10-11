@@ -2,9 +2,11 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Check,
+  ChevronDown,
   CircleDollarSign,
   DollarSign,
   Eye,
+  FileText,
   LayoutGrid,
   TrendingUp,
   Video,
@@ -252,13 +254,6 @@ export function CampaignView({
                     {formatPayoutSummary(job.payout_type, job.payout_amount)}
                   </p>
                 )}
-                {payLines.length > 0 && (
-                  <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                    {payLines.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                )}
                 {job.payout_notes && (
                   <p className="mt-3 text-sm text-muted-foreground">
                     {job.payout_notes}
@@ -298,26 +293,45 @@ export function CampaignView({
 
               <ExampleVideos urls={job.example_urls ?? []} emptyHref={emptyExamplesHref} />
 
-              {rules.length > 0 && (
-                <section className="mt-5 rounded-xl sm:mt-8 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">
-                  <h2 className="font-heading text-base font-semibold text-foreground">
-                    The brief
-                  </h2>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    The key rules. Follow them in every video.
-                  </p>
-                  <ul className="mt-4 flex flex-col gap-2.5">
-                    {rules.map((rule) => (
-                      <li
-                        key={rule}
-                        className="flex items-start gap-3 text-[15px] text-foreground"
-                      >
-                        <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                        {rule}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+              {(rules.length > 0 || payLines.length > 0) && (
+                <details className="group mt-5 rounded-xl border border-border/70 bg-card sm:mt-8">
+                  <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
+                    <FileText className="size-5 shrink-0 text-primary" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-heading text-base font-semibold text-foreground">The brief</span>
+                      <span className="block text-sm text-muted-foreground">
+                        {rules.length > 0 ? "The rules and exactly how it pays. Open to read." : "Exactly how it pays. Open to read."}
+                      </span>
+                    </span>
+                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="space-y-5 border-t border-border/70 px-4 py-4 sm:px-5">
+                    {rules.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">The rules</h3>
+                        <p className="mt-0.5 text-sm text-muted-foreground">Follow them in every video.</p>
+                        <ul className="mt-3 flex flex-col gap-2.5">
+                          {rules.map((rule) => (
+                            <li key={rule} className="flex items-start gap-3 text-[15px] text-foreground">
+                              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                              {rule}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {payLines.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">How it pays</h3>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                          {payLines.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </details>
               )}
 
               {!job.logo_url && (
