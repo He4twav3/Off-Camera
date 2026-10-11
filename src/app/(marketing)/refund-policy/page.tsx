@@ -15,7 +15,7 @@ export default function RefundPolicyPage() {
   return (
     <LegalPage
       title="Refund Policy"
-      lastUpdated="August 31, 2026"
+      lastUpdated="October 11, 2026"
       intro={
         <>
           This Refund Policy explains how purchases of {siteConfig.name},
@@ -30,6 +30,14 @@ export default function RefundPolicyPage() {
         <DiscordLink>Discord</DiscordLink> within 7 days of your purchase
         for a full refund, no questions asked. After 7 days, purchases are
         final.
+      </p>
+
+      <h2>What this covers</h2>
+      <p>
+        This policy is for purchases of the course. Payments between brands and
+        creators are made directly between them, so a refund of a campaign
+        payment is a matter between the brand and the creator. See our{" "}
+        <Link href="/terms">Terms</Link> for how those payments work.
       </p>
 
       <h2>Before you buy</h2>
