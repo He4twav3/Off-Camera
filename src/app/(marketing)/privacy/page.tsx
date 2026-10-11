@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       intro={
         <>
           This Privacy Policy explains what information {siteConfig.name},
-          operated by OnCamera DOO, collects from creators and brands{COURSE_PUBLIC ? " and course students" : ""}, and how it&apos;s used.
+          operated by {siteConfig.operator}, collects from creators and brands{COURSE_PUBLIC ? " and course students" : ""}, and how it&apos;s used.
         </>
       }
     >

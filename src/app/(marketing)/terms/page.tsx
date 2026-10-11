@@ -22,7 +22,7 @@ export default function TermsPage() {
       intro={
         <>
           These Terms of Service (&ldquo;Terms&rdquo;) govern your use of{" "}
-          {siteConfig.name}, operated by OnCamera DOO (&ldquo;we&rdquo;,
+          {siteConfig.name}, operated by {siteConfig.operator} (&ldquo;we&rdquo;,
           &ldquo;us&rdquo;). {siteConfig.name} is a platform where brands and
           creators work together on paid campaigns.{COURSE_PUBLIC ? " It also includes a course." : ""} By
           creating an account{COURSE_PUBLIC ? ", joining a campaign or buying the course" : " or joining a campaign"}, you agree to these Terms.
@@ -208,7 +208,7 @@ export default function TermsPage() {
 
       <h2>{h("Limitation of liability")}</h2>
       <p>
-        To the maximum extent permitted by law, OnCamera DOO is not liable for
+        To the maximum extent permitted by law, we are not liable for
         indirect, incidental or consequential damages, for payments owed
         between a brand and a creator, or for the actions of brands or
         creators. Nothing in these Terms limits liability that cannot be

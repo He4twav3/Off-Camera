@@ -23,7 +23,7 @@ export default function RefundPolicyPage() {
       intro={
         <>
           This Refund Policy explains how purchases of {siteConfig.name},
-          operated by OnCamera DOO, are handled.
+          operated by {siteConfig.operator}, are handled.
         </>
       }
     >
