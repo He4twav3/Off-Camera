@@ -32,8 +32,8 @@ import { COURSE_PUBLIC } from "@/lib/feature-flags";
 
 export const siteConfig = {
   name: "On Camera",
-  /** Who runs the site, as the Brand Services Agreement states it. Shown on the legal pages. */
-  operator: "Aron Zekir, a sole proprietor registered in North Macedonia and trading as On Camera",
+  /** Who runs the site, as the legal pages name it. Just the trading name until the legal entity is confirmed. */
+  operator: "On Camera",
   /** Where people write to us. Shown on the legal pages. */
   contactEmail: "info@oncameraugc.com",
   tagline: COURSE_PUBLIC ? "Learn the craft. Build the career." : "Brands and creators, paid for results.",
