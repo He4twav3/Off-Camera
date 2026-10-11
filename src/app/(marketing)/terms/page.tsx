@@ -212,7 +212,8 @@ export default function TermsPage() {
 
       <h2>13. Contact</h2>
       <p>
-        Questions about these Terms can be sent to us on{" "}
+        Questions about these Terms can be sent to{" "}
+        <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>, or to us on{" "}
         <DiscordLink>Discord</DiscordLink>.
       </p>
     </LegalPage>

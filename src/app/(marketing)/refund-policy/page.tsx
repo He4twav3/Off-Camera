@@ -57,7 +57,9 @@ export default function RefundPolicyPage() {
 
       <h2>Questions</h2>
       <p>
-        Reach out any time on <DiscordLink>Discord</DiscordLink>.
+        Reach out any time at{" "}
+        <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>{" "}
+        or on <DiscordLink>Discord</DiscordLink>.
       </p>
     </LegalPage>
   );
