@@ -54,7 +54,8 @@ export default function TermsPage() {
           may decline or remove an account.
         </li>
         <li>
-          You must be able to enter into a binding agreement where you live.
+          You must be at least 18 years old and able to enter into a binding
+          agreement where you live.
         </li>
       </ul>
 
@@ -110,6 +111,10 @@ export default function TermsPage() {
           Label posts as a paid partnership where the law or the platform
           requires it, and keep each post public for the time the campaign
           sets.
+        </li>
+        <li>
+          You are responsible for your own taxes on what you earn. Brands and
+          we do not withhold or pay them for you.
         </li>
         <li>
           We do not guarantee any earnings. What you earn depends on your

@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BRAND_METHODS } from "@/lib/direct-pay";
 import { parsePostTerms, postTermsSchema, type PostTerms } from "@/lib/post-terms";
-import { termsFingerprint } from "@/lib/contract";
+import { contractSections, termsFingerprint } from "@/lib/contract";
+import { headers } from "next/headers";
 import { parseRequirements } from "@/lib/requirements";
 import { mergePayTerms, parseCpmRows, parsePayTermsFields } from "@/lib/pay-terms-form";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
@@ -663,7 +664,7 @@ export async function saveContractAction(_prev: BrandPayState, formData: FormDat
   const db = createAdminClient();
   const { data: job } = await db
     .from("jobs")
-    .select("id, post_terms")
+    .select("id, title, post_terms")
     .eq("id", parsed.data.job_id)
     .eq("brand_account_id", brand.id)
     .maybeSingle();
@@ -679,6 +680,23 @@ export async function saveContractAction(_prev: BrandPayState, formData: FormDat
     agreedAt: new Date().toISOString(),
     agreedByEmail: user?.email ?? "",
     terms: termsFingerprint(terms),
+    // What exactly was agreed to, and from where: the proof if the wording changes later or the acceptance is disputed.
+    text: contractSections({
+      campaign: job.title,
+      agency: "OnCamera",
+      terms,
+      brand: {
+        legalName: parsed.data.legal_name,
+        address: parsed.data.address,
+        country: parsed.data.country,
+        signatory: parsed.data.signatory,
+        signatoryRole: parsed.data.role ?? "",
+      },
+    })
+      .map((s) => `${s.heading}\n${s.lines.join("\n")}`)
+      .join("\n\n")
+      .slice(0, 30000),
+    ip: (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) ?? undefined,
   };
   const { error } = await db
     .from("jobs")

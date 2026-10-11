@@ -30,6 +30,9 @@ export const contractSchema = z.object({
   agreedByEmail: z.string().max(200),
   /** The pay terms as they were when the brand agreed, to tell if they have changed since. */
   terms: z.string().max(2000),
+  /** The exact contract text the brand was shown when it agreed, and where it agreed from, as the evidence of it. */
+  text: z.string().max(30000).optional(),
+  ip: z.string().max(64).optional(),
 });
 export type ContractDetails = z.infer<typeof contractSchema>;
 
