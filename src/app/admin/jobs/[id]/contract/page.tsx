@@ -47,7 +47,7 @@ export default async function ContractPage(props: {
             Download as a Word file
           </a>
         </p>
-        {contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: signed }).map((s) => (
+        {contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: signed, showFee: true }).map((s) => (
           <section key={s.heading} className="mt-8 space-y-2 text-[15px] leading-relaxed">
             <h2 className="font-heading text-xl font-semibold">{s.heading}</h2>
             {s.lines.map((l) => (

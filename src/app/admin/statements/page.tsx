@@ -7,6 +7,7 @@ import { parsePostTerms, payFor, suggestedStatement } from "@/lib/post-terms";
 import { statementState } from "@/lib/direct-pay";
 import { StatementsView, type StatementRowData } from "./StatementsView";
 import { getFeeBands } from "@/lib/campaign-fees";
+import { STANDARD_FEE } from "@/lib/fee";
 
 export const metadata: Metadata = { title: "Statements · Admin" };
 
@@ -130,7 +131,7 @@ export default async function AdminStatementsPage(props: {
                   direct_payments: null,
                   state: null,
                   fee: {
-                    terms: fees.terms.get(a.job_id) ?? { bands: [], minimum: 0 },
+                    terms: fees.terms.get(a.job_id) ?? STANDARD_FEE,
                     lifetimeBilled: billedBefore.get(a.job_id) ?? 0,
                     monthBilled: monthBilled.get(a.job_id) ?? 0,
                     monthFees: monthFees.get(a.job_id) ?? 0,

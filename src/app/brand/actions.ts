@@ -685,6 +685,7 @@ export async function saveContractAction(_prev: BrandPayState, formData: FormDat
       campaign: job.title,
       agency: "OnCamera",
       terms,
+      showFee: true,
       brand: {
         legalName: parsed.data.legal_name,
         address: parsed.data.address,

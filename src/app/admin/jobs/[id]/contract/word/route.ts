@@ -16,7 +16,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const c = terms.contract;
   const html = contractWordHtml({
     title: `Campaign contract: ${job.title}`,
-    sections: contractSections({ campaign: job.title, agency: "OnCamera", terms, brand: c }),
+    sections: contractSections({ campaign: job.title, agency: "OnCamera", terms, brand: c, showFee: true }),
     signedLine: c ? `Agreed by ${c.signatory} (${c.agreedByEmail}) on ${c.agreedAt.slice(0, 10)}.` : null,
   });
   return new NextResponse(html, {

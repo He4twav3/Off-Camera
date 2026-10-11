@@ -47,7 +47,7 @@ export default async function BrandLayout({ children }: { children: ReactNode })
                   jobId={c.id}
                   status={contractStatus(c.terms!)}
                   contract={c.terms!.contract ?? null}
-                  sections={contractSections({ campaign: c.title, agency: "OnCamera", terms: c.terms!, brand: c.terms!.contract })}
+                  sections={contractSections({ campaign: c.title, agency: "OnCamera", terms: c.terms!, brand: c.terms!.contract, showFee: true })}
                   wordHref={`/brand/campaigns/${c.id}/contract/word`}
                 />
               </div>

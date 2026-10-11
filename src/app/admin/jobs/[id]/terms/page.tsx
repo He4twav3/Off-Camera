@@ -6,6 +6,7 @@ import { SectionTitle } from "@/components/admin/table";
 import { PayTermsForm } from "../PayTermsForm";
 import { FeeForm } from "../FeeForm";
 import { getFeeBands } from "@/lib/campaign-fees";
+import { STANDARD_FEE, describeFee } from "@/lib/fee";
 import { deleteEmptyJobAction } from "../../actions";
 
 export const metadata: Metadata = { title: "Pay terms · Admin" };
@@ -37,10 +38,11 @@ export default async function AdminPayTermsPage(props: { params: Promise<{ id: s
       <SectionTitle>OnCamera fee</SectionTitle>
       <div className="rounded-xl border border-border/70 bg-card p-5">
         <p className="mb-3 text-sm text-muted-foreground">
-          What we invoice this brand on top of creator pay, in bands of the campaign&apos;s total creator pay. Only admins see this.
-          {fees.available ? "" : " Run migration 0026 in Supabase before it can be saved."}
+          Every campaign uses the standard fee: {describeFee(STANDARD_FEE.bands, STANDARD_FEE.minimum)}. Change it here only for a
+          brand that has its own signed agreement with a different fee. Empty the boxes to go back to the standard fee.
+          {fees.available ? "" : " Run migration 0026 in Supabase before a different fee can be saved."}
         </p>
-        <FeeForm jobId={c.id} fee={fees.terms.get(c.id) ?? { bands: [], minimum: 0 }} />
+        <FeeForm jobId={c.id} fee={fees.terms.get(c.id) ?? STANDARD_FEE} custom={fees.custom.has(c.id)} />
       </div>
 
       <SectionTitle>Remove campaign</SectionTitle>

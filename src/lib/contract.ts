@@ -5,6 +5,7 @@
  */
 import { STATEMENT_DUE_DAYS } from "@/lib/direct-pay";
 import { cpmPhrases, type ContractDetails, type PostTerms } from "@/lib/post-terms";
+import { STANDARD_FEE, describeFee } from "@/lib/fee";
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: Math.round(n * 100) % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
 const views = (n: number) => (n >= 1_000_000 ? `${n / 1_000_000}M` : n >= 1_000 ? `${n / 1_000}K` : String(n));
@@ -41,6 +42,8 @@ export function contractSections(input: {
   terms: PostTerms;
   /** What the brand has typed so far; anything missing shows as a blank to fill. */
   brand?: Partial<Pick<ContractDetails, "legalName" | "address" | "country" | "signatory" | "signatoryRole">>;
+  /** The brand and admin see OnCamera's fee in the contract. Creators do not: it is the brand's cost. */
+  showFee?: boolean;
 }): ContractSection[] {
   const { terms: t, brand } = input;
   const blank = (v: string | undefined, label: string) => (v && v.trim() ? v.trim() : `[${label}]`);
@@ -93,6 +96,9 @@ export function contractSections(input: {
       lines: [
         `The brand pays the creator directly, through the creator's own Stripe or Wise payment link, from the brand's own account. ${input.agency} never holds the money.`,
         "All amounts are in US dollars. The brand pays the full amount shown on the statement and covers any transfer or conversion fees, so the creator receives all of it.",
+        ...(input.showFee
+          ? [`OnCamera's fee, paid by the brand on top of what creators earn and invoiced separately: ${describeFee(STANDARD_FEE.bands, STANDARD_FEE.minimum)}. The minimum applies only in a month in which a payment to a creator is issued.`]
+          : []),
         `The brand pays within ${STATEMENT_DUE_DAYS} days of a statement being issued, then marks it as paid so the creator can confirm.`,
       ],
     },

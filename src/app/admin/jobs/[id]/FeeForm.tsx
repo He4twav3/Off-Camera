@@ -20,7 +20,7 @@ function Save() {
 type Row = { upTo: string; pct: string };
 
 /** OnCamera's fee for this campaign: a percentage on top of creator pay, in bands. Admin only; never shown to brands or creators. */
-export function FeeForm({ jobId, fee }: { jobId: string; fee: FeeTerms }) {
+export function FeeForm({ jobId, fee, custom }: { jobId: string; fee: FeeTerms; custom: boolean }) {
   const bands = fee.bands;
   const [state, action] = useActionState<PayTermsState, FormData>(saveFeeAction, {});
   const start: Row[] = bands.map((b) => ({ upTo: b.upTo === null ? "" : String(b.upTo), pct: String(b.percent) }));
@@ -52,7 +52,7 @@ export function FeeForm({ jobId, fee }: { jobId: string; fee: FeeTerms }) {
       )}
       <div className="max-w-lg">
         <label htmlFor="fee_min" className="text-sm font-medium text-foreground">
-          Minimum per month ($), only in a month creators were paid
+          Minimum per month ($){custom ? "" : " (standard fee)"}
         </label>
         <Input id="fee_min" name="fee_min" type="number" inputMode="decimal" min={0} step="0.01" defaultValue={fee.minimum || ""} className="mt-1" />
       </div>

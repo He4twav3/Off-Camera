@@ -9,7 +9,17 @@
  */
 export type FeeBand = { upTo: number | null; percent: number };
 
+/** What is saved for a campaign: the bands, and a minimum for the month (0 for none). An old array of bands still reads. */
+export type FeeTerms = { bands: FeeBand[]; minimum: number };
+
 const cents = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * OnCamera's standard fee: 15% on top of what creators earn, with a minimum of $200 per campaign per month. It applies
+ * to every campaign on the Brand Services Agreement. A different fee is possible only for a brand with its own signed
+ * agreement, and is set per campaign by an admin (see campaign_fees).
+ */
+export const STANDARD_FEE: FeeTerms = { bands: [{ upTo: null, percent: 15 }], minimum: 200 };
 
 /** Sorted lowest first, with the open-ended band last. */
 function ordered(bands: FeeBand[]): FeeBand[] {
@@ -36,8 +46,6 @@ export function feeForPayment(before: number, amount: number, bands: FeeBand[]):
   return cents(feeTotal(before + amount, bands) - feeTotal(before, bands));
 }
 
-/** What is saved for a campaign: the bands, and a minimum for the month (0 for none). An old array of bands still reads. */
-export type FeeTerms = { bands: FeeBand[]; minimum: number };
 
 export function parseFeeTerms(raw: unknown): FeeTerms {
   if (Array.isArray(raw)) return { bands: raw as FeeBand[], minimum: 0 };
