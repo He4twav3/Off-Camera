@@ -16,6 +16,7 @@ import { AuthNavPill, AuthNavRow } from "@/components/site/auth-nav-status";
 import { ScrollProgress } from "@/components/site/scroll-progress";
 import { useScrolledPast } from "@/lib/use-scroll-y";
 import { cn } from "@/lib/utils";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 
 // Real in-page jumps, not decoration — the homepage defines all of these
 // section ids (there's only one landing page now, see UX_PAGE_AUDIT.md —
@@ -27,13 +28,15 @@ import { cn } from "@/lib/utils";
 // style category-dropdown look) — replaced with plain tracked-out text
 // links, no fill, no border: a premium site's nav doesn't need five
 // colors to prove five things are clickable.
-const sections = [
-  { href: "/course#proof", label: "Proof" },
-  { href: "/course#curriculum", label: "Curriculum" },
-  { href: "/course#story", label: "Story" },
-  { href: "/course#pricing", label: "Pricing" },
-  { href: "/course#faq", label: "FAQ" },
-];
+const sections = COURSE_PUBLIC
+  ? [
+      { href: "/course#proof", label: "Proof" },
+      { href: "/course#curriculum", label: "Curriculum" },
+      { href: "/course#story", label: "Story" },
+      { href: "/course#pricing", label: "Pricing" },
+      { href: "/course#faq", label: "FAQ" },
+    ]
+  : [];
 
 // Deliberately not async / no getSession() call here: this navbar is shared
 // by every marketing page, and reading the session cookie in a server
@@ -122,7 +125,7 @@ export function Navbar() {
             render={<Link href="/create-account" />}
             className="btn-cta-glass rounded-full px-5 font-bold text-cta-foreground"
           >
-            Save my free spot
+            {COURSE_PUBLIC ? "Save my free spot" : "Get started"}
           </Button>
           <AuthNavPill />
         </div>
@@ -166,7 +169,7 @@ export function Navbar() {
                 render={<Link href="/create-account" onClick={closeMobileNav} />}
                 className="btn-cta-glass mt-3 rounded-full py-2.5 font-bold text-cta-foreground"
               >
-                Save my free spot
+                {COURSE_PUBLIC ? "Save my free spot" : "Get started"}
               </Button>
               {/* Same order as the desktop group above: CTA leads, log
                   in trails right after it. AuthNavRow, not AuthNavPill —

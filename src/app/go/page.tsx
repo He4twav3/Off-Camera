@@ -12,7 +12,8 @@ import { CURRICULUM, TOTAL_LESSONS, TOTAL_MODULES, TOTAL_MINUTES } from "@/lib/c
 import { INTRO_VIDEO_POSTER, INTRO_VIDEO_SRC } from "@/lib/intro-video";
 import { PROOF_CONTENT } from "@/lib/proof-content";
 import { siteConfig } from "@/lib/site-config";
-import { COURSE_IS_FREE } from "@/lib/feature-flags";
+import { COURSE_IS_FREE, COURSE_PUBLIC } from "@/lib/feature-flags";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Start here",
@@ -76,6 +77,9 @@ const faqs = [
  * The full site is still one click away, nothing here is hidden from it.
  */
 export default function GoPage() {
+  // The course is detached from the site for now: this landing page is not shown. See lib/feature-flags.ts.
+  if (!COURSE_PUBLIC) redirect("/course");
+
   return (
     <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
       <header className="flex items-center justify-between px-4 py-5 sm:px-6 lg:px-8">

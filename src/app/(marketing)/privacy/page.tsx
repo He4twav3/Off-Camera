@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
 import { DiscordLink } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -18,8 +19,7 @@ export default function PrivacyPage() {
       intro={
         <>
           This Privacy Policy explains what information {siteConfig.name},
-          operated by OnCamera DOO, collects from creators, brands and course
-          students, and how it&apos;s used.
+          operated by OnCamera DOO, collects from creators and brands{COURSE_PUBLIC ? " and course students" : ""}, and how it&apos;s used.
         </>
       }
     >
@@ -78,11 +78,15 @@ export default function PrivacyPage() {
         <strong>Everyone</strong>
       </p>
       <ul>
-        <li>
-          Course purchases: payment information is processed by our payment
-          providers. We don&apos;t store full card numbers ourselves.
-        </li>
-        <li>Course progress, so we can show you where you left off.</li>
+        {COURSE_PUBLIC && (
+          <>
+            <li>
+              Course purchases: payment information is processed by our payment
+              providers. We don&apos;t store full card numbers ourselves.
+            </li>
+            <li>Course progress, so we can show you where you left off.</li>
+          </>
+        )}
         <li>
           Basic technical data (device, browser, approximate location) and
           essential cookies that keep you signed in.
@@ -144,7 +148,7 @@ export default function PrivacyPage() {
         </li>
         <li>Discord, if you choose to connect your account.</li>
         <li>
-          Our payment providers, for course purchases. Payments between brands
+          {COURSE_PUBLIC ? "Our payment providers, for course purchases. " : ""}Payments between brands
           and creators use Stripe or Wise directly, under their own terms.
         </li>
       </ul>

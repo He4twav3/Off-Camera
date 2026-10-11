@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Check, TriangleAlert } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
+import { redirect } from "next/navigation";
 import { TOTAL_MODULES, TOTAL_LESSONS } from "@/lib/curriculum";
 import { CheckoutForm } from "./checkout-form";
 import "@/styles/dark-invert.css";
@@ -37,6 +39,7 @@ export default async function CheckoutPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  if (!COURSE_PUBLIC) redirect("/course");
   const { error } = await searchParams;
   const errorMessage = error ? (ERROR_MESSAGES[error] ?? "Something went wrong. Try again.") : null;
 

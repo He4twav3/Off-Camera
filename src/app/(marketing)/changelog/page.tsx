@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/changelog" },
 };
 
-const entries = [
+const allEntries: { date: string; title: string; body: string; course?: boolean }[] = [
   {
     date: "2026-10-11",
     title: "Campaigns for creators and brands",
@@ -20,40 +21,50 @@ const entries = [
   },
   {
     date: "2026-08-23",
+    course: true,
     title: "Rebuilt around real results",
     body: "Reworked the site and curriculum around our own videos that reached millions of views, and the repeatable system behind them, hooks, retention, volume, consistency, timing, and iteration, instead of one format. Removed the AI-generated example testimonials and the placeholder rating in favor of real video breakdowns.",
   },
   {
     date: "2026-08-09",
+    course: true,
     title: "Real lesson progress tracking",
     body: "Your dashboard now tracks the lessons you've actually marked complete, module by module, instead of showing example numbers. A brand new account starts at zero, on purpose.",
   },
   {
     date: "2026-08-09",
+    course: true,
     title: "Site-wide search",
     body: "Press ⌘K (or Ctrl+K) anywhere, or use the search bar in the header, to jump straight to any page, module, or lesson.",
   },
   {
     date: "2026-08-07",
+    course: true,
     title: "Real account system",
     body: "Signing in now sets a real session: the dashboard is gated behind it, and logging out actually logs you out, from any page.",
   },
   {
     date: "2026-08-07",
+    course: true,
     title: "Checkout and downloadable resources",
     body: "Added a real checkout flow, plus the pitch email and contract templates mentioned in the course are now real downloads, not placeholder links.",
   },
   {
     date: "2026-07-28",
+    course: true,
     title: "Pricing simplified",
     body: "Moved to a single one-time payment. No tiers, no installment plan to think about.",
   },
   {
     date: "2026-07-20",
+    course: true,
     title: "On Camera launched",
     body: "8 modules, 25 lessons, on how to create faceless content and get picked for brand deals.",
   },
 ];
+
+// Course entries are held back while the course is detached from the site (lib/feature-flags.ts).
+const entries = allEntries.filter((e) => COURSE_PUBLIC || !e.course);
 
 export default function ChangelogPage() {
   return (
@@ -62,8 +73,7 @@ export default function ChangelogPage() {
         Changelog
       </h1>
       <p className="mt-2 text-muted-foreground">
-        What&apos;s changed on {siteConfig.name}. Course content updates are
-        included with lifetime access; this is what&apos;s shipped so far.
+        What&apos;s changed on {siteConfig.name}.{COURSE_PUBLIC ? " Course content updates are included with lifetime access; this is what's shipped so far." : ""}
       </p>
 
       <ol className="mt-10 space-y-8 border-l-2 border-border pl-6">

@@ -28,13 +28,16 @@ function resolveSiteUrl(): string {
   return "https://www.oncameraugc.com";
 }
 
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
+
 export const siteConfig = {
   name: "On Camera",
   /** Where people write to us. Shown on the legal pages. */
   contactEmail: "info@oncameraugc.com",
-  tagline: "Learn the craft. Build the career.",
-  description:
-    "Real breakdowns of our own videos that reached millions of views, and the repeatable system behind them: hooks, retention, formats, volume, consistency, and iteration. On camera, not showing your face, silent, UGC, demo, or screen recording — the format is flexible, the formula isn't.",
+  tagline: COURSE_PUBLIC ? "Learn the craft. Build the career." : "Brands and creators, paid for results.",
+  description: !COURSE_PUBLIC
+    ? "OnCamera connects brands with creators for paid short-form video campaigns. Creators are paid per video plus pay for views, and brands see every video, view and payment in one place."
+    : "Real breakdowns of our own videos that reached millions of views, and the repeatable system behind them: hooks, retention, formats, volume, consistency, and iteration. On camera, not showing your face, silent, UGC, demo, or screen recording — the format is flexible, the formula isn't.",
   /**
    * Single source of truth for the course product's name, so it can't
    * drift out of sync the way the old "Off Camera: Faceless Content &

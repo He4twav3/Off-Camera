@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 import { Hero } from "@/components/marketing/hero";
 import { getProofPosters } from "@/lib/proof-thumbnails";
 import { Brands } from "@/components/marketing/brand-constellation";
@@ -86,13 +87,26 @@ import { SectionSeam } from "@/components/marketing/section-frame";
  *     saying the course is currently free — actively contradicting the
  *     offer at the moment of the ask.
  */
-export const metadata: Metadata = {
-  title: "The course",
-  description: "Learn the mechanics behind UGC that performs — hooks, retention, volume and iteration.",
-  alternates: { canonical: "/course" },
-};
+export const metadata: Metadata = COURSE_PUBLIC
+  ? {
+      title: "The course",
+      description: "Learn the mechanics behind UGC that performs — hooks, retention, volume and iteration.",
+      alternates: { canonical: "/course" },
+    }
+  : { title: "Course, coming soon", description: "The course is coming soon.", robots: { index: false, follow: false } };
+
+/** While the course is detached from the site, this is all /course shows. The full page below is untouched. */
+function ComingSoon() {
+  return (
+    <section className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-4 py-24 text-center sm:px-6">
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Course, coming soon</h1>
+      <p className="mt-3 text-muted-foreground">Nothing to see here yet.</p>
+    </section>
+  );
+}
 
 export default async function CoursePage() {
+  if (!COURSE_PUBLIC) return <ComingSoon />;
   // Resolved once on the server and cached (lib/proof-thumbnails.ts), not
   // per-card in the browser: these posters are the first thing on the
   // page, and the wall cannot be empty for the first second of a visit.

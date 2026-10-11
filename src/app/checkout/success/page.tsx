@@ -4,6 +4,8 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/site/logo";
 import { getSession } from "@/lib/auth";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
+import { redirect } from "next/navigation";
 import "@/styles/dark-invert.css";
 
 export const metadata: Metadata = {
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutSuccessPage() {
+  if (!COURSE_PUBLIC) redirect("/course");
   const session = await getSession();
 
   return (

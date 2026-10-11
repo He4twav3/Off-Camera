@@ -2,6 +2,7 @@ import { StagingBanner } from "@/components/site/staging-banner";
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Sans, Fjalla_One, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
@@ -135,16 +136,18 @@ export const metadata: Metadata = {
     template: `%s · ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: [
-    "short-form content course",
-    "viral video hooks",
-    "content retention",
-    "UGC course",
-    "faceless content",
-    "brand deals",
-    "content creator course",
-    "TikTok UGC",
-  ],
+  keywords: COURSE_PUBLIC
+    ? [
+        "short-form content course",
+        "viral video hooks",
+        "content retention",
+        "UGC course",
+        "faceless content",
+        "brand deals",
+        "content creator course",
+        "TikTok UGC",
+      ]
+    : ["UGC campaigns", "paid creator campaigns", "UGC for brands", "brand deals", "TikTok UGC", "creator payments"],
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
   robots: {

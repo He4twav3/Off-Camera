@@ -1,3 +1,4 @@
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
 import { dodo, DODO_PRODUCT_ID, dodoCheckoutBaseUrl } from "@/lib/dodo";
 import { getBaseUrl } from "@/lib/request-url";
@@ -13,6 +14,8 @@ import { getBaseUrl } from "@/lib/request-url";
  * would, just with a dynamic return URL instead of a fixed one.
  */
 export async function GET(request: Request) {
+  // No new course purchases while the course is detached from the site.
+  if (!COURSE_PUBLIC) return NextResponse.redirect(new URL("/course", request.url));
   const url = new URL(request.url);
   const email = url.searchParams.get("email");
 

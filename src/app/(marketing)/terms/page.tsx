@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
 import { DiscordLink } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -11,6 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
+  // Section numbers follow what is shown, so hiding the course section leaves no gap.
+  let n = 0;
+  const h = (title: string) => `${++n}. ${title}`;
   return (
     <LegalPage
       title="Terms of Service"
@@ -19,14 +23,13 @@ export default function TermsPage() {
         <>
           These Terms of Service (&ldquo;Terms&rdquo;) govern your use of{" "}
           {siteConfig.name}, operated by OnCamera DOO (&ldquo;we&rdquo;,
-          &ldquo;us&rdquo;). {siteConfig.name} has two parts: a platform where
-          brands and creators work together on paid campaigns, and a course.
-          By creating an account, joining a campaign or buying the course, you
-          agree to these Terms.
+          &ldquo;us&rdquo;). {siteConfig.name} is a platform where brands and
+          creators work together on paid campaigns.{COURSE_PUBLIC ? " It also includes a course." : ""} By
+          creating an account{COURSE_PUBLIC ? ", joining a campaign or buying the course" : " or joining a campaign"}, you agree to these Terms.
         </>
       }
     >
-      <h2>1. What we do</h2>
+      <h2>{h("What we do")}</h2>
       <p>
         We run a platform that connects brands with creators. Brands post
         campaigns and set the pay. Creators join a campaign, post videos on
@@ -39,7 +42,7 @@ export default function TermsPage() {
         creator, and we are not anyone&apos;s employer.
       </p>
 
-      <h2>2. Accounts</h2>
+      <h2>{h("Accounts")}</h2>
       <ul>
         <li>
           You can sign up as a creator or as a brand. Give accurate details and
@@ -55,7 +58,7 @@ export default function TermsPage() {
         </li>
       </ul>
 
-      <h2>3. How money moves</h2>
+      <h2>{h("How money moves")}</h2>
       <ul>
         <li>
           <strong>We do not hold or send creators&apos; money.</strong> When a
@@ -84,7 +87,7 @@ export default function TermsPage() {
         </li>
       </ul>
 
-      <h2>4. For creators</h2>
+      <h2>{h("For creators")}</h2>
       <ul>
         <li>
           Connect and verify at least one of your own social accounts before
@@ -114,7 +117,7 @@ export default function TermsPage() {
         </li>
       </ul>
 
-      <h2>5. For brands</h2>
+      <h2>{h("For brands")}</h2>
       <ul>
         <li>
           You are responsible for the campaign you post: the brief, the pay
@@ -140,7 +143,7 @@ export default function TermsPage() {
         </li>
       </ul>
 
-      <h2>6. Contracts between brands and creators</h2>
+      <h2>{h("Contracts between brands and creators")}</h2>
       <p>
         Each campaign has a contract between the brand and the creators who
         join it. The brand fills in its company details and agrees to it before
@@ -151,7 +154,7 @@ export default function TermsPage() {
         agreement that applies to the campaign.
       </p>
 
-      <h2>7. Content and rights</h2>
+      <h2>{h("Content and rights")}</h2>
       <p>
         You keep ownership of the videos you make. What a brand may do with a
         video, and for how long, is set out in the campaign&apos;s contract. By
@@ -161,7 +164,9 @@ export default function TermsPage() {
         campaign allows, link to them as examples.
       </p>
 
-      <h2>8. The course</h2>
+      {COURSE_PUBLIC && (
+        <>
+      <h2>{h("The course")}</h2>
       <p>
         Buying {siteConfig.name} gives you a personal, non-transferable,
         lifetime license to access the course content for your own educational
@@ -176,11 +181,14 @@ export default function TermsPage() {
         follower count or brand deal.
       </p>
 
-      <h2>9. Acceptable use</h2>
+        </>
+      )}
+
+      <h2>{h("Acceptable use")}</h2>
       <ul>
         <li>No fake accounts, fake views, or other ways of inflating results.</li>
-        <li>No sharing of login credentials or paid course content.</li>
-        <li>No reproducing, reselling or repackaging course materials.</li>
+        <li>No sharing of login credentials{COURSE_PUBLIC ? " or paid course content" : ""}.</li>
+        {COURSE_PUBLIC && <li>No reproducing, reselling or repackaging course materials.</li>}
         <li>No harassment of staff, brands, creators or other members.</li>
       </ul>
       <p>
@@ -190,15 +198,15 @@ export default function TermsPage() {
         it stays owed.
       </p>
 
-      <h2>10. Changes to the platform and the Terms</h2>
+      <h2>{h("Changes to the platform and the Terms")}</h2>
       <p>
-        We may update the platform, the course and these Terms over time. If a
+        We may update the platform{COURSE_PUBLIC ? ", the course" : ""} and these Terms over time. If a
         change materially affects you, we will tell you or update the date
         above before it applies. Pay terms already agreed for a campaign are
         not changed by an update to these Terms.
       </p>
 
-      <h2>11. Limitation of liability</h2>
+      <h2>{h("Limitation of liability")}</h2>
       <p>
         To the maximum extent permitted by law, OnCamera DOO is not liable for
         indirect, incidental or consequential damages, for payments owed
@@ -207,10 +215,10 @@ export default function TermsPage() {
         limited by law.
       </p>
 
-      <h2>12. Governing law</h2>
+      <h2>{h("Governing law")}</h2>
       <p>These Terms are governed by the laws of North Macedonia.</p>
 
-      <h2>13. Contact</h2>
+      <h2>{h("Contact")}</h2>
       <p>
         Questions about these Terms can be sent to{" "}
         <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>, or to us on{" "}

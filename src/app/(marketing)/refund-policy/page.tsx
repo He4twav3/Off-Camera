@@ -3,6 +3,8 @@ import Link from "next/link";
 import { LegalPage } from "@/components/marketing/legal-page";
 import { DiscordLink } from "@/components/site/discord-link";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
@@ -12,6 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default function RefundPolicyPage() {
+  // The refund policy is about the course, which is detached from the site for now.
+  if (!COURSE_PUBLIC) notFound();
   return (
     <LegalPage
       title="Refund Policy"

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DiscordLink } from "@/components/site/discord-link";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 import { FooterWordmark } from "@/components/site/footer-wordmark";
 import { Logo } from "@/components/site/logo";
 import { siteConfig } from "@/lib/site-config";
@@ -55,22 +56,27 @@ const columns = [
       { href: "/login", label: "Log in" },
     ],
   },
-  {
-    title: "Academy",
-    links: [
-      { href: "/course", label: "The course" },
-      { href: "/course#proof", label: "Proof" },
-      { href: "/course#curriculum", label: "Curriculum" },
-      { href: "/course#pricing", label: "Pricing" },
-      { href: "/course#faq", label: "FAQ" },
-    ],
-  },
+  ...(COURSE_PUBLIC
+    ? [
+        {
+          title: "Academy",
+          links: [
+            { href: "/course", label: "The course" },
+            { href: "/course#proof", label: "Proof" },
+            { href: "/course#curriculum", label: "Curriculum" },
+            { href: "/course#pricing", label: "Pricing" },
+            { href: "/course#faq", label: "FAQ" },
+          ],
+        },
+      ]
+    : []),
   {
     title: "Company",
     links: [
       { href: "/about", label: "About" },
       { href: "/changelog", label: "Changelog" },
       { href: "/dashboard", label: "Dashboard" },
+      ...(COURSE_PUBLIC ? [] : [{ href: "/course", label: "Course (coming soon)" }]),
     ],
   },
   {
@@ -78,7 +84,7 @@ const columns = [
     links: [
       { href: "/terms", label: "Terms" },
       { href: "/privacy", label: "Privacy" },
-      { href: "/refund-policy", label: "Refunds" },
+      ...(COURSE_PUBLIC ? [{ href: "/refund-policy", label: "Refunds" }] : []),
     ],
   },
 ];
@@ -102,8 +108,9 @@ export function Footer() {
         {/* ── ROW 2 · links ───────────────────────────────────────── */}
         <div className="flex flex-col justify-between gap-10 pt-6 md:flex-row md:gap-16">
           <p className="max-w-[239px] text-xs leading-relaxed text-muted-foreground">
-            Real breakdowns of videos that reached millions of views, and the
-            repeatable system behind them.
+            {COURSE_PUBLIC
+              ? "Real breakdowns of videos that reached millions of views, and the repeatable system behind them."
+              : "OnCamera connects brands with creators for paid short-form video campaigns."}
           </p>
 
           <div className="flex gap-10 sm:gap-[40px]">

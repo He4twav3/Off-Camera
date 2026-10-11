@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site-config";
+import { COURSE_PUBLIC } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "About",
@@ -26,6 +27,7 @@ export default function AboutPage() {
       </h1>
       <p className="mt-2 text-muted-foreground">{siteConfig.tagline}</p>
 
+      {COURSE_PUBLIC && (
       <div className="card-premium mt-8 rounded-2xl bg-card p-6 sm:p-8">
         <p className="text-base leading-relaxed">
           We noticed the creators getting huge reach weren&apos;t
@@ -51,10 +53,12 @@ export default function AboutPage() {
         </ul>
       </div>
 
-      <div className="card-premium mt-6 rounded-2xl bg-card p-6 sm:p-8">
+      )}
+
+      <div className={`card-premium rounded-2xl bg-card p-6 sm:p-8 ${COURSE_PUBLIC ? "mt-6" : "mt-8"}`}>
         <h2 className="text-lg font-semibold tracking-tight">For creators and brands</h2>
         <p className="mt-3 text-base leading-relaxed">
-          {siteConfig.name} also runs a platform where brands post paid
+          {siteConfig.name}{COURSE_PUBLIC ? " also" : ""} runs a platform where brands post paid
           campaigns and creators get paid for the videos they make. Creators
           join a campaign, post on their own accounts, and are paid per video
           plus pay for views. Brands set the pay, choose who approves each
@@ -76,9 +80,11 @@ export default function AboutPage() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button nativeButton={false} render={<Link href="/course#curriculum" />} className="btn-premium">
-          See the course
-        </Button>
+        {COURSE_PUBLIC && (
+          <Button nativeButton={false} render={<Link href="/course#curriculum" />} className="btn-premium">
+            See the course
+          </Button>
+        )}
         {siteConfig.communityUrl && (
           <Button
             variant="outline"

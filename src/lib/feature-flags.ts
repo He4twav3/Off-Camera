@@ -16,3 +16,11 @@
  * changes underneath this.
  */
 export const COURSE_IS_FREE = true;
+
+/**
+ * Whether the course is visible on the public site. OFF: the course is detached, and the only place it shows is a
+ * "coming soon" page at /course (no curriculum, no price, no checkout, no mentions in the nav, footer, sitemap, About,
+ * Terms, Privacy, Refund Policy or changelog). Nothing is deleted: every course page, lesson, checkout and payment
+ * handler is still in the code, and setting this to `true` and pushing puts it all back.
+ */
+export const COURSE_PUBLIC = false;
