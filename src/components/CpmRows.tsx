@@ -8,7 +8,8 @@ type Row = { from: string; rate: string };
 const MAX_ROWS = 6;
 
 /** The CPM: one row to start, a plus button to add another band (a CPM and the views it starts at). Blank rows are skipped. */
-export function CpmRows({ rows, minViews, maxPerVideo }: { rows: ({ from: number; rate: number } | null)[]; minViews?: number | string; maxPerVideo?: number | string }) {
+type Extra = number | string | undefined;
+export function CpmRows({ rows, cap, minViews, maxPerVideo, rewardViews, rewardAmount }: { rows: ({ from: number; rate: number } | null)[]; cap?: Extra; minViews?: Extra; maxPerVideo?: Extra; rewardViews?: Extra; rewardAmount?: Extra }) {
   const start: Row[] = rows.filter((r): r is { from: number; rate: number } => r !== null).map((r) => ({ from: String(r.from), rate: String(r.rate) }));
   const [list, setList] = useState<Row[]>(start.length ? start : [{ from: "", rate: "" }]);
   const set = (i: number, k: keyof Row, v: string) => setList((l) => l.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
@@ -48,6 +49,12 @@ export function CpmRows({ rows, minViews, maxPerVideo }: { rows: ({ from: number
       )}
       <div className="mt-3 grid max-w-md gap-3 sm:grid-cols-2">
         <div>
+          <label htmlFor="cpm_cap" className="text-sm font-medium text-foreground">
+            CPM counts up to … views (optional)
+          </label>
+          <Input id="cpm_cap" name="cpm_cap" type="number" inputMode="numeric" min={1} defaultValue={cap ?? ""} placeholder="Views" className="mt-1" />
+        </div>
+        <div>
           <label htmlFor="min_views" className="text-sm font-medium text-foreground">
             Min views to earn (optional)
           </label>
@@ -55,9 +62,21 @@ export function CpmRows({ rows, minViews, maxPerVideo }: { rows: ({ from: number
         </div>
         <div>
           <label htmlFor="max_per_video" className="text-sm font-medium text-foreground">
-            Max a video can earn ($, optional)
+            Max view pay on a video ($, optional)
           </label>
           <Input id="max_per_video" name="max_per_video" type="number" inputMode="decimal" min={0} step="0.01" defaultValue={maxPerVideo ?? ""} placeholder="$" className="mt-1" />
+        </div>
+        <div>
+          <label htmlFor="reward_views" className="text-sm font-medium text-foreground">
+            Reward at … views (optional)
+          </label>
+          <Input id="reward_views" name="reward_views" type="number" inputMode="numeric" min={1} defaultValue={rewardViews ?? ""} placeholder="Views" className="mt-1" />
+        </div>
+        <div>
+          <label htmlFor="reward_amount" className="text-sm font-medium text-foreground">
+            Reward amount ($)
+          </label>
+          <Input id="reward_amount" name="reward_amount" type="number" inputMode="decimal" min={0} step="0.01" defaultValue={rewardAmount ?? ""} placeholder="$" className="mt-1" />
         </div>
       </div>
     </div>

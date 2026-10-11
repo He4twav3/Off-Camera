@@ -161,16 +161,21 @@ export function cpmBonus(views: number, tiers: CpmTier[], cap?: number, minViews
 
 /** The view pay a post has earned: by CPM bands when the campaign has them, otherwise by milestone. */
 export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "cpm" | "cpmCap"> & Partial<Pick<PostTerms, "minViews" | "maxPerPost">>): number {
-  return terms.cpm?.length ? cpmBonus(views, terms.cpm, terms.cpmCap, terms.minViews, terms.maxPerPost) : milestoneBonus(views, terms.milestones);
+  if (!terms.cpm?.length) return milestoneBonus(views, terms.milestones);
+  // With a CPM, a milestone is a reward on top: the highest one a video reaches is paid in addition to the CPM.
+  const earned = cpmBonus(views, terms.cpm, terms.cpmCap, terms.minViews) + milestoneBonus(views, terms.milestones);
+  const total = Math.round(earned * 100) / 100;
+  return terms.maxPerPost ? Math.min(total, terms.maxPerPost) : total;
 }
 
 /**
  * The most one video can earn, as a dollar figure however the brand entered the limit (as dollars, or as a number of
  * views that stop counting). Null when nothing limits it. Base pay is included, so the creator reads one number.
  */
-export function maxPerVideo(terms: Pick<PostTerms, "basePerPost" | "cpm" | "cpmCap" | "maxPerPost">): number | null {
+export function maxPerVideo(terms: Pick<PostTerms, "basePerPost" | "cpm" | "cpmCap" | "maxPerPost"> & Partial<Pick<PostTerms, "milestones">>): number | null {
   if (!terms.cpm?.length) return null;
-  const fromViews = terms.cpmCap ? cpmBonus(terms.cpmCap, terms.cpm) : null;
+  const reward = terms.milestones?.reduce((m, x) => Math.max(m, x.amount), 0) ?? 0;
+  const fromViews = terms.cpmCap ? cpmBonus(terms.cpmCap, terms.cpm) + reward : null;
   const limits = [fromViews, terms.maxPerPost ?? null].filter((n): n is number => n !== null);
   if (limits.length === 0) return null;
   return Math.round((Math.min(...limits) + terms.basePerPost) * 100) / 100;
@@ -324,7 +329,7 @@ export function suggestedStatement(
 }
 
 const usd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: Math.round(n * 100) % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
-const views = (n: number) => (n >= 1000 ? `${n / 1000}K` : String(n));
+const views = (n: number) => (n >= 1_000_000 ? `${n / 1_000_000}M` : n >= 1000 ? `${n / 1000}K` : String(n));
 
 /** CPM bands in words: "$1 CPM until 1K views", "$2 CPM over 1K views". */
 export function cpmPhrases(tiers: CpmTier[], cap?: number): string[] {
@@ -346,6 +351,7 @@ export function postTermsChips(terms: PostTerms): string[] {
   if (terms.cpm?.length) {
     chips.push(cpmPhrases(terms.cpm).join(", "));
     if (terms.minViews) chips.push(`${views(terms.minViews)} min views`);
+    for (const m of terms.milestones) chips.push(`+${usd(m.amount)} at ${views(m.views)} views`);
     const max = maxPerVideo(terms);
     if (max !== null) chips.push(`${usd(max)} max per video`);
   }
@@ -372,6 +378,9 @@ export function describePostTerms(terms: PostTerms): string[] {
   if (terms.cpm?.length) {
     lines.push(`Views pay a CPM, which is dollars per 1,000 views: ${cpmPhrases(terms.cpm).join(", then ")}. Each band pays only for the views inside it.`);
     if (terms.minViews) lines.push(`A video starts earning view pay once it reaches ${views(terms.minViews)} views. Below that it earns nothing from views.`);
+    if (terms.cpmCap) lines.push(`The CPM counts up to ${views(terms.cpmCap)} views on each video, which is ${usd(cpmBonus(terms.cpmCap, terms.cpm))}.`);
+    for (const m of [...terms.milestones].sort((a, b) => a.views - b.views))
+      lines.push(`Reward: ${usd(m.amount)} on top, once a video reaches ${views(m.views)} views.`);
     const max = maxPerVideo(terms);
     if (max !== null) lines.push(`${usd(max)} max per video${terms.basePerPost > 0 ? ", base pay included" : ""}. Views past that earn nothing more.`);
   } else if (terms.milestones.length > 0) {

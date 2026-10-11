@@ -110,8 +110,11 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
             const rate = state.values?.cpmRate[i] ?? "";
             return rate === "" ? null : { rate: Number(rate), from: Number(state.values?.cpmFrom[i] || 0) };
           })}
+          cap={val("cpm_cap")}
           minViews={val("min_views")}
           maxPerVideo={val("max_per_video")}
+          rewardViews={val("reward_views")}
+          rewardAmount={val("reward_amount")}
         />
       </Section>
 

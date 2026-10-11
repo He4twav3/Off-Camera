@@ -15,10 +15,14 @@ export type PayTermsFields = {
   platforms: (typeof PLATFORMS)[number][];
   /** undefined when every CPM row was left blank: the campaign's existing view pay is then left as it is. */
   cpm: CpmTier[] | undefined;
+  /** The most views that earn CPM pay on one video; undefined for no cap. */
+  cpmCap: number | undefined;
   /** A video earns no view pay until it reaches this many views; undefined for no minimum. */
   minViews: number | undefined;
   /** The most view pay one video can earn, in dollars; undefined for no maximum. */
   maxPerPost: number | undefined;
+  /** A one-off reward when a video reaches a number of views, on top of the CPM; empty for none. */
+  reward: { views: number; amount: number }[];
 };
 
 /** The CPM rows: a "from views" and a rate. A blank "from" means from the first view. Both blank skips the row. */
@@ -41,7 +45,14 @@ export function parseCpmRows(getAll: (k: string) => string[]): { ok: true; value
 }
 
 /** The two optional limits on view pay: the views a video needs before it earns, and the most it can earn in dollars. */
-export function parseViewLimits(get: (k: string) => string): { ok: true; value: { minViews: number | undefined; maxPerPost: number | undefined } } | { ok: false; error: string } {
+export function parseViewLimits(get: (k: string) => string): { ok: true; value: { cpmCap: number | undefined; minViews: number | undefined; maxPerPost: number | undefined } } | { ok: false; error: string } {
+  const rawCap = get("cpm_cap").replace(/,/g, "").trim();
+  let cpmCap: number | undefined;
+  if (rawCap) {
+    const c = Number(rawCap);
+    if (!Number.isInteger(c) || c < 1) return { ok: false, error: "The views that count must be a whole number, 1 or more." };
+    cpmCap = c;
+  }
   const rawMin = get("min_views").replace(/,/g, "").trim();
   const rawMax = get("max_per_video").replace(/[,$\s]/g, "");
   let minViews: number | undefined;
@@ -56,7 +67,19 @@ export function parseViewLimits(get: (k: string) => string): { ok: true; value: 
     if (!Number.isFinite(m) || m <= 0) return { ok: false, error: "The most a video can earn must be an amount above zero." };
     maxPerPost = Math.round(m * 100) / 100;
   }
-  return { ok: true, value: { minViews, maxPerPost } };
+  return { ok: true, value: { cpmCap, minViews, maxPerPost } };
+}
+
+/** The optional reward: "views" and "amount" both filled in, or both left blank. */
+export function parseReward(get: (k: string) => string): { ok: true; value: { views: number; amount: number }[] } | { ok: false; error: string } {
+  const v = get("reward_views").replace(/,/g, "").trim();
+  const a = get("reward_amount").replace(/[,$\s]/g, "");
+  if (!v && !a) return { ok: true, value: [] };
+  const views = Number(v);
+  const amount = Number(a);
+  if (!v || !a || !Number.isInteger(views) || views < 1 || !Number.isFinite(amount) || amount <= 0)
+    return { ok: false, error: "A reward needs both the views to reach and an amount above zero." };
+  return { ok: true, value: [{ views, amount: Math.round(amount * 100) / 100 }] };
 }
 
 export function parsePayTermsFields(get: (k: string) => string, getAll: (k: string) => string[]): { ok: true; value: PayTermsFields } | { ok: false; error: string } {
@@ -67,6 +90,8 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
   if (!cpm.ok) return cpm;
   const limits = parseViewLimits(get);
   if (!limits.ok) return limits;
+  const reward = parseReward(get);
+  if (!reward.ok) return reward;
   const value: PayTermsFields = {
     basePerPost: num("base"),
     cycleSize: num("cycle"),
@@ -75,6 +100,7 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
     platforms,
     cpm: cpm.value,
     ...limits.value,
+    reward: reward.value,
   };
   if (![value.basePerPost, value.cycleSize, value.windowDays, value.keepPublicDays].every(Number.isFinite)) return { ok: false, error: "Fill in every pay field." };
   return { ok: true, value };
@@ -82,7 +108,9 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
 
 /** What the saved pay terms become: the new numbers, and CPM replaces the fixed bonuses only when the brand entered some. */
 export function mergePayTerms<T extends { milestones: { views: number; amount: number }[]; cpm?: CpmTier[]; cpmCap?: number }>(current: T, pay: PayTermsFields) {
-  const { cpm, minViews, maxPerPost, ...rest } = pay;
-  // The dollar maximum replaces an older cap in views.
-  return cpm ? { ...current, ...rest, cpm, cpmCap: undefined, minViews, maxPerPost, milestones: [] } : { ...current, ...rest };
+  const { cpm, cpmCap, minViews, maxPerPost, reward, ...rest } = pay;
+  // With a CPM the reward replaces the old fixed bonuses.
+  return cpm
+    ? { ...current, ...rest, cpm, cpmCap, minViews, maxPerPost, milestones: reward }
+    : { ...current, ...rest };
 }

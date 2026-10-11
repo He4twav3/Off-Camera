@@ -174,7 +174,7 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("a band that starts later pays nothing before it", cpmBonus(1500, [{ from: 1000, rate: 2 }]) === 1, cpmBonus(1500, [{ from: 1000, rate: 2 }]));
   t("zero views earn nothing", cpmBonus(0, bands) === 0);
   t("the tiers can be given in any order", cpmBonus(3000, [...bands].reverse()) === 5);
-  t("bonusFor uses the CPM bands when there are some", bonusFor(3000, { milestones: T.milestones, cpm: bands }) === 5);
+  t("bonusFor with CPM bands pays the bands, and a milestone is a reward on top", bonusFor(3000, { milestones: [], cpm: bands }) === 5 && bonusFor(3000, { milestones: T.milestones, cpm: bands }) === 7);
   t("bonusFor keeps the milestones for a campaign without bands", bonusFor(5400, { milestones: T.milestones, cpm: undefined }) === milestoneBonus(5400, T.milestones));
   const cpmTerms = { ...T, milestones: [], cpm: bands };
   const paid = payFor(cpmTerms, [post({ views: 3000 })], now);
@@ -210,6 +210,17 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("no limit, no phrase", maxPerVideo({ basePerPost: 0, cpm: [{ from: 0, rate: 2 }], cpmCap: undefined, maxPerPost: undefined }) === null);
   t("the limits are kept on save", parsePostTerms({ v: 2, basePerPost: 0, cycleSize: 15, milestones: [], cpm: tiered.cpm, minViews: 1000, maxPerPost: 3500, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.maxPerPost === 3500);
   t("the limits are dropped without bands", parsePostTerms({ v: 2, basePerPost: 0, cycleSize: 15, milestones: [], minViews: 1000, maxPerPost: 3500, windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"] })?.minViews === undefined);
+  // The agreed Getimg structure: $2 CPM up to 100K views, a $300 reward at 1M, $500 the most.
+  const final = { ...T, basePerPost: 0, milestones: [{ views: 1_000_000, amount: 300 }], cpm: [{ from: 0, rate: 2 }], cpmCap: 100_000, minViews: 1000 };
+  t("final: under the minimum earns nothing", bonusFor(999, final) === 0);
+  t("final: 10K views is $20", bonusFor(10_000, final) === 20, bonusFor(10_000, final));
+  t("final: 100K views is $200", bonusFor(100_000, final) === 200);
+  t("final: views past 100K earn nothing until the reward", bonusFor(900_000, final) === 200, bonusFor(900_000, final));
+  t("final: 1M views adds the $300 reward", bonusFor(1_000_000, final) === 500, bonusFor(1_000_000, final));
+  t("final: more views do not pay more", bonusFor(9_000_000, final) === 500);
+  t("final: $500 max per video", maxPerVideo(final) === 500, maxPerVideo(final));
+  t("final: the strip says it", postTermsChips(final).includes("$500 max per video") && postTermsChips(final).includes("+$300 at 1M views"), postTermsChips(final));
+  t("final: the sentences say it", describePostTerms(final).some((l) => l.startsWith("$500 max per video.")) && describePostTerms(final).some((l) => l.startsWith("Reward: $300")), describePostTerms(final));
   t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }
 

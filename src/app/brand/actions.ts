@@ -9,7 +9,7 @@ import { parsePostTerms, postTermsSchema, type PostTerms } from "@/lib/post-term
 import { contractSections, termsFingerprint } from "@/lib/contract";
 import { headers } from "next/headers";
 import { parseRequirements } from "@/lib/requirements";
-import { mergePayTerms, parseCpmRows, parsePayTermsFields, parseViewLimits } from "@/lib/pay-terms-form";
+import { mergePayTerms, parseCpmRows, parsePayTermsFields, parseReward, parseViewLimits } from "@/lib/pay-terms-form";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { redirect } from "next/navigation";
 import { sendBrandMarkedPaidEmail } from "@/lib/email/notifications";
@@ -412,13 +412,16 @@ export async function createCampaignAction(
   if (!cpm.ok) return fail(cpm.error);
   const limits = parseViewLimits((k) => String(formData.get(k) ?? ""));
   if (!limits.ok) return fail(limits.error);
+  const reward = parseReward((k) => String(formData.get(k) ?? ""));
+  if (!reward.ok) return fail(reward.error);
 
   const terms = postTermsSchema.safeParse({
     v: 2,
     basePerPost: v.base,
     cycleSize: v.cycle,
-    milestones: [],
+    milestones: cpm.value ? reward.value : [],
     cpm: cpm.value,
+    cpmCap: cpm.value ? limits.value.cpmCap : undefined,
     minViews: cpm.value ? limits.value.minViews : undefined,
     maxPerPost: cpm.value ? limits.value.maxPerPost : undefined,
     windowDays: v.window,
