@@ -88,7 +88,9 @@ export function contractSections(input: {
             ]
           : []),
         `Only views within ${t.windowDays} days of a post going live count. After that the number is final.`,
-        `A payment falls due each time the creator has delivered ${t.cycleSize} ${t.repostsEarnBase ? "approved posts" : "unique videos"}.`,
+        t.basePerPost > 0
+          ? `A payment falls due each time the creator has delivered ${t.cycleSize} ${t.repostsEarnBase ? "approved posts" : "unique videos"}.`
+          : "View pay falls due once the counting window of each video has closed.",
         t.reviewer === "brand"
           ? "The brand approves each video before it counts towards what is owed."
           : `${input.agency} approves each video before it counts towards what is owed. The brand can still deny a video.`,

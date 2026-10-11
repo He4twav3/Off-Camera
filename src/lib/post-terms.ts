@@ -359,7 +359,8 @@ export function postTermsChips(terms: PostTerms): string[] {
     const top = terms.milestones.at(-1);
     if (top) chips.push(`Up to ${usd(top.amount)} bonus per video`);
   }
-  chips.push(`Paid every ${terms.cycleSize} posts`);
+  // With no base pay there is nothing to pay per batch of posts: view pay is due once each video's window closes.
+  if (terms.basePerPost > 0) chips.push(`Paid every ${terms.cycleSize} posts`);
   chips.push(`${terms.windowDays}-day counting window`);
   return chips;
 }

@@ -94,7 +94,7 @@ export function CampaignView({
         maxPerVideo(postTerms) !== null
           ? { icon: TrendingUp, label: `${usd(maxPerVideo(postTerms) as number)} max per video` }
           : null,
-        { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` },
+        postTerms.basePerPost > 0 ? { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` } : null,
         { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
       ].filter(Boolean) as { icon: typeof Eye; label: string }[])
     : ([
