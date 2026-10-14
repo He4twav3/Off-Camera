@@ -65,8 +65,7 @@ export default function AboutPage() {
           video, and see every video, view and payment in one place.
         </p>
         <p className="mt-4 text-base leading-relaxed">
-          We check the videos, read the view counts, and keep the records and
-          contracts. We never hold the money: the brand pays the creator
+          We check the videos, read the view counts, and keep the records. We never hold the money: the brand pays the creator
           directly, in full, and our fee is billed to the brand.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">

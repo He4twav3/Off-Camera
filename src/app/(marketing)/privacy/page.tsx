@@ -15,7 +15,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      lastUpdated="October 11, 2026"
+      lastUpdated="October 14, 2026"
       intro={
         <>
           This Privacy Policy explains what information {siteConfig.name},
@@ -54,10 +54,6 @@ export default function PrivacyPage() {
           Records of what you earned, the statements issued, and the dates a
           brand marked a payment as made and you confirmed it.
         </li>
-        <li>
-          Your agreement to a brand&apos;s contract: that you agreed, when, and
-          to which version.
-        </li>
       </ul>
       <p>
         <strong>Brands</strong>
@@ -65,9 +61,8 @@ export default function PrivacyPage() {
       <ul>
         <li>Your company name, contact name and website.</li>
         <li>
-          The details you give in a campaign&apos;s contract: the
-          company&apos;s legal name, address and country, and the name and role
-          of the person who agreed, with the date and your sign-in email.
+          Company details you give us for a campaign agreement, such as your
+          legal company name, address and country, and who agreed to it.
         </li>
         <li>
           Your campaigns, your approvals and denials of videos, and the dates
@@ -103,7 +98,7 @@ export default function PrivacyPage() {
         <li>To run your account and the campaigns you take part in.</li>
         <li>
           To check videos, read view counts, work out what is owed, and prepare
-          statements, contracts and invoices.
+          statements and invoices.
         </li>
         <li>
           To send emails about your account, payments, statements and videos
@@ -124,12 +119,12 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Creators</strong> see the campaigns they can join. After
-          joining, a creator sees the brand&apos;s name and the contract with
-          the brand&apos;s company details.
+          joining, a creator sees the brand&apos;s name and the campaign&apos;s
+          terms.
         </li>
         <li>
-          <strong>Our team</strong> can see accounts, campaigns, payments and
-          contracts in order to run the platform.
+          <strong>Our team</strong> can see accounts, campaigns and payments in
+          order to run the platform.
         </li>
       </ul>
 
@@ -163,7 +158,7 @@ export default function PrivacyPage() {
       <h2>6. How long we keep it</h2>
       <p>
         We keep account data for as long as your account exists. Records of
-        campaigns, statements, payments and contracts may be kept for as long
+        campaigns, statements, payments and agreements may be kept for as long
         as needed to settle payments, resolve disputes and meet legal and
         accounting obligations, even after an account is closed.
       </p>
@@ -173,7 +168,7 @@ export default function PrivacyPage() {
         Depending on where you live, you may have the right to access,
         correct, export or delete your personal data, or to object to how we
         use it. Contact us to make a request. Some records, such as payment and
-        contract records, may have to be kept, and we will tell you if so.
+        agreement records, may have to be kept, and we will tell you if so.
       </p>
 
       <h2>8. Where data is processed</h2>

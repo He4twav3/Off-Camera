@@ -18,7 +18,7 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Terms of Service"
-      lastUpdated="October 11, 2026"
+      lastUpdated="October 14, 2026"
       intro={
         <>
           These Terms of Service (&ldquo;Terms&rdquo;) govern your use of{" "}
@@ -35,7 +35,7 @@ export default function TermsPage() {
         campaigns and set the pay. Creators join a campaign, post videos on
         their own social accounts, and are paid by the brand. We check videos,
         read view counts from the platforms, keep the records, and prepare the
-        statements and contracts.
+        payment statements.
       </p>
       <p>
         We are not a party to the work or the payment between a brand and a
@@ -143,26 +143,23 @@ export default function TermsPage() {
         </li>
         <li>
           Changing a campaign&apos;s pay terms after creators have joined
-          affects what they earn from then on, and you will be asked to agree
-          to the contract again.
+          affects what they earn from then on.
         </li>
       </ul>
 
-      <h2>{h("Contracts between brands and creators")}</h2>
+      <h2>{h("Campaign terms")}</h2>
       <p>
-        Each campaign has a contract between the brand and the creators who
-        join it. The brand fills in its company details and agrees to it before
-        it can use its account. A creator reads it and agrees to it when they
-        join, and again if the brand changes it. We keep a record of who agreed
-        to which version and when. The contract describes the work, the pay,
-        how and when the brand pays, and the content rules, and it is the
-        agreement that applies to the campaign.
+        Each campaign shows its pay, rules and requirements, and a creator
+        accepts them when they join. Anything else for a campaign, such as our
+        fee and how the brand may use the videos, is agreed between the brand
+        and us in writing.
       </p>
 
       <h2>{h("Content and rights")}</h2>
       <p>
         You keep ownership of the videos you make. What a brand may do with a
-        video, and for how long, is set out in the campaign&apos;s contract. By
+        video, and for how long, is set out in the campaign&apos;s terms or
+        agreed in writing for that campaign. By
         posting content through the platform you confirm that you have the
         rights to it and that it does not infringe anyone else&apos;s rights.
         We may show a campaign&apos;s videos to the brand and, where the
