@@ -53,7 +53,7 @@ export function EditCampaignForm({
           <h2 className="font-heading text-base font-semibold text-foreground">Pay</h2>
           <PayTermsFields terms={campaign.pay} />
           {campaign.hasCreators && (
-            <p className="text-sm text-muted-foreground">Creators are already on this campaign: a change applies to all their videos, and you will be asked to agree to the contract again.</p>
+            <p className="text-sm text-muted-foreground">Creators are already on this campaign: a change applies to all their videos.</p>
           )}
         </section>
       )}
