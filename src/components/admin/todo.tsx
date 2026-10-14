@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Task } from "@/lib/admin-tasks";
 import type { ACampaign } from "@/lib/admin-workspace";
-import { contractStatus } from "@/lib/contract";
 
 /** Videos the brand approves itself and hasn't yet: nothing for us to do, but worth a nudge. Not counted in the menu. */
 export function waitingOnBrand(c: Pick<ACampaign, "terms" | "awaitingReview">): number {
@@ -10,17 +9,13 @@ export function waitingOnBrand(c: Pick<ACampaign, "terms" | "awaitingReview">): 
 
 /**
  * Things that are the brand's to do. Nothing for us to do, but worth a nudge, so they are shown as plain lines and
- * not counted in the menu: videos the brand hasn't approved yet, and a contract it hasn't agreed to.
+ * not counted in the menu: videos the brand hasn't approved yet. (Brands don't sign a contract in the app; it is
+ * agreed with them in writing.)
  */
 export function brandNotes(c: Pick<ACampaign, "terms" | "awaitingReview" | "brandId">): string[] {
   const notes: string[] = [];
   const videos = waitingOnBrand(c);
   if (videos > 0) notes.push(`${videos} ${videos === 1 ? "video" : "videos"} waiting on the brand`);
-  if (c.terms && c.brandId) {
-    const status = contractStatus(c.terms);
-    if (status === "none") notes.push("Contract not signed by the brand yet");
-    if (status === "changed") notes.push("Pay terms changed: the brand must agree to the contract again");
-  }
   return notes;
 }
 

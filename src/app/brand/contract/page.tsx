@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** The contract pops up on whichever brand page is open until it is signed; there is no separate page. */
+/** Brands don't sign a contract in the app (it is agreed with them in writing), so this old link goes home. */
 export default function BrandContractRedirect() {
   redirect("/brand");
 }
