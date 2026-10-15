@@ -15,11 +15,11 @@ export type FeeTerms = { bands: FeeBand[]; minimum: number };
 const cents = (n: number) => Math.round(n * 100) / 100;
 
 /**
- * OnCamera's standard fee: 15% on top of what creators earn, with a minimum of $200 per campaign per month. It applies
- * to every campaign on the Brand Services Agreement. A different fee is possible only for a brand with its own signed
+ * OnCamera's standard fee: 15% on top of what creators earn, with no minimum, so OnCamera only earns when creators do.
+ * It applies to every campaign on the Brand Services Agreement. A different fee is possible only for a brand with its own signed
  * agreement, and is set per campaign by an admin (see campaign_fees).
  */
-export const STANDARD_FEE: FeeTerms = { bands: [{ upTo: null, percent: 15 }], minimum: 200 };
+export const STANDARD_FEE: FeeTerms = { bands: [{ upTo: null, percent: 15 }], minimum: 0 };
 
 /** Sorted lowest first, with the open-ended band last. */
 function ordered(bands: FeeBand[]): FeeBand[] {

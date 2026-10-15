@@ -106,7 +106,7 @@ export function contractSections(input: {
         `The brand pays the creator directly, through the creator's own Stripe or Wise payment link, from the brand's own account. ${input.agency} never holds the money.`,
         "All amounts are in US dollars. The brand pays the full amount shown on the statement and covers any transfer or conversion fees, so the creator receives all of it.",
         ...(input.showFee
-          ? [`OnCamera's fee, paid by the brand on top of what creators earn and invoiced separately: ${describeFee(STANDARD_FEE.bands, STANDARD_FEE.minimum)}. The minimum applies only in a month in which a payment to a creator is issued.`]
+          ? [`OnCamera's fee, paid by the brand on top of what creators earn and invoiced separately: ${describeFee(STANDARD_FEE.bands, STANDARD_FEE.minimum)}${STANDARD_FEE.minimum > 0 ? ". The minimum applies only in a month in which a payment to a creator is issued" : ""}.`]
           : []),
         `The brand pays within ${STATEMENT_DUE_DAYS} days of a statement being issued, then marks it as paid so the creator can confirm.`,
       ],

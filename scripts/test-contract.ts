@@ -27,7 +27,7 @@ t("a contract signed before CPM existed is still current", contractStatus({ ...G
 t("choosing a CPM makes it 'changed'", contractStatus({ ...GETIMG_TERMS, milestones: [], cpm: [{ from: 0, rate: 2 }], contract }) === "changed");
 t("adding a cap makes the contract changed", contractStatus({ ...GETIMG_TERMS, milestones: [], cpm: [{ from: 0, rate: 2 }], cpmCap: 100000, contract: { ...contract, terms: termsFingerprint({ ...GETIMG_TERMS, milestones: [], cpm: [{ from: 0, rate: 2 }] }) } }) === "changed");
 const feeFor = text(contractSections({ campaign: "Getimg", agency: "OnCamera", terms: GETIMG_TERMS, showFee: true }));
-t("the brand sees OnCamera's fee", /15% on top, minimum \$200 a month/.test(feeFor), feeFor.slice(0, 80));
+t("the brand sees OnCamera's fee, with no minimum", /15% on top\./.test(feeFor) && !/minimum/.test(feeFor), feeFor.slice(0, 80));
 t("creators do not see the fee", !/minimum \$200/.test(blank) && !/OnCamera's fee/.test(blank));
 const html = contractWordHtml({ title: "A & B", sections: [{ heading: "1", lines: ["<x>"] }], signedLine: null });
 t("the Word file escapes text", html.includes("A &amp; B") && html.includes("&lt;x&gt;") && html.includes("Draft: have a lawyer"));
