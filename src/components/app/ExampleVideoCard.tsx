@@ -6,9 +6,9 @@ import { PlatformEmbed } from "@/components/media/platform-embed";
 import { youtubeId } from "@/lib/youtube";
 
 /**
- * One example video as a card; clicking it plays the video in a pop-up on our page (TikTok and Instagram through
- * their own embed, YouTube through its player). The pop-up always carries a link to open it on the platform, in
- * case an embed is blocked.
+ * One example video as a card; clicking it plays the video in a pop-up on our page (an uploaded video in our own
+ * player, TikTok and Instagram through their own embed, YouTube through its player). A platform video's pop-up also
+ * carries a link to open it on the platform, in case the embed is blocked.
  */
 export function ExampleVideoCard({
   url,
@@ -36,11 +36,16 @@ export function ExampleVideoCard({
   }, [open]);
 
   const yt = platform === "youtube_shorts" ? youtubeId(url) : null;
+  const uploaded = platform === "upload";
 
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} aria-label={`Play ${label} example`} className="group block w-full cursor-pointer text-left">
         <div className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] overflow-hidden rounded-lg border border-border/70 bg-gradient-to-b from-muted to-card sm:rounded-xl">
+          {uploaded && !poster && (
+            // The first frame stands in for a cover. #t nudges Safari to draw it.
+            <video src={`${url}#t=0.1`} muted playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" />
+          )}
           {poster && (
             // eslint-disable-next-line @next/next/no-img-element -- signed platform CDN images
             <img src={poster} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
@@ -72,7 +77,9 @@ export function ExampleVideoCard({
               <X className="size-4" />
             </button>
             <div className="max-h-[75vh] overflow-y-auto">
-              {yt ? (
+              {uploaded ? (
+                <video src={url} controls autoPlay playsInline className="aspect-[9/16] w-full rounded-lg bg-black object-contain" />
+              ) : yt ? (
                 <div className="aspect-[9/16] w-full overflow-hidden rounded-lg bg-black">
                   <iframe
                     src={`https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0`}
@@ -86,10 +93,12 @@ export function ExampleVideoCard({
                 <PlatformEmbed postUrl={url} />
               )}
             </div>
+            {!uploaded && (
             <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline underline-offset-2">
               <ExternalLink className="size-3.5" />
               Open on {label}
             </a>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { ExampleLinksField } from "@/components/ExampleLinksField";
 import { useFormStatus } from "react-dom";
 import { Pencil, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -163,14 +164,9 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
           <Field
             label="Example videos"
             htmlFor={`examples-${job?.id ?? "new"}`}
-            hint="Links to public TikTok, Instagram or YouTube posts, one per line, up to 6. Use the brand's own posts, or ones the creator has agreed to share. Full links only."
+            hint="Upload a video, or link public TikTok, Instagram or YouTube posts (full links), up to 6. Uploaded videos always play on the page; Instagram often won't. Use the brand's own posts, or ones the creator has agreed to share."
           >
-            <Textarea
-              id={`examples-${job?.id ?? "new"}`}
-              name="example_urls"
-              defaultValue={(job?.example_urls ?? []).join("\n")}
-              placeholder="https://www.tiktok.com/@brand/video/1234567890"
-            />
+            <ExampleLinksField name="example_urls" initial={(job?.example_urls ?? []).join("\n")} />
           </Field>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

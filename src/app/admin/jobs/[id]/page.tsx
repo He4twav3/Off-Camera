@@ -109,26 +109,21 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
                 </Link>
               </dd>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-0.5">
-              <dt className="w-28 shrink-0 text-muted-foreground">Contract</dt>
-              <dd className="min-w-0 flex-1 text-foreground">
-                {c.terms.contract ? (
-                  <>
-                    {contractStatus(c.terms) === "signed" ? "Signed" : "Pay terms changed since signing"} · {c.terms.contract.legalName},{" "}
-                    {c.terms.contract.address}, {c.terms.contract.country} · {c.terms.contract.signatory}
-                    {c.terms.contract.signatoryRole ? ` (${c.terms.contract.signatoryRole})` : ""}, {c.terms.contract.agreedByEmail},{" "}
-                    {formatDate(c.terms.contract.agreedAt)}
-                  </>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {c.brandId ? "The brand hasn't agreed yet" : "No brand attached yet"}
-                  </span>
-                )}{" "}
-                <Link href={`/admin/jobs/${c.id}/contract`} className="font-semibold text-primary underline underline-offset-2">
-                  Open
-                </Link>
-              </dd>
-            </div>
+            {/* Brands no longer sign in the app; only a contract signed before that still shows here. */}
+            {c.terms.contract && (
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                <dt className="w-28 shrink-0 text-muted-foreground">Contract</dt>
+                <dd className="min-w-0 flex-1 text-foreground">
+                  {contractStatus(c.terms) === "signed" ? "Signed" : "Pay terms changed since signing"} · {c.terms.contract.legalName},{" "}
+                  {c.terms.contract.address}, {c.terms.contract.country} · {c.terms.contract.signatory}
+                  {c.terms.contract.signatoryRole ? ` (${c.terms.contract.signatoryRole})` : ""}, {c.terms.contract.agreedByEmail},{" "}
+                  {formatDate(c.terms.contract.agreedAt)}{" "}
+                  <Link href={`/admin/jobs/${c.id}/contract`} className="font-semibold text-primary underline underline-offset-2">
+                    Open
+                  </Link>
+                </dd>
+              </div>
+            )}
           </dl>
         </section>
       )}

@@ -3,13 +3,16 @@ import { ExampleVideoCard } from "@/components/app/ExampleVideoCard";
 import { postIdentity } from "@/lib/post-key";
 import { posterFor } from "@/lib/video-poster";
 import { PLATFORM_LABELS } from "@/lib/utils";
+import { isUploadedExample } from "@/lib/example-videos";
 
 /**
- * The brand's example links as cards, for the creator: a video from TikTok, Instagram or YouTube shows as a video
- * card (cover and a play mark); any other link shows as a link card with its website. Every card opens in a new tab.
+ * The brand's example links as cards, for the creator: a video uploaded to our storage, or one from TikTok, Instagram
+ * or YouTube, shows as a video card (cover and a play mark) that plays in a pop-up; any other link shows as a link
+ * card with its website and opens in a new tab.
  */
 export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; emptyHref?: string }) {
   const items = urls.map((raw) => {
+    if (isUploadedExample(raw)) return { url: raw, platform: "upload" as string, host: null as string | null };
     const id = postIdentity(raw);
     if (id.ok) return { url: id.url, platform: id.platform as string, host: null as string | null };
     let host = raw;
@@ -23,7 +26,7 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
   // The brand's own view fills up to three slots with empty player boxes that open Edit. Creators never see them.
   const empties = emptyHref ? Math.max(0, 3 - items.length) : 0;
   if (items.length === 0 && empties === 0) return null;
-  const posters = await Promise.all(items.map((i) => (i.platform ? posterFor(i.platform, i.url) : Promise.resolve(null))));
+  const posters = await Promise.all(items.map((i) => (i.platform && i.platform !== "upload" ? posterFor(i.platform, i.url) : Promise.resolve(null))));
 
   return (
     <section className="mt-6">
@@ -36,7 +39,7 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
                 url={it.url}
                 platform={it.platform}
                 poster={posters[i]}
-                label={PLATFORM_LABELS[it.platform as keyof typeof PLATFORM_LABELS] ?? it.platform}
+                label={it.platform === "upload" ? "Video" : (PLATFORM_LABELS[it.platform as keyof typeof PLATFORM_LABELS] ?? it.platform)}
               />
             ) : (
               <a href={it.url} target="_blank" rel="noopener noreferrer" className="group block">
