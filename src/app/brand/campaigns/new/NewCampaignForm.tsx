@@ -84,7 +84,7 @@ export function NewCampaignForm({ niches }: { niches: { id: string; label: strin
         <Field label="Formats that work" htmlFor="formats" hint="Ideas that perform. Up to 8 lines.">
           <Textarea id="formats" name="formats" defaultValue={val("formats")} placeholder={"Talking head with a bold line of text\nScreen recording with step-by-step overlays"} />
         </Field>
-        <Field label="Example videos and links" htmlFor="examples" hint="Show creators what you want. TikTok, Instagram and YouTube posts show as video cards; other links show as link cards. Up to 6 full https:// links.">
+        <Field label="Example videos and links" htmlFor="examples" hint="Show creators what you want. Upload a video, or paste TikTok, Instagram or YouTube posts (full https:// links) or any other link, up to 6. Uploaded videos always play on the page; Instagram links often open Instagram instead.">
           <ExampleLinksField />
         </Field>
       </Section>
