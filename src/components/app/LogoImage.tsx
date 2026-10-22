@@ -11,6 +11,7 @@ type Look = "plain" | "invert" | "tile" | "photo";
  *  - plain grey/black on an opaque light background  -> flipped to white on the dark card
  *  - a coloured logo on an opaque light background   -> shown on a soft white tile
  *  - a full picture (opaque, not a light square)       -> with `fill`, fills the whole banner
+ *    (a flipped plain logo fills it too, as white on its black square)
  *  - anything else (transparent, dark)                -> shown as is
  * If the picture can't be read, it is shown as is.
  *
@@ -41,19 +42,20 @@ export function LogoImage({ src, className, fill = false }: { src: string; class
         };
         const corners = [px(0, 0), px(size - 1, 0), px(0, size - 1), px(size - 1, size - 1)];
         const opaqueLight = corners.every(([r, g, b, a]) => a > 240 && (r + g + b) / 3 > 215);
+        // An edge as a top-to-bottom gradient; `flip` for a logo shown inverted, so it matches what is on screen.
+        const column = (x: number, flip: boolean) => {
+          const stops: string[] = [];
+          for (let y = 0; y < size; y += 2) {
+            // A little in from the very edge, and two rows together, to smooth out noise.
+            const c = [0, 1, 2].map((k) => (px(x, y)[k] + px(x, Math.min(y + 1, size - 1))[k]) >> 1).map((v) => (flip ? 255 - v : v));
+            stops.push(`rgb(${c[0]} ${c[1]} ${c[2]}) ${Math.round((y / (size - 1)) * 100)}%`);
+          }
+          return `linear-gradient(to bottom, ${stops.join(", ")})`;
+        };
+        const edgesOf = (flip: boolean) => ({ left: column(1, flip), right: column(size - 2, flip) });
         if (!opaqueLight) {
           if (!corners.every(([, , , a]) => a > 240)) return setLook("plain");
-          const column = (x: number) => {
-            const stops: string[] = [];
-            for (let y = 0; y < size; y += 2) {
-              // A little in from the very edge, and two rows together, to smooth out noise.
-              const [r1, g1, b1] = px(x, y);
-              const [r2, g2, b2] = px(x, Math.min(y + 1, size - 1));
-              stops.push(`rgb(${(r1 + r2) >> 1} ${(g1 + g2) >> 1} ${(b1 + b2) >> 1}) ${Math.round((y / (size - 1)) * 100)}%`);
-            }
-            return `linear-gradient(to bottom, ${stops.join(", ")})`;
-          };
-          setEdges({ left: column(1), right: column(size - 2) });
+          setEdges(edgesOf(false));
           return setLook("photo");
         }
         let colourful = 0;
@@ -61,7 +63,9 @@ export function LogoImage({ src, className, fill = false }: { src: string; class
           if (d[i + 3] < 200) continue;
           if (Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) > 40) colourful++;
         }
-        setLook(colourful / (size * size) > 0.04 ? "tile" : "invert");
+        if (colourful / (size * size) > 0.04) return setLook("tile");
+        setEdges(edgesOf(true));
+        setLook("invert");
       } catch {
         setLook("plain");
       }
@@ -70,13 +74,14 @@ export function LogoImage({ src, className, fill = false }: { src: string; class
     else img.addEventListener("load", decide, { once: true });
   }, []);
 
-  if (fill && look === "photo") {
+  // A full picture, or a dark-on-white logo shown inverted (white on black): it fills the banner.
+  if (fill && (look === "photo" || look === "invert")) {
     return (
       <>
         <div aria-hidden className="absolute inset-y-0 left-0 w-1/2" style={{ background: edges?.left }} />
         <div aria-hidden className="absolute inset-y-0 right-0 w-1/2" style={{ background: edges?.right }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={inspect} src={src} crossOrigin="anonymous" alt="" className="relative h-full w-auto max-w-full object-contain [mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent)]" />
+        <img ref={inspect} src={src} crossOrigin="anonymous" alt="" className={`relative h-full w-auto max-w-full object-contain [mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent)] ${look === "invert" ? "[filter:invert(1)]" : ""}`} />
       </>
     );
   }
