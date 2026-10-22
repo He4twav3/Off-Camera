@@ -15,13 +15,14 @@ type Look = "plain" | "invert" | "tile" | "photo";
  * If the picture can't be read, it is shown as is.
  *
  * `fill`: the logo is the whole banner. A full picture fills it top to bottom and the space at the sides takes the
- * picture's own background colour, so it reads as one piece and nothing is cropped; any other logo sits centred
- * with some room around it.
+ * picture's own colours: each side continues the top-to-bottom gradient of the picture's edge next to it, and the
+ * picture's edges fade into it, so it reads as one piece and nothing is cropped. Any other logo sits centred with
+ * some room around it.
  */
 export function LogoImage({ src, className, fill = false }: { src: string; className?: string; fill?: boolean }) {
   const [look, setLook] = useState<Look | null>(null);
-  // A full picture's background colour, read from its corners, for the space around it in a banner.
-  const [edge, setEdge] = useState<string | null>(null);
+  // A full picture's left and right edges as top-to-bottom gradients, to continue it across a banner's sides.
+  const [edges, setEdges] = useState<{ left: string; right: string } | null>(null);
 
   const inspect = useCallback((img: HTMLImageElement | null) => {
     if (!img) return;
@@ -42,8 +43,17 @@ export function LogoImage({ src, className, fill = false }: { src: string; class
         const opaqueLight = corners.every(([r, g, b, a]) => a > 240 && (r + g + b) / 3 > 215);
         if (!opaqueLight) {
           if (!corners.every(([, , , a]) => a > 240)) return setLook("plain");
-          const avg = (k: number) => Math.round(corners.reduce((n, c) => n + c[k], 0) / corners.length);
-          setEdge(`rgb(${avg(0)} ${avg(1)} ${avg(2)})`);
+          const column = (x: number) => {
+            const stops: string[] = [];
+            for (let y = 0; y < size; y += 2) {
+              // A little in from the very edge, and two rows together, to smooth out noise.
+              const [r1, g1, b1] = px(x, y);
+              const [r2, g2, b2] = px(x, Math.min(y + 1, size - 1));
+              stops.push(`rgb(${(r1 + r2) >> 1} ${(g1 + g2) >> 1} ${(b1 + b2) >> 1}) ${Math.round((y / (size - 1)) * 100)}%`);
+            }
+            return `linear-gradient(to bottom, ${stops.join(", ")})`;
+          };
+          setEdges({ left: column(1), right: column(size - 2) });
           return setLook("photo");
         }
         let colourful = 0;
@@ -63,9 +73,10 @@ export function LogoImage({ src, className, fill = false }: { src: string; class
   if (fill && look === "photo") {
     return (
       <>
-        <div aria-hidden className="absolute inset-0" style={{ background: edge ?? undefined }} />
+        <div aria-hidden className="absolute inset-y-0 left-0 w-1/2" style={{ background: edges?.left }} />
+        <div aria-hidden className="absolute inset-y-0 right-0 w-1/2" style={{ background: edges?.right }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={inspect} src={src} crossOrigin="anonymous" alt="" className="relative size-full object-contain" />
+        <img ref={inspect} src={src} crossOrigin="anonymous" alt="" className="relative h-full w-auto max-w-full object-contain [mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent)]" />
       </>
     );
   }
