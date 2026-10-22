@@ -21,23 +21,15 @@ export function CampaignBanner({
   seed: string;
   headline: string;
   caption?: string;
-  /** The campaign's logo. When there is one it fills the banner and the pay is shown beneath it instead. */
+  /** The campaign's logo. When there is one it fills the banner (see LogoImage) and the pay is shown beneath it instead. */
   logoUrl?: string | null;
   className?: string;
 }) {
   const h = hueFor(seed);
   if (logoUrl) {
     return (
-      <div
-        className={cn(
-          "flex items-center justify-center overflow-hidden bg-muted/60 p-5",
-          className,
-        )}
-      >
-        <LogoImage
-          src={logoUrl}
-          className="h-full max-h-full w-auto max-w-[85%] object-contain"
-        />
+      <div className={cn("relative flex items-center justify-center overflow-hidden bg-muted/60", className)}>
+        <LogoImage src={logoUrl} fill className="h-full max-h-full w-auto max-w-[85%] object-contain" />
       </div>
     );
   }
