@@ -5,9 +5,9 @@ export const contentType = "image/png";
 
 export default async function Image() {
   return renderOgImage({
-    eyebrow: "Built on real results, not theory",
-    title: "You don't need a following to get views.",
+    eyebrow: "Creator campaigns, paid for results",
+    title: "Real creators. Real views. Paid for performance.",
     subtitle:
-      "Real videos that reached millions of views, and the system behind them.",
+      "Creators post for your brand on TikTok, Instagram and YouTube Shorts, with every view tracked.",
   });
 }
