@@ -5,9 +5,9 @@ export const contentType = "image/png";
 
 export default async function Image() {
   return renderOgImage({
-    eyebrow: "Creator campaigns, paid for results",
+    eyebrow: "For brands and creators",
     title: "Real creators. Real views. Paid for performance.",
     subtitle:
-      "Creators post for your brand on TikTok, Instagram and YouTube Shorts, with every view tracked.",
+      "Brands run campaigns, creators get paid for their views on TikTok, Instagram and YouTube Shorts.",
   });
 }
