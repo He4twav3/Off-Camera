@@ -20,13 +20,15 @@ export type CampaignPreset = {
   scripts: string;
   /** True: creators apply with a sample video, and an admin approves them onto the campaign. */
   sampleRequired: boolean;
+  /** What the sample video should show, under the sample link on the application form. */
+  sampleCriteria: string | null;
   /** Everything but who reviews posts and the brand's signed contract, which are kept as they are. */
   postTerms: Omit<PostTerms, "reviewer" | "contract">;
 };
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
-  version: 18,
+  version: 19,
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
@@ -45,6 +47,8 @@ export const MEPERSONA: CampaignPreset = {
   scripts:
     "Use these hooks or similar ones. Make the viral formats your own, built around MePersona: keep the example's hook and structure, then fill it with your own setup, your own platforms and your own real results. Use MePersona for a few days before filming, so the proof shots are real.\n\n## Which account to use\n**Post these videos on your own account, not a new or separate one.**\nMePersona is made for content creators, and the people who follow you are creators too. They're exactly who these videos are for, so your own account is where they work.\n\n### 1. GOOD BETTER BEST\n- On screen: three options in a row, labelled GOOD, BETTER and BEST.\n- Hook: \"Let's rate the ways to keep up with your comments and posts.\"\n- \"Good: doing it all yourself in every app. It works, until you're on three platforms.\"\n- \"Better: a post scheduler. Your posts go out on time, but your comments and DMs still pile up.\"\n- \"Best: MePersona. It schedules my posts and drafts replies to my comments and DMs in my voice, all in one place. I just approve.\"\n- \"One place, less work, more time to create.\"\n\n### 2. Why aren't more people batching?\n- Label: \"write once, post everywhere\"\n- Hook: \"Why aren't more creators doing this? You want to post consistently without it eating your whole week, right?\"\n- \"Here's the part people skip: write once, post everywhere, in your own voice.\"\n- Background: one idea turning into a video script, a caption and a version for another platform.\n- [PROOF] Your posting calendar, with the week filled in.\n- End: \"Nothing goes out until I approve it. Free to start, link in bio.\"\n\n### 3. Be on every platform without living on every platform\n- Title box: \"How I'm on 8 platforms as a small creator\" / red line: \"(without being online all day)\"\n- Hook: \"If you're a new creator and you're only on one platform, you're making it harder for yourself.\"\n- \"Every platform is a new place for people to find you. The problem is you can't be in eight apps all day.\"\n- \"So I use MePersona. My videos go out to TikTok and Pinterest, and comments and messages on Instagram, YouTube, Facebook and Discord get replies drafted in my voice.\"\n- [PROOF] Your connected platforms screen.\n- \"I check in once a day, approve, and I'm done.\"\n- End: \"You can start free with 2 platforms. All of them is under $30 a month.\"\n\n### 4. Why your engagement is low (small creators)\n- Title box: \"Small creators: why your engagement is low\" / red line: \"(it's not the algorithm)\"\n- Hook: \"Small creators, if your engagement is low, it might be one thing. You're not replying.\"\n- \"When you're small, every comment counts. Someone comments, gets no answer, and doesn't bother next time.\"\n- \"Big accounts can afford to ignore comments. You can't. Those first few hundred people are the ones who show up for every video.\"\n- \"I used to leave comments sitting for days, because I was filming, editing and working at the same time.\" (only if true)\n- \"Now MePersona drafts the replies in my voice, and I approve them in a few minutes.\"\n- [PROOF] Your comment section with your replies.\n- End: \"It's free to start, with about 300 replies a month. Link in bio.\"\n\n### 5. This feels illegal to know\n- Hook, to camera: \"This AI tool feels illegal to know as a creator.\"\n- \"It answers your comments and DMs in your own voice. Let me show you in under 40 seconds.\"\n- Screen: \"Make a free account, no card. Pick a persona, build one, or read a short sample out loud so it learns how you talk.\"\n- \"Connect your accounts. Now every comment gets a reply drafted in your voice. You tap approve.\"\n- [PROOF] End on your real reply count or a busy comment section.\n- End: \"About 300 replies a month free.\"",
   sampleRequired: true,
+  sampleCriteria:
+    "Send a short sample video. Follow one of our example formats, or try your own idea for a format that would work for MePersona. Use the free plan to film a quick demo, record a talking-head video, or get creative in your own way.",
   postTerms: {
     v: 2,
     // $5 for each unique video; the same video on another platform earns view pay only.
@@ -86,6 +90,7 @@ export function presetRow(preset: CampaignPreset, kept: Pick<PostTerms, "reviewe
     formats: null,
     example_urls: preset.exampleUrls,
     sample_required: preset.sampleRequired,
+    sample_criteria: preset.sampleCriteria,
     payout_amount: preset.postTerms.basePerPost,
     post_terms: {
       ...preset.postTerms,
