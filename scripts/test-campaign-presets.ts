@@ -46,12 +46,12 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@8");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@9");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@8", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@9", parsedRow);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);
