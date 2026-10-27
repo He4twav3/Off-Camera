@@ -33,7 +33,7 @@ t("5 scripts", sc.scripts.length === 5, sc.scripts.map((s) => s.title));
 t("no example links in the scripts", sc.scripts.every((s) => s.examples.length === 0));
 t("script 1 is GOOD BETTER BEST", sc.scripts[0].title === "1. GOOD BETTER BEST" && MEPERSONA.scripts.includes("Best: MePersona"));
 const brief = parseBrief(MEPERSONA.description);
-t("formats and hooks under the brief", brief.lists.map((l) => l.title).join("|") === "Formats that work|Hooks you can use" && brief.lists[0].items.length === 5 && brief.lists[1].items.length === 6, brief.lists);
+t("only the hooks under the brief", brief.lists.map((l) => l.title).join("|") === "Hooks you can use" && brief.lists[0].items.length === 6, brief.lists);
 t("step 1 doesn't list the scripts again", steps[0].text === "It explains what MePersona is and what it does, and has scripts you can use.", steps[0]);
 t("the TikTok warning is said once, in the guide, not again above the scripts", !sc.intro.some((b) => b.kind === "warning") && (MEPERSONA.guide.match(/TikTok/g) ?? []).length >= 1);
 t("the guide has the platforms warning", parseGuide(MEPERSONA.guide).some((b) => b.kind === "warning"));
@@ -47,12 +47,12 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@13");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@14");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@13", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@14", parsedRow);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);
