@@ -27,11 +27,19 @@ import {
   maxPerVideo,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
-import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
+import { PLATFORM_LABELS, cn, formatPayoutSummary } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
 import { ExampleVideos } from "@/components/app/ExampleVideos";
 import { requirementItems } from "@/lib/requirements";
 import { campaignHold } from "@/lib/campaign-holds";
+
+/** Columns for the pay strip by how many items it has: one row, except four, which is two by two on a phone. */
+const STAT_COLUMNS: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-2 sm:grid-cols-4",
+};
 
 /**
  * One campaign: a left panel (banner, tags, and the one thing to do next, passed
@@ -160,7 +168,7 @@ export function CampaignView({
               seed={job.id}
               headline={headline}
               caption={PLATFORM_LABELS[job.platform]}
-              className="aspect-[16/10] max-h-28 rounded-xl sm:max-h-56 lg:max-h-none"
+              className="aspect-[16/9] w-full rounded-2xl sm:aspect-[16/10] sm:max-h-64 lg:max-h-none"
               logoUrl={job.logo_url}
             />
             {back && (
@@ -262,13 +270,14 @@ export function CampaignView({
               <section className="mt-5">
                 <h2 className="sr-only">How this campaign pays</h2>
                 {stats.length > 0 ? (
-                  <ul className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-xl border border-border/70 bg-card px-4 py-2.5 sm:gap-x-6 sm:gap-y-2 sm:px-5 sm:py-3.5">
+                  // Equal cells in one row (four go two by two on a phone), the icon above the words on a phone.
+                  <ul className={cn("grid gap-2", STAT_COLUMNS[Math.min(stats.length, 4)])}>
                     {stats.map((st) => (
                       <li
                         key={st.label}
-                        className="flex items-center gap-2 text-[15px] font-semibold text-foreground"
+                        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-card px-2 py-3 text-center text-sm leading-snug font-semibold text-foreground sm:flex-row sm:gap-2 sm:px-3 sm:text-[15px]"
                       >
-                        <st.icon className="size-4 text-muted-foreground" />
+                        <st.icon className="size-4 shrink-0 text-primary" />
                         {st.label}
                       </li>
                     ))}

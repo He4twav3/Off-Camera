@@ -66,7 +66,7 @@ export function BriefProvider({
           <div
             ref={top}
             tabIndex={-1}
-            className="mx-auto w-full max-w-[52rem] bg-black px-6 py-10 text-[15px] leading-relaxed text-white outline-none sm:px-12 sm:py-14"
+            className="mx-auto w-full max-w-[52rem] bg-black px-5 py-8 text-[15px] leading-relaxed text-neutral-200 outline-none sm:px-12 sm:py-14"
           >
             <SheetHeader className="p-0 pr-10">
               <SheetTitle className="text-2xl font-bold text-white">
@@ -80,6 +80,7 @@ export function BriefProvider({
             {/* In order: the product, what to make, how to make it, then how it pays, always last. */}
             {guide.length > 0 && (
               <DocSection
+                tone="product"
                 title="Know the product"
                 note="Read this before you try it."
               >
@@ -88,26 +89,30 @@ export function BriefProvider({
             )}
             {requirements.length > 0 && (
               <DocSection
+                tone="make"
                 title={guide.length > 0 ? "What to make" : "Requirements"}
               >
-                <ul className="list-disc space-y-1 pl-6">
+                <dl className="divide-y divide-neutral-800 rounded-xl border border-neutral-800 bg-neutral-950">
                   {requirements.map((r) => (
-                    <li key={r.label}>
-                      <strong className="font-bold">{r.label}:</strong>{" "}
-                      {r.value}
-                    </li>
+                    <div key={r.label} className="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:gap-4">
+                      <dt className="shrink-0 text-xs font-semibold tracking-wide text-amber-300 uppercase sm:w-28 sm:pt-0.5">
+                        {r.label}
+                      </dt>
+                      <dd className="font-medium text-white">{r.value}</dd>
+                    </div>
                   ))}
-                </ul>
+                </dl>
               </DocSection>
             )}
             {/* Any "## " part of the scripts' intro (such as which account to use) is its own section, right above the scripts. */}
             {scriptsParts.sections.map((part) => (
-              <DocSection key={part.title} title={part.title}>
+              <DocSection key={part.title} tone="make" title={part.title} card>
                 <GuideText blocks={part.blocks} />
               </DocSection>
             ))}
             {scripts.length > 0 && (
               <DocSection
+                tone="scripts"
                 title="Scripts"
                 note="Watch the example videos on the campaign page, then make the format your own."
               >
@@ -143,10 +148,15 @@ export function BriefProvider({
               </DocSection>
             )}
             {payLines.length > 0 && (
-              <DocSection title="How it pays">
-                <ul className="list-disc space-y-1.5 pl-6">
+              <DocSection tone="pay" title="How it pays" card>
+                <ul className="flex flex-col gap-2.5">
                   {payLines.map((line) => (
-                    <li key={line}>{line}</li>
+                    <li key={line} className="flex gap-3">
+                      <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-emerald-400" />
+                      <span>
+                        <Figures text={line} />
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </DocSection>
@@ -170,24 +180,63 @@ function splitSections(blocks: GuideBlock[]): { intro: GuideBlock[]; sections: {
   return { intro, sections };
 }
 
-/** One section of the brief document: a ruled heading, an optional line under it, then the content. */
+/**
+ * The colour each kind of section is marked with: the product blue, what to make and which account amber, the
+ * scripts violet, the pay green. Only the marker, the label and key figures take the colour; body text stays neutral.
+ */
+const TONES = {
+  product: { bar: "bg-sky-400", label: "text-sky-300", card: "" },
+  make: { bar: "bg-amber-400", label: "text-amber-300", card: "border-amber-400/25 bg-amber-400/[0.06]" },
+  scripts: { bar: "bg-violet-400", label: "text-violet-300", card: "" },
+  pay: { bar: "bg-emerald-400", label: "text-emerald-300", card: "border-emerald-400/25 bg-emerald-400/[0.06]" },
+  plain: { bar: "bg-neutral-500", label: "text-neutral-400", card: "" },
+} as const;
+
+/**
+ * One section of the brief document: a heading with its colour marker, an optional line under it, then the content,
+ * set in a lightly tinted card when the section is one a creator must not miss.
+ */
 function DocSection({
   title,
   note,
+  tone = "plain",
+  card = false,
   children,
 }: {
   title: string;
   note?: string;
+  tone?: keyof typeof TONES;
+  card?: boolean;
   children: ReactNode;
 }) {
+  const t = TONES[tone];
   return (
-    <section className="mt-10">
-      <h3 className="border-b border-neutral-700 pb-1.5 text-xl font-bold">
-        {title}
-      </h3>
-      {note && <p className="mt-2 text-neutral-400 italic">{note}</p>}
-      <div className="mt-4">{children}</div>
+    <section className="mt-10 sm:mt-12">
+      <div className="flex items-center gap-3">
+        <span aria-hidden className={`h-6 w-1 shrink-0 rounded-full ${t.bar}`} />
+        <h3 className="text-xl font-bold text-white sm:text-2xl">{title}</h3>
+      </div>
+      {note && <p className={`mt-2 text-sm ${t.label}`}>{note}</p>}
+      <div className={card ? `mt-4 rounded-xl border p-4 sm:p-5 ${t.card}` : "mt-4"}>{children}</div>
     </section>
+  );
+}
+
+/** A pay line with its dollar amounts and view counts picked out, so the numbers read first. */
+function Figures({ text }: { text: string }) {
+  const parts = text.split(/(\$[\d,]+(?:\.\d+)?|\b\d[\d,.]*[KM]?\s(?:views|days)\b)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? (
+          <strong key={i} className="font-semibold text-emerald-300">
+            {p}
+          </strong>
+        ) : (
+          p
+        ),
+      )}
+    </>
   );
 }
 

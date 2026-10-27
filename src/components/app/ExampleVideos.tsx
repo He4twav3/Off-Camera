@@ -34,9 +34,9 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
   return (
     <section className="mt-6">
       <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Examples</h2>
-      <ul className="grid grid-cols-3 gap-2 sm:gap-4">
+      <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
         {items.map((it, i) => (
-          <li key={it.url} className="min-w-0">
+          <li key={it.url} className="w-[calc(50%-0.375rem)] min-w-0 sm:w-[calc(33.333%-0.667rem)]">
             {it.platform ? (
               <ExampleVideoCard
                 url={it.url}
@@ -59,7 +59,7 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
           </li>
         ))}
         {Array.from({ length: empties }, (_, k) => (
-          <li key={`empty-${k}`} className="min-w-0">
+          <li key={`empty-${k}`} className="w-[calc(50%-0.375rem)] min-w-0 sm:w-[calc(33.333%-0.667rem)]">
             <a href={emptyHref} aria-label="Add an example link" className="block">
               <div className="mx-auto flex aspect-[9/16] w-full max-w-[13rem] items-center justify-center rounded-lg border border-dashed border-border bg-card/40 transition-colors hover:border-primary/50 sm:rounded-xl">
                 <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground sm:size-12">

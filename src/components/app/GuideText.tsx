@@ -11,7 +11,7 @@ function Inline({ text }: { text: GuideInline }) {
     <>
       {text.map((t, i) =>
         t.bold ? (
-          <strong key={i} className="font-bold">
+          <strong key={i} className="font-semibold text-white">
             {t.text}
           </strong>
         ) : (
@@ -36,9 +36,19 @@ function linkLabel(url: string): string {
   try {
     const u = new URL(url);
     const site = u.hostname.replace(/^www\./, "");
-    const name = site.startsWith("tiktok.") ? "TikTok" : site.startsWith("instagram.") ? "Instagram" : /youtu/.test(site) ? "YouTube" : site;
+    const name = site.startsWith("tiktok.")
+      ? "TikTok"
+      : site.startsWith("instagram.")
+        ? "Instagram"
+        : /youtu/.test(site)
+          ? "YouTube"
+          : site;
     const handle = u.pathname.split("/").find((p) => p.startsWith("@"));
-    return handle ? `${handle} on ${name}` : name === site ? site : `Watch on ${name}`;
+    return handle
+      ? `${handle} on ${name}`
+      : name === site
+        ? site
+        : `Watch on ${name}`;
   } catch {
     return url;
   }
@@ -48,7 +58,12 @@ function ExampleLink({ url, note }: { url: string; note: string }) {
   return (
     <p>
       <span className="font-bold">Example{note ? `, ${note}` : ""}:</span>{" "}
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 underline"
+      >
         {linkLabel(url)}
       </a>
     </p>
@@ -63,7 +78,10 @@ export function GuideText({ blocks }: { blocks: GuideBlock[] }) {
         switch (b.kind) {
           case "heading":
             return b.level === 2 ? (
-              <h4 key={i} className="mt-3 text-lg font-bold">
+              <h4
+                key={i}
+                className="mt-4 border-t border-neutral-800 pt-4 text-[17px] font-semibold text-white first:mt-0 first:border-0 first:pt-0"
+              >
                 {b.text}
               </h4>
             ) : (
@@ -76,7 +94,10 @@ export function GuideText({ blocks }: { blocks: GuideBlock[] }) {
           case "list": {
             const List = b.ordered ? "ol" : "ul";
             return (
-              <List key={i} className={`${b.ordered ? "list-decimal" : "list-disc"} space-y-1 pl-6`}>
+              <List
+                key={i}
+                className={`${b.ordered ? "list-decimal" : "list-disc"} space-y-1 pl-6`}
+              >
                 {b.items.map((item, j) => (
                   <li key={j}>
                     <Inline text={item} />
@@ -102,10 +123,18 @@ export function GuideText({ blocks }: { blocks: GuideBlock[] }) {
 /** The scripts, one after another like sections of a doc: title, example links, then the script. */
 export function ScriptList({ scripts }: { scripts: Script[] }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {scripts.map((s, i) => (
-        <section key={`${i}-${s.title}`} className="flex flex-col gap-2">
-          <h4 className="text-lg font-bold">{s.title}</h4>
+        <section
+          key={`${i}-${s.title}`}
+          className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-950 p-4 sm:p-5"
+        >
+          <h4 className="flex items-start gap-3 text-[17px] font-semibold text-white">
+            <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-violet-400/15 text-xs font-bold text-violet-300">
+              {i + 1}
+            </span>
+            {s.title.replace(/^\d+\.\s*/, "")}
+          </h4>
           {s.examples.map((e) => (
             <ExampleLink key={e.url} url={e.url} note={e.note} />
           ))}
