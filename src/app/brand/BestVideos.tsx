@@ -14,9 +14,9 @@ export async function BestVideos({ videos }: { videos: Best[] }) {
   return (
     <section>
       <h2 className="mb-3 font-heading text-base font-semibold text-foreground">Best videos</h2>
-      <ul className="grid grid-cols-3 gap-2 sm:gap-4">
+      <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
         {videos.map((v, i) => (
-          <li key={v.id} className="min-w-0">
+          <li key={v.id} className="w-[calc(50%-0.375rem)] min-w-0 sm:w-[calc(33.333%-0.667rem)]">
             <a
               href={v.url}
               target="_blank"

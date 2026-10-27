@@ -313,8 +313,8 @@ export default async function EarningsPage() {
                   <p
                     className={
                       positive
-                        ? "font-semibold text-toy-soft-foreground"
-                        : "font-semibold text-foreground"
+                        ? "shrink-0 font-semibold tabular-nums text-toy-soft-foreground"
+                        : "shrink-0 font-semibold tabular-nums text-foreground"
                     }
                   >
                     {positive ? "+" : "−"}
