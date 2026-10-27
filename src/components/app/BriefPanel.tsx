@@ -5,7 +5,7 @@ import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GuideText, ScriptList } from "@/components/app/GuideText";
-import { parseBriefSteps, type GuideBlock, type Script } from "@/lib/campaign-guide";
+import { parseBrief, type GuideBlock, type Script } from "@/lib/campaign-guide";
 
 const OpenBrief = createContext<() => void>(() => {});
 
@@ -148,7 +148,7 @@ export function BriefButton({ className, variant = "outline" }: { className?: st
  * under it; otherwise as plain sentences, one per line. The scripts and the details open from the button at the top.
  */
 export function BriefKeyRules({ description }: { description: string }) {
-  const steps = parseBriefSteps(description);
+  const { steps, lists } = parseBrief(description);
   const lines = description
     .split(/\n+/)
     .map((l) => l.replace(/^[\s•\-*\u2022]+/, "").trim())
@@ -170,13 +170,24 @@ export function BriefKeyRules({ description }: { description: string }) {
             </li>
           ))}
         </ol>
-      ) : (
+      ) : null}
+      {lists.map((list) => (
+        <div key={list.title} className="mt-5">
+          <h3 className="text-[15px] font-semibold text-foreground">{list.title}</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+            {list.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      {steps.length === 0 && lists.length === 0 ? (
         <div className="mt-2 flex flex-col gap-2 text-[15px] leading-relaxed text-foreground">
           {lines.map((line) => (
             <p key={line}>{line}</p>
           ))}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

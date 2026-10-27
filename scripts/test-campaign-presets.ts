@@ -1,6 +1,6 @@
 import { MEPERSONA, presetFor, presetRow, presetMarker } from "../src/lib/campaign-presets";
 import { describePostTerms, postTermsChips, postTermsSchema } from "../src/lib/post-terms";
-import { parseBriefSteps, parseGuide, parseScripts, briefPlainText } from "../src/lib/campaign-guide";
+import { parseBrief, parseBriefSteps, parseGuide, parseScripts, briefPlainText } from "../src/lib/campaign-guide";
 import { parseExampleLinks } from "../src/lib/campaign-brief";
 
 let bad = 0;
@@ -31,7 +31,9 @@ t("plain text drops the step marks", !briefPlainText(MEPERSONA.description).incl
 const sc = parseScripts(MEPERSONA.scripts);
 t("5 scripts", sc.scripts.length === 5, sc.scripts.map((s) => s.title));
 t("no example links in the scripts", sc.scripts.every((s) => s.examples.length === 0));
-t("script 1 is the user's own words", sc.scripts[0].title.startsWith("1. Tool rating") && MEPERSONA.scripts.includes("Lets rate some tools that help me create content more efficiently."));
+t("script 1 is good, better, best", sc.scripts[0].title === "1. Good, better, best" && MEPERSONA.scripts.includes("Best: MePersona"));
+const brief = parseBrief(MEPERSONA.description);
+t("formats and hooks under the brief", brief.lists.map((l) => l.title).join("|") === "Formats that work|Hooks you can use" && brief.lists[0].items.length === 5 && brief.lists[1].items.length === 6, brief.lists);
 t("the TikTok warning is said once, in the guide, not again above the scripts", !sc.intro.some((b) => b.kind === "warning") && (MEPERSONA.guide.match(/TikTok/g) ?? []).length >= 1);
 t("the guide has the platforms warning", parseGuide(MEPERSONA.guide).some((b) => b.kind === "warning"));
 const everything = [MEPERSONA.about, MEPERSONA.description, MEPERSONA.guide, MEPERSONA.scripts].join(" ").toLowerCase();
@@ -44,12 +46,12 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@7");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@8");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@7", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@8", parsedRow);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

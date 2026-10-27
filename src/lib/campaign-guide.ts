@@ -117,22 +117,41 @@ export function inlineText(text: GuideInline): string {
 }
 
 export type BriefStep = { title: string; text: string };
+export type BriefList = { title: string; items: string[] };
 
 /**
- * The brief on the campaign page as numbered steps: a line starting "## " is a step's title, the lines under it its
- * text. A brief with no "## " has no steps (it is shown as plain sentences, one per line).
+ * The brief on the campaign page: numbered steps, then short lists. A line starting "## " is a step's title and the
+ * lines under it its text; a line starting "### " starts a list (such as formats or hooks) and the "- " lines under it
+ * are its items. A brief with neither is shown as plain sentences, one per line.
  */
-export function parseBriefSteps(raw: string): BriefStep[] {
+export function parseBrief(raw: string): { steps: BriefStep[]; lists: BriefList[] } {
   const steps: BriefStep[] = [];
+  const lists: BriefList[] = [];
+  let mode: "step" | "list" | null = null;
   for (const line of raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
-    const title = /^##\s+(.+)$/.exec(line);
-    if (title) steps.push({ title: title[1], text: "" });
-    else if (steps.length) steps.at(-1)!.text = `${steps.at(-1)!.text} ${line}`.trim();
+    const list = /^###\s+(.+)$/.exec(line);
+    const step = /^##\s+(.+)$/.exec(line);
+    if (list) {
+      lists.push({ title: list[1], items: [] });
+      mode = "list";
+    } else if (step) {
+      steps.push({ title: step[1], text: "" });
+      mode = "step";
+    } else if (mode === "list") {
+      lists.at(-1)!.items.push(line.replace(/^[-*•]\s+/, ""));
+    } else if (mode === "step") {
+      steps.at(-1)!.text = `${steps.at(-1)!.text} ${line}`.trim();
+    }
   }
-  return steps;
+  return { steps, lists };
 }
 
-/** The brief as plain text, without the step marks, for places that show it as one block. */
+/** The brief's numbered steps (see parseBrief). */
+export function parseBriefSteps(raw: string): BriefStep[] {
+  return parseBrief(raw).steps;
+}
+
+/** The brief as plain text, without the step and list marks, for places that show it as one block. */
 export function briefPlainText(raw: string): string {
-  return raw.replace(/^\s*##\s+/gm, "");
+  return raw.replace(/^\s*#{2,3}\s+/gm, "");
 }
