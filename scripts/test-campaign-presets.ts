@@ -34,7 +34,7 @@ t("no example links in the scripts", sc.scripts.every((s) => s.examples.length =
 t("script 1 is GOOD BETTER BEST", sc.scripts[0].title === "1. GOOD BETTER BEST" && MEPERSONA.scripts.includes("Best: MePersona"));
 const brief = parseBrief(MEPERSONA.description);
 t("formats and hooks under the brief", brief.lists.map((l) => l.title).join("|") === "Formats that work|Hooks you can use" && brief.lists[0].items.length === 5 && brief.lists[1].items.length === 6, brief.lists);
-t("step 1 doesn't list the scripts again", steps[0].text === "It explains what MePersona is and what it does, and it has this week's scripts.", steps[0]);
+t("step 1 doesn't list the scripts again", steps[0].text === "It explains what MePersona is and what it does, and has scripts you can use.", steps[0]);
 t("the TikTok warning is said once, in the guide, not again above the scripts", !sc.intro.some((b) => b.kind === "warning") && (MEPERSONA.guide.match(/TikTok/g) ?? []).length >= 1);
 t("the guide has the platforms warning", parseGuide(MEPERSONA.guide).some((b) => b.kind === "warning"));
 const everything = [MEPERSONA.about, MEPERSONA.description, MEPERSONA.guide, MEPERSONA.scripts].join(" ").toLowerCase();
