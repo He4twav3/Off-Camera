@@ -25,7 +25,7 @@ if (terms.success) {
   t("pay strip says per unique video", postTermsChips(terms.data)[0] === "$5 per unique video", postTermsChips(terms.data));
 }
 const steps = parseBriefSteps(MEPERSONA.description);
-t("the brief is 4 steps", steps.map((s) => s.title).join("|") === "Read the full brief|Pick a script and make it your own|Use MePersona for a few days first|Get paid monthly", steps);
+t("the brief is 5 steps", steps.map((s) => s.title).join("|") === "Read the full brief|Pick a script and make it your own|Your own ideas are welcome|Use MePersona for a few days first|Get paid monthly", steps);
 t("every step has text", steps.every((s) => s.text.length > 20));
 t("plain text drops the step marks", !briefPlainText(MEPERSONA.description).includes("##"));
 const sc = parseScripts(MEPERSONA.scripts);
@@ -44,12 +44,12 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@6");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@7");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@6", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@7", parsedRow);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);
