@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { ExternalLink, Play, X } from "lucide-react";
-import { PlatformEmbed } from "@/components/media/platform-embed";
-import { youtubeId } from "@/lib/youtube";
 
 /**
- * One example video as a card; clicking it plays the video in a pop-up on our page (an uploaded video in our own
- * player, TikTok and Instagram through their own embed, YouTube through its player). A platform video's pop-up also
- * carries a link to open it on the platform, in case the embed is blocked.
+ * One example video as a card. A video uploaded to our storage plays in a pop-up in our own player; a TikTok,
+ * Instagram or YouTube video opens on the platform in a new tab (their embedded players fail without warning).
  */
 export function ExampleVideoCard({
   url,
@@ -35,10 +32,35 @@ export function ExampleVideoCard({
     };
   }, [open]);
 
-  const yt = platform === "youtube_shorts" ? youtubeId(url) : null;
   const uploaded = platform === "upload";
   // TikTok no longer sends a cover image with its embed details, so a card without one shows the creator's handle.
   const handle = !poster && !uploaded ? (/\/@([^/?#]+)/.exec(url)?.[1] ?? null) : null;
+
+  // A TikTok, Instagram or YouTube example opens on the platform itself, in a new tab. Their players embedded in our
+  // page fail without warning ("Player error"), so we never embed them; only our own uploads play here.
+  if (!uploaded)
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Watch this example on ${label}`} className="group block w-full">
+        <div className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] overflow-hidden rounded-lg border border-border/70 bg-gradient-to-b from-muted to-card sm:rounded-xl">
+          {poster && (
+            // eslint-disable-next-line @next/next/no-img-element -- signed platform CDN images
+            <img src={poster} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+          )}
+          {handle && (
+            <span className="absolute inset-x-0 bottom-0 truncate px-2 pb-2 text-center text-xs font-semibold text-foreground sm:text-sm">@{handle}</span>
+          )}
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="flex size-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur sm:size-12">
+              <Play className="size-4 fill-current sm:size-5" />
+            </span>
+          </span>
+        </div>
+        <p className="mt-1.5 flex items-center gap-1 truncate text-xs font-medium text-foreground sm:text-sm">
+          Watch on {label}
+          <ExternalLink className="size-3 shrink-0 text-muted-foreground" />
+        </p>
+      </a>
+    );
 
   return (
     <>
@@ -82,28 +104,8 @@ export function ExampleVideoCard({
               <X className="size-4" />
             </button>
             <div className="max-h-[75vh] overflow-y-auto">
-              {uploaded ? (
-                <video src={url} controls autoPlay playsInline className="aspect-[9/16] w-full rounded-lg bg-black object-contain" />
-              ) : yt ? (
-                <div className="aspect-[9/16] w-full overflow-hidden rounded-lg bg-black">
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0`}
-                    title={`${label} example`}
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                    className="size-full"
-                  />
-                </div>
-              ) : (
-                <PlatformEmbed postUrl={url} />
-              )}
+              <video src={url} controls autoPlay playsInline className="aspect-[9/16] w-full rounded-lg bg-black object-contain" />
             </div>
-            {!uploaded && (
-            <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline underline-offset-2">
-              <ExternalLink className="size-3.5" />
-              Open on {label}
-            </a>
-            )}
           </div>
         </div>
       )}
