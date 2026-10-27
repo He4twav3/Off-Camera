@@ -96,6 +96,10 @@ export const postTermsSchema = z.object({
    * have to) or "brand". A post is only counted into what is due once it has been approved.
    */
   reviewer: z.enum(["oncamera", "brand"]).default("oncamera"),
+  /** How often creators get a statement: after every `cycleSize` videos (the default) or once a month. */
+  statementEvery: z.enum(["videos", "month"]).optional(),
+  /** Days the brand has to pay a statement. Unset means the standard STATEMENT_DUE_DAYS. */
+  dueDays: z.number().int().min(1).max(90).optional(),
   /** Set once the brand has filled in and agreed to the contract (see lib/contract.ts). */
   contract: contractSchema.optional(),
   requirements: requirementsSchema.optional(),
@@ -379,9 +383,9 @@ export function describePostTerms(terms: PostTerms): string[] {
   const lines: string[] = [];
   if (terms.basePerPost > 0) {
     if (terms.repostsEarnBase) {
-      lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post. It is paid ${terms.cycleSize === 1 ? "after each post" : `after every ${terms.cycleSize} posts`} you deliver.`);
+      lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post.${terms.statementEvery === "month" ? "" : ` It is paid ${terms.cycleSize === 1 ? "after each post" : `after every ${terms.cycleSize} posts`} you deliver.`}`);
     } else {
-      lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video. It is paid ${terms.cycleSize === 1 ? "after each unique video" : `after every ${terms.cycleSize} unique videos`} you deliver.`);
+      lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video.${terms.statementEvery === "month" ? "" : ` It is paid ${terms.cycleSize === 1 ? "after each unique video" : `after every ${terms.cycleSize} unique videos`} you deliver.`}`);
       lines.push("Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost: it earns view bonuses only.");
     }
   }
@@ -404,7 +408,8 @@ export function describePostTerms(terms: PostTerms): string[] {
   lines.push(`Every post is measured on its own. Only views within ${terms.windowDays} days of the post going live count, then the number is final.`);
   lines.push("Your post has to be on one of your own verified accounts, and go live after you connected that account and joined.");
   if (terms.keepPublicDays > 0) lines.push(`Keep each post public for ${terms.keepPublicDays} days.`);
-  lines.push(`After each payment, the brand has ${STATEMENT_DUE_DAYS} days to pay you directly through your payment link. Amounts are in US dollars, so create your link in USD.`);
+  if (terms.statementEvery === "month") lines.push("You get one statement a month, for everything you earned that month.");
+  lines.push(`After each ${terms.statementEvery === "month" ? "statement" : "payment"}, the brand has ${terms.dueDays ?? STATEMENT_DUE_DAYS} days to pay you directly through your payment link. Amounts are in US dollars, so create your link in USD.`);
   lines.push("Views are updated about once a day.");
   return lines;
 }

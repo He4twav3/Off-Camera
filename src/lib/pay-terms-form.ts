@@ -23,6 +23,9 @@ export type PayTermsFields = {
   maxPerPost: number | undefined;
   /** A one-off reward when a video reaches a number of views, on top of the CPM; empty for none. */
   reward: { views: number; amount: number }[];
+  /** Only on admin's form: how often statements go out, and the days the brand has to pay. Undefined leaves them as they are. */
+  statementEvery?: "videos" | "month";
+  dueDays?: number;
 };
 
 /** The CPM rows: a "from views" and a rate. A blank "from" means from the first view. Both blank skips the row. */
@@ -115,13 +118,23 @@ export function parsePayTermsFields(get: (k: string) => string, getAll: (k: stri
     ...limits.value,
     reward: reward.value,
   };
+  const every = get("statement_every");
+  if (every === "videos" || every === "month") value.statementEvery = every;
+  const rawDue = get("due_days").trim();
+  if (rawDue) {
+    const d = Number(rawDue);
+    if (!Number.isInteger(d) || d < 1 || d > 90) return { ok: false, error: "The days to pay must be a whole number from 1 to 90." };
+    value.dueDays = d;
+  }
   if (![value.basePerPost, value.cycleSize, value.windowDays, value.keepPublicDays].every(Number.isFinite)) return { ok: false, error: "Fill in every pay field." };
   return { ok: true, value };
 }
 
 /** What the saved pay terms become: the new numbers, and CPM replaces the fixed bonuses only when the brand entered some. */
 export function mergePayTerms<T extends { milestones: { views: number; amount: number }[]; cpm?: CpmTier[]; cpmCap?: number }>(current: T, pay: PayTermsFields) {
-  const { cpm, cpmCap, minViews, maxPerPost, reward, ...rest } = pay;
+  const { cpm, cpmCap, minViews, maxPerPost, reward, statementEvery, dueDays, ...base } = pay;
+  // The statement settings are only on admin's form: left out, they stay as they are.
+  const rest = { ...base, ...(statementEvery ? { statementEvery } : {}), ...(dueDays ? { dueDays } : {}) };
   // With a CPM the reward replaces the old fixed bonuses.
   return cpm
     ? { ...current, ...rest, cpm, cpmCap, minViews, maxPerPost, milestones: reward }

@@ -330,7 +330,7 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
   const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
   if (!requirements.ok) return { error: requirements.error };
   const terms = postTermsSchema.safeParse({
-    ...mergePayTerms({ milestones: keptTerms?.milestones ?? [], cpm: keptTerms?.cpm }, pay.value),
+    ...mergePayTerms({ milestones: keptTerms?.milestones ?? [], cpm: keptTerms?.cpm, statementEvery: keptTerms?.statementEvery, dueDays: keptTerms?.dueDays }, pay.value),
     v: 2,
     repostsEarnBase: keptTerms?.repostsEarnBase ?? false,
     reviewer,

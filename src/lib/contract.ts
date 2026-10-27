@@ -108,7 +108,8 @@ export function contractSections(input: {
         ...(input.showFee
           ? [`OnCamera's fee, paid by the brand on top of what creators earn and invoiced separately: ${describeFee(STANDARD_FEE.bands, STANDARD_FEE.minimum)}${STANDARD_FEE.minimum > 0 ? ". The minimum applies only in a month in which a payment to a creator is issued" : ""}.`]
           : []),
-        `The brand pays within ${STATEMENT_DUE_DAYS} days of a statement being issued, then marks it as paid so the creator can confirm.`,
+        ...(t.statementEvery === "month" ? ["Creators receive one statement a month, for everything earned that month."] : []),
+        `The brand pays within ${t.dueDays ?? STATEMENT_DUE_DAYS} days of a statement being issued, then marks it as paid so the creator can confirm.`,
       ],
     },
     {

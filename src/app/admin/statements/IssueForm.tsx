@@ -21,10 +21,13 @@ export function IssueForm({
   assignmentId,
   suggestedAmount,
   fee: feeSetting,
+  dueDays,
 }: {
   assignmentId: string;
   suggestedAmount: number | null;
   fee?: { terms: FeeTerms; lifetimeBilled: number; monthBilled: number; monthFees: number };
+  /** The campaign's own days to pay, when it sets them. */
+  dueDays?: number;
 }) {
   const hasFee = Boolean(feeSetting && (feeSetting.terms.bands.length > 0 || feeSetting.terms.minimum > 0));
   const [state, formAction] = useActionState<StatementActionState, FormData>(issueStatementAction, {});
@@ -58,7 +61,7 @@ export function IssueForm({
           <Input id={`fee-${assignmentId}`} name="our_fee" type="number" min={0} step="0.01" value={fee} onChange={(e) => setFeeTyped(e.target.value)} />
         </Field>
         <Field label="Brand has (days)" htmlFor={`due-${assignmentId}`} hint="To pay the creator.">
-          <Input id={`due-${assignmentId}`} name="due_days" type="number" min={1} max={90} step="1" defaultValue={STATEMENT_DUE_DAYS} />
+          <Input id={`due-${assignmentId}`} name="due_days" type="number" min={1} max={90} step="1" defaultValue={dueDays ?? STATEMENT_DUE_DAYS} />
         </Field>
       </div>
 

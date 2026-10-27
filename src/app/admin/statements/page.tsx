@@ -113,6 +113,7 @@ export default async function AdminStatementsPage(props: {
         );
         const perPostBase = {
           ...base,
+          dueDays: postTerms.dueDays,
           views: counted.reduce((n, p) => n + p.views, 0),
           perPost,
         };

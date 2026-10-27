@@ -39,6 +39,8 @@ export type StatementRowData = {
   views: number;
   proof_url: string | null;
   suggested: number | null;
+  /** The campaign's days to pay a statement, when it sets its own. */
+  dueDays?: number;
   applicants: { name: string; email: string; handle: string } | null;
   jobs: {
     title: string;
@@ -275,7 +277,7 @@ function ReadyRow({ row: r }: { row: StatementRowData }) {
               emailed to pay. You&apos;ll record the payment yourself.
             </Notice>
           )}
-          <IssueForm assignmentId={r.id} suggestedAmount={r.suggested} fee={r.fee} />
+          <IssueForm assignmentId={r.id} suggestedAmount={r.suggested} fee={r.fee} dueDays={r.dueDays} />
         </div>
       }
       detailsLabel="Issue statement"
