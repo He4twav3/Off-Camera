@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useRef, useState, type ReactNode } from "react";
-import { BookOpen, Check } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GuideText, ScriptList } from "@/components/app/GuideText";
@@ -156,19 +156,16 @@ export function BriefButton({ className, variant = "outline" }: { className?: st
   );
 }
 
-/** The brief on the page: every rule, in full. The scripts and the details open from the button at the top. */
+/** The brief on the page: the key points, as plain sentences. The scripts and the details open from the button at the top. */
 export function BriefKeyRules({ rules }: { rules: string[] }) {
   return (
     <section className="mt-4 rounded-xl border border-border/70 bg-card px-4 py-3 sm:mt-6 sm:px-5 sm:py-4">
       <h2 className="font-heading text-base font-semibold text-foreground">The brief</h2>
-      <ul className="mt-3 flex flex-col gap-2.5">
+      <div className="mt-2 flex flex-col gap-2 text-[15px] leading-relaxed text-foreground">
         {rules.map((rule) => (
-          <li key={rule} className="flex items-start gap-3 text-[15px] text-foreground">
-            <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-            {rule}
-          </li>
+          <p key={rule}>{rule}</p>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

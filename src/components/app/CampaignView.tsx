@@ -192,7 +192,7 @@ export function CampaignView({
           {notice}
         </aside>
 
-        {/* Centre: the offer, how it pays, then the rules. */}
+        {/* Centre: the offer, how it pays, the brand, the requirements, then the brief. */}
         <div className="min-w-0">
           <BriefProvider
             campaign={job.title}
@@ -256,19 +256,6 @@ export function CampaignView({
                 )}
               </div>
 
-              {postTerms && (
-                <section aria-label="Requirements" className="mt-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
-                  <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
-                  <dl className="mt-2 flex flex-col gap-1.5 text-sm">
-                    {requirementItems(postTerms).map((r) => (
-                      <div key={r.label} className="flex flex-wrap gap-x-4">
-                        <dt className="w-20 shrink-0 text-muted-foreground">{r.label}</dt>
-                        <dd className="min-w-0 flex-1 font-medium text-foreground">{r.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              )}
 
               <section className="mt-5">
                 <h2 className="sr-only">How this campaign pays</h2>
@@ -310,6 +297,19 @@ export function CampaignView({
                 </section>
               )}
 
+              {postTerms && (
+                <section aria-label="Requirements" className="mt-4 rounded-xl sm:mt-6 border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
+                  <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
+                  <dl className="mt-2 flex flex-col gap-1.5 text-sm">
+                    {requirementItems(postTerms).map((r) => (
+                      <div key={r.label} className="flex flex-wrap gap-x-4">
+                        <dt className="w-20 shrink-0 text-muted-foreground">{r.label}</dt>
+                        <dd className="min-w-0 flex-1 font-medium text-foreground">{r.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              )}
 
               {rules.length > 0 && <BriefKeyRules rules={rules} />}
 
