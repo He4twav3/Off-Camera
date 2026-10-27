@@ -167,7 +167,7 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
           <Field
             label="Product guide"
             htmlFor={`guide-${job?.id ?? "new"}`}
-            hint="What the product is and does, read before creators try it. Opens first in the full brief. Use ## for a heading, - for a list, **bold**, and start a line with ! for a red warning (it also shows at the top of the campaign page)."
+            hint="What the product is and does, read before creators try it. Opens first in the full brief. Use ## for a heading, - for a list, **bold**, and start a line with ! for a warning in bold red capitals."
           >
             <Textarea
               id={`guide-${job?.id ?? "new"}`}

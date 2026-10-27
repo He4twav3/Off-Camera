@@ -11,8 +11,7 @@ import {
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { CampaignBanner } from "@/components/app/CampaignBanner";
 import { BriefButton, BriefKeyRules, BriefProvider } from "@/components/app/BriefPanel";
-import { GuideWarning } from "@/components/app/GuideText";
-import { guideWarnings, inlineText, parseGuide, parseScripts } from "@/lib/campaign-guide";
+import { parseGuide, parseScripts } from "@/lib/campaign-guide";
 import type { CampaignGuide } from "@/lib/campaign-guide-store";
 import { CommissionNote } from "@/components/app/CommissionNote";
 import {
@@ -140,7 +139,6 @@ export function CampaignView({
 
   const guideBlocks = parseGuide(guide?.guide ?? "");
   const { intro: scriptsIntro, scripts } = parseScripts(guide?.scripts ?? "");
-  const warnings = guideWarnings(guideBlocks);
 
   // The brand's own words for this campaign (see the admin job form).
   const formatList = (job.formats ?? "")
@@ -240,7 +238,7 @@ export function CampaignView({
                 </StatusBadge>
               </div>
 
-              {/* The way into the full brief, first, then anything the creator must not get wrong. */}
+              {/* The way into the full brief, first. */}
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <BriefButton variant="default" />
                 {(guideBlocks.length > 0 || scripts.length > 0) && (
@@ -255,13 +253,6 @@ export function CampaignView({
                   </span>
                 )}
               </div>
-              {warnings.length > 0 && (
-                <div className="mt-3 flex flex-col gap-2">
-                  {warnings.map((w) => (
-                    <GuideWarning key={inlineText(w)} text={w} />
-                  ))}
-                </div>
-              )}
 
               {postTerms && (
                 <section aria-label="Requirements" className="mt-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">

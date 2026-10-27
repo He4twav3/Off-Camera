@@ -5,7 +5,7 @@
  *
  *   ## Heading            a section heading
  *   ### Title             a script (in the scripts) or a small heading (in the guide)
- *   ! Never say X         a warning, shown in red (and the guide's warnings also show on the campaign page)
+ *   ! Never say X         a warning, in bold red capitals
  *   - item  /  1. item    a list
  *   Example: https://…    an example video link (anything after the link is its note)
  *   **bold**              bold, inside any line

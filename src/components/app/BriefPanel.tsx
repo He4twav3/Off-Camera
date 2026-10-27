@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useContext, useRef, useState, type ReactNode } from "react";
-import { BookOpen, Check, Video } from "lucide-react";
+import { BookOpen, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { GuideText, ScriptCards } from "@/components/app/GuideText";
+import { GuideText, ScriptList } from "@/components/app/GuideText";
 import type { GuideBlock, Script } from "@/lib/campaign-guide";
 
 const KEY_RULES = 5;
@@ -46,99 +46,90 @@ export function BriefProvider({
     <OpenBrief.Provider value={() => setOpen(true)}>
       {children}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent initialFocus={top} className="overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-2xl">
-          <div ref={top} tabIndex={-1} className="outline-none">
-            <SheetHeader className="border-b border-border/70 pr-12">
-              <SheetTitle className="text-lg">{campaign} brief</SheetTitle>
-              <SheetDescription>Everything the brand needs in your videos.</SheetDescription>
+        {/* The brief reads like a document: black text on a white page. */}
+        <SheetContent
+          initialFocus={top}
+          className="gap-0 overflow-y-auto bg-neutral-200 data-[side=right]:w-full data-[side=right]:sm:max-w-3xl [&_[data-slot=sheet-close]]:text-neutral-900 [&_[data-slot=sheet-close]]:hover:bg-neutral-200"
+        >
+          <div ref={top} tabIndex={-1} className="mx-auto w-full max-w-[52rem] bg-white px-6 py-10 text-[15px] leading-relaxed text-neutral-900 outline-none sm:px-12 sm:py-14">
+            <SheetHeader className="p-0 pr-10">
+              <SheetTitle className="text-2xl font-bold text-neutral-900">{campaign} brief</SheetTitle>
+              <SheetDescription className="text-neutral-600">Everything the brand needs in your videos.</SheetDescription>
             </SheetHeader>
-          </div>
-          <div className="space-y-7 px-4 pb-8 sm:px-6">
+
             {guide.length > 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">Know the product</h3>
-                <p className="mt-0.5 text-sm text-muted-foreground">Read this before you try it.</p>
-                <div className="mt-3">
-                  <GuideText blocks={guide} />
-                </div>
-              </div>
+              <DocSection title="Know the product" note="Read this before you try it.">
+                <GuideText blocks={guide} />
+              </DocSection>
             )}
             {scripts.length > 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">Scripts</h3>
-                <p className="mt-0.5 text-sm text-muted-foreground">Watch the example, then make the format your own.</p>
+              <DocSection title="Scripts" note="Watch the example, then make the format your own.">
                 {scriptsIntro.length > 0 && (
-                  <div className="mt-3">
+                  <div className="mb-5">
                     <GuideText blocks={scriptsIntro} />
                   </div>
                 )}
-                <div className="mt-3">
-                  <ScriptCards scripts={scripts} />
-                </div>
-              </div>
+                <ScriptList scripts={scripts} />
+              </DocSection>
             )}
             {rules.length > 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">The rules</h3>
-                <p className="mt-0.5 text-sm text-muted-foreground">Follow them in every video.</p>
-                <ol className="mt-3 flex flex-col gap-2.5">
-                  {rules.map((rule, i) => (
-                    <li key={rule} className="flex items-start gap-3 text-[15px] text-foreground">
-                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                        {i + 1}
-                      </span>
-                      {rule}
-                    </li>
+              <DocSection title="The rules" note="Follow them in every video.">
+                <ol className="list-decimal space-y-1 pl-6">
+                  {rules.map((rule) => (
+                    <li key={rule}>{rule}</li>
                   ))}
                 </ol>
-              </div>
+              </DocSection>
             )}
             {requirements.length > 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">Requirements</h3>
-                <dl className="mt-3 flex flex-col gap-1.5 text-sm">
+              <DocSection title="Requirements">
+                <ul className="list-disc space-y-1 pl-6">
                   {requirements.map((r) => (
-                    <div key={r.label} className="flex flex-wrap gap-x-4">
-                      <dt className="w-24 shrink-0 text-muted-foreground">{r.label}</dt>
-                      <dd className="min-w-0 flex-1 font-medium text-foreground">{r.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            )}
-            {formats.length > 0 && scripts.length === 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">Formats that work</h3>
-                <ul className="mt-3 flex flex-col gap-2 text-[15px] text-foreground">
-                  {formats.map((f) => (
-                    <li key={f} className="flex items-start gap-3">
-                      <Video className="mt-0.5 size-4 shrink-0 text-primary" />
-                      {f}
+                    <li key={r.label}>
+                      <strong className="font-bold">{r.label}:</strong> {r.value}
                     </li>
                   ))}
                 </ul>
-              </div>
+              </DocSection>
+            )}
+            {formats.length > 0 && scripts.length === 0 && (
+              <DocSection title="Formats that work">
+                <ul className="list-disc space-y-1 pl-6">
+                  {formats.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </DocSection>
             )}
             {payLines.length > 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">How it pays</h3>
-                <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[15px] text-muted-foreground">
+              <DocSection title="How it pays">
+                <ul className="list-disc space-y-1 pl-6">
                   {payLines.map((line) => (
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-              </div>
+              </DocSection>
             )}
             {about && guide.length === 0 && (
-              <div>
-                <h3 className="font-heading text-base font-semibold text-foreground">About the brand</h3>
-                <p className="mt-3 text-[15px] leading-relaxed whitespace-pre-line text-muted-foreground">{about}</p>
-              </div>
+              <DocSection title="About the brand">
+                <p className="whitespace-pre-line">{about}</p>
+              </DocSection>
             )}
           </div>
         </SheetContent>
       </Sheet>
     </OpenBrief.Provider>
+  );
+}
+
+/** One section of the brief document: a ruled heading, an optional line under it, then the content. */
+function DocSection({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
+  return (
+    <section className="mt-10">
+      <h3 className="border-b border-neutral-300 pb-1.5 text-xl font-bold">{title}</h3>
+      {note && <p className="mt-2 text-neutral-600 italic">{note}</p>}
+      <div className="mt-4">{children}</div>
+    </section>
   );
 }
 
