@@ -100,6 +100,8 @@ export const postTermsSchema = z.object({
   statementEvery: z.enum(["videos", "month"]).optional(),
   /** Days the brand has to pay a statement. Unset means the standard STATEMENT_DUE_DAYS. */
   dueDays: z.number().int().min(1).max(90).optional(),
+  /** The signed-off setup last applied to the campaign (lib/campaign-presets.ts), as "key@version". */
+  preset: z.string().max(60).optional(),
   /** Set once the brand has filled in and agreed to the contract (see lib/contract.ts). */
   contract: contractSchema.optional(),
   requirements: requirementsSchema.optional(),

@@ -7,6 +7,8 @@ import type { PostTerms } from "@/lib/post-terms";
  */
 export type CampaignPreset = {
   key: string;
+  /** Raise it after changing the setup: the live campaign is then updated to it on the next server start. */
+  version: number;
   label: string;
   /** Which campaigns it is meant for, matched on the title or the brand note. */
   matches: (job: { title: string; about: string | null }) => boolean;
@@ -22,6 +24,7 @@ export type CampaignPreset = {
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
+  version: 1,
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
@@ -65,6 +68,31 @@ export const MEPERSONA: CampaignPreset = {
 };
 
 export const CAMPAIGN_PRESETS: CampaignPreset[] = [MEPERSONA];
+
+/** What a campaign's terms record once a setup is applied, so it is applied once per version. */
+export function presetMarker(preset: CampaignPreset): string {
+  return `${preset.key}@${preset.version}`;
+}
+
+/**
+ * The campaign row as the setup makes it: the brief, the brand note, the example videos and the pay terms, with
+ * "Formats that work" cleared. Who reviews posts and the brand's signed contract are kept from `kept`.
+ */
+export function presetRow(preset: CampaignPreset, kept: Pick<PostTerms, "reviewer" | "contract"> | null) {
+  return {
+    about: preset.about,
+    description: preset.description,
+    formats: null,
+    example_urls: preset.exampleUrls,
+    payout_amount: preset.postTerms.basePerPost,
+    post_terms: {
+      ...preset.postTerms,
+      reviewer: kept?.reviewer ?? "oncamera",
+      ...(kept?.contract ? { contract: kept.contract } : {}),
+      preset: presetMarker(preset),
+    },
+  };
+}
 
 export function presetFor(job: {
   title: string;

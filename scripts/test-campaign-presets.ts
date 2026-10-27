@@ -1,4 +1,4 @@
-import { MEPERSONA, presetFor } from "../src/lib/campaign-presets";
+import { MEPERSONA, presetFor, presetRow, presetMarker } from "../src/lib/campaign-presets";
 import { describePostTerms, postTermsChips, postTermsSchema } from "../src/lib/post-terms";
 import { parseBriefSteps, parseGuide, parseScripts, briefPlainText } from "../src/lib/campaign-guide";
 import { parseExampleLinks } from "../src/lib/campaign-brief";
@@ -42,6 +42,13 @@ const ex = parseExampleLinks(MEPERSONA.exampleUrls.join("\n"));
 t("6 valid example videos", ex.ok && ex.urls.length === 6, ex);
 t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about: "Answer every comment… MePersona is an AI inbox" }) === MEPERSONA);
 t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
+
+const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@1");
+t("the row keeps who reviews", row.post_terms.reviewer === "brand");
+t("the row clears formats", row.formats === null);
+const parsedRow = postTermsSchema.safeParse(row.post_terms);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@1", parsedRow);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

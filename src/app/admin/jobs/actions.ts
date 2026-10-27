@@ -17,7 +17,7 @@ import { payoutTermsSchema } from "@/lib/payout-terms";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 import { writeCampaignGuide } from "@/lib/campaign-guide-store";
-import { CAMPAIGN_PRESETS } from "@/lib/campaign-presets";
+import { CAMPAIGN_PRESETS, presetRow } from "@/lib/campaign-presets";
 
 export interface JobFormState {
   error?: string;
@@ -344,7 +344,7 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
   const kept = keptTerms?.contract;
   const { data, error } = await supabase
     .from("jobs")
-    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
+    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}), ...(keptTerms?.preset ? { preset: keptTerms.preset } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
     .eq("id", jobId.data)
     .select("id");
   if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };
@@ -419,24 +419,13 @@ export async function applyCampaignPresetAction(_prev: ApplyPresetState, formDat
 
   const { data: job } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
   if (!job) return { error: "That campaign wasn't found." };
-  const kept = parsePostTerms(job.post_terms);
-  const terms = postTermsSchema.safeParse({
-    ...preset.postTerms,
-    reviewer: kept?.reviewer ?? "oncamera",
-    ...(kept?.contract ? { contract: kept.contract } : {}),
-  });
+  const row = presetRow(preset, parsePostTerms(job.post_terms));
+  const terms = postTermsSchema.safeParse(row.post_terms);
   if (!terms.success) return { error: "The setup's pay terms aren't valid." };
 
   const { data: saved, error } = await supabase
     .from("jobs")
-    .update({
-      about: preset.about,
-      description: preset.description,
-      formats: null,
-      example_urls: preset.exampleUrls,
-      post_terms: terms.data as unknown as Record<string, unknown>,
-      payout_amount: terms.data.basePerPost,
-    })
+    .update({ ...row, post_terms: terms.data as unknown as Record<string, unknown> })
     .eq("id", jobId.data)
     .select("id")
     .maybeSingle();
