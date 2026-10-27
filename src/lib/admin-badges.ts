@@ -15,11 +15,10 @@ export type AdminBadges = { counts: Record<string, number>; what: Record<string,
 export async function adminBadges(ws: AdminWorkspace): Promise<AdminBadges> {
   const supabase = await createClient();
   const head = { count: "exact", head: true } as const;
-  const [brands, creators, apps, appsAll, signups, signupsAll] = await Promise.all([
+  const [brands, creators, apps, signups, signupsAll] = await Promise.all([
     supabase.from("brand_accounts").select("*", head).eq("status", "pending"),
     supabase.from("applicants").select("*", head).eq("status", "pending"),
     supabase.from("applications").select("*", head).eq("status", "pending"),
-    supabase.from("applications").select("*", head),
     supabase.from("campaign_signups").select("*", head).eq("status", "pending"),
     supabase.from("campaign_signups").select("*", head),
   ]);
@@ -50,7 +49,7 @@ export async function adminBadges(ws: AdminWorkspace): Promise<AdminBadges> {
       "/admin/payout-details": "payment emails to send",
     },
     empty: [
-      ...(n(appsAll) === 0 ? ["/admin/applications"] : []),
+      // Applications always shows: it's where campaigns that ask for a sample video are approved, so it must be easy to find.
       ...(n(signupsAll) === 0 ? ["/admin/campaigns"] : []),
     ],
   };
