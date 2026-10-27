@@ -164,8 +164,11 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
   }, [platform, postUrl]);
 
   // Instagram loads its embed immediately (no related-content risk to
-  // gate against); TikTok's live iframe only mounts after a click.
-  const html = platform === "instagram" ? instagramHtml : tiktokClicked ? tiktokHtml : null;
+  // gate against); TikTok's live iframe only mounts after a click. TikTok's
+  // oEmbed no longer carries a thumbnail, and with no poster to click there
+  // is nothing to wait for, so the embed itself loads straight away.
+  const tiktokReady = tiktokClicked || (tiktokHtml !== null && !tiktokThumbnail);
+  const html = platform === "instagram" ? instagramHtml : tiktokReady ? tiktokHtml : null;
 
   useEffect(() => {
     if (!html) return;
@@ -254,7 +257,7 @@ export function PlatformEmbed({ postUrl, className }: { postUrl: string; classNa
 
   // TikTok, not yet clicked: a real static poster (their own thumbnail),
   // not their live player.
-  if (platform === "tiktok" && !tiktokClicked) {
+  if (platform === "tiktok" && !tiktokReady) {
     if (!tiktokThumbnail) {
       return (
         <div
