@@ -240,7 +240,7 @@ export function CampaignView({
 
               {/* The way into the full brief, first. */}
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-                <BriefButton variant="default" />
+                <BriefButton className="border-white/15 bg-black text-white hover:bg-neutral-900 hover:text-white" />
                 {(guideBlocks.length > 0 || scripts.length > 0) && (
                   <span className="text-sm text-muted-foreground">
                     {[
@@ -308,25 +308,11 @@ export function CampaignView({
                 </section>
               )}
 
-              {formatList.length > 0 && (
-                <section className="mt-4 rounded-xl sm:mt-6 border border-border/70 bg-card px-4 py-3 sm:px-5 sm:py-4">
-                  <h2 className="font-heading text-base font-semibold text-foreground">
-                    Formats that work
-                  </h2>
-                  <ul className="mt-3 flex flex-col gap-2 text-[15px] text-foreground">
-                    {formatList.map((f) => (
-                      <li key={f} className="flex items-start gap-3">
-                        <Video className="mt-0.5 size-4 shrink-0 text-primary" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
+
+              {(rules.length > 0 || formatList.length > 0) && <BriefKeyRules rules={rules} formats={formatList} />}
 
               <ExampleVideos urls={job.example_urls ?? []} emptyHref={emptyExamplesHref} />
 
-              {(rules.length > 0 || payLines.length > 0) && <BriefKeyRules rules={rules} />}
 
               {!job.logo_url && (
                 <p className="mt-4 text-sm text-muted-foreground">
