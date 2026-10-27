@@ -7,6 +7,7 @@ import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { parsePostTerms } from "@/lib/post-terms";
+import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
 /**
  * The campaign exactly as a creator sees it, read-only (the Apply button is switched off), with Edit on the bar above
@@ -14,6 +15,7 @@ import { parsePostTerms } from "@/lib/post-terms";
  * matching the brand id.
  */
 export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: string }) {
+  await ensureCampaignPreset(jobId);
   const { data: job } = await createAdminClient()
     .from("jobs")
     .select("*, niches(label)")

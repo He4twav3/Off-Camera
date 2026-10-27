@@ -19,6 +19,7 @@ import { JobForm } from "../JobForm";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { presetFor } from "@/lib/campaign-presets";
 import { ApplyPresetButton } from "./ApplyPresetButton";
+import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
 export const metadata: Metadata = { title: "Campaign · Admin" };
 
@@ -26,6 +27,7 @@ const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 
 export default async function AdminCampaignPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
+  const presetResult = await ensureCampaignPreset(id);
   const supabase = await createClient();
   const [ws, { sent }, { data: job }, { data: niches }, { data: brands }] = await Promise.all([
     getAdminWorkspace(),
@@ -74,6 +76,11 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
             See as creator
           </Link>
           {preset && <ApplyPresetButton jobId={c.id} presetKey={preset.key} label={preset.label} />}
+          {presetResult && (
+            <p className={`w-full text-sm font-semibold ${presetResult.error ? "text-destructive" : "text-emerald-400"}`}>
+              {presetResult.error ? `Signed-off setup not fully applied: ${presetResult.error}` : `Signed-off setup is live (${presetResult.preset}).`}
+            </p>
+          )}
         </div>
       </header>
 

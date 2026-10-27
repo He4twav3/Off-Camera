@@ -19,6 +19,7 @@ import { ContractReader } from "@/components/app/ContractReader";
 import { campaignHold } from "@/lib/campaign-holds";
 import { YourPosts } from "@/components/tracking/YourPosts";
 import { postReviews, reviewedOf } from "@/lib/post-review";
+import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
 const APPLICATION_LABELS: Record<string, string> = {
   pending: "Waiting to hear back",
@@ -34,6 +35,8 @@ export default async function JobDetailPage(props: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await props.params;
+  // A signed-off setup for this campaign goes live the first time the page is opened.
+  await ensureCampaignPreset(id);
   const supabase = await createClient();
 
   const {

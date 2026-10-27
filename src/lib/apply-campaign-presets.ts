@@ -1,18 +1,63 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { CAMPAIGN_PRESETS, presetMarker, presetRow } from "@/lib/campaign-presets";
+import { CAMPAIGN_PRESETS, presetFor, presetMarker, presetRow, type CampaignPreset } from "@/lib/campaign-presets";
 import { parsePostTerms, postTermsSchema } from "@/lib/post-terms";
-import { writeCampaignGuide } from "@/lib/campaign-guide-store";
+import { readCampaignGuide, writeCampaignGuide } from "@/lib/campaign-guide-store";
+
+type Db = ReturnType<typeof createAdminClient>;
+type JobRow = { id: string; title: string; about: string | null; post_terms: unknown };
+
+export type PresetResult = { preset: string; applied: boolean; error?: string };
 
 /**
- * Puts each signed-off setup (lib/campaign-presets.ts) on its live campaign, once per version: a campaign whose terms
- * already record this version is left alone, so edits made afterwards in admin stay. Runs when a server starts
- * (src/instrumentation.ts), with the service role. Matches open and filled campaigns on their title or brand note.
+ * Writes one setup to one campaign: the campaign row first (its version recorded in the terms), then the guide and
+ * scripts. With the service role, so it only ever runs on the server for a setup written into the code.
  */
+async function applyTo(db: Db, preset: CampaignPreset, job: JobRow): Promise<PresetResult> {
+  const marker = presetMarker(preset);
+  const row = presetRow(preset, parsePostTerms(job.post_terms));
+  const terms = postTermsSchema.safeParse(row.post_terms);
+  if (!terms.success) return { preset: marker, applied: false, error: "The setup's pay terms aren't valid." };
+  const { error } = await db
+    .from("jobs")
+    .update({ ...row, post_terms: terms.data as unknown as Record<string, unknown> })
+    .eq("id", job.id);
+  if (error) return { preset: marker, applied: false, error: `Couldn't update the campaign: ${error.message}` };
+  const written = await writeCampaignGuide(job.id, { guide: preset.guide, scripts: preset.scripts });
+  if (!written.ok) return { preset: marker, applied: true, error: `Campaign updated, but the guide and scripts weren't saved: ${written.error}` };
+  console.log(`campaign-presets: applied ${marker} to ${job.id}`);
+  return { preset: marker, applied: true };
+}
+
+/**
+ * Makes sure one campaign carries the current version of its setup, if it has one: applied when the version differs,
+ * and the guide and scripts saved again if they went missing. Called as a campaign page loads, so the setup is live
+ * the first time anyone opens it. Returns null for a campaign with no setup. Never throws.
+ */
+export async function ensureCampaignPreset(jobId: string): Promise<PresetResult | null> {
+  try {
+    const db = createAdminClient();
+    const { data: job } = await db.from("jobs").select("id, title, about, status, post_terms").eq("id", jobId).maybeSingle();
+    if (!job || job.status === "closed") return null;
+    const preset = presetFor(job);
+    if (!preset) return null;
+    const marker = presetMarker(preset);
+    if ((job.post_terms as { preset?: unknown } | null)?.preset !== marker) return await applyTo(db, preset, job);
+    const saved = await readCampaignGuide(job);
+    if (!saved.guide || !saved.scripts) {
+      const written = await writeCampaignGuide(job.id, { guide: preset.guide, scripts: preset.scripts });
+      if (!written.ok) return { preset: marker, applied: true, error: `The guide and scripts weren't saved: ${written.error}` };
+    }
+    return { preset: marker, applied: true };
+  } catch (e) {
+    return { preset: "?", applied: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Every setup on its open campaigns, once per version. Runs when a server starts (src/instrumentation.ts). */
 export async function applyCampaignPresets(): Promise<void> {
   const db = createAdminClient();
   for (const preset of CAMPAIGN_PRESETS) {
-    const marker = presetMarker(preset);
     const { data: jobs, error } = await db
       .from("jobs")
       .select("id, title, about, status, post_terms")
@@ -23,27 +68,9 @@ export async function applyCampaignPresets(): Promise<void> {
       continue;
     }
     for (const job of jobs ?? []) {
-      if (!preset.matches(job)) continue;
-      const raw = job.post_terms as { preset?: unknown } | null;
-      if (raw?.preset === marker) continue;
-      const row = presetRow(preset, parsePostTerms(job.post_terms));
-      const terms = postTermsSchema.safeParse(row.post_terms);
-      if (!terms.success) {
-        console.error(`campaign-presets: ${marker} has invalid pay terms`);
-        continue;
-      }
-      const written = await writeCampaignGuide(job.id, { guide: preset.guide, scripts: preset.scripts });
-      if (!written.ok) {
-        console.error(`campaign-presets: couldn't save the guide for ${job.id}`);
-        continue;
-      }
-      // Written last, so a failure above leaves the marker unset and the next start tries again.
-      const { error: updateError } = await db
-        .from("jobs")
-        .update({ ...row, post_terms: terms.data as unknown as Record<string, unknown> })
-        .eq("id", job.id);
-      if (updateError) console.error(`campaign-presets: couldn't apply ${marker} to ${job.id}:`, updateError.message);
-      else console.log(`campaign-presets: applied ${marker} to ${job.id}`);
+      if (!preset.matches(job) || (job.post_terms as { preset?: unknown } | null)?.preset === presetMarker(preset)) continue;
+      const result = await applyTo(db, preset, job);
+      if (result.error) console.error(`campaign-presets: ${job.id}: ${result.error}`);
     }
   }
 }

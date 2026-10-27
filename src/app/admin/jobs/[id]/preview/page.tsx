@@ -8,6 +8,7 @@ import { requireAdminMfa } from "@/lib/admin-mfa";
 import { createClient } from "@/lib/supabase/server";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { parsePostTerms } from "@/lib/post-terms";
+import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
 export const metadata: Metadata = { title: "Creator view · Admin" };
 
@@ -15,6 +16,7 @@ export const metadata: Metadata = { title: "Creator view · Admin" };
 export default async function AdminCampaignPreviewPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   await requireAdminMfa(`/admin/jobs/${id}/preview`);
+  await ensureCampaignPreset(id);
   const supabase = await createClient();
   const { data: job } = await supabase.from("jobs").select("*, niches(label)").eq("id", id).maybeSingle();
   if (!job) notFound();
