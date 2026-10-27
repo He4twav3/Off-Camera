@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { parsePostTerms } from "@/lib/post-terms";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
+import { campaignHold } from "@/lib/campaign-holds";
 
 export const metadata: Metadata = { title: "Creator view · Admin" };
 
@@ -21,6 +22,7 @@ export default async function AdminCampaignPreviewPage(props: { params: Promise<
   const { data: job } = await supabase.from("jobs").select("*, niches(label)").eq("id", id).maybeSingle();
   if (!job) notFound();
   const postTerms = parsePostTerms(job.post_terms);
+  const hold = job.status === "open" ? campaignHold(job) : null;
   const guide = await readCampaignGuide(job);
 
   return (
@@ -36,10 +38,11 @@ export default async function AdminCampaignPreviewPage(props: { params: Promise<
         terms={parsePayoutTerms(job.payout_terms)}
         postTerms={postTerms}
         guide={guide}
-        intro={postTerms ? "Apply to get started: you can add posts as soon as you're on." : "Apply to get started."}
+        // A held campaign (lib/campaign-holds.ts) shows its reason in place of Apply, as creators see it.
+        intro={hold ? hold.note : postTerms ? "Apply to get started: you can add posts as soon as you're on." : "Apply to get started."}
         cta={
           <Button size="lg" className="w-full" disabled>
-            Apply to this campaign
+            {hold ? hold.label : "Apply to this campaign"}
           </Button>
         }
         back={{ href: `/admin/jobs/${id}`, label: "← Campaign" }}

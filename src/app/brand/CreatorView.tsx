@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { parsePostTerms } from "@/lib/post-terms";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
+import { campaignHold } from "@/lib/campaign-holds";
 
 /**
  * The campaign exactly as a creator sees it, read-only (the Apply button is switched off), with Edit on the bar above
@@ -24,6 +25,7 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
     .maybeSingle();
   if (!job) notFound();
   const postTerms = parsePostTerms(job.post_terms);
+  const hold = job.status === "open" ? campaignHold(job) : null;
   const guide = await readCampaignGuide(job);
 
   return (
@@ -40,10 +42,11 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
         terms={parsePayoutTerms(job.payout_terms)}
         postTerms={postTerms}
         guide={guide}
-        intro={postTerms ? "Apply to get started: you can add posts as soon as you're on." : "Apply to get started."}
+        // A held campaign (lib/campaign-holds.ts) shows its reason in place of Apply, as creators see it.
+        intro={hold ? hold.note : postTerms ? "Apply to get started: you can add posts as soon as you're on." : "Apply to get started."}
         cta={
           <Button size="lg" className="w-full" disabled>
-            Apply to this campaign
+            {hold ? hold.label : "Apply to this campaign"}
           </Button>
         }
         back={null}
