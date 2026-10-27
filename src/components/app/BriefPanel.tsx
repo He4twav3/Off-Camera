@@ -1,9 +1,21 @@
 "use client";
 
-import { createContext, useContext, useRef, useState, type ReactNode } from "react";
-import { BookOpen } from "lucide-react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { BookOpen, MessageSquareQuote, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { GuideText, ScriptList } from "@/components/app/GuideText";
 import { parseBrief, type GuideBlock, type Script } from "@/lib/campaign-guide";
 
@@ -49,31 +61,48 @@ export function BriefProvider({
           initialFocus={top}
           className="gap-0 overflow-y-auto bg-black data-[side=right]:w-full data-[side=right]:sm:max-w-3xl [&_[data-slot=sheet-close]]:text-white [&_[data-slot=sheet-close]]:hover:bg-neutral-800"
         >
-          <div ref={top} tabIndex={-1} className="mx-auto w-full max-w-[52rem] bg-black px-6 py-10 text-[15px] leading-relaxed text-white outline-none sm:px-12 sm:py-14">
+          <div
+            ref={top}
+            tabIndex={-1}
+            className="mx-auto w-full max-w-[52rem] bg-black px-6 py-10 text-[15px] leading-relaxed text-white outline-none sm:px-12 sm:py-14"
+          >
             <SheetHeader className="p-0 pr-10">
-              <SheetTitle className="text-2xl font-bold text-white">{campaign} brief</SheetTitle>
-              <SheetDescription className="text-neutral-400">Everything the brand needs in your videos.</SheetDescription>
+              <SheetTitle className="text-2xl font-bold text-white">
+                {campaign} brief
+              </SheetTitle>
+              <SheetDescription className="text-neutral-400">
+                Everything the brand needs in your videos.
+              </SheetDescription>
             </SheetHeader>
 
             {/* In order: the product, what to make, how to make it, then how it pays, always last. */}
             {guide.length > 0 && (
-              <DocSection title="Know the product" note="Read this before you try it.">
+              <DocSection
+                title="Know the product"
+                note="Read this before you try it."
+              >
                 <GuideText blocks={guide} />
               </DocSection>
             )}
             {requirements.length > 0 && (
-              <DocSection title={guide.length > 0 ? "What to make" : "Requirements"}>
+              <DocSection
+                title={guide.length > 0 ? "What to make" : "Requirements"}
+              >
                 <ul className="list-disc space-y-1 pl-6">
                   {requirements.map((r) => (
                     <li key={r.label}>
-                      <strong className="font-bold">{r.label}:</strong> {r.value}
+                      <strong className="font-bold">{r.label}:</strong>{" "}
+                      {r.value}
                     </li>
                   ))}
                 </ul>
               </DocSection>
             )}
             {scripts.length > 0 && (
-              <DocSection title="Scripts" note="Watch the example videos on the campaign page, then make the format your own.">
+              <DocSection
+                title="Scripts"
+                note="Watch the example videos on the campaign page, then make the format your own."
+              >
                 {scriptsIntro.length > 0 && (
                   <div className="mb-5">
                     <GuideText blocks={scriptsIntro} />
@@ -122,10 +151,20 @@ export function BriefProvider({
 }
 
 /** One section of the brief document: a ruled heading, an optional line under it, then the content. */
-function DocSection({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
+function DocSection({
+  title,
+  note,
+  children,
+}: {
+  title: string;
+  note?: string;
+  children: ReactNode;
+}) {
   return (
     <section className="mt-10">
-      <h3 className="border-b border-neutral-700 pb-1.5 text-xl font-bold">{title}</h3>
+      <h3 className="border-b border-neutral-700 pb-1.5 text-xl font-bold">
+        {title}
+      </h3>
       {note && <p className="mt-2 text-neutral-400 italic">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
@@ -133,10 +172,21 @@ function DocSection({ title, note, children }: { title: string; note?: string; c
 }
 
 /** Opens the full brief. */
-export function BriefButton({ className, variant = "outline" }: { className?: string; variant?: "outline" | "default" }) {
+export function BriefButton({
+  className,
+  variant = "outline",
+}: {
+  className?: string;
+  variant?: "outline" | "default";
+}) {
   const open = useContext(OpenBrief);
   return (
-    <Button type="button" variant={variant} className={className} onClick={open}>
+    <Button
+      type="button"
+      variant={variant}
+      className={className}
+      onClick={open}
+    >
       <BookOpen className="size-4" />
       Read the full brief
     </Button>
@@ -144,8 +194,8 @@ export function BriefButton({ className, variant = "outline" }: { className?: st
 }
 
 /**
- * The brief on the page. Written as steps ("## " titles), it shows as numbered steps, each a bold line with its text
- * under it; otherwise as plain sentences, one per line. The scripts and the details open from the button at the top.
+ * The brief on the page: numbered steps (or plain sentences, one per line), and under it, each in its own box, the
+ * short lists the brief carries, such as the formats that work and the hooks to use.
  */
 export function BriefKeyRules({ description }: { description: string }) {
   const { steps, lists } = parseBrief(description);
@@ -154,40 +204,61 @@ export function BriefKeyRules({ description }: { description: string }) {
     .map((l) => l.replace(/^[\s•\-*\u2022]+/, "").trim())
     .filter(Boolean);
   return (
-    <section className="mt-4 rounded-xl border border-border/70 bg-card px-4 py-3 sm:mt-6 sm:px-5 sm:py-4">
-      <h2 className="font-heading text-base font-semibold text-foreground">The brief</h2>
-      {steps.length > 0 ? (
-        <ol className="mt-3 flex flex-col gap-4">
-          {steps.map((step, i) => (
-            <li key={step.title} className="flex items-start gap-3">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                {i + 1}
-              </span>
-              <div className="min-w-0">
-                <p className="text-[15px] font-semibold text-foreground">{step.title}</p>
-                {step.text && <p className="mt-0.5 text-[15px] leading-relaxed text-muted-foreground">{step.text}</p>}
-              </div>
-            </li>
-          ))}
-        </ol>
-      ) : null}
-      {lists.map((list) => (
-        <div key={list.title} className="mt-5">
-          <h3 className="text-[15px] font-semibold text-foreground">{list.title}</h3>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-muted-foreground">
-            {list.items.map((item) => (
-              <li key={item}>{item}</li>
+    <>
+      <section className="mt-4 rounded-xl border border-border/70 bg-card px-4 py-3 sm:mt-6 sm:px-5 sm:py-4">
+        <h2 className="font-heading text-base font-semibold text-foreground">
+          The brief
+        </h2>
+        {steps.length > 0 ? (
+          <ol className="mt-3 flex flex-col gap-4">
+            {steps.map((step, i) => (
+              <li key={step.title} className="flex items-start gap-3">
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold text-foreground">
+                    {step.title}
+                  </p>
+                  {step.text && (
+                    <p className="mt-0.5 text-[15px] leading-relaxed text-muted-foreground">
+                      {step.text}
+                    </p>
+                  )}
+                </div>
+              </li>
             ))}
-          </ul>
-        </div>
-      ))}
-      {steps.length === 0 && lists.length === 0 ? (
-        <div className="mt-2 flex flex-col gap-2 text-[15px] leading-relaxed text-foreground">
-          {lines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </div>
-      ) : null}
-    </section>
+          </ol>
+        ) : null}
+        {steps.length === 0 && lists.length === 0 ? (
+          <div className="mt-2 flex flex-col gap-2 text-[15px] leading-relaxed text-foreground">
+            {lines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        ) : null}
+      </section>
+      {lists.map((list) => {
+        const Icon = /hook/i.test(list.title) ? MessageSquareQuote : Video;
+        return (
+          <section
+            key={list.title}
+            className="mt-4 rounded-xl border border-border/70 bg-card px-4 py-3 sm:mt-6 sm:px-5 sm:py-4"
+          >
+            <h2 className="font-heading text-base font-semibold text-foreground">
+              {list.title}
+            </h2>
+            <ul className="mt-3 flex flex-col gap-2 text-[15px] text-foreground">
+              {list.items.map((item) => (
+                <li key={item} className="flex items-start gap-3">
+                  <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </>
   );
 }

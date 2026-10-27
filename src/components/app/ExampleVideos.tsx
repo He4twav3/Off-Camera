@@ -2,6 +2,7 @@ import { Globe, Play } from "lucide-react";
 import { ExampleVideoCard } from "@/components/app/ExampleVideoCard";
 import { postIdentity } from "@/lib/post-key";
 import { posterFor } from "@/lib/video-poster";
+import { storedCover } from "@/lib/example-covers";
 import { PLATFORM_LABELS } from "@/lib/utils";
 import { isUploadedExample } from "@/lib/example-videos";
 
@@ -26,7 +27,9 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
   // The brand's own view fills up to three slots with empty player boxes that open Edit. Creators never see them.
   const empties = emptyHref ? Math.max(0, 3 - items.length) : 0;
   if (items.length === 0 && empties === 0) return null;
-  const posters = await Promise.all(items.map((i) => (i.platform && i.platform !== "upload" ? posterFor(i.platform, i.url) : Promise.resolve(null))));
+  const posters = await Promise.all(
+    items.map((i) => storedCover(i.url) ?? (i.platform && i.platform !== "upload" ? posterFor(i.platform, i.url) : Promise.resolve(null))),
+  );
 
   return (
     <section className="mt-6">
