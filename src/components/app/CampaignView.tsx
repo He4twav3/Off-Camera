@@ -25,6 +25,7 @@ import {
   ratePhrase,
   type PostTerms,
   maxPerVideo,
+  payExamples,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
@@ -201,6 +202,7 @@ export function CampaignView({
             rules={rules}
             formats={formatList}
             payLines={payLines}
+            payExamples={postTerms ? payExamples(postTerms) : []}
             requirements={postTerms ? requirementItems(postTerms) : []}
             about={job.about ?? null}
           >
@@ -309,7 +311,7 @@ export function CampaignView({
               )}
 
 
-              {(rules.length > 0 || formatList.length > 0) && <BriefKeyRules rules={rules} formats={formatList} />}
+              {rules.length > 0 && <BriefKeyRules rules={rules} />}
 
               <ExampleVideos urls={job.example_urls ?? []} emptyHref={emptyExamplesHref} />
 

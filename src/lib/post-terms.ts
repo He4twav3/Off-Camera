@@ -379,9 +379,9 @@ export function describePostTerms(terms: PostTerms): string[] {
   const lines: string[] = [];
   if (terms.basePerPost > 0) {
     if (terms.repostsEarnBase) {
-      lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post. It is paid after every ${terms.cycleSize} posts you deliver.`);
+      lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post. It is paid ${terms.cycleSize === 1 ? "after each post" : `after every ${terms.cycleSize} posts`} you deliver.`);
     } else {
-      lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video. It is paid after every ${terms.cycleSize} unique videos you deliver.`);
+      lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video. It is paid ${terms.cycleSize === 1 ? "after each unique video" : `after every ${terms.cycleSize} unique videos`} you deliver.`);
       lines.push("Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost: it earns view bonuses only.");
     }
   }
@@ -407,6 +407,30 @@ export function describePostTerms(terms: PostTerms): string[] {
   lines.push(`After each payment, the brand has ${STATEMENT_DUE_DAYS} days to pay you directly through your payment link. Amounts are in US dollars, so create your link in USD.`);
   lines.push("Views are updated about once a day.");
   return lines;
+}
+
+/**
+ * What one unique video would earn at a few view counts, worked out from the campaign's own terms, so a creator sees
+ * the sums and not just the rules. Modest counts first, then the first reward.
+ */
+export function payExamples(terms: PostTerms): string[] {
+  if (!terms.cpm?.length && terms.milestones.length === 0) return [];
+  const counts = [5_000, 25_000, 100_000];
+  const firstReward = [...terms.milestones].sort((a, b) => a.views - b.views)[0];
+  if (firstReward && !counts.includes(firstReward.views)) counts.push(firstReward.views);
+  return counts
+    .filter((n) => !terms.minViews || n >= terms.minViews)
+    .map((n) => {
+      const viewPay = terms.cpm?.length ? cpmBonus(n, terms.cpm, terms.cpmCap, terms.minViews) : 0;
+      const reward = milestoneBonus(n, terms.milestones);
+      const total = terms.basePerPost + bonusFor(n, terms);
+      const parts = [
+        terms.basePerPost > 0 ? `${usd(terms.basePerPost)} base` : null,
+        viewPay > 0 ? `${usd(Math.round(viewPay * 100) / 100)} for views` : null,
+        reward > 0 ? `${usd(reward)} reward` : null,
+      ].filter(Boolean);
+      return `A video with ${views(n)} views: ${parts.join(" + ")} = ${usd(Math.round(total * 100) / 100)}.`;
+    });
 }
 
 // --- the tracking view: the money bar and the history by payment cycle ----------------------------
