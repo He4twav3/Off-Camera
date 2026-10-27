@@ -50,6 +50,8 @@ export function BriefProvider({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  // The scripts' intro, split into its plain lines and any "## " sections (see the Scripts section below).
+  const scriptsParts = splitSections(scriptsIntro);
   // Open at the top, on the title: focusing the first button would scroll past the guide to the scripts.
   const top = useRef<HTMLDivElement>(null);
   return (
@@ -98,14 +100,20 @@ export function BriefProvider({
                 </ul>
               </DocSection>
             )}
+            {/* Any "## " part of the scripts' intro (such as which account to use) is its own section, right above the scripts. */}
+            {scriptsParts.sections.map((part) => (
+              <DocSection key={part.title} title={part.title}>
+                <GuideText blocks={part.blocks} />
+              </DocSection>
+            ))}
             {scripts.length > 0 && (
               <DocSection
                 title="Scripts"
                 note="Watch the example videos on the campaign page, then make the format your own."
               >
-                {scriptsIntro.length > 0 && (
+                {scriptsParts.intro.length > 0 && (
                   <div className="mb-5">
-                    <GuideText blocks={scriptsIntro} />
+                    <GuideText blocks={scriptsParts.intro} />
                   </div>
                 )}
                 <ScriptList scripts={scripts} />
@@ -148,6 +156,18 @@ export function BriefProvider({
       </Sheet>
     </OpenBrief.Provider>
   );
+}
+
+/** Blocks before the first level-2 heading, then each level-2 heading with the blocks under it. */
+function splitSections(blocks: GuideBlock[]): { intro: GuideBlock[]; sections: { title: string; blocks: GuideBlock[] }[] } {
+  const intro: GuideBlock[] = [];
+  const sections: { title: string; blocks: GuideBlock[] }[] = [];
+  for (const b of blocks) {
+    if (b.kind === "heading" && b.level === 2) sections.push({ title: b.text, blocks: [] });
+    else if (sections.length) sections.at(-1)!.blocks.push(b);
+    else intro.push(b);
+  }
+  return { intro, sections };
 }
 
 /** One section of the brief document: a ruled heading, an optional line under it, then the content. */

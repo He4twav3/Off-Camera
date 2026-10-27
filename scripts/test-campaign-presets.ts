@@ -36,7 +36,7 @@ const brief = parseBrief(MEPERSONA.description);
 t("only the hooks under the brief", brief.lists.map((l) => l.title).join("|") === "Hooks you can use" && brief.lists[0].items.length === 6, brief.lists);
 t("step 1 doesn't list the scripts again", steps[0].text === "It explains what MePersona is and what it does, and has scripts you can use.", steps[0]);
 t("the TikTok warning is said once, in the guide, not again above the scripts", !sc.intro.some((b) => b.kind === "warning") && (MEPERSONA.guide.match(/TikTok/g) ?? []).length >= 1);
-t("which account to use sits above the scripts, in bold", sc.intro[0].kind === "heading" && sc.intro[0].text === "Which account to use" && sc.intro[1].kind === "paragraph" && sc.intro[1].text[0].bold, sc.intro.slice(0, 2));
+t("which account to use is its own part of the scripts intro, in bold", (() => { const i = sc.intro.findIndex((b) => b.kind === "heading" && b.text === "Which account to use"); const next = sc.intro[i + 1]; return i > 0 && next?.kind === "paragraph" && next.text[0].bold; })(), sc.intro);
 t("the guide has the platforms warning", parseGuide(MEPERSONA.guide).some((b) => b.kind === "warning"));
 const everything = [MEPERSONA.about, MEPERSONA.description, MEPERSONA.guide, MEPERSONA.scripts].join(" ").toLowerCase();
 for (const banned of ["#ad", "paid partnership", "tracked link", "no promises", "blur", "family friendly", "bulk posting"])
@@ -48,12 +48,12 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@17");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@18");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@17", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@18", parsedRow);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);
