@@ -81,7 +81,7 @@ t("terms from the old formula are not mistaken for these", parsePostTerms({ v: 1
 t("milestones are sorted lowest first", parsePostTerms({ ...T, milestones: [{ views: 5000, amount: 10 }, { views: 1000, amount: 2 }] })!.milestones[0].views === 1000);
 
 // --- wording -----------------------------------------------------------------------------------
-t("chips: base, top bonus, cycle, window", postTermsChips(T).join("|") === "$20 per post|Up to $200 bonus per video|Paid every 15 posts|30-day counting window", postTermsChips(T));
+t("chips: base, top bonus, cycle, window", postTermsChips(T).join("|") === "$20 per unique video|Up to $200 bonus per video|Paid every 15 posts|30-day counting window", postTermsChips(T));
 const words = describePostTerms(T).join(" ");
 t("the words give the base pay and cycle", /\$20 for each unique video/.test(words) && /every 15 unique videos/.test(words) && /repost/.test(words), words);
 t("the words list every milestone", /1K views, \$2/.test(words) && /5K views, \$10/.test(words) && /10K views, \$20/.test(words) && /100K views, \$200/.test(words), words);

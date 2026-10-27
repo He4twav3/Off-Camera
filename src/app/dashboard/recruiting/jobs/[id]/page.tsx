@@ -52,7 +52,7 @@ export default async function JobDetailPage(props: {
   // A campaign whose contract pays per post (the Getimg kind) is tracked and paid post by post.
   const postTerms = parsePostTerms(job.post_terms);
   // Started now, read while the rest of the page loads.
-  const guidePromise = readCampaignGuide(job.id);
+  const guidePromise = readCampaignGuide(job);
 
   const { data: applicant } = await supabase
     .from("applicants")

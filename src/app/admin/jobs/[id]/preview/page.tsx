@@ -19,7 +19,7 @@ export default async function AdminCampaignPreviewPage(props: { params: Promise<
   const { data: job } = await supabase.from("jobs").select("*, niches(label)").eq("id", id).maybeSingle();
   if (!job) notFound();
   const postTerms = parsePostTerms(job.post_terms);
-  const guide = await readCampaignGuide(job.id);
+  const guide = await readCampaignGuide(job);
 
   return (
     <>

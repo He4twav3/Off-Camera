@@ -5,7 +5,7 @@ import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GuideText, ScriptList } from "@/components/app/GuideText";
-import type { GuideBlock, Script } from "@/lib/campaign-guide";
+import { parseBriefSteps, type GuideBlock, type Script } from "@/lib/campaign-guide";
 
 const OpenBrief = createContext<() => void>(() => {});
 
@@ -22,7 +22,6 @@ export function BriefProvider({
   rules,
   formats,
   payLines,
-  payExamples,
   requirements,
   about,
   children,
@@ -34,8 +33,6 @@ export function BriefProvider({
   rules: string[];
   formats: string[];
   payLines: string[];
-  /** What one video earns at a few view counts (lib/post-terms.ts payExamples). */
-  payExamples: string[];
   requirements: { label: string; value: string }[];
   about: string | null;
   children: ReactNode;
@@ -58,33 +55,25 @@ export function BriefProvider({
               <SheetDescription className="text-neutral-600">Everything the brand needs in your videos.</SheetDescription>
             </SheetHeader>
 
+            {/* In order: the product, what to make, how to make it, then how it pays, always last. */}
             {guide.length > 0 && (
               <DocSection title="Know the product" note="Read this before you try it.">
                 <GuideText blocks={guide} />
               </DocSection>
             )}
-            {payLines.length > 0 && (
-              <DocSection title="How you get paid" note="Every number here is from this campaign's contract.">
-                <ul className="list-disc space-y-1.5 pl-6">
-                  {payLines.map((line) => (
-                    <li key={line}>{line}</li>
+            {requirements.length > 0 && (
+              <DocSection title={guide.length > 0 ? "What to make" : "Requirements"}>
+                <ul className="list-disc space-y-1 pl-6">
+                  {requirements.map((r) => (
+                    <li key={r.label}>
+                      <strong className="font-bold">{r.label}:</strong> {r.value}
+                    </li>
                   ))}
                 </ul>
-                {payExamples.length > 0 && (
-                  <>
-                    <h4 className="mt-5 font-bold">What one video earns</h4>
-                    <ul className="mt-2 list-disc space-y-1 pl-6">
-                      {payExamples.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                    <p className="mt-2 text-neutral-600 italic">Worked out from the rules above. What you earn depends on your real views.</p>
-                  </>
-                )}
               </DocSection>
             )}
             {scripts.length > 0 && (
-              <DocSection title="Scripts" note="Watch the example, then make the format your own.">
+              <DocSection title="Scripts" note="Watch the example videos on the campaign page, then make the format your own.">
                 {scriptsIntro.length > 0 && (
                   <div className="mb-5">
                     <GuideText blocks={scriptsIntro} />
@@ -93,24 +82,13 @@ export function BriefProvider({
                 <ScriptList scripts={scripts} />
               </DocSection>
             )}
-            {rules.length > 0 && (
+            {rules.length > 0 && guide.length === 0 && (
               <DocSection title="The rules" note="Follow them in every video.">
                 <ol className="list-decimal space-y-1 pl-6">
                   {rules.map((rule) => (
                     <li key={rule}>{rule}</li>
                   ))}
                 </ol>
-              </DocSection>
-            )}
-            {requirements.length > 0 && (
-              <DocSection title="Requirements">
-                <ul className="list-disc space-y-1 pl-6">
-                  {requirements.map((r) => (
-                    <li key={r.label}>
-                      <strong className="font-bold">{r.label}:</strong> {r.value}
-                    </li>
-                  ))}
-                </ul>
               </DocSection>
             )}
             {formats.length > 0 && scripts.length === 0 && (
@@ -125,6 +103,15 @@ export function BriefProvider({
             {about && guide.length === 0 && (
               <DocSection title="About the brand">
                 <p className="whitespace-pre-line">{about}</p>
+              </DocSection>
+            )}
+            {payLines.length > 0 && (
+              <DocSection title="How it pays">
+                <ul className="list-disc space-y-1.5 pl-6">
+                  {payLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
               </DocSection>
             )}
           </div>
@@ -156,16 +143,40 @@ export function BriefButton({ className, variant = "outline" }: { className?: st
   );
 }
 
-/** The brief on the page: the key points, as plain sentences. The scripts and the details open from the button at the top. */
-export function BriefKeyRules({ rules }: { rules: string[] }) {
+/**
+ * The brief on the page. Written as steps ("## " titles), it shows as numbered steps, each a bold line with its text
+ * under it; otherwise as plain sentences, one per line. The scripts and the details open from the button at the top.
+ */
+export function BriefKeyRules({ description }: { description: string }) {
+  const steps = parseBriefSteps(description);
+  const lines = description
+    .split(/\n+/)
+    .map((l) => l.replace(/^[\s•\-*\u2022]+/, "").trim())
+    .filter(Boolean);
   return (
     <section className="mt-4 rounded-xl border border-border/70 bg-card px-4 py-3 sm:mt-6 sm:px-5 sm:py-4">
       <h2 className="font-heading text-base font-semibold text-foreground">The brief</h2>
-      <div className="mt-2 flex flex-col gap-2 text-[15px] leading-relaxed text-foreground">
-        {rules.map((rule) => (
-          <p key={rule}>{rule}</p>
-        ))}
-      </div>
+      {steps.length > 0 ? (
+        <ol className="mt-3 flex flex-col gap-4">
+          {steps.map((step, i) => (
+            <li key={step.title} className="flex items-start gap-3">
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                {i + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="text-[15px] font-semibold text-foreground">{step.title}</p>
+                {step.text && <p className="mt-0.5 text-[15px] leading-relaxed text-muted-foreground">{step.text}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <div className="mt-2 flex flex-col gap-2 text-[15px] leading-relaxed text-foreground">
+          {lines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

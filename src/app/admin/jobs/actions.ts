@@ -17,6 +17,7 @@ import { payoutTermsSchema } from "@/lib/payout-terms";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 import { writeCampaignGuide } from "@/lib/campaign-guide-store";
+import { CAMPAIGN_PRESETS } from "@/lib/campaign-presets";
 
 export interface JobFormState {
   error?: string;
@@ -396,4 +397,57 @@ export async function saveFeeAction(_prev: PayTermsState, formData: FormData): P
   revalidatePath(`/admin/jobs/${jobId.data}`, "layout");
   revalidatePath("/admin/statements");
   return { success: parsed.bands.length || minimum > 0 ? "Fee saved. New statements are filled in from it." : "Fee cleared." };
+}
+
+// --- a signed-off setup, written into the code ------------------------------------------------
+
+export type ApplyPresetState = { error?: string; success?: string };
+
+/**
+ * Replaces a campaign's whole setup with a signed-off one from lib/campaign-presets.ts: the brief, the brand note, the
+ * example videos, the product guide, the scripts and the pay terms. "Formats that work" is cleared (the formats are in
+ * the scripts). Who reviews posts and the brand's signed contract are kept. Runs as the signed-in admin (RLS).
+ */
+export async function applyCampaignPresetAction(_prev: ApplyPresetState, formData: FormData): Promise<ApplyPresetState> {
+  const jobId = z.string().uuid().safeParse(formData.get("job_id"));
+  const preset = CAMPAIGN_PRESETS.find((p) => p.key === formData.get("preset"));
+  if (!jobId.success || !preset) return { error: "Something's missing. Reload the page and try again." };
+
+  const supabase = await createClient();
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (!isAdmin) return { error: "Only admins can do this." };
+
+  const { data: job } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
+  if (!job) return { error: "That campaign wasn't found." };
+  const kept = parsePostTerms(job.post_terms);
+  const terms = postTermsSchema.safeParse({
+    ...preset.postTerms,
+    reviewer: kept?.reviewer ?? "oncamera",
+    ...(kept?.contract ? { contract: kept.contract } : {}),
+  });
+  if (!terms.success) return { error: "The setup's pay terms aren't valid." };
+
+  const { data: saved, error } = await supabase
+    .from("jobs")
+    .update({
+      about: preset.about,
+      description: preset.description,
+      formats: null,
+      example_urls: preset.exampleUrls,
+      post_terms: terms.data as unknown as Record<string, unknown>,
+      payout_amount: terms.data.basePerPost,
+    })
+    .eq("id", jobId.data)
+    .select("id")
+    .maybeSingle();
+  if (error || !saved) return { error: "Couldn't save the campaign. Please try again." };
+
+  const written = await writeCampaignGuide(jobId.data, { guide: preset.guide, scripts: preset.scripts });
+  if (!written.ok) return { error: `The campaign was saved, but not the guide and scripts. ${written.error}` };
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/jobs/${jobId.data}`);
+  revalidatePath("/dashboard/recruiting/jobs");
+  revalidatePath("/brand");
+  return { success: `Done: the ${preset.label} setup is now on this campaign.` };
 }

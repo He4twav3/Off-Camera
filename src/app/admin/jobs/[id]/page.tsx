@@ -17,6 +17,8 @@ import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
+import { presetFor } from "@/lib/campaign-presets";
+import { ApplyPresetButton } from "./ApplyPresetButton";
 
 export const metadata: Metadata = { title: "Campaign · Admin" };
 
@@ -35,6 +37,8 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
   const c = ws.campaigns.find((x) => x.id === id);
   const fees = await getFeeBands([id]);
   if (!job || !c) notFound();
+  // A signed-off setup written into the code for this campaign, matched on its title, brand note or brand.
+  const preset = presetFor({ title: job.title, about: `${job.about ?? ""} ${c.brandName ?? ""}` });
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
@@ -62,13 +66,14 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <JobForm niches={niches ?? []} brands={brands ?? []} job={job} guide={await readCampaignGuide(job.id)} />
+          <JobForm niches={niches ?? []} brands={brands ?? []} job={job} guide={await readCampaignGuide(job)} />
           <Link href={`/admin/jobs/${c.id}/terms`} className="text-sm font-semibold text-primary underline underline-offset-2">
             Requirements and pay terms
           </Link>
           <Link href={`/admin/jobs/${c.id}/preview`} className="text-sm font-semibold text-primary underline underline-offset-2">
             See as creator
           </Link>
+          {preset && <ApplyPresetButton jobId={c.id} presetKey={preset.key} label={preset.label} />}
         </div>
       </header>
 

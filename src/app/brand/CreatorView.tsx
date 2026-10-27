@@ -22,7 +22,7 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
     .maybeSingle();
   if (!job) notFound();
   const postTerms = parsePostTerms(job.post_terms);
-  const guide = await readCampaignGuide(job.id);
+  const guide = await readCampaignGuide(job);
 
   return (
     <section aria-label="How creators see your campaign" className="overflow-hidden rounded-xl border border-border/70">

@@ -13,6 +13,7 @@ import {
 import { formatPayoutSummary } from "@/lib/utils";
 import { JoinSteps } from "../JoinSteps";
 import { contractSections, contractStatus } from "@/lib/contract";
+import { briefPlainText } from "@/lib/campaign-guide";
 
 export const metadata: Metadata = { title: "Apply to campaign" };
 
@@ -104,7 +105,7 @@ export default async function JoinPage(props: {
           <JoinSteps
             jobId={job.id}
             title={job.title}
-            brief={job.description}
+            brief={job.description ? briefPlainText(job.description) : null}
             payLines={postTerms ? describePostTerms(postTerms) : []}
             contract={
               postTerms && contractStatus(postTerms) === "signed"

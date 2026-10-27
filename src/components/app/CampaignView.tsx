@@ -25,7 +25,6 @@ import {
   ratePhrase,
   type PostTerms,
   maxPerVideo,
-  payExamples,
 } from "@/lib/post-terms";
 import { compactViews } from "@/lib/format";
 import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
@@ -81,7 +80,7 @@ export function CampaignView({
         postTerms.basePerPost > 0
           ? {
               icon: DollarSign,
-              label: `${usd(postTerms.basePerPost)} per post`,
+              label: `${usd(postTerms.basePerPost)} per ${postTerms.repostsEarnBase ? "post" : "unique video"}`,
             }
           : null,
         postTerms?.cpm?.length
@@ -202,7 +201,6 @@ export function CampaignView({
             rules={rules}
             formats={formatList}
             payLines={payLines}
-            payExamples={postTerms ? payExamples(postTerms) : []}
             requirements={postTerms ? requirementItems(postTerms) : []}
             about={job.about ?? null}
           >
@@ -247,7 +245,7 @@ export function CampaignView({
                   <span className="text-sm text-muted-foreground">
                     {[
                       guideBlocks.length > 0 ? "what the product does" : null,
-                      scripts.length > 0 ? `${scripts.length} script${scripts.length === 1 ? "" : "s"} with examples` : null,
+                      scripts.length > 0 ? `${scripts.length} script${scripts.length === 1 ? "" : "s"}` : null,
                     ]
                       .filter(Boolean)
                       .join(" and ")
@@ -311,7 +309,7 @@ export function CampaignView({
                 </section>
               )}
 
-              {rules.length > 0 && <BriefKeyRules rules={rules} />}
+              {rules.length > 0 && <BriefKeyRules description={job.description ?? ""} />}
 
               <ExampleVideos urls={job.example_urls ?? []} emptyHref={emptyExamplesHref} />
 

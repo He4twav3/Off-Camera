@@ -359,7 +359,7 @@ export function ratePhrase(tiers: CpmTier[]): string {
 /** The pay as short labels for a strip: base, CPM or milestones, cycle, window. */
 export function postTermsChips(terms: PostTerms): string[] {
   const chips: string[] = [];
-  if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per post`);
+  if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per ${terms.repostsEarnBase ? "post" : "unique video"}`);
   if (terms.cpm?.length) {
     // The strip is the short version: rate, minimum, maximum. The reward and the rest are in the brief and the contract.
     chips.push(ratePhrase(terms.cpm));
@@ -412,30 +412,6 @@ export function describePostTerms(terms: PostTerms): string[] {
   lines.push(`After each ${terms.statementEvery === "month" ? "statement" : "payment"}, the brand has ${terms.dueDays ?? STATEMENT_DUE_DAYS} days to pay you directly through your payment link. Amounts are in US dollars, so create your link in USD.`);
   lines.push("Views are updated about once a day.");
   return lines;
-}
-
-/**
- * What one unique video would earn at a few view counts, worked out from the campaign's own terms, so a creator sees
- * the sums and not just the rules. Modest counts first, then the first reward.
- */
-export function payExamples(terms: PostTerms): string[] {
-  if (!terms.cpm?.length && terms.milestones.length === 0) return [];
-  const counts = [5_000, 25_000, 100_000];
-  const firstReward = [...terms.milestones].sort((a, b) => a.views - b.views)[0];
-  if (firstReward && !counts.includes(firstReward.views)) counts.push(firstReward.views);
-  return counts
-    .filter((n) => !terms.minViews || n >= terms.minViews)
-    .map((n) => {
-      const viewPay = terms.cpm?.length ? cpmBonus(n, terms.cpm, terms.cpmCap, terms.minViews) : 0;
-      const reward = milestoneBonus(n, terms.milestones);
-      const total = terms.basePerPost + bonusFor(n, terms);
-      const parts = [
-        terms.basePerPost > 0 ? `${usd(terms.basePerPost)} base` : null,
-        viewPay > 0 ? `${usd(Math.round(viewPay * 100) / 100)} for views` : null,
-        reward > 0 ? `${usd(reward)} reward` : null,
-      ].filter(Boolean);
-      return `A video with ${views(n)} views: ${parts.join(" + ")} = ${usd(Math.round(total * 100) / 100)}.`;
-    });
 }
 
 // --- the tracking view: the money bar and the history by payment cycle ----------------------------

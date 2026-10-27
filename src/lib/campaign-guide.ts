@@ -115,3 +115,24 @@ export function guideWarnings(blocks: GuideBlock[]): GuideInline[] {
 export function inlineText(text: GuideInline): string {
   return text.map((t) => t.text).join("");
 }
+
+export type BriefStep = { title: string; text: string };
+
+/**
+ * The brief on the campaign page as numbered steps: a line starting "## " is a step's title, the lines under it its
+ * text. A brief with no "## " has no steps (it is shown as plain sentences, one per line).
+ */
+export function parseBriefSteps(raw: string): BriefStep[] {
+  const steps: BriefStep[] = [];
+  for (const line of raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)) {
+    const title = /^##\s+(.+)$/.exec(line);
+    if (title) steps.push({ title: title[1], text: "" });
+    else if (steps.length) steps.at(-1)!.text = `${steps.at(-1)!.text} ${line}`.trim();
+  }
+  return steps;
+}
+
+/** The brief as plain text, without the step marks, for places that show it as one block. */
+export function briefPlainText(raw: string): string {
+  return raw.replace(/^\s*##\s+/gm, "");
+}

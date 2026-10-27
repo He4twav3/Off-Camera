@@ -16,7 +16,8 @@ const FILES = { guide: "guide.txt", scripts: "scripts.txt" } as const;
 const path = (jobId: string, part: keyof CampaignGuide) => `${jobId}/${FILES[part]}`;
 
 /** The saved guide and scripts; empty text when there are none, or when storage can't be reached. */
-export async function readCampaignGuide(jobId: string): Promise<CampaignGuide> {
+export async function readCampaignGuide(job: { id: string }): Promise<CampaignGuide> {
+  const jobId = job.id;
   const bucket = createAdminClient().storage.from(CAMPAIGN_GUIDE_BUCKET);
   const read = async (part: keyof CampaignGuide) => {
     const { data, error } = await bucket.download(path(jobId, part));
