@@ -14,6 +14,7 @@ import { formatPayoutSummary } from "@/lib/utils";
 import { JoinSteps } from "../JoinSteps";
 import { contractSections, contractStatus } from "@/lib/contract";
 import { briefPlainText } from "@/lib/campaign-guide";
+import { campaignHold } from "@/lib/campaign-holds";
 
 export const metadata: Metadata = { title: "Apply to campaign" };
 
@@ -60,7 +61,7 @@ export default async function JoinPage(props: {
   if (!verified) redirect("/dashboard/account/accounts");
 
   // Nothing to join: already on it, closed, or it asks for a sample (applies instead).
-  if (assignment || job.status !== "open" || job.sample_required)
+  if (assignment || job.status !== "open" || job.sample_required || campaignHold(job))
     redirect(campaignPath);
 
   const terms = parsePayoutTerms(job.payout_terms);

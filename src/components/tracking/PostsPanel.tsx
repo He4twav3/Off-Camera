@@ -6,6 +6,7 @@ import { money } from "@/lib/fees";
 import { compactViews } from "@/lib/format";
 import { payFor, type PostRowData, type PostTerms } from "@/lib/post-terms";
 import { cn, PLATFORM_LABELS } from "@/lib/utils";
+import { POST_STATUS_KEY, POST_STATUS_STYLES, postStatus, type PostStatus } from "@/lib/post-status";
 
 type Sort = "recent" | "views";
 
@@ -40,13 +41,22 @@ function Chip({
   );
 }
 
+/** The coloured status pill: grey checking, amber being reviewed, green approved, red not approved. */
+export function StatusPill({ status }: { status: PostStatus }) {
+  return (
+    <span className={cn("inline-flex w-fit items-center rounded-md px-2 py-0.5 text-xs font-semibold", POST_STATUS_STYLES[status.tone])}>
+      {status.label}
+    </span>
+  );
+}
+
 function Tile({
   post,
-  note,
+  status,
   amount,
 }: {
   post: PostRowData;
-  note: string;
+  status: PostStatus;
   amount: string | null;
 }) {
   return (
@@ -65,7 +75,10 @@ function Tile({
           {compactViews(post.views)}
         </p>
         <p className="text-xs text-muted-foreground">views</p>
-        <p className="mt-1.5 text-xs text-muted-foreground">{note}</p>
+        <div className="mt-1.5">
+          <StatusPill status={status} />
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">{status.detail}</p>
         {post.viewsCountedAt && (
           <p className="text-[11px] text-muted-foreground/80">
             Views read {readAt(post.viewsCountedAt)}
@@ -112,15 +125,7 @@ export function PostsPanel({
         (viewer === "creator" && (p.rejectReason ?? "").startsWith("Denied"))),
   );
 
-  const noteOf = (p: PostRowData) => {
-    const c = calc.get(p.id);
-    if (!c) return p.state === "rejected" ? "Rejected" : "Checking";
-    const when = c.windowClosed
-      ? "Final"
-      : `${c.daysLeft} ${c.daysLeft === 1 ? "day" : "days"} left`;
-    const label = c.repost ? `Repost, no base pay · ${when}` : when;
-    return c.inReview ? `${label} · In review` : label;
-  };
+  const statusOf = (p: PostRowData) => postStatus(p, calc.get(p.id) ?? null);
   const amountOf = (p: PostRowData) => {
     const c = calc.get(p.id);
     return c ? money(c.base + c.bonus) : null;
@@ -149,6 +154,7 @@ export function PostsPanel({
 
   return (
     <section className="mt-5">
+      <p className="mb-3 text-sm text-muted-foreground">{POST_STATUS_KEY}</p>
       <div className="mb-4 flex gap-2">
         <Chip href={`${basePath}?tab=posts`} on={sort === "recent"}>
           Recent
@@ -181,21 +187,9 @@ export function PostsPanel({
                       {PLATFORM_LABELS[p.platform]} post
                     </span>
                     <span className="min-w-0 flex-1 text-muted-foreground">
-                      {p.state === "rejected"
-                        ? (p.rejectReason ?? "Rejected.")
-                        : (p.lastError ??
-                          "We're checking that this is your post.")}
+                      {statusOf(p).detail}
                     </span>
-                    <span
-                      className={cn(
-                        "rounded-md px-2 py-0.5 text-xs font-semibold",
-                        p.state === "rejected"
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {p.state === "rejected" ? "Rejected" : "Checking"}
-                    </span>
+                    <StatusPill status={statusOf(p)} />
                     {postAction && p.state !== "rejected" && (
                       <span className="ml-2">{postAction(p)}</span>
                     )}
@@ -210,7 +204,7 @@ export function PostsPanel({
                 <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {[...counted].sort(byRecent).map((p) => (
                     <li key={p.id}>
-                      <Tile post={p} note={noteOf(p)} amount={amountOf(p)} />
+                      <Tile post={p} status={statusOf(p)} amount={amountOf(p)} />
                       {postAction && <div className="mt-1.5">{postAction(p)}</div>}
                     </li>
                   ))}
@@ -228,7 +222,7 @@ export function PostsPanel({
                         <li key={p.id}>
                           <Tile
                             post={p}
-                            note={noteOf(p)}
+                            status={statusOf(p)}
                             amount={amountOf(p)}
                           />
                           {postAction && (

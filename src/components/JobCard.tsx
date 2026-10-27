@@ -5,6 +5,7 @@ import type { Job } from "@/lib/database.types";
 import { CampaignBanner } from "@/components/app/CampaignBanner";
 import { parsePayoutTerms, termsChips } from "@/lib/payout-terms";
 import { parsePostTerms, postTermsChips } from "@/lib/post-terms";
+import { campaignHold } from "@/lib/campaign-holds";
 
 interface JobCardProps {
   job: Job & { niches: { label: string } | null };
@@ -28,7 +29,8 @@ export function JobCard({ job, href }: JobCardProps) {
 
   // "$20 per post" reads best as a big amount with the unit beside it.
   const split = headline.match(/^(\$[\d.,]+[KkMm]?)\s+(.+)$/);
-  const closed = job.status !== "open";
+  const hold = campaignHold(job);
+  const closed = job.status !== "open" || hold !== null;
 
   return (
     <Link
@@ -48,7 +50,7 @@ export function JobCard({ job, href }: JobCardProps) {
         </span>
         {closed && (
           <span className="absolute top-3 right-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border/60 backdrop-blur">
-            {job.status === "filled" ? "Filled" : "Closed"}
+            {hold && job.status === "open" ? hold.label : job.status === "filled" ? "Filled" : "Closed"}
           </span>
         )}
       </div>

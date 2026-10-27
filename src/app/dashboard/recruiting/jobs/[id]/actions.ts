@@ -11,6 +11,7 @@ import { parseDriveLink } from "@/lib/drive-link";
 import { pickVideoIds } from "@/lib/creator-videos";
 import { parsePostTerms } from "@/lib/post-terms";
 import { contractStatus } from "@/lib/contract";
+import { campaignHold } from "@/lib/campaign-holds";
 
 export interface ApplyState {
   error?: string;
@@ -71,6 +72,8 @@ export async function applyToJobAction(
   if (job.status !== "open") {
     return { error: "This campaign isn't taking applications any more." };
   }
+  const applyHold = campaignHold(job);
+  if (applyHold) return { error: applyHold.note };
 
   // The sample video is only asked for when the campaign turns it on. If the
   // creator pastes one anyway it still has to be a real Google Drive link.
@@ -181,12 +184,14 @@ export async function joinCampaignAction(
 
   const { data: job } = await supabase
     .from("jobs")
-    .select("id, status, sample_required, payout_amount, payout_terms, post_terms")
+    .select("id, title, status, sample_required, payout_amount, payout_terms, post_terms")
     .eq("id", parsed.data.job_id)
     .maybeSingle();
   if (!job) return { error: "That campaign no longer exists." };
   if (job.status !== "open")
     return { error: "This campaign isn't open any more." };
+  const joinHold = campaignHold(job);
+  if (joinHold) return { error: joinHold.note };
   if (job.sample_required) {
     return {
       error:

@@ -16,6 +16,9 @@ import { formatDate } from "@/lib/utils";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { contractSections, contractStatus } from "@/lib/contract";
 import { ContractReader } from "@/components/app/ContractReader";
+import { campaignHold } from "@/lib/campaign-holds";
+import { YourPosts } from "@/components/tracking/YourPosts";
+import { postReviews, reviewedOf } from "@/lib/post-review";
 
 const APPLICATION_LABELS: Record<string, string> = {
   pending: "Waiting to hear back",
@@ -119,8 +122,31 @@ export default async function JobDetailPage(props: {
     intro = "You're on this campaign. Add each post as you publish it.";
     const { data: myPosts } = await supabase
       .from("assignment_posts")
-      .select("platform, state, author_verified, submitted_at")
+      .select("id, platform, url, state, author_verified, views, submitted_at, window_ends_at, reject_reason, last_error, views_counted_at")
       .eq("assignment_id", assignment.id);
+    // Each post with where it stands (checking, being reviewed, approved), listed under "Add a post".
+    const review = await postReviews((myPosts ?? []).map((p) => p.id));
+    const yourPosts = (
+      <YourPosts
+        terms={postTerms}
+        allHref={`/dashboard/recruiting/earnings/${assignment.id}?tab=posts`}
+        posts={(myPosts ?? []).map((p) => ({
+          id: p.id,
+          platform: p.platform,
+          url: p.url,
+          state: p.state,
+          authorVerified: p.author_verified,
+          views: Number(p.views),
+          submittedAt: p.submitted_at,
+          windowEndsAt: p.window_ends_at,
+          rejectReason: p.reject_reason,
+          lastError: p.last_error,
+          viewsCountedAt: p.views_counted_at,
+          reviewed: reviewedOf(review, p.id),
+        }))}
+      />
+    );
+    below = yourPosts;
     // Once you're on a campaign whose brand has signed its contract, you can read all of it here.
     if (postTerms.contract && contractStatus(postTerms) === "signed") {
       const { data: accepted, error: acceptError } = await (
@@ -133,6 +159,8 @@ export default async function JobDetailPage(props: {
         .eq("assignment_id", assignment.id)
         .maybeSingle();
       below = (
+        <>
+        {yourPosts}
         <ContractReader
           brand={postTerms.contract.legalName}
           brandAgreedAt={postTerms.contract.agreedAt}
@@ -145,6 +173,7 @@ export default async function JobDetailPage(props: {
           }
           sections={contractSections({ campaign: job.title, agency: "OnCamera", terms: postTerms, brand: postTerms.contract })}
         />
+        </>
       );
     }
     cta = (
@@ -173,6 +202,20 @@ export default async function JobDetailPage(props: {
         currentProofUrl={assignment.proof_url}
         label={assignment.proof_url ? "Update my post" : "Submit content"}
       />
+    );
+  } else if (job.status === "open" && campaignHold(job)) {
+    // Still shown, but taking no new creators (lib/campaign-holds.ts).
+    const hold = campaignHold(job)!;
+    intro = hold.note;
+    cta = (
+      <div className="flex flex-col gap-2">
+        <Button size="lg" className="w-full" disabled>
+          {hold.label}
+        </Button>
+        <Button size="sm" variant="ghost" className="w-full" nativeButton={false} render={<Link href="/dashboard/recruiting/jobs" />}>
+          Browse other campaigns
+        </Button>
+      </div>
     );
   } else if (job.status !== "open") {
     intro = "This campaign isn't open any more.";

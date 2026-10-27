@@ -2,7 +2,7 @@
 
 import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
-import { CheckCircle2, Clock, Plus, X, XCircle } from "lucide-react";
+import { Clock, Plus, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -129,19 +129,11 @@ export function SubmitPost({
               role="status"
               className="flex gap-3 rounded-lg border border-border bg-muted px-4 py-3"
             >
-              {state.success.startsWith("Post added") ? (
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
-              ) : (
-                <Clock className="mt-0.5 size-5 shrink-0 text-amber-400" />
-              )}
+              <Clock className="mt-0.5 size-5 shrink-0 text-amber-400" />
               <div>
-                <p className="font-semibold text-foreground">
-                  {state.success.startsWith("Post added")
-                    ? "Post added: counting views"
-                    : "Reviewing your post"}
-                </p>
+                <p className="font-semibold text-foreground">Video being reviewed</p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  {state.success}
+                  {state.success} It turns green under Your posts once it&apos;s approved.
                 </p>
                 <Link
                   href={`/dashboard/recruiting/earnings/${assignmentId}?tab=posts`}

@@ -31,6 +31,7 @@ import { PLATFORM_LABELS, formatPayoutSummary } from "@/lib/utils";
 import type { Job } from "@/lib/database.types";
 import { ExampleVideos } from "@/components/app/ExampleVideos";
 import { requirementItems } from "@/lib/requirements";
+import { campaignHold } from "@/lib/campaign-holds";
 
 /**
  * One campaign: a left panel (banner, tags, and the one thing to do next, passed
@@ -137,6 +138,7 @@ export function CampaignView({
     .map((l) => l.replace(/^[\s•\-*\u2022]+/, "").trim())
     .filter(Boolean);
 
+  const hold = campaignHold(job);
   const guideBlocks = parseGuide(guide?.guide ?? "");
   const { intro: scriptsIntro, scripts } = parseScripts(guide?.scripts ?? "");
 
@@ -229,12 +231,14 @@ export function CampaignView({
                 {job.niches && (
                   <StatusBadge tone="neutral">{job.niches.label}</StatusBadge>
                 )}
-                <StatusBadge tone={jobStatusTone(job.status)}>
-                  {job.status === "open"
-                    ? "Open"
-                    : job.status === "filled"
-                      ? "Filled"
-                      : "Closed"}
+                <StatusBadge tone={hold && job.status === "open" ? "neutral" : jobStatusTone(job.status)}>
+                  {hold && job.status === "open"
+                    ? hold.label
+                    : job.status === "open"
+                      ? "Open"
+                      : job.status === "filled"
+                        ? "Filled"
+                        : "Closed"}
                 </StatusBadge>
               </div>
 
