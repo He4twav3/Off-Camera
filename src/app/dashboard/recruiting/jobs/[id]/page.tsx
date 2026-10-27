@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
 import { CampaignView } from "@/components/app/CampaignView";
+import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { SubmitContent } from "./SubmitContent";
 import { SubmitPost } from "@/components/app/SubmitPost";
 import { mainPlatformOf, parsePostTerms } from "@/lib/post-terms";
@@ -50,6 +51,8 @@ export default async function JobDetailPage(props: {
   const terms = parsePayoutTerms(job.payout_terms);
   // A campaign whose contract pays per post (the Getimg kind) is tracked and paid post by post.
   const postTerms = parsePostTerms(job.post_terms);
+  // Started now, read while the rest of the page loads.
+  const guidePromise = readCampaignGuide(job.id);
 
   const { data: applicant } = await supabase
     .from("applicants")
@@ -299,6 +302,7 @@ export default async function JobDetailPage(props: {
       job={job}
       terms={terms}
       postTerms={postTerms}
+      guide={await guidePromise}
       intro={intro}
       cta={cta}
       notice={notice}

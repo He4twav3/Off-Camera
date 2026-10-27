@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CampaignView } from "@/components/app/CampaignView";
+import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { requireAdminMfa } from "@/lib/admin-mfa";
 import { createClient } from "@/lib/supabase/server";
 import { parsePayoutTerms } from "@/lib/payout-terms";
@@ -18,6 +19,7 @@ export default async function AdminCampaignPreviewPage(props: { params: Promise<
   const { data: job } = await supabase.from("jobs").select("*, niches(label)").eq("id", id).maybeSingle();
   if (!job) notFound();
   const postTerms = parsePostTerms(job.post_terms);
+  const guide = await readCampaignGuide(job.id);
 
   return (
     <>
@@ -31,6 +33,7 @@ export default async function AdminCampaignPreviewPage(props: { params: Promise<
         job={job}
         terms={parsePayoutTerms(job.payout_terms)}
         postTerms={postTerms}
+        guide={guide}
         intro={postTerms ? "Apply to get started: you can add posts as soon as you're on." : "Apply to get started."}
         cta={
           <Button size="lg" className="w-full" disabled>

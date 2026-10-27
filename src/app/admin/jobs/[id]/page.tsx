@@ -16,6 +16,7 @@ import { describeFee } from "@/lib/fee";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
+import { readCampaignGuide } from "@/lib/campaign-guide-store";
 
 export const metadata: Metadata = { title: "Campaign · Admin" };
 
@@ -61,7 +62,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <JobForm niches={niches ?? []} brands={brands ?? []} job={job} />
+          <JobForm niches={niches ?? []} brands={brands ?? []} job={job} guide={await readCampaignGuide(job.id)} />
           <Link href={`/admin/jobs/${c.id}/terms`} className="text-sm font-semibold text-primary underline underline-offset-2">
             Requirements and pay terms
           </Link>

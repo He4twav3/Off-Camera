@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { StatusBadge, jobStatusTone } from "@/components/ui/status-badge";
 import { CampaignBanner } from "@/components/app/CampaignBanner";
-import { BriefPanel } from "@/components/app/BriefPanel";
+import { BriefButton, BriefKeyRules, BriefProvider } from "@/components/app/BriefPanel";
+import { GuideWarning } from "@/components/app/GuideText";
+import { guideWarnings, inlineText, parseGuide, parseScripts } from "@/lib/campaign-guide";
+import type { CampaignGuide } from "@/lib/campaign-guide-store";
 import { CommissionNote } from "@/components/app/CommissionNote";
 import {
   describeTerms,
@@ -45,7 +48,10 @@ export function CampaignView({
   below,
   back = { href: "/dashboard/recruiting/jobs", label: "← Campaigns" },
   emptyExamplesHref,
+  guide,
 }: {
+  /** The campaign's product guide and scripts (lib/campaign-guide-store.ts), shown in the full brief. */
+  guide?: CampaignGuide;
   job: Job & { niches: { label: string } | null };
   terms: PayoutTerms | null;
   /** Set for a campaign whose contract pays per post (lib/post-terms.ts). */
@@ -132,6 +138,10 @@ export function CampaignView({
     .map((l) => l.replace(/^[\s•\-*\u2022]+/, "").trim())
     .filter(Boolean);
 
+  const guideBlocks = parseGuide(guide?.guide ?? "");
+  const { intro: scriptsIntro, scripts } = parseScripts(guide?.scripts ?? "");
+  const warnings = guideWarnings(guideBlocks);
+
   // The brand's own words for this campaign (see the admin job form).
   const formatList = (job.formats ?? "")
     .split(/\n+/)
@@ -185,6 +195,17 @@ export function CampaignView({
 
         {/* Centre: the offer, how it pays, then the rules. */}
         <div className="min-w-0">
+          <BriefProvider
+            campaign={job.title}
+            guide={guideBlocks}
+            scriptsIntro={scriptsIntro}
+            scripts={scripts}
+            rules={rules}
+            formats={formatList}
+            payLines={payLines}
+            requirements={postTerms ? requirementItems(postTerms) : []}
+            about={job.about ?? null}
+          >
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 flex-1 basis-72">
               <p className="font-heading text-[17px] font-semibold text-foreground">
@@ -218,6 +239,29 @@ export function CampaignView({
                       : "Closed"}
                 </StatusBadge>
               </div>
+
+              {/* The way into the full brief, first, then anything the creator must not get wrong. */}
+              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <BriefButton variant="default" />
+                {(guideBlocks.length > 0 || scripts.length > 0) && (
+                  <span className="text-sm text-muted-foreground">
+                    {[
+                      guideBlocks.length > 0 ? "what the product does" : null,
+                      scripts.length > 0 ? `${scripts.length} script${scripts.length === 1 ? "" : "s"} with examples` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" and ")
+                      .replace(/^./, (c) => c.toUpperCase())}
+                  </span>
+                )}
+              </div>
+              {warnings.length > 0 && (
+                <div className="mt-3 flex flex-col gap-2">
+                  {warnings.map((w) => (
+                    <GuideWarning key={inlineText(w)} text={w} />
+                  ))}
+                </div>
+              )}
 
               {postTerms && (
                 <section aria-label="Requirements" className="mt-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:px-5 sm:py-4">
@@ -291,16 +335,7 @@ export function CampaignView({
 
               <ExampleVideos urls={job.example_urls ?? []} emptyHref={emptyExamplesHref} />
 
-              {(rules.length > 0 || payLines.length > 0) && (
-                <BriefPanel
-                  campaign={job.title}
-                  rules={rules}
-                  formats={formatList}
-                  payLines={payLines}
-                  requirements={postTerms ? requirementItems(postTerms) : []}
-                  about={job.about ?? null}
-                />
-              )}
+              {(rules.length > 0 || payLines.length > 0) && <BriefKeyRules rules={rules} />}
 
               {!job.logo_url && (
                 <p className="mt-4 text-sm text-muted-foreground">
@@ -313,6 +348,7 @@ export function CampaignView({
           }
 
           {below}
+          </BriefProvider>
         </div>
       </div>
     </div>

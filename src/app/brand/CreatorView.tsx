@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CampaignView } from "@/components/app/CampaignView";
+import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { parsePostTerms } from "@/lib/post-terms";
@@ -21,6 +22,7 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
     .maybeSingle();
   if (!job) notFound();
   const postTerms = parsePostTerms(job.post_terms);
+  const guide = await readCampaignGuide(job.id);
 
   return (
     <section aria-label="How creators see your campaign" className="overflow-hidden rounded-xl border border-border/70">
@@ -35,6 +37,7 @@ export async function CreatorView({ jobId, brandId }: { jobId: string; brandId: 
         job={job}
         terms={parsePayoutTerms(job.payout_terms)}
         postTerms={postTerms}
+        guide={guide}
         intro={postTerms ? "Apply to get started: you can add posts as soon as you're on." : "Apply to get started."}
         cta={
           <Button size="lg" className="w-full" disabled>

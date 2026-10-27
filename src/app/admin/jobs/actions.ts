@@ -15,6 +15,8 @@ import {
 } from "@/lib/avatar";
 import { payoutTermsSchema } from "@/lib/payout-terms";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
+import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
+import { writeCampaignGuide } from "@/lib/campaign-guide-store";
 
 export interface JobFormState {
   error?: string;
@@ -193,6 +195,14 @@ export async function saveJobAction(
   );
   if (!examples.ok) return { error: `Example videos: ${examples.error}` };
 
+  // The long parts of the brief: the product guide and the scripts (kept in storage, see lib/campaign-guide-store.ts).
+  const guide = {
+    guide: String(formData.get("guide") ?? ""),
+    scripts: String(formData.get("scripts") ?? ""),
+  };
+  if (guide.guide.length > MAX_GUIDE_LENGTH || guide.scripts.length > MAX_GUIDE_LENGTH)
+    return { error: `Keep the product guide and the scripts under ${MAX_GUIDE_LENGTH.toLocaleString("en-US")} characters each.` };
+
   const formula = readPayoutTerms(formData);
   if (formula.error) return { error: formula.error };
 
@@ -257,12 +267,19 @@ export async function saveJobAction(
   // service-role, so the policy is doing the real enforcement.
   const saved: typeof row & { logo_url?: string | null } =
     logoUrl === undefined ? row : { ...row, logo_url: logoUrl };
-  const { error } = id
-    ? await supabase.from("jobs").update(saved).eq("id", id)
-    : await supabase.from("jobs").insert(saved);
+  const { data: savedRow, error } = id
+    ? await supabase.from("jobs").update(saved).eq("id", id).select("id").maybeSingle()
+    : await supabase.from("jobs").insert(saved).select("id").maybeSingle();
 
-  if (error) {
+  if (error || !savedRow) {
     return { error: "Couldn't save the job. Please try again." };
+  }
+
+  // Storage is written with the service role, so check here what the database's rules already checked for the row.
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin) {
+    const written = await writeCampaignGuide(savedRow.id, guide);
+    if (!written.ok) return { error: `The campaign was saved, but not the guide and scripts. ${written.error}` };
   }
 
   // The logo it replaced is no longer used. Failing to tidy it up is harmless.

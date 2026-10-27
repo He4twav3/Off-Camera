@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { saveJobAction, type JobFormState } from "./actions";
 import type { Job } from "@/lib/database.types";
 import { parsePayoutTerms } from "@/lib/payout-terms";
+import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 
 function SubmitButton({ isEdit }: { isEdit: boolean }) {
   const { pending } = useFormStatus();
@@ -24,9 +25,11 @@ interface JobFormProps {
   niches: { id: string; label: string }[];
   brands?: { id: string; company_name: string }[];
   job?: Job;
+  /** The saved product guide and scripts (lib/campaign-guide-store.ts). */
+  guide?: { guide: string; scripts: string };
 }
 
-export function JobForm({ niches, brands = [], job }: JobFormProps) {
+export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<JobFormState, FormData>(
     saveJobAction,
@@ -158,6 +161,34 @@ export function JobForm({ niches, brands = [], job }: JobFormProps) {
               id={`formats-${job?.id ?? "new"}`}
               name="formats"
               defaultValue={job?.formats ?? ""}
+            />
+          </Field>
+
+          <Field
+            label="Product guide"
+            htmlFor={`guide-${job?.id ?? "new"}`}
+            hint="What the product is and does, read before creators try it. Opens first in the full brief. Use ## for a heading, - for a list, **bold**, and start a line with ! for a red warning (it also shows at the top of the campaign page)."
+          >
+            <Textarea
+              id={`guide-${job?.id ?? "new"}`}
+              name="guide"
+              defaultValue={guide?.guide ?? ""}
+              rows={10}
+              maxLength={MAX_GUIDE_LENGTH}
+            />
+          </Field>
+
+          <Field
+            label="Scripts"
+            htmlFor={`scripts-${job?.id ?? "new"}`}
+            hint="One script per format, in the full brief. Start each with ### and its title, add Example: and a link for its example video, then the script as a - list. Lines before the first ### show above all the scripts."
+          >
+            <Textarea
+              id={`scripts-${job?.id ?? "new"}`}
+              name="scripts"
+              defaultValue={guide?.scripts ?? ""}
+              rows={12}
+              maxLength={MAX_GUIDE_LENGTH}
             />
           </Field>
 
