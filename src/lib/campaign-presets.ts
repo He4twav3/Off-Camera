@@ -26,7 +26,7 @@ export type CampaignPreset = {
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
-  version: 3,
+  version: 4,
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
@@ -38,8 +38,7 @@ export const MEPERSONA: CampaignPreset = {
     "https://www.tiktok.com/@dawn_flaherty/video/7595217979986529567",
     "https://www.tiktok.com/@sabrina_ramonov/video/7618606049490111758",
     "https://www.tiktok.com/@creators_growth_studio/video/7555584924158479630",
-    "https://www.tiktok.com/@thesocialpear/video/7444325416204127530",
-    "https://www.tiktok.com/@laurennrwebb/video/7320816213330791685",
+    "https://www.tiktok.com/@aliabdaal/video/7563246648600661280",
     "https://www.tiktok.com/@.lachief/video/7358164253515271429",
   ],
   guide:
