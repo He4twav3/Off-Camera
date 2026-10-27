@@ -26,7 +26,7 @@ export type CampaignPreset = {
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
-  version: 5,
+  version: 6,
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
@@ -39,7 +39,6 @@ export const MEPERSONA: CampaignPreset = {
     "https://www.tiktok.com/@sabrina_ramonov/video/7618606049490111758",
     "https://www.tiktok.com/@creators_growth_studio/video/7555584924158479630",
     "https://www.instagram.com/reel/DdcVV3zvI6i/",
-    "https://www.tiktok.com/@.lachief/video/7358164253515271429",
   ],
   guide:
     "## What MePersona is\n**MePersona is an AI assistant that runs your social media in your voice.** You connect your social media accounts to it, and it helps you reply to people, write your posts and keep everything organized in one place. It learns how you talk, so everything it writes sounds like you, not a bot.\n\n## It learns your voice\nYou read a short sample out loud, and MePersona learns how you talk and write. You can also start from a ready-made persona or build one from scratch.\n\n## You connect your social media\nYou link your accounts to MePersona. Your comments and messages come into MePersona, and your posts go out from it, so you don't jump between apps.\n\n## It replies to your comments and messages\nWhen someone comments or sends you a DM, MePersona drafts a reply in your voice. Your followers still get a personal answer, without you staying on top of every single comment.\n\n## You stay in control\nNothing goes out until you approve it. Every reply and post waits in your Review Queue, where you approve, edit or skip it. Once you trust it, you can turn on auto-reply for simple, routine messages.\n\n## It writes and schedules your posts\nGive it one idea, and it drafts the script or caption for each platform in your voice. Approve it, schedule it, and it posts for you.\n\n## Everything in one place\n- All your comments and DMs from every platform in one inbox (paid plans)\n- A content vault that stores and auto-tags your videos and images\n- An analytics dashboard and a Marketing Agent that plans campaigns in your voice (paid plans)\n- English, Spanish and Traditional Chinese\n\n## Platforms\n! TikTok, X, Pinterest, LinkedIn and Bluesky: MePersona connects to these and can post and schedule for you. It does not reply to comments or DMs on them. Never say it does.\n**Replying to comments and messages works on:** Instagram, Facebook, YouTube, Discord, Telegram, WordPress and Mastodon. You can mention these for everything: replies, DMs, posting and scheduling.\n\nComing soon, so don't mention yet: LinkedIn Pages, Reddit, Twitch and WhatsApp.\n\n## What it costs\n- **Free:** no card needed. About 300 replies a month and 2 platforms.\n- **Premium, $29/month:** unlimited platforms, the all-in-one inbox and analytics.\n- Bigger plans exist for larger accounts. Paid plans have a 7-day free trial.",
