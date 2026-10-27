@@ -44,15 +44,15 @@ export function BriefProvider({
     <OpenBrief.Provider value={() => setOpen(true)}>
       {children}
       <Sheet open={open} onOpenChange={setOpen}>
-        {/* The brief reads like a document: black text on a white page. */}
+        {/* The brief reads like a document: white text on a black page. */}
         <SheetContent
           initialFocus={top}
-          className="gap-0 overflow-y-auto bg-neutral-200 data-[side=right]:w-full data-[side=right]:sm:max-w-3xl [&_[data-slot=sheet-close]]:text-neutral-900 [&_[data-slot=sheet-close]]:hover:bg-neutral-200"
+          className="gap-0 overflow-y-auto bg-black data-[side=right]:w-full data-[side=right]:sm:max-w-3xl [&_[data-slot=sheet-close]]:text-white [&_[data-slot=sheet-close]]:hover:bg-neutral-800"
         >
-          <div ref={top} tabIndex={-1} className="mx-auto w-full max-w-[52rem] bg-white px-6 py-10 text-[15px] leading-relaxed text-neutral-900 outline-none sm:px-12 sm:py-14">
+          <div ref={top} tabIndex={-1} className="mx-auto w-full max-w-[52rem] bg-black px-6 py-10 text-[15px] leading-relaxed text-white outline-none sm:px-12 sm:py-14">
             <SheetHeader className="p-0 pr-10">
-              <SheetTitle className="text-2xl font-bold text-neutral-900">{campaign} brief</SheetTitle>
-              <SheetDescription className="text-neutral-600">Everything the brand needs in your videos.</SheetDescription>
+              <SheetTitle className="text-2xl font-bold text-white">{campaign} brief</SheetTitle>
+              <SheetDescription className="text-neutral-400">Everything the brand needs in your videos.</SheetDescription>
             </SheetHeader>
 
             {/* In order: the product, what to make, how to make it, then how it pays, always last. */}
@@ -125,8 +125,8 @@ export function BriefProvider({
 function DocSection({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
   return (
     <section className="mt-10">
-      <h3 className="border-b border-neutral-300 pb-1.5 text-xl font-bold">{title}</h3>
-      {note && <p className="mt-2 text-neutral-600 italic">{note}</p>}
+      <h3 className="border-b border-neutral-700 pb-1.5 text-xl font-bold">{title}</h3>
+      {note && <p className="mt-2 text-neutral-400 italic">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
   );

@@ -1,7 +1,7 @@
 import type { GuideBlock, GuideInline, Script } from "@/lib/campaign-guide";
 
 /*
- * The product guide and scripts, set like a printed document (black on a white page): the full brief reads as a
+ * The product guide and scripts, set like a document (white on a black page): the full brief reads as a
  * doc, not as more of the app.
  */
 
@@ -25,7 +25,7 @@ function Inline({ text }: { text: GuideInline }) {
 /** A warning: bold red capitals, the one thing a creator must not get wrong. */
 function Warning({ text }: { text: GuideInline }) {
   return (
-    <p className="font-bold text-red-600 uppercase">
+    <p className="font-bold text-red-500 uppercase">
       <Inline text={text} />
     </p>
   );
@@ -48,7 +48,7 @@ function ExampleLink({ url, note }: { url: string; note: string }) {
   return (
     <p>
       <span className="font-bold">Example{note ? `, ${note}` : ""}:</span>{" "}
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
         {linkLabel(url)}
       </a>
     </p>
