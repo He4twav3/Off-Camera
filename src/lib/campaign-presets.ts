@@ -26,14 +26,14 @@ export type CampaignPreset = {
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
-  version: 11,
+  version: 12,
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
   about:
     "Answer every comment, in your own voice. MePersona is an AI inbox for creators. It brings your post comments and DMs from Instagram, Facebook, YouTube and more into one place, drafts replies that sound like you, and schedules your posts across platforms. Answering every comment keeps the conversation going, and MePersona makes that possible without living in your apps all day.",
   description:
-    "## Read the full brief\nIt explains what MePersona is and what it does, and it has this week's 5 scripts: GOOD BETTER BEST, why aren't more people batching, be on every platform without living on every platform, why your engagement is low, and this feels illegal to know.\n## Pick a script and make it your own\nWatch its example video below. Keep the example's hook and structure, then fill it with your own setup, your own platforms and your own real results, built around MePersona.\n## Your own ideas are welcome\nUnique videos and new formats that work are welcome too, and rewarded if they go viral.\n## Use MePersona for a few days first\nSo what you show on screen is real: your inbox, your drafted replies, your scheduled posts.\n## Get paid monthly\nOne statement a month for everything you earned, paid within 7 days.\n### Hooks you can use\n- \"Why aren't more people batching?\"\n- \"Why is your engagement so low?\"\n- \"Small creators, stop doing everything manually.\"\n- \"This feels illegal to know.\"\n- \"Why posting on one platform is holding you back.\"\n- \"Stop relying on one platform to grow. Here's why.\"",
+    "## Read the full brief\nIt explains what MePersona is and what it does, and it has this week's scripts.\n## Pick a script and make it your own\nWatch its example video below. Keep the example's hook and structure, then fill it with your own setup, your own platforms and your own real results, built around MePersona.\n## Your own ideas are welcome\nUnique videos and new formats that work are welcome too, and rewarded if they go viral.\n## Use MePersona for a few days first\nSo what you show on screen is real: your inbox, your drafted replies, your scheduled posts.\n## Get paid monthly\nOne statement a month for everything you earned, paid within 7 days.\n### Formats that work\n- GOOD BETTER BEST: rate three ways to keep up, MePersona comes out on top\n- Why aren't more people batching? A green screen over your scheduler\n- Be on every platform without living on every platform\n- Why your engagement is low, for small creators\n- This feels illegal to know: a quick walkthrough\n### Hooks you can use\n- \"Why aren't more people batching?\"\n- \"Why is your engagement so low?\"\n- \"Small creators, stop doing everything manually.\"\n- \"This feels illegal to know.\"\n- \"Why posting on one platform is holding you back.\"\n- \"Stop relying on one platform to grow. Here's why.\"",
   exampleUrls: [
     "https://www.tiktok.com/@dawn_flaherty/video/7595217979986529567",
     "https://www.tiktok.com/@sabrina_ramonov/video/7618606049490111758",
