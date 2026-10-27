@@ -37,28 +37,8 @@ export function ExampleVideoCard({
 
   const yt = platform === "youtube_shorts" ? youtubeId(url) : null;
   const uploaded = platform === "upload";
-  // TikTok no longer sends a cover image with its embed details, so without one the card is TikTok's own player:
-  // the video shows and plays right in the card.
-  const tiktokId = platform === "tiktok" && !poster ? (/\/video\/(\d+)/.exec(url)?.[1] ?? null) : null;
-
-  if (tiktokId)
-    return (
-      <div className="block w-full">
-        <div className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] overflow-hidden rounded-lg border border-border/70 bg-black sm:rounded-xl">
-          <iframe
-            src={`https://www.tiktok.com/player/v1/${tiktokId}?controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=1&timestamp=0&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0`}
-            title={`${label} example`}
-            loading="lazy"
-            allow="encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-            className="absolute inset-0 size-full"
-          />
-        </div>
-        <a href={url} target="_blank" rel="noopener noreferrer" className="mt-1.5 block truncate text-xs font-medium text-foreground hover:underline sm:text-sm">
-          {label}
-        </a>
-      </div>
-    );
+  // TikTok no longer sends a cover image with its embed details, so a card without one shows the creator's handle.
+  const handle = !poster && !uploaded ? (/\/@([^/?#]+)/.exec(url)?.[1] ?? null) : null;
 
   return (
     <>
@@ -71,6 +51,9 @@ export function ExampleVideoCard({
           {poster && (
             // eslint-disable-next-line @next/next/no-img-element -- signed platform CDN images
             <img src={poster} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+          )}
+          {handle && (
+            <span className="absolute inset-x-0 bottom-0 truncate px-2 pb-2 text-center text-xs font-semibold text-foreground sm:text-sm">@{handle}</span>
           )}
           <span className="absolute inset-0 flex items-center justify-center">
             <span className="flex size-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur sm:size-12">
