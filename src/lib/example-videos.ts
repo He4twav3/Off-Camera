@@ -33,8 +33,7 @@ export function isUploadedExample(url: string): boolean {
 }
 
 /**
- * Where a TikTok or Instagram example's thumbnail is kept in the bucket, from the post's id: the same place whether it
- * was copied from the platform or added by hand. Null for any other link.
+ * Where a TikTok or Instagram example's thumbnail is kept in the bucket, from the post's id. Null for any other link.
  */
 export function coverPath(url: string): string | null {
   const tiktok = /tiktok\.com\/.*\/(?:video|photo)\/(\d+)/.exec(url)?.[1];

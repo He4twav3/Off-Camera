@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { EXAMPLE_VIDEO_BUCKET, EXAMPLE_VIDEO_TYPES, MAX_EXAMPLE_VIDEO_BYTES, coverPath } from "@/lib/example-videos";
+import { EXAMPLE_VIDEO_BUCKET, EXAMPLE_VIDEO_TYPES, MAX_EXAMPLE_VIDEO_BYTES } from "@/lib/example-videos";
 import { ensureExampleBucket, uploadPosterPath } from "@/lib/example-cover-store";
 
 export type ExampleUploadStart = { ok: true; path: string; token: string; url: string } | { ok: false; error: string };
@@ -65,26 +65,3 @@ export async function startExamplePosterUploadAction(input: { videoUrl: string }
   return { ok: true, path: data.path, token: data.token, url: storage.from(EXAMPLE_VIDEO_BUCKET).getPublicUrl(data.path).data.publicUrl };
 }
 
-/**
- * A one-time signed upload for a TikTok or Instagram example's thumbnail, added by hand (TikTok no longer gives one).
- * It replaces any earlier one. Only admins and brands may add one.
- */
-export async function startExampleCoverUploadAction(input: { url: string }): Promise<ExampleUploadStart> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Sign in again." };
-  const { data: isAdmin } = await supabase.rpc("is_admin");
-  if (!isAdmin) {
-    const { data: brand } = await supabase.from("brand_accounts").select("id").eq("user_id", user.id).maybeSingle();
-    if (!brand) return { ok: false, error: "Only brands and admins can add thumbnails." };
-  }
-  const path = coverPath(input.url);
-  if (!path) return { ok: false, error: "Thumbnails can be added to TikTok and Instagram links." };
-  if (!(await ensureExampleBucket())) return { ok: false, error: "Uploads aren't available right now." };
-  const storage = createAdminClient().storage;
-  const { data, error } = await storage.from(EXAMPLE_VIDEO_BUCKET).createSignedUploadUrl(path, { upsert: true });
-  if (error || !data) return { ok: false, error: "We couldn't save the thumbnail." };
-  return { ok: true, path: data.path, token: data.token, url: storage.from(EXAMPLE_VIDEO_BUCKET).getPublicUrl(data.path).data.publicUrl };
-}

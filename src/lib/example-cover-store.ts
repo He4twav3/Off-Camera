@@ -81,7 +81,7 @@ async function keep(imageUrl: string, path: string): Promise<string | null> {
 }
 
 /**
- * A lasting thumbnail for a TikTok or Instagram example: our copy if we have one (copied earlier, or added by hand),
+ * A lasting thumbnail for a TikTok or Instagram example: our copy if we have one,
  * otherwise the platform's cover, copied into our storage on the way. Null when none can be found.
  */
 export async function lastingCover(platform: string, url: string): Promise<string | null> {
