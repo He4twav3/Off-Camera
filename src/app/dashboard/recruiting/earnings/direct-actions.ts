@@ -5,12 +5,16 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { statementState } from "@/lib/direct-pay";
-import { parseBankDetails } from "@/lib/bank-details";
+import { isCardNumber, parseBankDetails } from "@/lib/bank-details";
 import { removeBankDetails, saveBankDetails } from "@/lib/payout-details-store";
 
 export interface DirectState {
   error?: string;
   success?: string;
+  /** What was typed, sent back with an error so the form keeps it (never a card number). */
+  values?: Record<string, string>;
+  /** Changes on every save attempt, so the form redraws with the values above. */
+  attempt?: number;
 }
 
 /** The signed-in creator's applicant row, or null. Every action below starts here. */
@@ -36,13 +40,16 @@ export async function saveBankDetailsAction(_prev: DirectState, formData: FormDa
     if (!(await removeBankDetails(me.applicantId))) return { error: "Couldn't remove them. Please try again." };
     revalidatePath("/dashboard/account/payments");
     revalidatePath("/dashboard/recruiting/earnings");
-    return { success: "Removed." };
+    return { success: "Removed.", attempt: Date.now() };
   }
 
   const input: Record<string, string> = {};
   for (const [k, v] of formData.entries()) if (typeof v === "string") input[k] = v;
   const parsed = parseBankDetails(input);
-  if (!parsed.ok) return { error: parsed.error };
+  if (!parsed.ok) {
+    const values = Object.fromEntries(Object.entries(input).filter(([k, v]) => !k.startsWith("$") && !isCardNumber(v)));
+    return { error: parsed.error, values, attempt: Date.now() };
+  }
 
   const {
     data: { user },
@@ -52,7 +59,7 @@ export async function saveBankDetailsAction(_prev: DirectState, formData: FormDa
 
   revalidatePath("/dashboard/recruiting/earnings");
   revalidatePath("/dashboard/account/payments");
-  return { success: "Saved. Brands pay you straight into this account through Wise." };
+  return { success: "Saved. Brands pay you straight into this account through Wise.", attempt: Date.now() };
 }
 
 const idSchema = z.object({ id: z.string().uuid() });

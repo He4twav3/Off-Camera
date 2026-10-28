@@ -5,6 +5,7 @@ import { AccountShell, Section } from "@/components/account/AccountShell";
 import { loadAccount } from "@/lib/account";
 import { BankDetailsForm } from "@/app/dashboard/recruiting/earnings/DirectForms";
 import { readMaskedDetails } from "@/lib/payout-details-store";
+import { countryOptions } from "@/lib/bank-details";
 
 export const metadata: Metadata = { title: "Payments" };
 
@@ -28,7 +29,7 @@ export default async function PaymentsPage() {
         title="Bank details"
         summary="Brands pay you through Wise, straight into this account. We never hold your money. Your full details only go into the Wise payment of a brand that owes you."
       >
-        <BankDetailsForm saved={saved} />
+        <BankDetailsForm saved={saved} countries={countryOptions()} />
       </Section>
     </AccountShell>
   );

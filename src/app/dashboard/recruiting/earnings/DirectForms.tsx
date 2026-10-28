@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { COUNTRY_CODES, CURRENCIES, FIELD_LABEL, STATE_COUNTRIES, type BankDetails } from "@/lib/bank-details";
+import { CURRENCIES, FIELD_LABEL, STATE_COUNTRIES, type BankDetails } from "@/lib/bank-details";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { reportNotPaidAction, saveBankDetailsAction, type DirectState } from "./direct-actions";
 
@@ -35,24 +35,26 @@ function Message({ state }: { state: DirectState }) {
 }
 
 /** Where brands send the money: the creator's own bank account, paid through the brand's Wise batch. */
-export function BankDetailsForm({ saved }: { saved: { summary: string; details: BankDetails } | null }) {
+export function BankDetailsForm({
+  saved,
+  countries,
+}: {
+  saved: { summary: string; details: BankDetails } | null;
+  /** Named on the server (see countryOptions), so the list matches when the page loads. */
+  countries: { code: string; name: string }[];
+}) {
   const [state, formAction] = useActionState<DirectState, FormData>(saveBankDetailsAction, {});
-  const [editing, setEditing] = useState(!saved);
+  // When they last pressed "Change": a save after that closes the form again.
+  const [editingSince, setEditingSince] = useState<number | null>(saved ? null : 0);
   const d = saved?.details;
   const [currency, setCurrency] = useState(d?.currency ?? "EUR");
   const [country, setCountry] = useState(d?.country ?? "");
-  const countries = useMemo(() => {
-    let names: Intl.DisplayNames | null = null;
-    try {
-      names = new Intl.DisplayNames(["en"], { type: "region" });
-    } catch {
-      /* older browsers: show the codes */
-    }
-    return COUNTRY_CODES.map((c) => ({ code: c, name: names?.of(c) ?? c })).sort((a, b) => a.name.localeCompare(b.name));
-  }, []);
   const spec = CURRENCIES[currency];
+  // After an error, show what they typed (React clears a form once its action runs).
+  const typed = (k: string, fallback = "") => state.values?.[k] ?? fallback;
 
-  if (saved && !editing && !state.success) {
+  const justSaved = Boolean(state.success && (state.attempt ?? 0) > (editingSince ?? 0));
+  if (saved && (editingSince === null || justSaved)) {
     return (
       <div className="flex flex-col gap-3">
         <p className="text-[15px] font-semibold text-foreground">{saved.summary}</p>
@@ -60,7 +62,7 @@ export function BankDetailsForm({ saved }: { saved: { summary: string; details: 
           {saved.details.holderName} · {saved.details.city}, {saved.details.country}
         </p>
         <div className="flex flex-wrap gap-3">
-          <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+          <Button type="button" size="sm" variant="outline" onClick={() => setEditingSince(Date.now())}>
             Change bank details
           </Button>
           <form action={formAction}>
@@ -76,7 +78,7 @@ export function BankDetailsForm({ saved }: { saved: { summary: string; details: 
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form key={state.attempt ?? 0} action={formAction} className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
         Brands pay you straight into your own bank account through Wise. You don&apos;t need a Wise account. Amounts are set in US dollars and Wise converts them to your currency. We only ever need your bank account details, like your IBAN.{" "}
         <strong className="text-foreground">Never enter a card number.</strong>
@@ -93,20 +95,20 @@ export function BankDetailsForm({ saved }: { saved: { summary: string; details: 
       </Field>
 
       <Field label="Account holder name" htmlFor="holderName" hint="Your full name, exactly as it is on your bank account.">
-        <Input id="holderName" name="holderName" defaultValue={d?.holderName ?? ""} maxLength={100} autoComplete="name" required />
+        <Input id="holderName" name="holderName" defaultValue={typed("holderName", d?.holderName)} maxLength={100} autoComplete="name" required />
       </Field>
 
       {spec.fields.map((f) =>
         f === "accountType" ? (
           <Field key={f} label={FIELD_LABEL[f].label} htmlFor={f}>
-            <Select id={f} name={f} defaultValue={d?.bank.accountType ?? "CHECKING"}>
+            <Select id={f} name={f} defaultValue={typed("accountType", d?.bank.accountType ?? "CHECKING")}>
               <option value="CHECKING">Checking</option>
               <option value="SAVINGS">Savings</option>
             </Select>
           </Field>
         ) : (
           <Field key={`${currency}-${f}`} label={FIELD_LABEL[f].label} htmlFor={f} hint={FIELD_LABEL[f].hint}>
-            <Input id={f} name={f} placeholder={FIELD_LABEL[f].placeholder} autoComplete="off" spellCheck={false} required={f !== "bic"} maxLength={40} />
+            <Input id={f} name={f} defaultValue={typed(f)} placeholder={FIELD_LABEL[f].placeholder} autoComplete="off" spellCheck={false} required={f !== "bic"} maxLength={40} />
           </Field>
         ),
       )}
@@ -124,19 +126,19 @@ export function BankDetailsForm({ saved }: { saved: { summary: string; details: 
         </Select>
       </Field>
       <Field label="Street address" htmlFor="address">
-        <Input id="address" name="address" defaultValue={d?.address ?? ""} maxLength={100} autoComplete="address-line1" required />
+        <Input id="address" name="address" defaultValue={typed("address", d?.address)} maxLength={100} autoComplete="address-line1" required />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="City" htmlFor="city">
-          <Input id="city" name="city" defaultValue={d?.city ?? ""} maxLength={100} autoComplete="address-level2" required />
+          <Input id="city" name="city" defaultValue={typed("city", d?.city)} maxLength={100} autoComplete="address-level2" required />
         </Field>
         <Field label="Postcode" htmlFor="postCode">
-          <Input id="postCode" name="postCode" defaultValue={d?.postCode ?? ""} maxLength={20} autoComplete="postal-code" />
+          <Input id="postCode" name="postCode" defaultValue={typed("postCode", d?.postCode)} maxLength={20} autoComplete="postal-code" />
         </Field>
       </div>
       {STATE_COUNTRIES.includes(country) && (
         <Field label="State or province" htmlFor="state">
-          <Input id="state" name="state" defaultValue={d?.state ?? ""} maxLength={100} autoComplete="address-level1" required />
+          <Input id="state" name="state" defaultValue={typed("state", d?.state)} maxLength={100} autoComplete="address-level1" required />
         </Field>
       )}
 
@@ -144,7 +146,7 @@ export function BankDetailsForm({ saved }: { saved: { summary: string; details: 
       <div className="flex gap-3">
         <Submit pendingText="Saving…">Save bank details</Submit>
         {saved && (
-          <Button type="button" variant="outline" size="sm" onClick={() => setEditing(false)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => setEditingSince(null)}>
             Cancel
           </Button>
         )}

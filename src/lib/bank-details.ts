@@ -82,6 +82,17 @@ export const COUNTRY_CODES =
     " ",
   );
 
+/** Every country, named in English and sorted. Call on the server and pass it down: browsers name a few differently. */
+export function countryOptions(): { code: string; name: string }[] {
+  let names: Intl.DisplayNames | null = null;
+  try {
+    names = new Intl.DisplayNames(["en"], { type: "region" });
+  } catch {
+    /* no names: show the codes */
+  }
+  return COUNTRY_CODES.map((code) => ({ code, name: names?.of(code) ?? code })).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 const digits = (s: string) => s.replace(/[\s-]/g, "");
 
 /** IBAN check digits (ISO 13616, mod 97). */
