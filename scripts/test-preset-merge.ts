@@ -39,6 +39,18 @@ const t = (n: string, ok: boolean, got?: unknown) => {
   t("no fingerprints yet: hand edits are kept", write.size === 0, [...write]);
   t("no fingerprints yet: matching parts are recorded", fingerprints.guide === fingerprint("same") && !fingerprints.description);
 }
+// A part the owner asked to change in this version is written even though it was edited by hand; the rest stay.
+{
+  const stored = { pay: fingerprint({ rate: 2 }), examples: fingerprint(["a"]) };
+  const { write } = planParts(
+    { pay: { live: { rate: 3 }, next: { rate: 4 } }, examples: { live: ["a", "hand"], next: ["b"] } },
+    stored,
+    false,
+    ["pay"],
+  );
+  t("a requested part is written over a hand edit", write.has("pay"), [...write]);
+  t("other hand edits are still kept", !write.has("examples"), [...write]);
+}
 t("fingerprint ignores key order and spaces", fingerprint({ a: 1, b: " x " }) === fingerprint({ b: "x", a: 1 }));
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");

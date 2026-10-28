@@ -3,15 +3,15 @@ import { EmailLayout, EmailHeading, EmailText, EmailButton } from "./components/
 /** The pay lines in the MePersona announcement, kept here so the plain-text version says exactly the same. */
 export const MEPERSONA_PAY = [
   "$5 for every unique video",
-  "$2 per 1,000 views, up to 100K views",
+  "$4 per 1,000 views for the first 10K, then $2 per 1,000 up to 100K",
   "Rewards of $100, $300 or $500 when a video reaches 250K, 500K or 1M views",
-  "Up to $705 per video, paid monthly",
+  "Up to $725 per video, paid monthly",
 ];
 
 /** Tells approved creators the MePersona campaign is open, with the pay, and sends them to apply. */
 export function MePersonaAnnouncementEmail({ name, campaignUrl }: { name: string; campaignUrl: string }) {
   return (
-    <EmailLayout plain preview="New campaign: MePersona. Up to $705 per video, paid monthly.">
+    <EmailLayout plain preview="New campaign: MePersona. Up to $725 per video, paid monthly.">
       <EmailHeading plain>New campaign: MePersona</EmailHeading>
       <EmailText plain>Hi {name},</EmailText>
       <EmailText plain>

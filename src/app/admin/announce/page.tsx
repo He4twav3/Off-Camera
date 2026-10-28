@@ -34,7 +34,7 @@ async function Loaded() {
     <section className="rounded-xl border border-border/70 bg-card p-5">
       <h2 className="font-heading text-base font-semibold text-foreground">New campaign: MePersona</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Subject: &ldquo;New campaign: MePersona, up to $705 per video&rdquo;. From OnCamera, with the pay and a
+        Subject: &ldquo;New campaign: MePersona, up to $725 per video&rdquo;. From OnCamera, with the pay and a
         button to the campaign.
       </p>
       <p className="mt-4 text-sm text-foreground">

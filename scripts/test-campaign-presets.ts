@@ -18,7 +18,7 @@ if (terms.success) {
   t("$2 per 1,000 views", lines.includes("$2 CPM"), lines);
   t("counted up to 100K views", lines.includes("up to 100K views"), lines);
   t("rewards 100/300/500", lines.includes("$100 at 250K views, $300 at 500K views, $500 at 1M views"), lines);
-  t("$705 max per video", lines.includes("$705 max per video"), lines);
+  t("$725 max per video", lines.includes("$725 max per video"), lines);
   t("no minimum views", !lines.includes("starts earning view pay once"), lines);
   t("no keep-public rule", !lines.includes("Keep each post public"), lines);
   t("monthly statement, 7 days", lines.includes("one statement a month") && lines.includes("has 7 days"), lines);
@@ -48,13 +48,13 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Acme", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@19");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@20");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Send a short sample video."));
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@19", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@20", parsedRow);
 
 // Getimg's setup keeps the campaign's own pay terms, contract, example videos and sample setting.
 {

@@ -38,19 +38,20 @@ export function fingerprint(value: unknown): string {
  * Which parts of a campaign the setup may write, part by part, without ever undoing a hand edit. Each part the setup
  * wrote is fingerprinted. A part is written when it is the campaign's first setup, or when the live value still
  * matches what the setup last wrote; a part someone changed since (in Edit, the pay terms page, or the brand's own
- * editor) is left exactly as they made it, and keeps its old fingerprint so it is never written again. Pure, so the
- * tests check it.
+ * editor) is left exactly as they made it, and keeps its old fingerprint so it is never written again. The only
+ * exception is a part the owner explicitly asked to change in this version (`requested`). Pure, so the tests check it.
  */
 export function planParts(
   parts: Record<string, { live: unknown; next: unknown }>,
   stored: Record<string, string>,
   firstTime: boolean,
+  requested: string[] = [],
 ): { write: Set<string>; fingerprints: Record<string, string> } {
   const fingerprints = { ...stored };
   const write = new Set<string>();
   for (const [name, { live, next }] of Object.entries(parts)) {
     if (fingerprint(live) === fingerprint(next)) fingerprints[name] = fingerprint(next);
-    else if (firstTime || stored[name] === fingerprint(live)) {
+    else if (firstTime || stored[name] === fingerprint(live) || requested.includes(name)) {
       write.add(name);
       fingerprints[name] = fingerprint(next);
     }
@@ -78,7 +79,8 @@ async function applyTo(db: Db, preset: CampaignPreset, job: JobRow): Promise<Pre
   if ("sample_required" in row) parts.sample = { live: [job.sample_required, job.sample_criteria], next: [row.sample_required, row.sample_criteria] };
   if (preset.postTerms) parts.pay = { live: pick(liveTerms), next: pick(preset.postTerms) };
 
-  const { write, fingerprints } = planParts(parts, liveTerms?.presetFields ?? {}, firstTime);
+  const requested = preset.requested?.version === preset.version ? preset.requested.parts : [];
+  const { write, fingerprints } = planParts(parts, liveTerms?.presetFields ?? {}, firstTime, requested);
 
   const update: Record<string, unknown> = {};
   if (write.has("about")) update.about = row.about;
@@ -86,7 +88,8 @@ async function applyTo(db: Db, preset: CampaignPreset, job: JobRow): Promise<Pre
   if (write.has("examples") && "example_urls" in row) update.example_urls = row.example_urls;
   if (write.has("sample") && "sample_required" in row) Object.assign(update, { sample_required: row.sample_required, sample_criteria: row.sample_criteria });
   if (write.has("pay") && "payout_amount" in row) update.payout_amount = row.payout_amount;
-  const baseTerms = write.has("pay") ? row.post_terms : liveTerms;
+  // New pay goes on top of what is live, so the requirements, who reviews posts and the brand's contract stay.
+  const baseTerms = write.has("pay") ? { ...(liveTerms ?? row.post_terms), ...pick(preset.postTerms ?? null) } : liveTerms;
   const terms = postTermsSchema.safeParse({ ...baseTerms, preset: marker, presetFields: fingerprints });
   if (!terms.success) return { preset: marker, applied: false, error: "The setup's pay terms aren't valid." };
   update.post_terms = terms.data as unknown as Record<string, unknown>;

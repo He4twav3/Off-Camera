@@ -37,7 +37,7 @@ export async function sendMePersonaAnnouncementEmail(to: string, name: string | 
   const first = name?.trim().split(/\s+/)[0] || "there";
   return sendEmail({
     to,
-    subject: "New campaign: MePersona, up to $705 per video",
+    subject: "New campaign: MePersona, up to $725 per video",
     react: MePersonaAnnouncementEmail({ name: first, campaignUrl }),
     text: [
       `Hi ${first},`,

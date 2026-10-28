@@ -28,11 +28,19 @@ export type CampaignPreset = {
    * campaign keeps the pay terms it has (and the brand's agreement to them).
    */
   postTerms?: Omit<PostTerms, "reviewer" | "contract">;
+  /**
+   * Parts the owner explicitly asked to change in this version, written even if they were edited by hand
+   * (lib/apply-campaign-presets.ts). Only for that one version: every other part, and every later version, keeps
+   * hand edits.
+   */
+  requested?: { version: number; parts: string[] };
 };
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
-  version: 19,
+  version: 20,
+  // 2026-10-28: the owner raised the pay on the first 10K views (more for the 1K–10K views most creators get).
+  requested: { version: 20, parts: ["pay"] },
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
@@ -59,8 +67,11 @@ export const MEPERSONA: CampaignPreset = {
     basePerPost: 5,
     cycleSize: 1,
     repostsEarnBase: false,
-    // $2 per 1,000 views, counted up to 100K views, plus the highest reward a video reaches.
-    cpm: [{ from: 0, rate: 2 }],
+    // $4 per 1,000 views for the first 10K, then $2 per 1,000 up to 100K, plus the highest reward a video reaches.
+    cpm: [
+      { from: 0, rate: 4 },
+      { from: 10_000, rate: 2 },
+    ],
     cpmCap: 100_000,
     milestones: [
       { views: 250_000, amount: 100 },
