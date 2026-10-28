@@ -8,6 +8,7 @@ import { siteConfig } from "@/lib/site-config";
 import { formatCurrency } from "@/lib/utils";
 import { buildWiseBatch } from "@/lib/wise-batch-data";
 import { readWiseTemplate } from "@/lib/payout-details-store";
+import { TemplateForm } from "./TemplateForm";
 
 export const metadata: Metadata = { title: "Brand payout · Admin" };
 
@@ -50,6 +51,13 @@ export default async function AdminBrandPayoutPage(props: { params: Promise<{ br
           </a>
         )}
         <p className="mt-2 text-xs text-muted-foreground">The brand can also download it itself on its Payments page, and marks the batch paid there.</p>
+        <div className="mt-4 border-t border-border/70 pt-3">
+          <p className="font-medium text-foreground">{template ? "Wise template saved" : "Brand's blank Wise template"}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            If the brand sends you its blank &ldquo;Send to bank accounts&rdquo; template (CSV), upload it here. The brand can also upload it on its own Payments page.
+          </p>
+          <TemplateForm brandId={brandId} hasTemplate={Boolean(template)} />
+        </div>
       </section>
 
       {mine.length === 0 ? (
