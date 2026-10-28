@@ -74,3 +74,21 @@ export async function applyCampaignPresets(): Promise<void> {
     }
   }
 }
+
+/**
+ * Marks a campaign's setup as done after someone edits the campaign by hand, so the setup never puts its own
+ * version back over their changes (it is applied again only when its version in the code goes up). Never throws.
+ */
+export async function markPresetDone(jobId: string): Promise<void> {
+  try {
+    const db = createAdminClient();
+    const { data: job } = await db.from("jobs").select("id, title, about, post_terms").eq("id", jobId).maybeSingle();
+    if (!job) return;
+    const preset = presetFor(job);
+    const terms = job.post_terms as Record<string, unknown> | null;
+    if (!preset || !terms || terms.preset === presetMarker(preset)) return;
+    await db.from("jobs").update({ post_terms: { ...terms, preset: presetMarker(preset) } }).eq("id", jobId);
+  } catch (e) {
+    console.error("campaign-presets: couldn't mark a hand-edited campaign:", e instanceof Error ? e.message : e);
+  }
+}

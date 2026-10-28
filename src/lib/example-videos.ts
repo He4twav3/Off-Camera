@@ -31,3 +31,14 @@ export function isUploadedExample(url: string): boolean {
     return false;
   }
 }
+
+/**
+ * Where a TikTok or Instagram example's thumbnail is kept in the bucket, from the post's id: the same place whether it
+ * was copied from the platform or added by hand. Null for any other link.
+ */
+export function coverPath(url: string): string | null {
+  const tiktok = /tiktok\.com\/.*\/(?:video|photo)\/(\d+)/.exec(url)?.[1];
+  if (tiktok) return `covers/tiktok-${tiktok}.jpg`;
+  const insta = /instagram\.com\/(?:[^/]+\/)?(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/.exec(url)?.[1];
+  return insta ? `covers/instagram-${insta}.jpg` : null;
+}

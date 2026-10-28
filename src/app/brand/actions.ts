@@ -1,5 +1,6 @@
 "use server";
 
+import { markPresetDone } from "@/lib/apply-campaign-presets";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -625,6 +626,8 @@ export async function updateCampaignAction(
     .eq("brand_account_id", brand.id)
     .select("id");
   if (error || !data || data.length === 0) return { error: "We couldn't save that campaign." };
+  // Edited by hand: the campaign's signed-off setup must not put its own version back over these changes.
+  await markPresetDone(parsed.data.job_id);
 
   revalidatePath("/brand", "layout");
   revalidatePath("/dashboard/recruiting/jobs", "layout");

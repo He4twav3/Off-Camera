@@ -18,6 +18,7 @@ import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 import { writeCampaignGuide } from "@/lib/campaign-guide-store";
 import { CAMPAIGN_PRESETS, presetRow } from "@/lib/campaign-presets";
+import { markPresetDone } from "@/lib/apply-campaign-presets";
 
 export interface JobFormState {
   error?: string;
@@ -282,6 +283,9 @@ export async function saveJobAction(
     const written = await writeCampaignGuide(savedRow.id, guide);
     if (!written.ok) return { error: `The campaign was saved, but not the guide and scripts. ${written.error}` };
   }
+
+  // Edited by hand: the campaign's signed-off setup must not put its own version back over these changes.
+  await markPresetDone(savedRow.id);
 
   // The logo it replaced is no longer used. Failing to tidy it up is harmless.
   if (oldLogoPath && logoUrl !== undefined)

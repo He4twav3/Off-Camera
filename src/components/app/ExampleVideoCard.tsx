@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Play, X } from "lucide-react";
 import { PlatformEmbed } from "@/components/media/platform-embed";
 import { youtubeId } from "@/lib/youtube";
+import { brightFrame } from "@/lib/video-frame";
 
 /**
  * One example video as a card; clicking it plays the video in a pop-up on our page (an uploaded video in our own
@@ -35,22 +36,45 @@ export function ExampleVideoCard({
     };
   }, [open]);
 
-  const yt = platform === "youtube_shorts" ? youtubeId(url) : null;
+  // An uploaded video with no saved thumbnail gets one made here from a frame that isn't dark. A thumbnail that
+  // fails to load is dropped, so the card falls back to its plain tile and play mark, never a black box.
+  const [made, setMade] = useState<string | null>(null);
+  const [broken, setBroken] = useState(false);
   const uploaded = platform === "upload";
+  useEffect(() => {
+    if (!uploaded || poster) return;
+    let live = true;
+    let objectUrl: string | null = null;
+    void brightFrame(url).then((blob) => {
+      if (!live || !blob) return;
+      objectUrl = URL.createObjectURL(blob);
+      setMade(objectUrl);
+    });
+    return () => {
+      live = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [uploaded, poster, url]);
+  const cover = broken ? null : (poster ?? made);
+
+  const yt = platform === "youtube_shorts" ? youtubeId(url) : null;
   // TikTok no longer sends a cover image with its embed details, so a card without one shows the creator's handle.
-  const handle = !poster && !uploaded ? (/\/@([^/?#]+)/.exec(url)?.[1] ?? null) : null;
+  const handle = !cover && !uploaded ? (/\/@([^/?#]+)/.exec(url)?.[1] ?? null) : null;
 
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} aria-label={`Play ${label} example`} className="group block w-full cursor-pointer text-left">
         <div className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] overflow-hidden rounded-lg border border-border/70 bg-gradient-to-b from-muted to-card sm:rounded-xl">
-          {uploaded && !poster && (
-            // The first frame stands in for a cover. #t nudges Safari to draw it.
-            <video src={`${url}#t=0.1`} muted playsInline preload="metadata" aria-hidden className="absolute inset-0 size-full object-cover" />
-          )}
-          {poster && (
-            // eslint-disable-next-line @next/next/no-img-element -- signed platform CDN images
-            <img src={poster} alt="" referrerPolicy="no-referrer" loading="lazy" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+          {cover && (
+            // eslint-disable-next-line @next/next/no-img-element -- our stored thumbnails and platform CDN images
+            <img
+              src={cover}
+              alt=""
+              referrerPolicy="no-referrer"
+              loading="lazy"
+              onError={() => setBroken(true)}
+              className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            />
           )}
           {handle && (
             <span className="absolute inset-x-0 bottom-0 truncate px-2 pb-2 text-center text-xs font-semibold text-foreground sm:text-sm">@{handle}</span>

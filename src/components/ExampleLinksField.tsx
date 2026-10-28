@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Film, Plus, Upload, X } from "lucide-react";
+import { Check, Film, ImagePlus, Plus, Upload, X } from "lucide-react";
 import { MAX_EXAMPLES } from "@/lib/campaign-brief";
 import { createClient } from "@/lib/supabase/client";
-import { EXAMPLE_VIDEO_BUCKET, MAX_EXAMPLE_VIDEO_BYTES, exampleVideoType, isUploadedExample } from "@/lib/example-videos";
-import { startExampleUploadAction } from "@/app/example-videos/actions";
+import { EXAMPLE_VIDEO_BUCKET, MAX_EXAMPLE_VIDEO_BYTES, coverPath, exampleVideoType, isUploadedExample } from "@/lib/example-videos";
+import { startExampleCoverUploadAction, startExamplePosterUploadAction, startExampleUploadAction } from "@/app/example-videos/actions";
+import { brightFrame } from "@/lib/video-frame";
 
 /**
  * Example links as an organised list: one link per row, an X to remove it, and "Add another" up to the limit.
@@ -18,6 +19,11 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  // A hand-added thumbnail for a TikTok or Instagram link: which row is picking one, and which links have one now.
+  const coverInput = useRef<HTMLInputElement>(null);
+  const [coverFor, setCoverFor] = useState<string | null>(null);
+  const [covered, setCovered] = useState<string[]>([]);
+  const [coverBusy, setCoverBusy] = useState(false);
   const set = (i: number, v: string) => setRows((r) => r.map((x, j) => (j === i ? v : x)));
   const filled = rows.filter((r) => r.trim()).length;
 
@@ -34,6 +40,8 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
         .storage.from(EXAMPLE_VIDEO_BUCKET)
         .uploadToSignedUrl(begun.path, begun.token, file, { contentType: type });
       if (uploadError) return setError("The upload didn't finish. Please try again.");
+      // Its thumbnail: a frame that isn't dark, saved beside the video. Never blocks the upload.
+      await savePoster(file, begun.url);
       setRows((r) => {
         const kept = r.filter((x) => x.trim());
         return kept.length < MAX_EXAMPLES ? [...kept, begun.url] : r;
@@ -43,6 +51,38 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
     } finally {
       setUploading(false);
       if (fileInput.current) fileInput.current.value = "";
+    }
+  }
+
+  async function saveCover(file: File, link: string) {
+    setError("");
+    if (!file.type.startsWith("image/")) return setError("Use a JPG, PNG or WebP image for the thumbnail.");
+    setCoverBusy(true);
+    try {
+      const jpeg = await toJpeg(file);
+      if (!jpeg) return setError("That image couldn't be read. Try a screenshot saved as JPG or PNG.");
+      const start = await startExampleCoverUploadAction({ url: link });
+      if (!start.ok) return setError(start.error);
+      const { error: upErr } = await createClient()
+        .storage.from(EXAMPLE_VIDEO_BUCKET)
+        .uploadToSignedUrl(start.path, start.token, jpeg, { contentType: "image/jpeg", upsert: true });
+      if (upErr) return setError("The thumbnail didn't upload. Please try again.");
+      setCovered((c) => [...c, link]);
+    } finally {
+      setCoverBusy(false);
+      if (coverInput.current) coverInput.current.value = "";
+    }
+  }
+
+  async function savePoster(file: File, videoUrl: string) {
+    try {
+      const still = await brightFrame(file);
+      if (!still) return;
+      const start = await startExamplePosterUploadAction({ videoUrl });
+      if (!start.ok) return;
+      await createClient().storage.from(EXAMPLE_VIDEO_BUCKET).uploadToSignedUrl(start.path, start.token, still, { contentType: "image/jpeg", upsert: true });
+    } catch {
+      /* the card makes its own thumbnail instead */
     }
   }
 
@@ -70,6 +110,21 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
                 aria-label={`Example link ${i + 1}`}
                 className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm"
               />
+            )}
+            {coverPath(r.trim()) && (
+              <button
+                type="button"
+                disabled={coverBusy}
+                onClick={() => {
+                  setCoverFor(r.trim());
+                  coverInput.current?.click();
+                }}
+                title="Add a thumbnail: a screenshot of the video"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-semibold text-primary hover:bg-muted disabled:cursor-wait disabled:opacity-60"
+              >
+                {covered.includes(r.trim()) ? <Check className="size-4" /> : <ImagePlus className="size-4" />}
+                {covered.includes(r.trim()) ? "Thumbnail added" : coverBusy && coverFor === r.trim() ? "Uploading…" : "Add thumbnail"}
+              </button>
             )}
             <button
               type="button"
@@ -115,7 +170,20 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
           />
         </div>
       )}
-      <p className="mt-1.5 text-xs text-muted-foreground">Uploaded videos always play on the campaign page. MP4, MOV or WebM, up to 50 MB.</p>
+      <input
+        ref={coverInput}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && coverFor) void saveCover(file, coverFor);
+        }}
+      />
+      <p className="mt-1.5 text-xs text-muted-foreground">
+        Uploaded videos always play on the campaign page. MP4, MOV or WebM, up to 50 MB. TikTok doesn&apos;t share a cover
+        picture, so use Add thumbnail with a screenshot of the video.
+      </p>
       {error && (
         <p role="alert" className="mt-1.5 text-sm font-semibold text-destructive">
           {error}
@@ -123,4 +191,19 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
       )}
     </div>
   );
+}
+
+/** The image as a JPEG, at most 720 pixels wide, so every thumbnail is the same kind of small file. */
+async function toJpeg(file: File): Promise<Blob | null> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 720 / bitmap.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+  } catch {
+    return null;
+  }
 }
