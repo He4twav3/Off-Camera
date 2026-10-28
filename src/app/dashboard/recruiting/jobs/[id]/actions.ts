@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
 import { submitPost } from "@/lib/post-tracking";
 import { sendApplicationReceivedEmail } from "@/lib/email/notifications";
+import { alertAdmin } from "@/lib/whatsapp-alerts";
+import { siteConfig } from "@/lib/site-config";
 import { parseDriveLink } from "@/lib/drive-link";
 import { pickVideoIds } from "@/lib/creator-videos";
 import { parsePostTerms } from "@/lib/post-terms";
@@ -120,6 +122,7 @@ export async function applyToJobAction(
   }
 
   await sendApplicationReceivedEmail(applicant.name, job.title);
+  alertAdmin(`New application for ${job.title}: ${applicant.name}. Review: ${siteConfig.url}/admin/applications`);
 
   revalidatePath(`/dashboard/recruiting/jobs/${parsed.data.job_id}`);
   revalidatePath("/dashboard/recruiting");

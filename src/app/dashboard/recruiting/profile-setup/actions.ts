@@ -1,5 +1,7 @@
 "use server";
 
+import { alertAdmin } from "@/lib/whatsapp-alerts";
+import { siteConfig } from "@/lib/site-config";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -98,6 +100,9 @@ export async function saveProfileAction(
   }
 
   revalidatePath("/dashboard", "layout");
+
+  // First save: a new creator to review, so the admin hears about it on WhatsApp.
+  if (!current) alertAdmin(`New creator signed up: ${fullName} (@${d.username}). Review: ${siteConfig.url}/admin/applicants`);
 
   // First save: the next step is connecting an account. After that, stay put.
   if (!current) redirect("/dashboard/account/accounts?welcome=1");

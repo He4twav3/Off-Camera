@@ -1,4 +1,6 @@
 import "server-only";
+import { alertAdmin } from "@/lib/whatsapp-alerts";
+import { siteConfig } from "@/lib/site-config";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -76,4 +78,5 @@ export async function createBrandAccount(userId: string): Promise<void> {
     contact_name: `${meta.first_name ?? ""} ${meta.last_name ?? ""}`.trim() || meta.company_name,
   });
   if (error) console.error("createBrandAccount failed:", error.message);
+  else alertAdmin(`New brand signed up: ${meta.company_name}${meta.website ? ` (${meta.website})` : ""}. Review: ${siteConfig.url}/admin/brands`);
 }
