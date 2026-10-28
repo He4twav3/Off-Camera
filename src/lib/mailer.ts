@@ -65,6 +65,8 @@ export async function sendEmail(message: {
    * clients/previews use it) and by the local outbox log, which never
    * stores the rendered HTML. */
   text: string;
+  /** Extra headers, such as List-Unsubscribe on reminder emails. */
+  headers?: Record<string, string>;
 }) {
   let delivery: "sent" | "outbox-only" | "failed" = "outbox-only";
   let deliveryError: string | undefined;
@@ -81,6 +83,7 @@ export async function sendEmail(message: {
         subject: message.subject,
         react: message.react,
         text: message.text,
+        ...(message.headers ? { headers: message.headers } : {}),
       });
       if (result.error) {
         delivery = "failed";
