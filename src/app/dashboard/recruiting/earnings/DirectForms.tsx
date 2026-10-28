@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { CURRENCIES, FIELD_LABEL, STATE_COUNTRIES, type BankDetails } from "@/lib/bank-details";
-import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Field, Input, Textarea } from "@/components/ui/field";
+import { Choice } from "@/components/ui/choice";
 import { reportNotPaidAction, saveBankDetailsAction, type DirectState } from "./direct-actions";
 
 function Submit({ children, pendingText }: { children: string; pendingText: string }) {
@@ -49,6 +50,7 @@ export function BankDetailsForm({
   const d = saved?.details;
   const [currency, setCurrency] = useState(d?.currency ?? "EUR");
   const [country, setCountry] = useState(d?.country ?? "");
+  const [accountType, setAccountType] = useState(d?.bank.accountType ?? "CHECKING");
   const spec = CURRENCIES[currency];
   // After an error, show what they typed (React clears a form once its action runs).
   const typed = (k: string, fallback = "") => state.values?.[k] ?? fallback;
@@ -85,13 +87,13 @@ export function BankDetailsForm({
       </p>
 
       <Field label="Currency of your bank account" htmlFor="currency">
-        <Select id="currency" name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-          {Object.entries(CURRENCIES).map(([code, c]) => (
-            <option key={code} value={code}>
-              {c.label}
-            </option>
-          ))}
-        </Select>
+        <Choice
+          id="currency"
+          name="currency"
+          value={currency}
+          onValueChange={setCurrency}
+          options={Object.entries(CURRENCIES).map(([code, c]) => ({ value: code, label: c.label }))}
+        />
       </Field>
 
       <Field label="Account holder name" htmlFor="holderName" hint="Your full name, exactly as it is on your bank account.">
@@ -101,10 +103,16 @@ export function BankDetailsForm({
       {spec.fields.map((f) =>
         f === "accountType" ? (
           <Field key={f} label={FIELD_LABEL[f].label} htmlFor={f}>
-            <Select id={f} name={f} defaultValue={typed("accountType", d?.bank.accountType ?? "CHECKING")}>
-              <option value="CHECKING">Checking</option>
-              <option value="SAVINGS">Savings</option>
-            </Select>
+            <Choice
+              id={f}
+              name={f}
+              value={accountType}
+              onValueChange={setAccountType}
+              options={[
+                { value: "CHECKING", label: "Checking" },
+                { value: "SAVINGS", label: "Savings" },
+              ]}
+            />
           </Field>
         ) : (
           <Field key={`${currency}-${f}`} label={FIELD_LABEL[f].label} htmlFor={f} hint={FIELD_LABEL[f].hint}>
@@ -116,14 +124,7 @@ export function BankDetailsForm({
       <p className="pt-2 text-[15px] font-semibold text-foreground">Your address</p>
       <p className="-mt-3 text-sm text-muted-foreground">Wise needs it to send the transfer. It&apos;s only shared in the brand&apos;s Wise payment.</p>
       <Field label="Country you live in" htmlFor="country">
-        <Select id="country" name="country" value={country} onChange={(e) => setCountry(e.target.value)} required>
-          <option value="">Choose…</option>
-          {countries.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
+        <Choice id="country" name="country" value={country} onValueChange={setCountry} options={countries.map((c) => ({ value: c.code, label: c.name }))} />
       </Field>
       <Field label="Street address" htmlFor="address">
         <Input id="address" name="address" defaultValue={typed("address", d?.address)} maxLength={100} autoComplete="address-line1" required />

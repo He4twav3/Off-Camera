@@ -1,5 +1,6 @@
 import "server-only";
 import { createHmac } from "node:crypto";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptDetails, encryptDetails } from "@/lib/secret-box";
 import { bankSummary, type BankDetails } from "@/lib/bank-details";
@@ -30,16 +31,34 @@ function payoutKey(): Buffer {
   return createHmac("sha256", service).update("oncamera:payout-details:v1").digest();
 }
 
+/**
+ * Storage with nothing cached: these files change (a creator updates their bank, a brand pays a batch), and a
+ * copy served from a cache would put old bank details in a payment file. Every read asks the server itself.
+ */
+function storage() {
+  createAdminClient(); // checks the environment points at the right project
+  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: {
+      fetch: (input, init) => {
+        const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+        if ((init?.method ?? "GET") === "GET" && url.pathname.includes("/storage/v1/object/")) url.searchParams.set("fresh", String(Date.now()));
+        return fetch(typeof input === "string" || input instanceof URL ? url : new Request(url, input), { ...init, cache: "no-store" });
+      },
+    },
+  }).storage;
+}
+
 async function bucket() {
-  const storage = createAdminClient().storage;
-  const { data } = await storage.getBucket(BUCKET);
-  if (!data) await storage.createBucket(BUCKET, { public: false });
-  return storage.from(BUCKET);
+  const store = storage();
+  const { data } = await store.getBucket(BUCKET);
+  if (!data) await store.createBucket(BUCKET, { public: false });
+  return store.from(BUCKET);
 }
 
 async function readText(path: string): Promise<string | null> {
   try {
-    const { data, error } = await createAdminClient().storage.from(BUCKET).download(path);
+    const { data, error } = await storage().from(BUCKET).download(path);
     if (error || !data) return null;
     return await data.text();
   } catch {
@@ -48,7 +67,7 @@ async function readText(path: string): Promise<string | null> {
 }
 
 async function writeText(path: string, text: string, contentType: string): Promise<boolean> {
-  const { error } = await (await bucket()).upload(path, new Blob([text], { type: contentType }), { upsert: true, contentType });
+  const { error } = await (await bucket()).upload(path, new Blob([text], { type: contentType }), { upsert: true, contentType, cacheControl: "0" });
   return !error;
 }
 
@@ -64,7 +83,7 @@ export async function saveBankDetails(applicantId: string, details: BankDetails)
 }
 
 export async function removeBankDetails(applicantId: string): Promise<boolean> {
-  await createAdminClient().storage.from(BUCKET).remove([creatorPath(applicantId)]);
+  await storage().from(BUCKET).remove([creatorPath(applicantId)]);
   const { error } = await createAdminClient().from("applicants").update({ payout_instructions: null }).eq("id", applicantId);
   return !error;
 }
@@ -112,6 +131,6 @@ export const saveLastBatch = (brandId: string, batch: LastBatch) =>
 export async function saveConfirmation(brandId: string, file: File): Promise<string | null> {
   const ext = file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const path = `confirmations/${brandId}/${new Date().toISOString().replace(/[:.]/g, "-")}.${ext}`;
-  const { error } = await (await bucket()).upload(path, file, { contentType: file.type });
+  const { error } = await (await bucket()).upload(path, file, { contentType: file.type, cacheControl: "0" });
   return error ? null : path;
 }
