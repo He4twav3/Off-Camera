@@ -4,6 +4,7 @@ import { getBaseUrl } from "@/lib/request-url";
 import { formatCurrency } from "@/lib/utils";
 import { ApplicantApprovedEmail } from "@/emails/applicant-approved-email";
 import { ApplicantRejectedEmail } from "@/emails/applicant-rejected-email";
+import { MEPERSONA_PAY, MePersonaAnnouncementEmail } from "@/emails/campaign-announcement-email";
 import { AssignmentEmail } from "@/emails/assignment-email";
 import { PayoutPaidEmail } from "@/emails/payout-paid-email";
 import { WithdrawalPaidEmail } from "@/emails/withdrawal-paid-email";
@@ -28,6 +29,25 @@ export async function sendApplicantApprovedEmail(to: string, name: string) {
     subject: "You're approved — you're in the creator pool",
     react: ApplicantApprovedEmail({ name, dashboardUrl: `${baseUrl}/dashboard/recruiting` }),
     text: `You're approved, ${name}. You're now eligible to be matched with paid campaigns — check your dashboard: ${baseUrl}/dashboard/recruiting`,
+  });
+}
+
+/** The MePersona announcement to one approved creator; their first name, or "there" when they have none. */
+export async function sendMePersonaAnnouncementEmail(to: string, name: string | null, campaignUrl: string) {
+  const first = name?.trim().split(/\s+/)[0] || "there";
+  return sendEmail({
+    to,
+    subject: "New campaign: MePersona, up to $705 per video",
+    react: MePersonaAnnouncementEmail({ name: first, campaignUrl }),
+    text: [
+      `Hi ${first},`,
+      "A new paid campaign is open on OnCamera, and it's a good fit for creators.",
+      "MePersona is an AI inbox for creators. It brings your comments and DMs into one place, drafts replies that sound like you, and schedules your posts across platforms. You make short videos about it on your own account.",
+      `What you earn:\n${MEPERSONA_PAY.map((l) => `- ${l}`).join("\n")}`,
+      "The full brief has the scripts, hooks and example videos. To apply, send a short sample video.",
+      `See the campaign: ${campaignUrl}`,
+      "The OnCamera team",
+    ].join("\n\n"),
   });
 }
 

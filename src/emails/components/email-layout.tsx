@@ -202,11 +202,15 @@ export function EmailButton({
   href,
   children,
   align = "left",
+  tone = "accent",
 }: {
   href: string;
   children: ReactNode;
   align?: "left" | "center";
+  /** "quiet" is a small cream pill with dark text and no outline, for an email that shouldn't shout. */
+  tone?: "accent" | "quiet";
 }) {
+  const quiet = tone === "quiet";
   return (
     <table
       role="presentation"
@@ -217,9 +221,10 @@ export function EmailButton({
     >
       <tr>
         <td
+          {...{ bgcolor: quiet ? colors.ink : colors.accent }}
           style={{
-            backgroundColor: colors.accent,
-            border: `2px solid ${colors.ink}`,
+            backgroundColor: quiet ? colors.ink : colors.accent,
+            border: quiet ? "none" : `2px solid ${colors.ink}`,
             borderRadius: 999,
           }}
         >
@@ -227,11 +232,11 @@ export function EmailButton({
             href={href}
             style={{
               display: "inline-block",
-              padding: "12px 28px",
+              padding: quiet ? "9px 22px" : "12px 28px",
               fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
-              fontWeight: 700,
-              fontSize: 15,
-              color: colors.accentForeground,
+              fontWeight: quiet ? 600 : 700,
+              fontSize: quiet ? 14 : 15,
+              color: quiet ? colors.background : colors.accentForeground,
               textDecoration: "none",
             }}
           >
