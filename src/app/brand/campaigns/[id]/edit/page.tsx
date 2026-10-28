@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader, PageShell } from "@/components/kit/ui";
 import { PLATFORM_LABELS } from "@/lib/utils";
 import { parsePostTerms } from "@/lib/post-terms";
+import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { requireBrand } from "../../../_brand";
 import { PendingNotice } from "../../../PendingNotice";
 import { EditCampaignForm } from "./EditCampaignForm";
@@ -37,6 +38,7 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
   const terms = parsePostTerms(job.post_terms);
   const { count: joined } = await createAdminClient().from("assignments").select("id", { count: "exact", head: true }).eq("job_id", job.id);
   const hasCreators = (joined ?? 0) > 0;
+  const saved = await readCampaignGuide(job);
 
   return (
     <PageShell>
@@ -53,7 +55,9 @@ export default async function EditCampaignPage(props: { params: Promise<{ id: st
             title: job.title,
             nicheId: job.niche_id,
             about: job.about ?? "",
-            rules: job.description,
+            description: job.description ?? "",
+            guide: saved.guide,
+            scripts: saved.scripts,
             formats: job.formats ?? "",
             examples: (job.example_urls ?? []).join("\n"),
             platforms: (terms?.platforms ?? [job.platform]).map((p) => PLATFORM_LABELS[p as keyof typeof PLATFORM_LABELS] ?? p),

@@ -1,6 +1,7 @@
 "use server";
 
-import { markPresetDone } from "@/lib/apply-campaign-presets";
+import { writeCampaignGuide } from "@/lib/campaign-guide-store";
+import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -574,8 +575,11 @@ export async function updateCampaignAction(
     about: formData.get("about") ?? "",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
-  const rules = parseLines(String(formData.get("rules") ?? ""), 12, 300);
-  if (!rules.ok) return { error: `Rules: ${rules.error}` };
+  const description = String(formData.get("description") ?? "").trim();
+  if (description.length > 5000) return { error: "Keep the brief under 5,000 characters." };
+  const guide = { guide: String(formData.get("guide") ?? ""), scripts: String(formData.get("scripts") ?? "") };
+  if (guide.guide.length > MAX_GUIDE_LENGTH || guide.scripts.length > MAX_GUIDE_LENGTH)
+    return { error: `Keep the product guide and the scripts under ${MAX_GUIDE_LENGTH.toLocaleString("en-US")} characters each.` };
   const formats = parseLines(String(formData.get("formats") ?? ""));
   if (!formats.ok) return { error: `Formats that work: ${formats.error}` };
   const examples = parseExampleLinks(String(formData.get("examples") ?? ""));
@@ -618,7 +622,7 @@ export async function updateCampaignAction(
       title: parsed.data.title,
       niche_id: parsed.data.niche_id,
       about: parsed.data.about || null,
-      description: rules.lines.join("\n"),
+      description,
       formats: formats.lines.length ? formats.lines.join("\n") : null,
       example_urls: examples.urls,
     })
@@ -626,8 +630,8 @@ export async function updateCampaignAction(
     .eq("brand_account_id", brand.id)
     .select("id");
   if (error || !data || data.length === 0) return { error: "We couldn't save that campaign." };
-  // Edited by hand: the campaign's signed-off setup must not put its own version back over these changes.
-  await markPresetDone(parsed.data.job_id);
+  const written = await writeCampaignGuide(parsed.data.job_id, guide);
+  if (!written.ok) return { error: `The campaign was saved, but not the guide and scripts. ${written.error}` };
 
   revalidatePath("/brand", "layout");
   revalidatePath("/dashboard/recruiting/jobs", "layout");

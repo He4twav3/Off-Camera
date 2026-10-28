@@ -102,6 +102,11 @@ export const postTermsSchema = z.object({
   dueDays: z.number().int().min(1).max(90).optional(),
   /** The signed-off setup last applied to the campaign (lib/campaign-presets.ts), as "key@version". */
   preset: z.string().max(60).optional(),
+  /**
+   * A fingerprint of each part the setup last wrote (brief, videos, pay and so on). A part whose live value no longer
+   * matches was edited by hand, and the setup leaves it alone from then on (lib/apply-campaign-presets.ts).
+   */
+  presetFields: z.record(z.string(), z.string().max(40)).optional(),
   /** Set once the brand has filled in and agreed to the contract (see lib/contract.ts). */
   contract: contractSchema.optional(),
   requirements: requirementsSchema.optional(),

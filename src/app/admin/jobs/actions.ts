@@ -17,8 +17,6 @@ import { payoutTermsSchema } from "@/lib/payout-terms";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 import { writeCampaignGuide } from "@/lib/campaign-guide-store";
-import { CAMPAIGN_PRESETS, presetRow } from "@/lib/campaign-presets";
-import { markPresetDone } from "@/lib/apply-campaign-presets";
 
 export interface JobFormState {
   error?: string;
@@ -284,9 +282,6 @@ export async function saveJobAction(
     if (!written.ok) return { error: `The campaign was saved, but not the guide and scripts. ${written.error}` };
   }
 
-  // Edited by hand: the campaign's signed-off setup must not put its own version back over these changes.
-  await markPresetDone(savedRow.id);
-
   // The logo it replaced is no longer used. Failing to tidy it up is harmless.
   if (oldLogoPath && logoUrl !== undefined)
     await supabase.storage.from("campaign-logos").remove([oldLogoPath]);
@@ -348,7 +343,7 @@ export async function updatePayTermsAction(_prev: PayTermsState, formData: FormD
   const kept = keptTerms?.contract;
   const { data, error } = await supabase
     .from("jobs")
-    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}), ...(keptTerms?.preset ? { preset: keptTerms.preset } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
+    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}), ...(keptTerms?.preset ? { preset: keptTerms.preset, presetFields: keptTerms.presetFields } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
     .eq("id", jobId.data)
     .select("id");
   if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };
@@ -403,44 +398,3 @@ export async function saveFeeAction(_prev: PayTermsState, formData: FormData): P
   return { success: parsed.bands.length || minimum > 0 ? "Fee saved. New statements are filled in from it." : "Fee cleared." };
 }
 
-// --- a signed-off setup, written into the code ------------------------------------------------
-
-export type ApplyPresetState = { error?: string; success?: string };
-
-/**
- * Replaces a campaign's whole setup with a signed-off one from lib/campaign-presets.ts: the brief, the brand note, the
- * example videos, the product guide, the scripts and the pay terms. "Formats that work" is cleared (the formats are in
- * the scripts). Who reviews posts and the brand's signed contract are kept. Runs as the signed-in admin (RLS).
- */
-export async function applyCampaignPresetAction(_prev: ApplyPresetState, formData: FormData): Promise<ApplyPresetState> {
-  const jobId = z.string().uuid().safeParse(formData.get("job_id"));
-  const preset = CAMPAIGN_PRESETS.find((p) => p.key === formData.get("preset"));
-  if (!jobId.success || !preset) return { error: "Something's missing. Reload the page and try again." };
-
-  const supabase = await createClient();
-  const { data: isAdmin } = await supabase.rpc("is_admin");
-  if (!isAdmin) return { error: "Only admins can do this." };
-
-  const { data: job } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
-  if (!job) return { error: "That campaign wasn't found." };
-  const row = presetRow(preset, parsePostTerms(job.post_terms));
-  const terms = postTermsSchema.safeParse(row.post_terms);
-  if (!terms.success) return { error: "The setup's pay terms aren't valid." };
-
-  const { data: saved, error } = await supabase
-    .from("jobs")
-    .update({ ...row, post_terms: terms.data as unknown as Record<string, unknown> })
-    .eq("id", jobId.data)
-    .select("id")
-    .maybeSingle();
-  if (error || !saved) return { error: "Couldn't save the campaign. Please try again." };
-
-  const written = await writeCampaignGuide(jobId.data, { guide: preset.guide, scripts: preset.scripts });
-  if (!written.ok) return { error: `The campaign was saved, but not the guide and scripts. ${written.error}` };
-
-  revalidatePath("/admin");
-  revalidatePath(`/admin/jobs/${jobId.data}`);
-  revalidatePath("/dashboard/recruiting/jobs");
-  revalidatePath("/brand");
-  return { success: `Done: the ${preset.label} setup is now on this campaign.` };
-}

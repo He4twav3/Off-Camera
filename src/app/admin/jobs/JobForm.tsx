@@ -4,8 +4,8 @@ import { useActionState, useState } from "react";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
 import { BriefRowsField } from "@/components/BriefRowsField";
 import { useFormStatus } from "react-dom";
-import { BookOpen, LayoutTemplate, Pencil, Plus, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { BookOpen, LayoutTemplate, Pencil, Plus, Wallet, X } from "lucide-react";
+import { FormGroup } from "@/components/FormGroup";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Card, CardContent } from "@/components/ui/card";
@@ -209,6 +209,21 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
                 defaultValue={job?.formats ?? ""}
               />
             </Field>
+            {job && (
+              <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Wallet className="size-4 text-primary" />
+                  How it pays
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The last section of the full brief, written from the pay terms: pay per video, views, rewards and when
+                  creators get paid.
+                </p>
+                <a href={`/admin/jobs/${job.id}/terms`} className="mt-2 inline-block text-sm font-semibold text-primary underline underline-offset-2">
+                  Set the pay terms
+                </a>
+              </div>
+            )}
           </FormGroup>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -557,18 +572,3 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
   );
 }
 
-/** A marked group of fields with a sign saying where on the site they show. */
-function FormGroup({ icon, title, note, children }: { icon: ReactNode; title: string; note: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border/70 p-4 sm:p-5">
-      <div>
-        <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold tracking-wide text-primary uppercase">
-          {icon}
-          {title}
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">{note}</p>
-      </div>
-      {children}
-    </section>
-  );
-}

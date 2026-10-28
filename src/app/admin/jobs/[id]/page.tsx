@@ -17,8 +17,6 @@ import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
-import { presetFor } from "@/lib/campaign-presets";
-import { ApplyPresetButton } from "./ApplyPresetButton";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
 export const metadata: Metadata = { title: "Campaign · Admin" };
@@ -27,7 +25,7 @@ const STATUS = { open: "Open", filled: "Filled", closed: "Closed" } as const;
 
 export default async function AdminCampaignPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const presetResult = await ensureCampaignPreset(id);
+  await ensureCampaignPreset(id);
   const supabase = await createClient();
   const [ws, { sent }, { data: job }, { data: niches }, { data: brands }] = await Promise.all([
     getAdminWorkspace(),
@@ -39,8 +37,6 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
   const c = ws.campaigns.find((x) => x.id === id);
   const fees = await getFeeBands([id]);
   if (!job || !c) notFound();
-  // A signed-off setup written into the code for this campaign, matched on its title, brand note or brand.
-  const preset = presetFor({ title: job.title, about: `${job.about ?? ""} ${c.brandName ?? ""}` });
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
@@ -75,12 +71,6 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
           <Link href={`/admin/jobs/${c.id}/preview`} className="text-sm font-semibold text-primary underline underline-offset-2">
             See as creator
           </Link>
-          {preset && <ApplyPresetButton jobId={c.id} presetKey={preset.key} label={preset.label} />}
-          {presetResult && (
-            <p className={`w-full text-sm font-semibold ${presetResult.error ? "text-destructive" : "text-emerald-400"}`}>
-              {presetResult.error ? `Signed-off setup not fully applied: ${presetResult.error}` : `Signed-off setup is live (${presetResult.preset}).`}
-            </p>
-          )}
         </div>
       </header>
 

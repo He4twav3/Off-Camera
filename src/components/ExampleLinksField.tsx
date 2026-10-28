@@ -120,10 +120,18 @@ export function ExampleLinksField({ initial = "", name = "examples" }: { initial
                   coverInput.current?.click();
                 }}
                 title="Add a thumbnail: a screenshot of the video"
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-semibold text-primary hover:bg-muted disabled:cursor-wait disabled:opacity-60"
+                className={`inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-semibold hover:bg-muted disabled:cursor-wait disabled:opacity-60 ${
+                  /tiktok\.com/.test(r) && !covered.includes(r.trim()) ? "bg-amber-400/15 text-amber-500" : "text-primary"
+                }`}
               >
                 {covered.includes(r.trim()) ? <Check className="size-4" /> : <ImagePlus className="size-4" />}
-                {covered.includes(r.trim()) ? "Thumbnail added" : coverBusy && coverFor === r.trim() ? "Uploading…" : "Add thumbnail"}
+                {covered.includes(r.trim())
+                  ? "Thumbnail added"
+                  : coverBusy && coverFor === r.trim()
+                    ? "Uploading…"
+                    : /tiktok\.com/.test(r)
+                      ? "Add thumbnail (TikTok sends none)"
+                      : "Add thumbnail"}
               </button>
             )}
             <button
