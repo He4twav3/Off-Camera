@@ -61,11 +61,11 @@ export function WisePanel({
         </p>
         {missing.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Not in the file yet, because they haven&apos;t added bank details (we&apos;ve asked them):{" "}
+            Not in the file yet, because they haven&apos;t added their bank details:{" "}
             {missing.map((m) => `${m.name} (${formatCurrency(m.amount)})`).join(", ")}.
           </p>
         )}
-        {creators > 0 && (
+        {creators > 0 ? (
           <a
             href="/brand/payments/wise"
             className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
@@ -73,6 +73,21 @@ export function WisePanel({
             <Download className="size-4" />
             Download the Wise payment file
           </a>
+        ) : (
+          <>
+            <span
+              aria-disabled="true"
+              className="mt-3 inline-flex cursor-not-allowed items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-semibold text-muted-foreground"
+            >
+              <Download className="size-4" />
+              Download the Wise payment file
+            </span>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {missing.length > 0
+                ? "Ready once these creators add their bank details."
+                : "Ready when a payment is due: the file fills in with each creator's bank details and amount."}
+            </p>
+          </>
         )}
       </div>
 

@@ -52,7 +52,7 @@ export function PaymentRow({ s }: { s: BrandStatement }) {
                     ? "—"
                     : s.payTo
                       ? `${s.payTo}. In your Wise payment file.`
-                      : "The creator hasn't added bank details yet. We've asked them to.",
+                      : "The creator hasn't added bank details yet.",
               },
               { label: "Due", value: formatDate(s.due_at) },
               { label: "Campaign", value: s.campaign },
