@@ -72,15 +72,57 @@ const colors = {
   mutedForeground: "#706c68",
 };
 
+/**
+ * "plain" is an ordinary email: no background of its own (the inbox's own white, or its dark mode), dark text,
+ * and the dark logo with a thin white edge so it shows on either. Pass `plain` to the helpers below as well.
+ */
+const PLAIN = {
+  ink: "#16151a",
+  text: "#3f3c44",
+  muted: "#8a8690",
+  rule: "#e6e4e0",
+};
+
 export function EmailLayout({
   preview,
+  plain = false,
   children,
 }: {
   /** Preview text shown in inbox lists (Gmail, Apple Mail) before the
    * email is opened — not visible in the body itself. */
   preview: string;
+  plain?: boolean;
   children: ReactNode;
 }) {
+  if (plain)
+    return (
+        <Html>
+          <Head />
+          <Preview>{preview}</Preview>
+          <Body style={{ margin: 0, padding: "40px 16px" }}>
+            <Container style={{ maxWidth: 480, margin: "0 auto" }}>
+              <Section style={{ padding: "8px 32px 0", textAlign: "center" }}>
+                <Img
+                  src={`${EMAIL_ASSET_BASE_URL}/email/logo-mark-light.png`}
+                  width={64}
+                  height={64}
+                  alt="OnCamera"
+                  style={{ display: "block", margin: "0 auto" }}
+                />
+              </Section>
+              <Section style={{ padding: "24px 32px 32px" }}>{children}</Section>
+              <Hr style={{ borderColor: PLAIN.rule, margin: 0 }} />
+              <Section style={{ padding: "18px 32px", textAlign: "center" }}>
+                <Text style={{ margin: 0, fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif", fontSize: 12, color: PLAIN.muted }}>
+                  <Link href={siteConfig.url} style={{ color: PLAIN.muted }}>
+                    {siteConfig.url.replace(/^https?:\/\//, "")}
+                  </Link>
+                </Text>
+              </Section>
+            </Container>
+          </Body>
+        </Html>
+    );
   return (
     <Html style={{ backgroundColor: colors.background }}>
       <Head>
@@ -149,9 +191,11 @@ export function EmailLayout({
 export function EmailHeading({
   children,
   align = "left",
+  plain = false,
 }: {
   children: ReactNode;
   align?: "left" | "center";
+  plain?: boolean;
 }) {
   return (
     <Heading
@@ -166,7 +210,7 @@ export function EmailHeading({
         fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
         fontWeight: 700,
         fontSize: 24,
-        color: colors.ink,
+        color: plain ? PLAIN.ink : colors.ink,
         textAlign: align,
       }}
     >
@@ -178,9 +222,11 @@ export function EmailHeading({
 export function EmailText({
   children,
   align = "left",
+  plain = false,
 }: {
   children: ReactNode;
   align?: "left" | "center";
+  plain?: boolean;
 }) {
   return (
     <Text
@@ -189,7 +235,7 @@ export function EmailText({
         fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
         fontSize: 15,
         lineHeight: "1.6",
-        color: colors.mutedForeground,
+        color: plain ? PLAIN.text : colors.mutedForeground,
         textAlign: align,
       }}
     >
@@ -203,14 +249,19 @@ export function EmailButton({
   children,
   align = "left",
   tone = "accent",
+  plain = false,
 }: {
   href: string;
   children: ReactNode;
   align?: "left" | "center";
-  /** "quiet" is a small cream pill with dark text and no outline, for an email that shouldn't shout. */
+  plain?: boolean;
+  /** "quiet" is a small pill with no outline (cream on the dark layout, dark on a plain one), for an email that shouldn't shout. */
   tone?: "accent" | "quiet";
 }) {
   const quiet = tone === "quiet";
+  // On a plain email the quiet pill turns dark with white text, so it stands out on white.
+  const fill = quiet ? (plain ? PLAIN.ink : colors.ink) : colors.accent;
+  const label = quiet ? (plain ? "#ffffff" : colors.background) : colors.accentForeground;
   return (
     <table
       role="presentation"
@@ -221,10 +272,11 @@ export function EmailButton({
     >
       <tr>
         <td
-          {...{ bgcolor: quiet ? colors.ink : colors.accent }}
+          {...{ bgcolor: fill }}
           style={{
-            backgroundColor: quiet ? colors.ink : colors.accent,
-            border: quiet ? "none" : `2px solid ${colors.ink}`,
+            backgroundColor: fill,
+            // On a plain email a white edge: unseen on a white inbox, and it keeps the dark pill visible in dark mode.
+            border: quiet ? (plain ? "1px solid #ffffff" : "none") : `2px solid ${colors.ink}`,
             borderRadius: 999,
           }}
         >
@@ -236,7 +288,7 @@ export function EmailButton({
               fontFamily: "-apple-system, Segoe UI, Roboto, sans-serif",
               fontWeight: quiet ? 600 : 700,
               fontSize: quiet ? 14 : 15,
-              color: quiet ? colors.background : colors.accentForeground,
+              color: label,
               textDecoration: "none",
             }}
           >
