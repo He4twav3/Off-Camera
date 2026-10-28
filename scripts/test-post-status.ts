@@ -16,8 +16,7 @@ t("a repost says view pay only", postStatus(post, { windowClosed: false, daysLef
 t("red with the reason when not approved", (() => { const s = postStatus({ ...post, state: "rejected", rejectReason: "Denied: not on brief" }, null); return s.tone === "red" && s.detail === "Denied: not on brief"; })());
 t("unknown window still reads well", postStatus(post, { windowClosed: false, daysLeft: null }).detail === "Views are being counted.");
 
-t("Getimg is out of budget", campaignHold({ title: "Getimg" })?.label === "Out of budget");
-t("a second Getimg campaign too", campaignHold({ title: "getimg (copy)" }) !== null);
+t("Getimg is open", campaignHold({ title: "Getimg" }) === null);
 t("MePersona is open", campaignHold({ title: "MePersona" }) === null);
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
