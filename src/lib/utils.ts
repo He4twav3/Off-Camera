@@ -9,11 +9,13 @@ export function cn(...inputs: ClassValue[]) {
 // Brand-campaign payouts are USD regardless of the course price's own
 // currency (EUR) — two separate money domains, not a mismatch to reconcile.
 
+// Whole dollars stay short ($96); anything with cents always shows two digits ($182.40, never $182.4).
 export function formatCurrency(amount: number) {
+  const cents = Math.round(amount * 100) % 100 !== 0
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
+    minimumFractionDigits: cents ? 2 : 0,
     maximumFractionDigits: 2,
   }).format(amount)
 }
