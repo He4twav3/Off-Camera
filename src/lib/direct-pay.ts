@@ -50,7 +50,7 @@ export function dueDateFrom(issued: Date, days: number = STATEMENT_DUE_DAYS): Da
 }
 
 /** Payment methods a brand can say it used. */
-export const BRAND_METHODS = ["Card (Stripe link)", "Wise", "Bank transfer", "PayPal", "Other"] as const;
+export const BRAND_METHODS = ["Wise", "Bank transfer", "Other"] as const;
 
 function luhnValid(digits: string): boolean {
   let sum = 0;

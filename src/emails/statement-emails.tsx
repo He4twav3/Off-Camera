@@ -23,8 +23,9 @@ export function StatementIssuedCreatorEmail({
         asked to do so by <strong>{dueLabel}</strong>.
       </EmailText>
       <EmailText>
-        Make sure the brand can pay you: add your Stripe or Wise payment link on
-        your Payments page. When the money arrives, confirm it there.
+        The brand pays you through Wise, straight into your bank account. Make
+        sure your bank details are on your Payments page. When the money
+        arrives, confirm it there.
       </EmailText>
       <EmailButton href={paymentsUrl}>Open your payments</EmailButton>
     </EmailLayout>
@@ -74,8 +75,9 @@ export function StatementIssuedBrandEmail({
       ) : (
         <>
           <EmailText>
-            You pay the creator directly. Open your dashboard to see how they
-            asked to be paid, and mark it as paid once you have sent it.
+            Download the Wise payment file from your Payments page, upload it in
+            Wise (Payments, then Batch) and pay it from your USD balance. Then
+            press &ldquo;I&apos;ve paid it&rdquo; so the creator can confirm.
           </EmailText>
           <EmailButton href={brandUrl}>See the statement</EmailButton>
         </>

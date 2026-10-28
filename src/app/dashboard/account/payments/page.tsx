@@ -3,21 +3,18 @@ import { redirect } from "next/navigation";
 import { CreditCard } from "lucide-react";
 import { AccountShell, Section } from "@/components/account/AccountShell";
 import { loadAccount } from "@/lib/account";
-import { PayoutInstructionsForm } from "@/app/dashboard/recruiting/earnings/DirectForms";
+import { BankDetailsForm } from "@/app/dashboard/recruiting/earnings/DirectForms";
+import { readMaskedDetails } from "@/lib/payout-details-store";
 
 export const metadata: Metadata = { title: "Payments" };
 
 export default async function PaymentsPage() {
-  const { supabase, applicant, person } = await loadAccount(
+  const { applicant, person } = await loadAccount(
     "/dashboard/account/payments",
   );
   if (!applicant) redirect("/dashboard/recruiting/profile-setup");
 
-  const { data } = await supabase
-    .from("applicants")
-    .select("payout_instructions")
-    .eq("id", applicant.id)
-    .maybeSingle();
+  const saved = await readMaskedDetails(applicant.id);
 
   return (
     <AccountShell
@@ -28,10 +25,10 @@ export default async function PaymentsPage() {
       icon={CreditCard}
     >
       <Section
-        title="Payment details"
-        summary="Brands pay you directly. They see this to know where to send your money. We never hold it. Amounts are in US dollars, so create your link in USD."
+        title="Bank details"
+        summary="Brands pay you through Wise, straight into this account. We never hold your money. Your full details only go into the Wise payment of a brand that owes you."
       >
-        <PayoutInstructionsForm current={data?.payout_instructions ?? null} />
+        <BankDetailsForm saved={saved} />
       </Section>
     </AccountShell>
   );

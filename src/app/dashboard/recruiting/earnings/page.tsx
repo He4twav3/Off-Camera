@@ -16,7 +16,7 @@ import { WithdrawForm } from "./WithdrawForm";
 import { DirectPayments } from "./DirectPayments";
 import { loadMyCampaigns } from "@/lib/my-campaigns-server";
 import { isDirectPay } from "@/lib/direct-pay";
-import { getCreatorStatements } from "@/lib/direct-pay-data";
+import { bankOnFile, getCreatorStatements } from "@/lib/direct-pay-data";
 import { cancelWithdrawalAction } from "./actions";
 
 export const metadata: Metadata = { title: "Earnings" };
@@ -85,7 +85,7 @@ export default async function EarningsPage() {
     return (
       <DirectPayments
         statements={statements}
-        payoutInstructions={details?.payout_instructions ?? null}
+        payoutInstructions={bankOnFile(details?.payout_instructions)}
         campaigns={campaigns}
       />
     );

@@ -56,3 +56,20 @@ Run `supabase/migrations/0019_direct_payments.sql` in the Supabase SQL editor
 - An email to admins when a creator reports not being paid.
 - Per-post statements for campaigns with several videos (one statement per
   creator per campaign for now).
+
+## Paying through Wise Business (from 2026-10-28)
+
+Brands pay all their creators at once with a Wise Business batch ("Send to bank accounts" template).
+
+- Creators save their bank details on Payments (`/dashboard/account/payments`): currency, account holder name,
+  address, and the local details for that currency (IBAN, sort code, routing number, BSB, ...). Card numbers are
+  refused. Rules: `src/lib/bank-details.ts`, tests: `scripts/test-bank-details.ts`.
+- The details are encrypted (AES-256-GCM) in the private storage bucket `payout-details`, one file per creator
+  (`src/lib/payout-details-store.ts`). Key: `PAYOUT_DETAILS_KEY` if set, otherwise derived from the service-role
+  key, so changing the service-role key makes saved details unreadable (creators would re-enter them). The
+  applicant row only keeps a summary ("Bank account in EUR · IBAN ending 1234").
+- The brand uploads its blank Wise template once (CSV) on Payments, downloads the filled payment file, pays it in
+  Wise, then presses "I've paid it" with the Wise confirmation. That marks the payments in the file as paid and
+  emails the creators. Admin can download the same file on Payout details → the brand.
+- The file fills template columns by name (`src/lib/wise-batch.ts`); columns it doesn't know stay blank and are
+  listed. Without a template it uses Wise's usual column names. Amounts are USD, `amountCurrency` is `source`.

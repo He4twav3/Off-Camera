@@ -5,7 +5,8 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { statementState } from "@/lib/direct-pay";
-import { parsePaymentLink } from "@/lib/payment-links";
+import { parseBankDetails } from "@/lib/bank-details";
+import { removeBankDetails, saveBankDetails } from "@/lib/payout-details-store";
 
 export interface DirectState {
   error?: string;
@@ -23,25 +24,35 @@ async function currentApplicant() {
   return data ? { supabase, applicantId: data.id } : null;
 }
 
-/** How the creator wants brands to pay them. Shown only to a brand that owes them money. */
-export async function savePayoutInstructionsAction(_prev: DirectState, formData: FormData): Promise<DirectState> {
+/**
+ * The creator's bank details, for the brand's Wise batch. Stored encrypted; only a summary
+ * ("Bank account in EUR · IBAN ending 1234") is kept on the profile and shown to brands.
+ */
+export async function saveBankDetailsAction(_prev: DirectState, formData: FormData): Promise<DirectState> {
   const me = await currentApplicant();
   if (!me) return { error: "You need to be logged in." };
 
-  const raw = String(formData.get("payout_instructions") ?? "");
-  let value: string | null = null;
-  if (raw.trim() !== "") {
-    const parsed = parsePaymentLink(raw);
-    if (!parsed.ok) return { error: parsed.error };
-    value = parsed.value;
+  if (formData.get("remove") === "1") {
+    if (!(await removeBankDetails(me.applicantId))) return { error: "Couldn't remove them. Please try again." };
+    revalidatePath("/dashboard/account/payments");
+    revalidatePath("/dashboard/recruiting/earnings");
+    return { success: "Removed." };
   }
 
-  const { error } = await me.supabase.from("applicants").update({ payout_instructions: value }).eq("id", me.applicantId);
-  if (error) return { error: "Couldn't save that. Please try again." };
+  const input: Record<string, string> = {};
+  for (const [k, v] of formData.entries()) if (typeof v === "string") input[k] = v;
+  const parsed = parseBankDetails(input);
+  if (!parsed.ok) return { error: parsed.error };
+
+  const {
+    data: { user },
+  } = await me.supabase.auth.getUser();
+  if (!(await saveBankDetails(me.applicantId, { ...parsed.value, email: user?.email ?? "" })))
+    return { error: "Couldn't save that. Please try again." };
 
   revalidatePath("/dashboard/recruiting/earnings");
   revalidatePath("/dashboard/account/payments");
-  return { success: value ? "Saved. Brands you work with will pay you through this link." : "Removed." };
+  return { success: "Saved. Brands pay you straight into this account through Wise." };
 }
 
 const idSchema = z.object({ id: z.string().uuid() });

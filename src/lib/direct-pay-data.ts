@@ -53,6 +53,11 @@ export async function getCreatorStatements(
     }));
 }
 
+/** The bank summary saved with the creator's details. Older payment links don't count: brands pay through Wise now. */
+export function bankOnFile(saved: string | null | undefined): string | null {
+  return saved?.startsWith("Bank account in ") ? saved : null;
+}
+
 export type BrandStatement = {
   id: string;
   amount: number;
@@ -66,7 +71,7 @@ export type BrandStatement = {
   campaign: string;
   creatorName: string;
   creatorHandle: string;
-  /** Where the creator asked to be paid. Shown only to the brand that owes them. */
+  /** The creator's bank summary (currency, last 4). Shown only to the brand that owes them. */
   payTo: string | null;
 };
 
@@ -96,7 +101,7 @@ export async function getBrandStatements(
       campaign: row.assignments?.jobs?.title ?? "Campaign",
       creatorName: row.assignments?.applicants?.name ?? "Creator",
       creatorHandle: row.assignments?.applicants?.handle ?? "",
-      payTo: row.assignments?.applicants?.payout_instructions ?? null,
+      payTo: bankOnFile(row.assignments?.applicants?.payout_instructions),
     }));
 }
 

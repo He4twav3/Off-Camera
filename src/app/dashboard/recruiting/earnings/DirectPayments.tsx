@@ -108,12 +108,12 @@ export function DirectPayments({
       {!payoutInstructions && (
         <div className="mt-4">
           <Notice>
-            Brands can&apos;t pay you until they know where.{" "}
+            Brands can&apos;t pay you until you add your bank account.{" "}
             <Link
               href={accountPath}
               className="font-semibold text-primary underline underline-offset-2"
             >
-              Add your payment details
+              Add your bank details
             </Link>
           </Notice>
         </div>

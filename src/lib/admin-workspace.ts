@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { parsePostTerms, payFor, type PostTerms } from "@/lib/post-terms";
 import { postReviews, reviewedOf } from "@/lib/post-review";
 import { statementState, type StatementState } from "@/lib/direct-pay";
-import { providerOfLink, PAYMENT_PROVIDERS } from "@/lib/payment-links";
 
 /**
  * Everything the admin tracks, in one load, so the overview, the campaign pages, the creator pages and
@@ -110,12 +109,9 @@ const round = (n: number) => Math.round(n * 100) / 100;
 const sum = (n: number[]) => round(n.reduce((a, b) => a + b, 0));
 
 export function payoutOf(raw: string | null | undefined): APayout {
-  const provider = providerOfLink(raw);
-  return {
-    raw: raw ?? null,
-    link: provider ? raw!.trim() : null,
-    provider: provider ? PAYMENT_PROVIDERS[provider].label : null,
-  };
+  // Only the bank summary counts now; an older payment link means they still have to add bank details.
+  const bank = raw?.startsWith("Bank account in ") ? raw : null;
+  return { raw: bank, link: null, provider: bank ? "Wise" : null };
 }
 
 export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorkspace> {

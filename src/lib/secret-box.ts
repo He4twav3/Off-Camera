@@ -24,17 +24,17 @@ function key(): Buffer {
 const b64 = (b: Buffer) => b.toString("base64url");
 
 /** AES-256-GCM. Returns "v1.<iv>.<tag>.<ciphertext>". */
-export function encryptDetails(plain: string): string {
+export function encryptDetails(plain: string, k: Buffer = key()): string {
   const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", key(), iv);
+  const cipher = createCipheriv("aes-256-gcm", k, iv);
   const ct = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);
   return `v1.${b64(iv)}.${b64(cipher.getAuthTag())}.${b64(ct)}`;
 }
 
-export function decryptDetails(box: string): string {
+export function decryptDetails(box: string, k: Buffer = key()): string {
   const [v, iv, tag, ct] = box.split(".");
   if (v !== "v1" || !iv || !tag || !ct) throw new Error("Not an encrypted value");
-  const d = createDecipheriv("aes-256-gcm", key(), Buffer.from(iv, "base64url"));
+  const d = createDecipheriv("aes-256-gcm", k, Buffer.from(iv, "base64url"));
   d.setAuthTag(Buffer.from(tag, "base64url"));
   return Buffer.concat([d.update(Buffer.from(ct, "base64url")), d.final()]).toString("utf8");
 }

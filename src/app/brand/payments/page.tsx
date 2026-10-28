@@ -9,6 +9,9 @@ import { loadBrandPage } from "../_brand";
 import { PendingNotice } from "../PendingNotice";
 import { PaymentRow } from "../BrandParts";
 import { HowYouPay } from "../HowYouPay";
+import { WisePanel } from "./WisePanel";
+import { buildWiseBatch } from "@/lib/wise-batch-data";
+import { readLastBatch, readWiseTemplate } from "@/lib/payout-details-store";
 
 export const metadata: Metadata = { title: "Payments" };
 
@@ -28,7 +31,8 @@ export default async function BrandPaymentsPage(props: { searchParams: Promise<{
   const open = statements.filter((s) => statementState(s) !== "confirmed");
   const done = statements.filter((s) => statementState(s) === "confirmed");
   const paid = ws.creators.reduce((n, c) => n + c.paid, 0);
-  const toPay = open.filter((s) => !s.brand_paid_at && !s.creator_confirmed_at).reduce((n, s) => n + s.amount, 0);
+  const unpaid = open.filter((s) => !s.brand_paid_at && !s.creator_confirmed_at);
+  const toPay = unpaid.reduce((n, s) => n + s.amount, 0);
 
   if (showArchive)
     return (
@@ -51,9 +55,13 @@ export default async function BrandPaymentsPage(props: { searchParams: Promise<{
       </PageShell>
     );
 
+  const [batch, last, template] = await Promise.all([buildWiseBatch(brand.id), readLastBatch(brand.id), readWiseTemplate(brand.id)]);
+  const unpaidIds = new Set(unpaid.map((s) => s.id));
+  const lastOpen = last && last.statementIds.some((id) => unpaidIds.has(id)) ? { total: last.total, createdAt: last.createdAt } : null;
+
   return (
     <PageShell>
-      <PageHeader title="Payments" summary="What you owe each creator. Pay through their link, then mark it paid." />
+      <PageHeader title="Payments" summary="What you owe each creator. Pay everyone at once with one Wise batch." />
       <StatGrid>
         <Stat label="To pay now" value={formatCurrency(toPay)} attention={toPay > 0} hint={open.length ? `${open.length} ${open.length === 1 ? "payment" : "payments"} open` : "All paid"} />
         <Stat label="Paid so far" value={formatCurrency(paid)} />
@@ -63,8 +71,10 @@ export default async function BrandPaymentsPage(props: { searchParams: Promise<{
         <HowYouPay />
       </div>
 
+      <WisePanel creators={batch.creators} total={batch.total} missing={batch.missing} hasTemplate={Boolean(template)} lastBatch={lastOpen} />
+
       {open.length === 0 ? (
-        <EmptyState title="Nothing to pay" body="When a payment is due, it appears here with the creator's payment link." />
+        <EmptyState title="Nothing to pay" body="When a payment is due, it appears here and in your Wise payment file." />
       ) : (
         <RowList>
           {open.map((s) => (

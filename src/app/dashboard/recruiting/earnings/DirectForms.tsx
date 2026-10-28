@@ -1,12 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PAYMENT_PROVIDERS, providerOfLink, type PaymentProvider } from "@/lib/payment-links";
-import { Field, Input, Textarea } from "@/components/ui/field";
-import { reportNotPaidAction, savePayoutInstructionsAction, type DirectState } from "./direct-actions";
+import { COUNTRY_CODES, CURRENCIES, FIELD_LABEL, STATE_COUNTRIES, type BankDetails } from "@/lib/bank-details";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { reportNotPaidAction, saveBankDetailsAction, type DirectState } from "./direct-actions";
 
 function Submit({ children, pendingText }: { children: string; pendingText: string }) {
   const { pending } = useFormStatus();
@@ -35,89 +34,122 @@ function Message({ state }: { state: DirectState }) {
   return null;
 }
 
-export function PayoutInstructionsForm({ current }: { current: string | null }) {
-  const [state, formAction] = useActionState<DirectState, FormData>(savePayoutInstructionsAction, {});
-  const currentProvider = providerOfLink(current);
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <p className="text-[15px] font-semibold text-foreground">1. Choose how you want to be paid</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Brands pay you straight into your own account. The payment provider takes its fee from what you receive.
-          Pick one, create a free account if you don&apos;t have one, and make a payment link.
-        </p>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-          {(Object.keys(PAYMENT_PROVIDERS) as PaymentProvider[]).map((key) => {
-            const p = PAYMENT_PROVIDERS[key];
-            return (
-              <li key={key} className="flex flex-col rounded-lg border border-border/70 p-4">
-                <p className="font-heading font-semibold text-foreground">
-                  {p.label}
-                  {p.recommended && (
-                    <span className="ml-2 rounded-md bg-primary/15 px-1.5 py-0.5 align-middle text-xs font-medium text-primary">
-                      Recommended
-                    </span>
-                  )}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">{p.blurb}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{p.howTo}</p>
-                <a
-                  href={p.signupUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline underline-offset-2"
-                >
-                  Create a {p.label} account
-                  <ExternalLink className="size-3.5" />
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+/** Where brands send the money: the creator's own bank account, paid through the brand's Wise batch. */
+export function BankDetailsForm({ saved }: { saved: { summary: string; details: BankDetails } | null }) {
+  const [state, formAction] = useActionState<DirectState, FormData>(saveBankDetailsAction, {});
+  const [editing, setEditing] = useState(!saved);
+  const d = saved?.details;
+  const [currency, setCurrency] = useState(d?.currency ?? "EUR");
+  const [country, setCountry] = useState(d?.country ?? "");
+  const countries = useMemo(() => {
+    let names: Intl.DisplayNames | null = null;
+    try {
+      names = new Intl.DisplayNames(["en"], { type: "region" });
+    } catch {
+      /* older browsers: show the codes */
+    }
+    return COUNTRY_CODES.map((c) => ({ code: c, name: names?.of(c) ?? c })).sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
+  const spec = CURRENCIES[currency];
 
-      <form action={formAction} className="flex flex-col gap-3">
-        <Field
-          label="2. Paste your payment link"
-          htmlFor="payout_instructions"
-          hint="Only Stripe and Wise links. Brands you work with see this and pay you through it. Never enter a card number."
-        >
-          <Input
-            id="payout_instructions"
-            name="payout_instructions"
-            type="url"
-            inputMode="url"
-            defaultValue={currentProvider ? (current ?? "") : ""}
-            maxLength={300}
-            placeholder="https://buy.stripe.com/…"
-            autoComplete="off"
-          />
-        </Field>
-        {current && !currentProvider && (
-          <p className="text-sm text-muted-foreground">
-            You currently have &ldquo;{current}&rdquo; saved. That is the older format. Replace it with a payment link.
-          </p>
-        )}
-        {currentProvider && (
-          <p className="text-sm text-muted-foreground">
-            Saved: a {PAYMENT_PROVIDERS[currentProvider].label} link.{" "}
-            <a
-              href={current!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-primary underline underline-offset-2"
-            >
-              Test my link
-            </a>{" "}
-            to see what a brand will see.
-          </p>
-        )}
-        <Message state={state} />
-        <div>
-          <Submit pendingText="Saving…">Save</Submit>
+  if (saved && !editing && !state.success) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-[15px] font-semibold text-foreground">{saved.summary}</p>
+        <p className="text-sm text-muted-foreground">
+          {saved.details.holderName} · {saved.details.city}, {saved.details.country}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+            Change bank details
+          </Button>
+          <form action={formAction}>
+            <input type="hidden" name="remove" value="1" />
+            <Button type="submit" size="sm" variant="outline">
+              Remove
+            </Button>
+          </form>
         </div>
-      </form>
-    </div>
+        <Message state={state} />
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        Brands pay you straight into your own bank account through Wise. You don&apos;t need a Wise account. Amounts are set in US dollars and Wise converts them to your currency. We only ever need your bank account details, like your IBAN.{" "}
+        <strong className="text-foreground">Never enter a card number.</strong>
+      </p>
+
+      <Field label="Currency of your bank account" htmlFor="currency">
+        <Select id="currency" name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+          {Object.entries(CURRENCIES).map(([code, c]) => (
+            <option key={code} value={code}>
+              {c.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      <Field label="Account holder name" htmlFor="holderName" hint="Your full name, exactly as it is on your bank account.">
+        <Input id="holderName" name="holderName" defaultValue={d?.holderName ?? ""} maxLength={100} autoComplete="name" required />
+      </Field>
+
+      {spec.fields.map((f) =>
+        f === "accountType" ? (
+          <Field key={f} label={FIELD_LABEL[f].label} htmlFor={f}>
+            <Select id={f} name={f} defaultValue={d?.bank.accountType ?? "CHECKING"}>
+              <option value="CHECKING">Checking</option>
+              <option value="SAVINGS">Savings</option>
+            </Select>
+          </Field>
+        ) : (
+          <Field key={`${currency}-${f}`} label={FIELD_LABEL[f].label} htmlFor={f} hint={FIELD_LABEL[f].hint}>
+            <Input id={f} name={f} placeholder={FIELD_LABEL[f].placeholder} autoComplete="off" spellCheck={false} required={f !== "bic"} maxLength={40} />
+          </Field>
+        ),
+      )}
+
+      <p className="pt-2 text-[15px] font-semibold text-foreground">Your address</p>
+      <p className="-mt-3 text-sm text-muted-foreground">Wise needs it to send the transfer. It&apos;s only shared in the brand&apos;s Wise payment.</p>
+      <Field label="Country you live in" htmlFor="country">
+        <Select id="country" name="country" value={country} onChange={(e) => setCountry(e.target.value)} required>
+          <option value="">Choose…</option>
+          {countries.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.name}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field label="Street address" htmlFor="address">
+        <Input id="address" name="address" defaultValue={d?.address ?? ""} maxLength={100} autoComplete="address-line1" required />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="City" htmlFor="city">
+          <Input id="city" name="city" defaultValue={d?.city ?? ""} maxLength={100} autoComplete="address-level2" required />
+        </Field>
+        <Field label="Postcode" htmlFor="postCode">
+          <Input id="postCode" name="postCode" defaultValue={d?.postCode ?? ""} maxLength={20} autoComplete="postal-code" />
+        </Field>
+      </div>
+      {STATE_COUNTRIES.includes(country) && (
+        <Field label="State or province" htmlFor="state">
+          <Input id="state" name="state" defaultValue={d?.state ?? ""} maxLength={100} autoComplete="address-level1" required />
+        </Field>
+      )}
+
+      <Message state={state} />
+      <div className="flex gap-3">
+        <Submit pendingText="Saving…">Save bank details</Submit>
+        {saved && (
+          <Button type="button" variant="outline" size="sm" onClick={() => setEditing(false)}>
+            Cancel
+          </Button>
+        )}
+      </div>
+    </form>
   );
 }
 

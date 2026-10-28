@@ -43,8 +43,10 @@ export default function PrivacyPage() {
           sample videos you add.
         </li>
         <li>
-          Your payout link (Stripe or Wise). Brands who owe you a payment can
-          see it so they can pay you.
+          Your bank details for payouts (account holder name, address and
+          account details such as your IBAN), stored encrypted. They go only
+          into the Wise payment of a brand that owes you money; other brands
+          and pages only see the currency and last 4 digits.
         </li>
         <li>
           The posts you submit to a campaign, and the public data about them:
@@ -88,9 +90,9 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        We do not collect payment card numbers or bank logins for brand-to-creator
-        payments. Those happen directly between the brand and the creator on
-        Stripe or Wise.
+        We never collect payment card numbers or bank logins. Brands pay
+        creators from their own Wise Business account, straight into the
+        creator&apos;s bank account.
       </p>
 
       <h2>2. How we use it</h2>
@@ -144,7 +146,7 @@ export default function PrivacyPage() {
         <li>Discord, if you choose to connect your account.</li>
         <li>
           {COURSE_PUBLIC ? "Our payment providers, for course purchases. " : ""}Payments between brands
-          and creators use Stripe or Wise directly, under their own terms.
+          and creators go through the brand&apos;s own Wise Business account, under Wise&apos;s terms.
         </li>
       </ul>
 

@@ -207,7 +207,7 @@ export async function sendStatementIssuedCreatorEmail(args: {
     to: args.to,
     subject: `${amountLabel} owed to you for ${args.jobTitle}`,
     react: StatementIssuedCreatorEmail({ name: args.name, jobTitle: args.jobTitle, amountLabel, dueLabel, paymentsUrl }),
-    text: `Your campaign is done, ${args.name}. ${amountLabel} is owed to you for ${args.jobTitle}. The brand pays you directly and has been asked to by ${dueLabel}. Add how you'd like to be paid, and confirm when the money arrives: ${paymentsUrl}`,
+    text: `Your campaign is done, ${args.name}. ${amountLabel} is owed to you for ${args.jobTitle}. The brand pays you through Wise, straight into your bank account, by ${dueLabel}. Make sure your bank details are added, and confirm when the money arrives: ${paymentsUrl}`,
   });
 }
 
@@ -232,7 +232,7 @@ export async function sendStatementIssuedBrandEmail(args: {
     to: args.to,
     subject: `Payment due: ${amountLabel} to ${args.creatorName}`,
     react: StatementIssuedBrandEmail({ contactName: args.contactName, jobTitle: args.jobTitle, creatorName: args.creatorName, amountLabel, dueLabel, brandUrl, payLink, payLabel }),
-    text: `A payment is due, ${args.contactName}. ${args.creatorName} has finished ${args.jobTitle}; based on the views the amount owed is ${amountLabel}, due by ${dueLabel}. You pay the creator directly. ${payLink ? `Pay exactly ${amountLabel} here: ${payLink} . Then mark it paid` : "See how they asked to be paid and mark it paid"} here: ${brandUrl}`,
+    text: `A payment is due, ${args.contactName}. ${args.creatorName} has finished ${args.jobTitle}; based on the views the amount owed is ${amountLabel}, due by ${dueLabel}. ${payLink ? `You pay the creator directly. Pay exactly ${amountLabel} here: ${payLink} . Then mark it paid here: ${brandUrl}` : `Download the Wise payment file from your Payments page, upload it in Wise (Payments, then Batch) and pay it, then press "I've paid it": ${brandUrl}/payments`}`,
   });
 }
 

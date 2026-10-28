@@ -416,7 +416,7 @@ export function describePostTerms(terms: PostTerms): string[] {
   lines.push("Your post has to be on one of your own verified accounts, and go live after you connected that account and joined.");
   if (terms.keepPublicDays > 0) lines.push(`Keep each post public for ${terms.keepPublicDays} days.`);
   if (terms.statementEvery === "month") lines.push("You get one statement a month, for everything you earned that month.");
-  lines.push(`After each ${terms.statementEvery === "month" ? "statement" : "payment"}, the brand has ${terms.dueDays ?? STATEMENT_DUE_DAYS} days to pay you directly through your payment link. Amounts are in US dollars, so create your link in USD.`);
+  lines.push(`After each ${terms.statementEvery === "month" ? "statement" : "payment"}, the brand has ${terms.dueDays ?? STATEMENT_DUE_DAYS} days to pay you directly into your bank account through Wise. Amounts are in US dollars and Wise converts them to your currency.`);
   lines.push("Views are updated about once a day.");
   return lines;
 }

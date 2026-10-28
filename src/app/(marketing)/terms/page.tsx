@@ -63,9 +63,9 @@ export default function TermsPage() {
       <ul>
         <li>
           <strong>We do not hold or send creators&apos; money.</strong> When a
-          payment is due, the brand pays the creator directly, through the
-          payment link the creator saved (Stripe or Wise), from the
-          brand&apos;s own account.
+          payment is due, the brand pays the creator directly into the bank
+          account the creator saved, in one Wise Business batch from the
+          brand&apos;s own Wise account.
         </li>
         <li>
           Creators are paid the full amount shown on the statement. Nothing is

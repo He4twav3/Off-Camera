@@ -9,7 +9,7 @@ export type PayItem = {
   campaign: string;
   amount: number;
   dueAt: string;
-  /** The creator's Stripe or Wise link, or what they typed in the older format, or null. */
+  /** The creator's bank summary ("Bank account in EUR · IBAN ending 1234"), or null when they haven't added one. */
   payTo: string | null;
 };
 
@@ -29,7 +29,7 @@ export function brandEmail(input: { to: string; contactName: string; dashboardUr
     .map(
       (i) =>
         `${i.creatorName} (${i.campaign}): ${usd(i.amount)}, by ${day(i.dueAt)}\n` +
-        (i.payTo ? `Pay here: ${i.payTo}` : "Payment link: they haven't added one yet, we'll send it as soon as they do"),
+        (i.payTo ? `${i.payTo}, in the Wise payment file` : "Bank details: they haven't added them yet, we'll add them to the file as soon as they do"),
     )
     .join("\n\n");
   const one = items.length === 1;
@@ -42,8 +42,8 @@ export function brandEmail(input: { to: string; contactName: string; dashboardUr
         ? `${items[0].creatorName} has finished their work on ${items[0].campaign}. Based on their views, the amount owed is ${usd(items[0].amount)}, due by ${day(items[0].dueAt)}.`
         : `Here is what is due to your creators, ${usd(total)} in total.`) +
       `\n\n${lines}\n\n` +
-      `You pay each creator directly through their link. Please enter exactly the amount shown, and cover any transfer fees so they receive all of it. The amounts are in US dollars: if your account is in another currency, paying from a Wise account is usually the cheapest way to convert. ` +
-      `Once it is sent, mark it as paid in your dashboard so they can confirm: ${input.dashboardUrl}\n\n${SIGN_OFF}`,
+      `You pay everyone at once with one Wise batch. Download the Wise payment file from your Payments page, then in Wise go to Payments, then Batch, upload it and pay it from your USD balance (top it up by ACH a few days before). ` +
+      `Then press "I've paid it" on the same page and add the Wise confirmation, so the creators can confirm: ${input.dashboardUrl}\n\n${SIGN_OFF}`,
   };
 }
 
@@ -58,8 +58,8 @@ export function creatorEmail(input: { to: string; creatorName: string; brandName
       `Your payment for ${item.campaign} is ready: ${usd(item.amount)}, based on your views. ` +
       `${input.brandName ?? "The brand"} has been asked to pay you directly by ${day(item.dueAt)}.\n\n` +
       (input.hasLink
-        ? `They will pay through the payment link you saved on your Payments page.`
-        : `We don't have a payment link from you yet. Please add your Stripe or Wise link on your Payments page so they can pay you.`) +
+        ? `They will pay you through Wise, straight into the bank account you saved on your Payments page.`
+        : `We don't have your bank details yet. Please add them on your Payments page (your IBAN or local account number, never a card number) so they can pay you.`) +
       `\n\nWhen the money arrives, please confirm it in your Earnings page: ${input.earningsUrl}\n\n${SIGN_OFF}`,
   };
 }
