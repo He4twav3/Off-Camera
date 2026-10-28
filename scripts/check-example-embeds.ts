@@ -13,7 +13,7 @@ const t = (n: string, ok: boolean, got?: unknown) => {
 
 async function main() {
   for (const preset of CAMPAIGN_PRESETS) {
-    for (const url of preset.exampleUrls) {
+    for (const url of (preset.exampleUrls ?? [])) {
       if (url.includes("tiktok.com")) {
         const res = await fetch(
           `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`,

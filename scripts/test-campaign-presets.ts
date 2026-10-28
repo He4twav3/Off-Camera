@@ -1,4 +1,4 @@
-import { MEPERSONA, presetFor, presetRow, presetMarker } from "../src/lib/campaign-presets";
+import { GETIMG, MEPERSONA, presetFor, presetRow, presetMarker } from "../src/lib/campaign-presets";
 import { describePostTerms, postTermsChips, postTermsSchema } from "../src/lib/post-terms";
 import { parseBrief, parseBriefSteps, parseGuide, parseScripts, briefPlainText } from "../src/lib/campaign-guide";
 import { parseExampleLinks } from "../src/lib/campaign-brief";
@@ -42,10 +42,10 @@ const everything = [MEPERSONA.about, MEPERSONA.description, MEPERSONA.guide, MEP
 for (const banned of ["#ad", "paid partnership", "tracked link", "no promises", "blur", "family friendly", "bulk posting"])
   t(`nothing about "${banned}"`, !everything.includes(banned));
 t("about the brand doesn't say X or Bluesky reply", !/\bx\b|bluesky/i.test(MEPERSONA.about), MEPERSONA.about);
-const ex = parseExampleLinks(MEPERSONA.exampleUrls.join("\n"));
+const ex = parseExampleLinks((MEPERSONA.exampleUrls ?? []).join("\n"));
 t("4 valid example videos", ex.ok && ex.urls.length === 4, ex);
 t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about: "Answer every comment… MePersona is an AI inbox" }) === MEPERSONA);
-t("doesn't match others", presetFor({ title: "Getimg", about: "AI images" }) === null);
+t("doesn't match others", presetFor({ title: "Acme", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
 t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@19");
@@ -55,6 +55,20 @@ t("creators apply with a sample video", row.sample_required === true);
 t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Send a short sample video."));
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
 t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@19", parsedRow);
+
+// Getimg's setup keeps the campaign's own pay terms, contract, example videos and sample setting.
+{
+  const live = { v: 2, basePerPost: 0, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"], reviewer: "brand", contract: { agreedAt: "x" } } as never;
+  const g = presetRow(GETIMG, live) as Record<string, unknown>;
+  const terms = g.post_terms as Record<string, unknown>;
+  t("Getimg matches its campaign only", presetFor({ title: "Getimg", about: null }) === GETIMG && presetFor({ title: "MePersona", about: null }) !== GETIMG);
+  t("Getimg keeps its pay terms", terms.basePerPost === 0 && terms.cycleSize === 15 && terms.reviewer === "brand", terms);
+  t("Getimg keeps the brand's agreement", JSON.stringify(terms.contract) === JSON.stringify({ agreedAt: "x" }), terms);
+  t("Getimg's setup is marked", terms.preset === "getimg@1", terms);
+  t("Getimg keeps its videos, sample setting and payout", !("example_urls" in g) && !("sample_required" in g) && !("payout_amount" in g), Object.keys(g));
+  t("Getimg's brief has 5 points and 5 hooks", (GETIMG.description.match(/^## /gm) ?? []).length === 5 && (GETIMG.description.match(/^- /gm) ?? []).length === 5);
+  t("Getimg has 5 scripts", (GETIMG.scripts.match(/^### /gm) ?? []).length === 5);
+}
 
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

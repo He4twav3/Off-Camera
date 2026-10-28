@@ -15,15 +15,19 @@ export type CampaignPreset = {
   about: string;
   /** The brief on the campaign page: "## " starts a step, the lines under it are its text. */
   description: string;
-  exampleUrls: string[];
+  /** Left out: the campaign keeps the example videos it has. */
+  exampleUrls?: string[];
   guide: string;
   scripts: string;
   /** True: creators apply with a sample video, and an admin approves them onto the campaign. */
-  sampleRequired: boolean;
-  /** What the sample video should show, under the sample link on the application form. */
-  sampleCriteria: string | null;
-  /** Everything but who reviews posts and the brand's signed contract, which are kept as they are. */
-  postTerms: Omit<PostTerms, "reviewer" | "contract">;
+  sampleRequired?: boolean;
+  /** What the sample video should show, under the sample link on the application form. Left out with sampleRequired. */
+  sampleCriteria?: string | null;
+  /**
+   * Everything but who reviews posts and the brand's signed contract, which are kept as they are. Left out: the
+   * campaign keeps the pay terms it has (and the brand's agreement to them).
+   */
+  postTerms?: Omit<PostTerms, "reviewer" | "contract">;
 };
 
 export const MEPERSONA: CampaignPreset = {
@@ -72,7 +76,82 @@ export const MEPERSONA: CampaignPreset = {
   },
 };
 
-export const CAMPAIGN_PRESETS: CampaignPreset[] = [MEPERSONA];
+export const GETIMG: CampaignPreset = {
+  key: "getimg",
+  version: 1,
+  label: "Getimg",
+  matches: (job) => job.title.trim().toLowerCase().startsWith("getimg"),
+  about:
+    "Getimg is one AI studio for images, video, music and speech. You describe what you want, and it picks the best AI model for the job and improves your prompt. Getimg is looking for creators who can turn a simple feature into a strong ad hook.",
+  description: [
+    "## Read the full brief",
+    "It explains what Getimg is and what it does, and has scripts you can use.",
+    "## Pick a script and make it your own",
+    "Show the result on screen. The output is what sells it.",
+    "## Your own ideas are welcome",
+    "Unique videos and new formats that work are welcome too, and rewarded if they go viral.",
+    "## Use Getimg before you film",
+    "Make a few things first, so you know what to show.",
+    "## Get paid on views",
+    "With rewards when a video reaches 250K, 500K and 1M views.",
+    "### Hooks you can use",
+    '- "I made this ad in 60 seconds."',
+    '- "Stop paying for 10 different AI apps."',
+    "- \"You don't need a camera to make a product video anymore.\"",
+    '- "One selfie. Ten professional headshots."',
+    '- "This is how small brands are making ads now."',
+  ].join("\n"),
+  guide: [
+    "## What Getimg is",
+    "**Getimg is one AI studio for images, video, music and speech.** You describe what you want, and it picks the best AI model for the job and improves your prompt.",
+    "",
+    "## What you can make with it",
+    "- **Images** from a prompt",
+    "- **Video** from text or a single image",
+    "- **UGC ad videos** with a presenter, for a product",
+    "- **360° product spins** from a few photos",
+    "- **Music**, **voiceovers** and **sound effects**",
+    "- **Headshots** from one selfie",
+    "- **Edits**: remove backgrounds and objects, relight a photo, and upscale images and video",
+    "",
+    "## One place for 50+ models",
+    "Kling, Nano Banana, FLUX, GPT Image, Seedream, Veo and more, without paying for each one separately.",
+    "",
+    "## Elements",
+    "Save a character, style or product and reuse it, so it looks the same in every video.",
+  ].join("\n"),
+  scripts: [
+    "Use these hooks or similar ones, and make each format your own. Show what Getimg makes on screen: the result is the proof.",
+    "",
+    "## Which account to use",
+    "**Post on your own account, or a new one made for this campaign. Both are fine.**",
+    "Getimg wants lots of strong videos, so an account that posts often works well.",
+    "",
+    "### 1. The 60-second ad",
+    '- Hook: "I made this ad in 60 seconds."',
+    "- Screen-record it: a product photo goes in, a UGC video comes out.",
+    "- A timer on screen, no talking.",
+    "",
+    "### 2. Selfie to headshots",
+    '- Hook: "One selfie. Ten professional headshots."',
+    "- Show the selfie, then a fast cut through the results.",
+    "",
+    "### 3. Pain-point hook",
+    '- Hook: "Paying for 5 AI apps?"',
+    "- Say the problem to camera.",
+    "- Show that Getimg has them all in one place.",
+    "",
+    "### 4. Step by step",
+    "- Screen-record a build: prompt, then image, then video, then music.",
+    "- Text on screen for each step.",
+    "",
+    "### 5. Before and after",
+    "- Take a dull product photo, relight it, upscale it and turn it into a 360° spin.",
+    "- Show the reveal side by side.",
+  ].join("\n"),
+};
+
+export const CAMPAIGN_PRESETS: CampaignPreset[] = [MEPERSONA, GETIMG];
 
 /** What a campaign's terms record once a setup is applied, so it is applied once per version. */
 export function presetMarker(preset: CampaignPreset): string {
@@ -81,23 +160,27 @@ export function presetMarker(preset: CampaignPreset): string {
 
 /**
  * The campaign row as the setup makes it: the brief, the brand note, the example videos and the pay terms, with
- * "Formats that work" cleared. Who reviews posts and the brand's signed contract are kept from `kept`.
+ * "Formats that work" cleared. Who reviews posts and the brand's signed contract are kept from `kept`; a setup with
+ * no pay terms, example videos or sample setting leaves the campaign's own.
  */
-export function presetRow(preset: CampaignPreset, kept: Pick<PostTerms, "reviewer" | "contract"> | null) {
+export function presetRow(preset: CampaignPreset, kept: Partial<PostTerms> | null) {
+  const terms = preset.postTerms
+    ? {
+        ...preset.postTerms,
+        reviewer: kept?.reviewer ?? "oncamera",
+        ...(kept?.contract ? { contract: kept.contract } : {}),
+      }
+    : kept;
   return {
     about: preset.about,
     description: preset.description,
     formats: null,
-    example_urls: preset.exampleUrls,
-    sample_required: preset.sampleRequired,
-    sample_criteria: preset.sampleCriteria,
-    payout_amount: preset.postTerms.basePerPost,
-    post_terms: {
-      ...preset.postTerms,
-      reviewer: kept?.reviewer ?? "oncamera",
-      ...(kept?.contract ? { contract: kept.contract } : {}),
-      preset: presetMarker(preset),
-    },
+    ...(preset.exampleUrls ? { example_urls: preset.exampleUrls } : {}),
+    ...(preset.sampleRequired !== undefined
+      ? { sample_required: preset.sampleRequired, sample_criteria: preset.sampleCriteria ?? null }
+      : {}),
+    ...(preset.postTerms ? { payout_amount: preset.postTerms.basePerPost } : {}),
+    post_terms: { ...terms, preset: presetMarker(preset) },
   };
 }
 
