@@ -3,15 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminWorkspace } from "@/lib/admin-workspace";
 import { SectionTitle } from "@/components/admin/table";
-import { PayTermsForm } from "../PayTermsForm";
 import { FeeForm } from "../FeeForm";
 import { getFeeBands } from "@/lib/campaign-fees";
 import { STANDARD_FEE, describeFee } from "@/lib/fee";
 import { deleteEmptyJobAction } from "../../actions";
 
-export const metadata: Metadata = { title: "Pay terms · Admin" };
+export const metadata: Metadata = { title: "Fee and removal · Admin" };
 
-// The contract's pay terms for one campaign, and removing the campaign. Its own page: the campaign page stays about the creators.
+// One campaign's OnCamera fee, and removing the campaign. The pay itself is set in Edit (JobForm).
 export default async function AdminPayTermsPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const c = (await getAdminWorkspace()).campaigns.find((x) => x.id === id);
@@ -29,11 +28,8 @@ export default async function AdminPayTermsPage(props: { params: Promise<{ id: s
           {c.title}
         </Link>
       </nav>
-      <h1 className="mb-5 mt-3 font-heading text-2xl font-semibold text-foreground">Requirements and pay terms</h1>
-
-      <div className="rounded-xl border border-border/70 bg-card p-5">
-        <PayTermsForm jobId={c.id} terms={c.terms} />
-      </div>
+      <h1 className="mb-5 mt-3 font-heading text-2xl font-semibold text-foreground">Fee and removal</h1>
+      <p className="mb-5 text-sm text-muted-foreground">The requirements and the payment are set in Edit on the campaign page.</p>
 
       <SectionTitle>OnCamera fee</SectionTitle>
       <div className="rounded-xl border border-border/70 bg-card p-5">

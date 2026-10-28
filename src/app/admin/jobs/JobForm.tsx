@@ -11,7 +11,10 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Card, CardContent } from "@/components/ui/card";
 import { saveJobAction, type JobFormState } from "./actions";
 import type { Job } from "@/lib/database.types";
-import { parsePayoutTerms } from "@/lib/payout-terms";
+import { DEFAULT_POST_TERMS, parsePostTerms } from "@/lib/post-terms";
+import { PayTermsFields } from "@/components/PayTermsFields";
+import { RequirementsFields } from "@/components/RequirementsFields";
+import { StatementFields } from "@/components/StatementFields";
 import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 
 function SubmitButton({ isEdit }: { isEdit: boolean }) {
@@ -39,7 +42,8 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
   );
 
   const isEdit = Boolean(job);
-  const terms = job ? parsePayoutTerms(job.payout_terms) : null;
+  // The one pay setup (lib/post-terms.ts): the pay strip, How it pays and the statements all come from it.
+  const pay = parsePostTerms(job?.post_terms) ?? DEFAULT_POST_TERMS;
   const k = job?.id ?? "new";
 
   if (!open) {
@@ -133,8 +137,13 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
           <FormGroup
             icon={<LayoutTemplate className="size-4" />}
             title="On the campaign page"
-            note="The short version everyone sees first: the brand note, the brief points, the hooks and the example videos."
+            note="The short version everyone sees first: the brand note, the requirements, the brief points, the hooks and the example videos. The pay strip at the top is made from Payment below."
           >
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-semibold text-foreground">Requirements</p>
+              <RequirementsFields initial={pay.requirements} platforms={pay.platforms} />
+            </div>
+
             <Field
               label="About the brand"
               htmlFor={`about-${job?.id ?? "new"}`}
@@ -209,38 +218,41 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
                 defaultValue={job?.formats ?? ""}
               />
             </Field>
-            {job && (
-              <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
+            <div className="flex flex-col gap-4 rounded-lg border border-border/70 bg-card p-4">
+              <div>
                 <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Wallet className="size-4 text-primary" />
-                  How it pays
+                  Payment
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  The last section of the full brief, written from the pay terms: pay per video, views, rewards and when
-                  creators get paid.
+                  Filled in once. The pay strip at the top of the campaign page and the How it pays section of the full brief
+                  are written from it.
                 </p>
-                <a href={`/admin/jobs/${job.id}/terms`} className="mt-2 inline-block text-sm font-semibold text-primary underline underline-offset-2">
-                  Set the pay terms
-                </a>
               </div>
-            )}
+              <PayTermsFields terms={pay} />
+              <StatementFields terms={pay} />
+              <fieldset>
+                <legend className="text-[15px] font-semibold text-foreground">Who reviews posts</legend>
+                <div className="mt-2 flex flex-wrap gap-5">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input type="radio" name="reviewer" value="oncamera" defaultChecked={pay.reviewer !== "brand"} />
+                    OnCamera
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input type="radio" name="reviewer" value="brand" defaultChecked={pay.reviewer === "brand"} />
+                    The brand
+                  </label>
+                </div>
+              </fieldset>
+              {job && (
+                <p className="text-sm text-muted-foreground">
+                  Changing the pay changes what is owed on videos already made, and the figures every creator and brand sees.
+                </p>
+              )}
+            </div>
           </FormGroup>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Platform" htmlFor={`platform-${job?.id ?? "new"}`}>
-              <Select
-                id={`platform-${job?.id ?? "new"}`}
-                name="platform"
-                defaultValue={job?.platform ?? "tiktok"}
-                required
-              >
-                <option value="tiktok">TikTok</option>
-                <option value="instagram">Instagram</option>
-                <option value="youtube_shorts">YouTube Shorts</option>
-                <option value="x">X</option>
-              </Select>
-            </Field>
-
             <Field label="Niche" htmlFor={`niche-${job?.id ?? "new"}`}>
               <Select
                 id={`niche-${job?.id ?? "new"}`}
@@ -282,38 +294,6 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
             </Field>
 
             <Field
-              label="Payout type"
-              htmlFor={`payout-type-${job?.id ?? "new"}`}
-            >
-              <Select
-                id={`payout-type-${job?.id ?? "new"}`}
-                name="payout_type"
-                defaultValue={job?.payout_type ?? "flat"}
-                required
-              >
-                <option value="flat">Flat fee</option>
-                <option value="cpm">CPM</option>
-                <option value="retainer">Retainer</option>
-              </Select>
-            </Field>
-
-            <Field
-              label="Payout amount"
-              htmlFor={`payout-amount-${job?.id ?? "new"}`}
-              hint="Shown publicly on the job board."
-            >
-              <Input
-                id={`payout-amount-${job?.id ?? "new"}`}
-                name="payout_amount"
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={job?.payout_amount ?? ""}
-                required
-              />
-            </Field>
-
-            <Field
               label="Account requirement"
               htmlFor={`account-${job?.id ?? "new"}`}
             >
@@ -343,140 +323,6 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
               </Select>
             </Field>
           </div>
-
-          <Field
-            label="Payout notes"
-            htmlFor={`payout-notes-${job?.id ?? "new"}`}
-            hint="Optional. e.g. 'Paid per approved video, 2 revisions included'."
-          >
-            <Input
-              id={`payout-notes-${job?.id ?? "new"}`}
-              name="payout_notes"
-              defaultValue={job?.payout_notes ?? ""}
-            />
-          </Field>
-
-          <fieldset className="flex flex-col gap-5 rounded-md border border-border/70 p-4">
-            <legend className="px-2 text-sm font-semibold text-foreground">
-              Payout formula (optional)
-            </legend>
-            <p className="text-sm text-muted-foreground">
-              Set what this brand pays per creator. Use any mix: a fixed fee, a
-              rate per 1,000 views, milestone bonuses. Leave a part empty to
-              skip it. Payouts are suggested from this and the contract is
-              generated from it.
-            </p>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field label="Videos per creator" htmlFor={`videos-${k}`}>
-                <Input
-                  id={`videos-${k}`}
-                  name="videos"
-                  type="number"
-                  min={1}
-                  max={50}
-                  defaultValue={terms?.videos ?? 1}
-                />
-              </Field>
-              <Field label="Fixed fee per video ($)" htmlFor={`fixed-${k}`}>
-                <Input
-                  id={`fixed-${k}`}
-                  name="fixed_per_video"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  defaultValue={terms?.fixedPerVideo || ""}
-                />
-              </Field>
-              <Field label="Rate per 1,000 views ($)" htmlFor={`cpm-${k}`}>
-                <Input
-                  id={`cpm-${k}`}
-                  name="cpm_rate"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  defaultValue={terms?.cpm?.ratePer1000 ?? ""}
-                />
-              </Field>
-              <Field
-                label="Rate starts after (views)"
-                htmlFor={`cpmstart-${k}`}
-                hint="0 = counts from the first view."
-              >
-                <Input
-                  id={`cpmstart-${k}`}
-                  name="cpm_starts_at"
-                  type="number"
-                  min={0}
-                  step="1"
-                  defaultValue={terms?.cpm?.startsAt ?? ""}
-                />
-              </Field>
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="grid grid-cols-2 gap-3 sm:col-span-2">
-                  <Field
-                    label={`Bonus ${i + 1}: at views`}
-                    htmlFor={`b${i}v-${k}`}
-                  >
-                    <Input
-                      id={`b${i}v-${k}`}
-                      name={`bonus${i + 1}_views`}
-                      type="number"
-                      min={0}
-                      step="1"
-                      defaultValue={terms?.bonuses[i]?.views ?? ""}
-                    />
-                  </Field>
-                  <Field
-                    label={`Bonus ${i + 1}: amount ($)`}
-                    htmlFor={`b${i}a-${k}`}
-                  >
-                    <Input
-                      id={`b${i}a-${k}`}
-                      name={`bonus${i + 1}_amount`}
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      defaultValue={terms?.bonuses[i]?.amount ?? ""}
-                    />
-                  </Field>
-                </div>
-              ))}
-              <Field
-                label="Max payout per creator ($)"
-                htmlFor={`cap-${k}`}
-                hint="Optional cap."
-              >
-                <Input
-                  id={`cap-${k}`}
-                  name="cap_per_creator"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  defaultValue={terms?.capPerCreator ?? ""}
-                />
-              </Field>
-              <Field label="Views counted for (days)" htmlFor={`days-${k}`}>
-                <Input
-                  id={`days-${k}`}
-                  name="measure_days"
-                  type="number"
-                  min={1}
-                  max={365}
-                  defaultValue={terms?.measureDays ?? 30}
-                />
-              </Field>
-              <Field label="Fixed fee paid" htmlFor={`paidon-${k}`}>
-                <Select
-                  id={`paidon-${k}`}
-                  name="fixed_paid_on"
-                  defaultValue={terms?.fixedPaidOn ?? "approval"}
-                >
-                  <option value="approval">When the video is approved</option>
-                  <option value="end">At the end of the campaign</option>
-                </Select>
-              </Field>
-            </div>
-          </fieldset>
 
           <fieldset className="flex flex-col gap-4 rounded-md border border-border/70 p-4">
             <legend className="px-2 text-sm font-semibold text-foreground">

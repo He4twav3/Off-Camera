@@ -55,10 +55,6 @@ export function EditCampaignForm({
     <form action={action} className="flex flex-col gap-5">
       <input type="hidden" name="job_id" value={campaign.id} />
       <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
-        <h2 className="font-heading text-base font-semibold text-foreground">Requirements</h2>
-        <RequirementsFields initial={campaign.requirements} platforms={campaign.platformValues} />
-      </section>
-      <section className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5">
         <Field label="Campaign name" htmlFor="title">
           <Input id="title" name="title" required maxLength={120} defaultValue={campaign.title} />
         </Field>
@@ -76,8 +72,12 @@ export function EditCampaignForm({
       <FormGroup
         icon={<LayoutTemplate className="size-4" />}
         title="On the campaign page"
-        note="The short version every creator sees first: your brand note, the brief points, the hooks and the example videos."
+        note="The short version every creator sees first: your brand note, the requirements, the brief points, the hooks and the example videos. The pay strip at the top is made from Payment below."
       >
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-semibold text-foreground">Requirements</p>
+          <RequirementsFields initial={campaign.requirements} platforms={campaign.platformValues} />
+        </div>
         <Field label="About your brand" htmlFor="about" hint="Creators see this before they join.">
           <Textarea id="about" name="about" maxLength={2000} defaultValue={campaign.about} />
         </Field>
@@ -108,10 +108,11 @@ export function EditCampaignForm({
             <div>
               <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Wallet className="size-4 text-primary" />
-                How it pays
+                Payment
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                The last section of the full brief, and the pay shown at the top of the campaign page.
+                Filled in once. The pay strip at the top of the campaign page and the How it pays section of the full brief
+                are written from it.
               </p>
             </div>
             <PayTermsFields terms={campaign.pay} />

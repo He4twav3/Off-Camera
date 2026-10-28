@@ -66,7 +66,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
         <div className="flex flex-wrap items-center gap-3">
           <JobForm niches={niches ?? []} brands={brands ?? []} job={job} guide={await readCampaignGuide(job)} />
           <Link href={`/admin/jobs/${c.id}/terms`} className="text-sm font-semibold text-primary underline underline-offset-2">
-            Requirements and pay terms
+            Fee and removal
           </Link>
           <Link href={`/admin/jobs/${c.id}/preview`} className="text-sm font-semibold text-primary underline underline-offset-2">
             See as creator

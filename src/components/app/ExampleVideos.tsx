@@ -6,6 +6,7 @@ import { storedCover } from "@/lib/example-covers";
 import { lastingCover, uploadedPoster } from "@/lib/example-cover-store";
 import { PLATFORM_LABELS } from "@/lib/utils";
 import { isUploadedExample } from "@/lib/example-videos";
+import { MAX_EXAMPLES } from "@/lib/campaign-brief";
 
 /**
  * The brand's example links as cards, for the creator: a video uploaded to our storage, or one from TikTok, Instagram
@@ -25,8 +26,9 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
     }
     return { url: raw, platform: null, host };
   });
-  // The brand's own view fills up to three slots with empty player boxes that open Edit. Creators never see them.
-  const empties = emptyHref ? Math.max(0, 3 - items.length) : 0;
+  // The brand's own view shows two empty "Add a video" boxes that open Edit, so it's clear videos can go there
+  // (fewer once the examples are nearly full). Creators never see them.
+  const empties = emptyHref ? Math.min(2, Math.max(0, MAX_EXAMPLES - items.length)) : 0;
   if (items.length === 0 && empties === 0) return null;
   // A thumbnail we keep ourselves wherever we can, so it never expires into a blank card (lib/example-cover-store.ts).
   const posters = await Promise.all(
@@ -68,12 +70,14 @@ export async function ExampleVideos({ urls, emptyHref }: { urls: string[]; empty
         ))}
         {Array.from({ length: empties }, (_, k) => (
           <li key={`empty-${k}`} className="w-[calc(50%-0.375rem)] min-w-0 sm:w-[calc(33.333%-0.667rem)]">
-            <a href={emptyHref} aria-label="Add an example link" className="block">
-              <div className="mx-auto flex aspect-[9/16] w-full max-w-[13rem] items-center justify-center rounded-lg border border-dashed border-border bg-card/40 transition-colors hover:border-primary/50 sm:rounded-xl">
+            <a href={emptyHref} aria-label="Add an example video" className="group block">
+              <div className="mx-auto flex aspect-[9/16] w-full max-w-[13rem] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card/40 transition-colors group-hover:border-primary/50 sm:rounded-xl">
                 <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground sm:size-12">
                   <Play className="size-4 fill-current sm:size-5" />
                 </span>
+                <span className="px-3 text-center text-xs font-semibold text-muted-foreground group-hover:text-primary">Add a video</span>
               </div>
+              <p className="mt-1.5 truncate text-xs font-medium text-muted-foreground sm:text-sm">Example</p>
             </a>
           </li>
         ))}

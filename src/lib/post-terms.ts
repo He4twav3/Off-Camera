@@ -510,3 +510,17 @@ export function cycleHistory(terms: PostTerms, allPosts: PostRowData[], paidTota
 export function averagePerPost(pay: Pick<PayTotals, "earned" | "counted">): number {
   return pay.counted === 0 ? 0 : Math.round((pay.earned / pay.counted) * 100) / 100;
 }
+
+/** The starting pay terms for a new campaign, before anyone fills them in. */
+export const DEFAULT_POST_TERMS: PostTerms = {
+  v: 2,
+  basePerPost: 20,
+  cycleSize: 15,
+  milestones: [],
+  cpm: undefined,
+  windowDays: 30,
+  keepPublicDays: 90,
+  platforms: ["tiktok", "instagram", "youtube_shorts"],
+  repostsEarnBase: false,
+  reviewer: "oncamera",
+};

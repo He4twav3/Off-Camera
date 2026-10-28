@@ -13,7 +13,6 @@ import {
   avatarPathFromUrl,
   checkAvatarFile,
 } from "@/lib/avatar";
-import { payoutTermsSchema } from "@/lib/payout-terms";
 import { parseExampleLinks, parseLines } from "@/lib/campaign-brief";
 import { MAX_GUIDE_LENGTH } from "@/lib/campaign-guide";
 import { writeCampaignGuide } from "@/lib/campaign-guide-store";
@@ -29,9 +28,6 @@ const jobSchema = z.object({
   description: z.string().trim().max(5000).optional(),
   platform: z.enum(["tiktok", "instagram", "youtube_shorts", "x"]),
   niche_id: z.string().uuid("Pick a niche."),
-  payout_type: z.enum(["flat", "cpm", "retainer"]),
-  payout_amount: z.coerce.number().min(0, "Payout can't be negative."),
-  payout_notes: z.string().trim().max(500).optional(),
   account_requirement: z.enum(["new_ok", "established_required"]),
   status: z.enum(["open", "filled", "closed"]),
   brand_account_id: z.string().uuid().optional().or(z.literal("")),
@@ -59,76 +55,6 @@ const jobSchema = z.object({
     .optional()
     .or(z.literal("")),
 });
-
-/** Reads the payout-formula fields of the job form. Returns null terms when none
- * of the parts are filled in (the campaign then uses the plain payout fields). */
-function readPayoutTerms(formData: FormData): {
-  terms: Record<string, unknown> | null;
-  error?: string;
-} {
-  const text = (k: string) => String(formData.get(k) ?? "").trim();
-  const num = (k: string): number | null | "bad" => {
-    const t = text(k);
-    if (t === "") return null;
-    const n = Number(t);
-    return Number.isFinite(n) ? n : "bad";
-  };
-  const read = (k: string, label: string) => {
-    const n = num(k);
-    if (n === "bad") throw new Error(`${label} must be a number.`);
-    return n;
-  };
-
-  try {
-    const fixed = read("fixed_per_video", "Fixed fee") ?? 0;
-    const videos = read("videos", "Videos") ?? 1;
-    const cpmRate = read("cpm_rate", "Rate per 1,000 views");
-    const cpmStart = read("cpm_starts_at", "Views before the rate starts") ?? 0;
-    const cap = read("cap_per_creator", "Maximum payout");
-    const days = read("measure_days", "Measurement days") ?? 30;
-
-    const bonuses: { views: number; amount: number }[] = [];
-    for (const i of [1, 2, 3]) {
-      const views = read(`bonus${i}_views`, `Bonus ${i} views`);
-      const amount = read(`bonus${i}_amount`, `Bonus ${i} amount`);
-      if (views === null && amount === null) continue;
-      if (views === null || amount === null)
-        throw new Error(
-          `Fill in both the views and the amount for bonus ${i}, or leave both empty.`,
-        );
-      bonuses.push({ views, amount });
-    }
-
-    const any =
-      fixed > 0 || (cpmRate !== null && cpmRate > 0) || bonuses.length > 0;
-    if (!any) return { terms: null };
-
-    const parsed = payoutTermsSchema.safeParse({
-      v: 1,
-      videos,
-      fixedPerVideo: fixed,
-      cpm:
-        cpmRate !== null && cpmRate > 0
-          ? {
-              ratePer1000: cpmRate,
-              startsAt: Math.max(0, Math.floor(cpmStart)),
-            }
-          : null,
-      bonuses,
-      capPerCreator: cap !== null && cap > 0 ? cap : null,
-      measureDays: days,
-      fixedPaidOn: text("fixed_paid_on") === "end" ? "end" : "approval",
-    });
-    if (!parsed.success)
-      return {
-        terms: null,
-        error: parsed.error.issues[0]?.message ?? "Check the payout formula.",
-      };
-    return { terms: parsed.data };
-  } catch (e) {
-    return { terms: null, error: (e as Error).message };
-  }
-}
 
 export async function saveJobAction(
   _prev: JobFormState,
@@ -168,11 +94,9 @@ export async function saveJobAction(
     id: (formData.get("id") as string) || "",
     title: formData.get("title"),
     description: formData.get("description") ?? "",
-    platform: formData.get("platform"),
+    // The campaign's main platform: the first one in its requirements.
+    platform: formData.getAll("platforms").map(String)[0] ?? "tiktok",
     niche_id: nicheId,
-    payout_type: formData.get("payout_type"),
-    payout_amount: formData.get("payout_amount"),
-    payout_notes: formData.get("payout_notes") ?? "",
     account_requirement: formData.get("account_requirement"),
     status: formData.get("status"),
     brand_account_id: (formData.get("brand_account_id") as string) || "",
@@ -203,19 +127,37 @@ export async function saveJobAction(
   if (guide.guide.length > MAX_GUIDE_LENGTH || guide.scripts.length > MAX_GUIDE_LENGTH)
     return { error: `Keep the product guide and the scripts under ${MAX_GUIDE_LENGTH.toLocaleString("en-US")} characters each.` };
 
-  const formula = readPayoutTerms(formData);
-  if (formula.error) return { error: formula.error };
-
   const supabase = await createClient();
   const { id, ...values } = parsed.data;
+
+  // The one pay setup, with the requirements and who reviews posts. What it doesn't cover (a signed contract, the
+  // setup's fingerprints, the repost rule, fixed bonuses) is kept from what is saved.
+  const payFields = parsePayTermsFields((k) => String(formData.get(k) ?? ""), (k) => formData.getAll(k).map(String));
+  if (!payFields.ok) return { error: payFields.error };
+  const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
+  if (!requirements.ok) return { error: requirements.error };
+  const { data: before } = id ? await supabase.from("jobs").select("post_terms").eq("id", id).maybeSingle() : { data: null };
+  const keptTerms = parsePostTerms(before?.post_terms);
+  const terms = postTermsSchema.safeParse({
+    ...(keptTerms ?? {}),
+    ...mergePayTerms({ milestones: keptTerms?.milestones ?? [], cpm: keptTerms?.cpm, statementEvery: keptTerms?.statementEvery, dueDays: keptTerms?.dueDays }, payFields.value),
+    v: 2,
+    repostsEarnBase: keptTerms?.repostsEarnBase ?? false,
+    reviewer: formData.get("reviewer") === "brand" ? "brand" : "oncamera",
+    requirements: requirements.value,
+  });
+  if (!terms.success)
+    return { error: terms.error.issues[0]?.message === "Required" ? "Fill in every payment field." : "Check the payment: every number must be valid." };
 
   const row = {
     ...values,
     description: values.description ?? "",
-    payout_notes: values.payout_notes || null,
+    post_terms: terms.data as unknown as Record<string, unknown>,
+    payout_type: "flat" as const,
+    payout_amount: terms.data.basePerPost,
+    payout_notes: terms.data.cpm?.length ? "Pays per video, plus a CPM on views. See the pay terms on this page." : "Pays per video, with view bonuses. See the pay terms on this page.",
     notion_sop_url: values.notion_sop_url || null,
     brand_account_id: values.brand_account_id || null,
-    payout_terms: formula.terms,
     // Off unless the box is ticked: most campaigns are a normal application.
     sample_required: formData.get("sample_required") === "on",
     sample_criteria: values.sample_criteria || null,
@@ -303,56 +245,11 @@ export async function deleteJobAction(formData: FormData) {
   revalidatePath("/dashboard/recruiting/jobs");
 }
 
-// --- the contract's pay terms ---------------------------------------------------------------
+// --- the fee, and removing a campaign ---------------------------------------------------------
 
 export interface PayTermsState {
   error?: string;
   success?: string;
-}
-
-/**
- * Edit a campaign's per-video pay terms: pay per video, videos per payment, bonuses, counting window,
- * platforms, whether reposts earn the base, and who reviews posts. It changes what is owed on videos
- * already made, so the page says so. Runs as the signed-in admin (RLS), not the service role.
- */
-export async function updatePayTermsAction(_prev: PayTermsState, formData: FormData): Promise<PayTermsState> {
-  const jobId = z.string().uuid().safeParse(formData.get("job_id"));
-  if (!jobId.success) return { error: "Check the fields." };
-  const pay = parsePayTermsFields((k) => String(formData.get(k) ?? ""), (k) => formData.getAll(k).map(String));
-  if (!pay.ok) return { error: pay.error };
-
-  const supabase = await createClient();
-  // What is already saved: kept when this form does not change it (the signed contract, the repost rule, the fixed bonuses).
-  const { data: before } = await supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle();
-  const keptTerms = parsePostTerms(before?.post_terms);
-
-  const reviewer = formData.get("reviewer") === "brand" ? "brand" : "oncamera";
-  const requirements = parseRequirements((k) => String(formData.get(k) ?? ""));
-  if (!requirements.ok) return { error: requirements.error };
-  const terms = postTermsSchema.safeParse({
-    ...mergePayTerms({ milestones: keptTerms?.milestones ?? [], cpm: keptTerms?.cpm, statementEvery: keptTerms?.statementEvery, dueDays: keptTerms?.dueDays }, pay.value),
-    v: 2,
-    repostsEarnBase: keptTerms?.repostsEarnBase ?? false,
-    reviewer,
-    requirements: requirements.value,
-  });
-  if (!terms.success)
-    return { error: terms.error.issues[0]?.message === "Required" ? "Fill in every pay field." : "Check the pay terms: every number must be valid." };
-
-  // Saving pay terms must not wipe a contract the brand has already agreed to.
-  const kept = keptTerms?.contract;
-  const { data, error } = await supabase
-    .from("jobs")
-    .update({ post_terms: { ...terms.data, ...(kept ? { contract: kept } : {}), ...(keptTerms?.preset ? { preset: keptTerms.preset, presetFields: keptTerms.presetFields } : {}) } as unknown as Record<string, unknown>, payout_amount: terms.data.basePerPost })
-    .eq("id", jobId.data)
-    .select("id");
-  if (error || !data || data.length === 0) return { error: "Couldn't save the pay terms." };
-
-  revalidatePath(`/admin/jobs/${jobId.data}`, "layout");
-  revalidatePath("/admin");
-  revalidatePath("/dashboard/recruiting", "layout");
-  revalidatePath("/brand", "layout");
-  return { success: "Pay terms saved. Every creator's figures now use them." };
 }
 
 /** Delete a campaign. Only when nobody has joined it: otherwise there is work and money tied to it. */
