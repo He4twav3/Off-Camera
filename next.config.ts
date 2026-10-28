@@ -33,13 +33,15 @@ const securityHeaders = [
 
 /**
  * Extra rules for the admin panel only. Later entries win, so these replace the
- * site-wide Referrer-Policy: nothing is ever sent to another site from admin,
+ * site-wide Referrer-Policy: other sites only ever learn the site's name from admin,
+ * never an admin page's address. (Not "no-referrer": TikTok's player refuses to play
+ * with no referrer at all, which broke the example videos in "See as creator".)
  * pages are never cached by the browser or a proxy, and search engines are told
  * to stay out. COOP/CORP keep other sites from reaching into an admin window.
  */
 const adminHeaders = [
   { key: "Cache-Control", value: "no-store, max-age=0" },
-  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "Referrer-Policy", value: "strict-origin" },
   { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
