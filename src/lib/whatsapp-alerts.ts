@@ -3,13 +3,16 @@ import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * WhatsApp alerts to the admin's own phone when something new comes in: a creator signs up, a brand signs up, or a
+ * Alerts to the admin's phone, two ways. Push notifications through the free ntfy app (ntfy.sh): a private channel
+ * name is made the first time Admin → Account is opened, and subscribing to it in the app is the only setup. And
+ * WhatsApp alerts when something new comes in: a creator signs up, a brand signs up, or a
  * creator applies to a campaign. Sent through CallMeBot (callmebot.com), a free service that messages your own
  * WhatsApp number once you have messaged its bot for a key. The number and key are saved from Admin → Account, in a
  * private storage file, so there is nothing to set up in Vercel. With no key saved, nothing is sent.
  */
 const BUCKET = "admin-settings";
 const FILE = "whatsapp.json";
+const NTFY_FILE = "ntfy.json";
 
 export type WhatsAppSettings = { phone: string; apikey: string };
 
@@ -54,11 +57,54 @@ export async function sendWhatsApp(text: string, settings?: WhatsAppSettings | n
   }
 }
 
-/** An alert to the admin, sent after the response so the person signing up or applying never waits on it. */
-export function alertAdmin(text: string): void {
+/** The private ntfy channel the admin's phone subscribes to; made (a long random name) the first time it's asked for. */
+export async function ntfyTopic(create = false): Promise<string | null> {
+  const storage = createAdminClient().storage;
   try {
-    after(() => sendWhatsApp(text));
+    const { data } = await storage.from(BUCKET).download(NTFY_FILE);
+    if (data) {
+      const topic = (JSON.parse(await data.text()) as { topic?: string }).topic;
+      if (topic) return topic;
+    }
   } catch {
-    void sendWhatsApp(text);
+    /* none yet */
+  }
+  if (!create) return null;
+  const { data: bucket } = await storage.getBucket(BUCKET);
+  if (!bucket) await storage.createBucket(BUCKET, { public: false });
+  const topic = `oncamera-${crypto.randomUUID().replace(/-/g, "").slice(0, 20)}`;
+  const { error } = await storage
+    .from(BUCKET)
+    .upload(NTFY_FILE, new Blob([JSON.stringify({ topic })], { type: "application/json" }), { upsert: true, contentType: "application/json" });
+  return error ? null : topic;
+}
+
+/** A push notification to the admin's phone through ntfy. True when it went. */
+export async function sendPush(text: string, topic?: string | null): Promise<boolean> {
+  const t = topic ?? (await ntfyTopic());
+  if (!t) return false;
+  try {
+    const [title, ...rest] = text.split(": ");
+    const res = await fetch(`https://ntfy.sh/${t}`, {
+      method: "POST",
+      body: rest.join(": ") || text,
+      headers: { Title: rest.length ? title : "OnCamera", Tags: "bell" },
+      signal: AbortSignal.timeout(8000),
+      cache: "no-store",
+    });
+    return res.ok;
+  } catch (e) {
+    console.error("alerts: couldn't send the push:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+/** An alert to the admin's phone (push, and WhatsApp when set up), sent after the response so nobody waits on it. */
+export function alertAdmin(text: string): void {
+  const send = () => Promise.all([sendPush(text), sendWhatsApp(text)]);
+  try {
+    after(send);
+  } catch {
+    void send();
   }
 }

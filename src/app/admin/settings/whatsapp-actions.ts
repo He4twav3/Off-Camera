@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { adminGuard } from "@/lib/admin-guard";
-import { saveWhatsAppSettings, sendWhatsApp } from "@/lib/whatsapp-alerts";
+import { saveWhatsAppSettings, sendPush, sendWhatsApp } from "@/lib/whatsapp-alerts";
 
 export interface WhatsAppState {
   error?: string;
@@ -28,4 +28,12 @@ export async function saveWhatsAppAction(_prev: WhatsAppState, formData: FormDat
   if (!(await saveWhatsAppSettings(settings))) return { error: "The test worked, but the settings didn't save. Please try again." };
   revalidatePath("/admin/settings");
   return { success: "Saved. A test message is on its way to your WhatsApp." };
+}
+
+/** Sends a test push notification to the admin's phone. */
+export async function testPushAction(_prev: WhatsAppState): Promise<WhatsAppState> {
+  const blocked = await adminGuard();
+  if (blocked) return { error: blocked };
+  const sent = await sendPush("OnCamera: Notifications are on. You'll get one for every new signup and application.");
+  return sent ? { success: "Sent. It should pop up on your phone now." } : { error: "That didn't send. Check you subscribed to the channel name above." };
 }
