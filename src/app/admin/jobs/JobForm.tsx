@@ -2,8 +2,10 @@
 
 import { useActionState, useState } from "react";
 import { ExampleLinksField } from "@/components/ExampleLinksField";
+import { BriefRowsField } from "@/components/BriefRowsField";
 import { useFormStatus } from "react-dom";
-import { Pencil, Plus, X } from "lucide-react";
+import { BookOpen, LayoutTemplate, Pencil, Plus, X } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Card, CardContent } from "@/components/ui/card";
@@ -127,78 +129,87 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
             </div>
           </Field>
 
-          <Field
-            label="About the brand"
-            htmlFor={`about-${job?.id ?? "new"}`}
-            hint="A short note on the brand and what it wants from creators. Shown on the campaign page before anyone joins."
+          {/* Two marked groups, so it's clear where each part shows: the campaign page, or the full brief. */}
+          <FormGroup
+            icon={<LayoutTemplate className="size-4" />}
+            title="On the campaign page"
+            note="The short version everyone sees first: the brand note, the brief points, the hooks and the example videos."
           >
-            <Textarea
-              id={`about-${job?.id ?? "new"}`}
-              name="about"
-              defaultValue={job?.about ?? ""}
-              maxLength={2000}
-            />
-          </Field>
+            <Field
+              label="About the brand"
+              htmlFor={`about-${job?.id ?? "new"}`}
+              hint="A short note on the brand and what it wants from creators. Shown on the campaign page before anyone joins."
+            >
+              <Textarea
+                id={`about-${job?.id ?? "new"}`}
+                name="about"
+                defaultValue={job?.about ?? ""}
+                maxLength={2000}
+              />
+            </Field>
 
-          <Field
-            label="Description (the brief)"
-            htmlFor={`description-${job?.id ?? "new"}`}
-            hint="The rules, one per line. Shown as a checklist on the campaign page."
-          >
-            <Textarea
-              id={`description-${job?.id ?? "new"}`}
-              name="description"
-              defaultValue={job?.description ?? ""}
-            />
-          </Field>
+            <Field
+              label="The brief"
+              htmlFor={`description-${job?.id ?? "new"}`}
+              hint="Short numbered points, then the hooks in their own box. Add or remove rows as you need."
+            >
+              <BriefRowsField name="description" initial={job?.description ?? ""} />
+            </Field>
 
-          <Field
-            label="Formats that work"
-            htmlFor={`formats-${job?.id ?? "new"}`}
-            hint="One per line, up to 8. For example: Speed challenge: do X in N seconds."
-          >
-            <Textarea
-              id={`formats-${job?.id ?? "new"}`}
-              name="formats"
-              defaultValue={job?.formats ?? ""}
-            />
-          </Field>
+            <Field
+              label="Example videos"
+              htmlFor={`examples-${job?.id ?? "new"}`}
+              hint="Upload a video, or link public TikTok, Instagram or YouTube posts (full links), up to 6. Uploaded videos always play on the page; Instagram often won't. Use the brand's own posts, or ones the creator has agreed to share."
+            >
+              <ExampleLinksField name="example_urls" initial={(job?.example_urls ?? []).join("\n")} />
+            </Field>
+          </FormGroup>
 
-          <Field
-            label="Product guide"
-            htmlFor={`guide-${job?.id ?? "new"}`}
-            hint="What the product is and does, read before creators try it. Opens first in the full brief. Use ## for a heading, - for a list, **bold**, and start a line with ! for a warning in bold red capitals."
+          <FormGroup
+            icon={<BookOpen className="size-4" />}
+            title="In the full brief"
+            note="Opens from the Read the full brief button: the longer boxes creators read before filming."
           >
-            <Textarea
-              id={`guide-${job?.id ?? "new"}`}
-              name="guide"
-              defaultValue={guide?.guide ?? ""}
-              rows={10}
-              maxLength={MAX_GUIDE_LENGTH}
-            />
-          </Field>
+            <Field
+              label="Product guide"
+              htmlFor={`guide-${job?.id ?? "new"}`}
+              hint="What the product is and does, read before creators try it. Opens first in the full brief. Use ## for a heading, - for a list, **bold**, and start a line with ! for a warning in bold red capitals."
+            >
+              <Textarea
+                id={`guide-${job?.id ?? "new"}`}
+                name="guide"
+                defaultValue={guide?.guide ?? ""}
+                rows={10}
+                maxLength={MAX_GUIDE_LENGTH}
+              />
+            </Field>
 
-          <Field
-            label="Scripts"
-            htmlFor={`scripts-${job?.id ?? "new"}`}
-            hint="One script per format, in the full brief. Start each with ### and its title, add Example: and a link for its example video, then the script as a - list. Lines before the first ### show above all the scripts."
-          >
-            <Textarea
-              id={`scripts-${job?.id ?? "new"}`}
-              name="scripts"
-              defaultValue={guide?.scripts ?? ""}
-              rows={12}
-              maxLength={MAX_GUIDE_LENGTH}
-            />
-          </Field>
+            <Field
+              label="Scripts"
+              htmlFor={`scripts-${job?.id ?? "new"}`}
+              hint="One script per format, in the full brief. Start each with ### and its title, add Example: and a link for its example video, then the script as a - list. Lines before the first ### show above all the scripts."
+            >
+              <Textarea
+                id={`scripts-${job?.id ?? "new"}`}
+                name="scripts"
+                defaultValue={guide?.scripts ?? ""}
+                rows={12}
+                maxLength={MAX_GUIDE_LENGTH}
+              />
+            </Field>
 
-          <Field
-            label="Example videos"
-            htmlFor={`examples-${job?.id ?? "new"}`}
-            hint="Upload a video, or link public TikTok, Instagram or YouTube posts (full links), up to 6. Uploaded videos always play on the page; Instagram often won't. Use the brand's own posts, or ones the creator has agreed to share."
-          >
-            <ExampleLinksField name="example_urls" initial={(job?.example_urls ?? []).join("\n")} />
-          </Field>
+            <Field
+              label="Formats that work"
+              htmlFor={`formats-${job?.id ?? "new"}`}
+              hint="One per line, up to 8. Shown in the full brief only when there are no scripts."
+            >
+              <Textarea
+                id={`formats-${job?.id ?? "new"}`}
+                name="formats"
+                defaultValue={job?.formats ?? ""}
+              />
+            </Field>
+          </FormGroup>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field label="Platform" htmlFor={`platform-${job?.id ?? "new"}`}>
@@ -543,5 +554,21 @@ export function JobForm({ niches, brands = [], job, guide }: JobFormProps) {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+/** A marked group of fields with a sign saying where on the site they show. */
+function FormGroup({ icon, title, note, children }: { icon: ReactNode; title: string; note: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-5 rounded-xl border border-border/70 p-4 sm:p-5">
+      <div>
+        <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold tracking-wide text-primary uppercase">
+          {icon}
+          {title}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{note}</p>
+      </div>
+      {children}
+    </section>
   );
 }
