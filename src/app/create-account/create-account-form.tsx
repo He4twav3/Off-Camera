@@ -1,13 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Choice } from "@/components/ui/choice";
 import { Label } from "@/components/ui/label";
+import { COUNTRIES } from "@/lib/validation";
 import { createAccount, type CreateAccountState } from "./actions";
 
 const initialState: CreateAccountState = {};
+const countryOptions = COUNTRIES.map((c) => ({ value: c, label: c }));
 const plain =
   "h-11 w-full rounded-lg border-2 border-ink bg-card px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50";
 const withIcon = `${plain} pl-9`;
@@ -15,6 +18,7 @@ const withIcon = `${plain} pl-9`;
 export function CreateAccountForm({ accountType }: { accountType: "creator" | "brand" }) {
   const [state, formAction, pending] = useActionState(createAccount, initialState);
   const isBrand = accountType === "brand";
+  const [country, setCountry] = useState("");
 
   return (
     <form action={formAction} className="space-y-4">
@@ -30,6 +34,21 @@ export function CreateAccountForm({ accountType }: { accountType: "creator" | "b
           <input id="last_name" name="last_name" autoComplete="family-name" required maxLength={60} className={plain} />
         </div>
       </div>
+
+      {!isBrand && (
+        <div className="space-y-1.5">
+          <Label htmlFor="country">Country</Label>
+          <Choice
+            id="country"
+            name="country"
+            value={country}
+            onValueChange={setCountry}
+            options={countryOptions}
+            placeholder="Where you're based"
+            className="h-11 border-2 border-ink bg-card"
+          />
+        </div>
+      )}
 
       {isBrand && (
         <>

@@ -60,7 +60,10 @@ export default async function AdminApplicantsPage() {
               <tr key={a.id} className="hover:bg-muted/30">
                 <Td className="py-2">
                   <span className="font-medium text-foreground">{a.name}</span>
-                  <span className="block text-xs text-muted-foreground">{a.email}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {a.email}
+                    {a.location && ` · ${a.location}`}
+                  </span>
                   <Socials handles={handlesByApplicant.get(a.id) ?? []} fallback={{ platform: a.platform, handle: a.handle }} />
                   {(a.bio || a.portfolio_url || a.availability_notes || a.discord_username) && (
                     <details className="mt-1">

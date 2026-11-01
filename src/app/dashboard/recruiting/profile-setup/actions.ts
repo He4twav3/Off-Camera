@@ -74,18 +74,22 @@ export async function saveProfileAction(
 
   const { data: current } = await supabase
     .from("applicants")
-    .select("id")
+    .select("id, location")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  // The country picked at signup becomes where they're based, unless one is already saved.
+  const country = typeof user.user_metadata?.country === "string" ? user.user_metadata.country : null;
+  const row = country && !current?.location ? { ...fields, location: country } : fields;
 
   // An existing profile is updated in place, so anything filled in under the older,
   // longer form is left alone. A new one is inserted with an empty handle: the real
   // handle arrives when the first account is connected (a database trigger copies it
   // over from the main account).
   const { error } = current
-    ? await supabase.from("applicants").update(fields).eq("id", current.id)
+    ? await supabase.from("applicants").update(row).eq("id", current.id)
     : await supabase.from("applicants").insert({
-        ...fields,
+        ...row,
         user_id: user.id,
         handle: "",
         platform: "tiktok",
@@ -102,7 +106,7 @@ export async function saveProfileAction(
   revalidatePath("/dashboard", "layout");
 
   // First save: a new creator to review, so the admin hears about it on WhatsApp.
-  if (!current) alertAdmin(`New creator signed up: ${fullName} (@${d.username}). Review: ${siteConfig.url}/admin/applicants`);
+  if (!current) alertAdmin(`New creator signed up: ${fullName} (@${d.username})${country ? `, ${country}` : ""}. Review: ${siteConfig.url}/admin/applicants`);
 
   // First save: the next step is connecting an account. After that, stay put.
   if (!current) redirect("/dashboard/account/accounts?welcome=1");
