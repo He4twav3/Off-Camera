@@ -101,6 +101,7 @@ function ProgramCard({ program, campaign, result }: { program: AffiliateProgram;
           </li>
         ))}
       </ol>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{program.existingAccount}</p>
 
       {code && (
         <div className="mt-5">
@@ -109,9 +110,27 @@ function ProgramCard({ program, campaign, result }: { program: AffiliateProgram;
         </div>
       )}
 
+      <h3 className="mt-6 font-heading text-base font-semibold text-foreground">Sign in and set up your persona</h3>
+      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+        {program.setup.map((s) => (
+          <li key={s}>{s}</li>
+        ))}
+      </ol>
+
       <h3 className="mt-6 font-heading text-base font-semibold text-foreground">What to say in your videos</h3>
       <p className="mt-2 rounded-lg bg-muted px-4 py-3 text-[15px] font-medium text-foreground">&ldquo;{program.say}&rdquo;</p>
       <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">{program.share}</p>
+      <Points title="Talking points" items={program.talkingPoints} />
+      <Points title="About your free month" items={program.freeMonth} />
+      <Points title="Good to know" items={program.goodToKnow} />
+
+      <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
+        Questions about {program.brand}? Email{" "}
+        <a href={`mailto:${program.supportEmail}`} className="font-medium text-foreground underline underline-offset-2">
+          {program.supportEmail}
+        </a>
+        .
+      </p>
 
       <a
         href={program.guidePdf}
@@ -122,5 +141,18 @@ function ProgramCard({ program, campaign, result }: { program: AffiliateProgram;
         Download the {program.brand} creator guide (PDF)
       </a>
     </section>
+  );
+}
+
+function Points({ title, items }: { title: string; items: string[] }) {
+  return (
+    <>
+      <h3 className="mt-6 font-heading text-base font-semibold text-foreground">{title}</h3>
+      <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-muted-foreground">
+        {items.map((s) => (
+          <li key={s}>{s}</li>
+        ))}
+      </ul>
+    </>
   );
 }

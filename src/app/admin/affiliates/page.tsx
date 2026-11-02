@@ -60,6 +60,12 @@ export default async function AdminAffiliatesPage() {
                 ]}
               />
             )}
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              Codes work once and are private: one code per creator, never posted publicly. If a code is lost, shared by
+              mistake or doesn&apos;t work, retire it here and email {program.contact.name} ({program.contact.email}) its
+              number, so {program.brand} switches it off and sends a replacement. The report lists each creator&apos;s results by
+              code number, the way {program.brand} asked for them.
+            </p>
             <div className="max-w-md">
               <UploadForm program={program.key} hasCodes={codes.length > 0} />
             </div>

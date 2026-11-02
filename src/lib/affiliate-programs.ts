@@ -16,9 +16,21 @@ export type AffiliateProgram = {
   perks: string[];
   signupUrl: string;
   steps: string[];
+  /** For a creator who already has an account with the brand. */
+  existingAccount: string;
+  /** Setting up the account once the link is made. */
+  setup: string[];
   /** The line to say at the end of each video. */
   say: string;
   share: string;
+  talkingPoints: string[];
+  /** How the free month ends, and how to keep it. */
+  freeMonth: string[];
+  goodToKnow: string[];
+  /** Where creators ask the brand questions. */
+  supportEmail: string;
+  /** Who at the brand switches a code off and sends a replacement. */
+  contact: { name: string; email: string };
   /** The brand's creator guide, as it sent it (public/affiliates). */
   guidePdf: string;
   linkExample: string;
@@ -43,9 +55,34 @@ export const MEPERSONA_PARTNERS: AffiliateProgram = {
     "Fill in your name, email, the link name you want and your main social handle. Choose carefully, because your link name can't be changed later.",
     "Click Create my partner link. Your link appears right away and is emailed to you.",
   ],
+  existingAccount:
+    "Already have a MePersona account? You'll get a confirmation email instead. Open it within 24 hours, sign in, and your link will be ready.",
+  setup: [
+    "Open the sign-in email MePersona sent you and click the link.",
+    "Choose a password.",
+    "Set up your persona. This is how MePersona learns to write in your voice, and it takes a few minutes.",
+    "Connect your social accounts so your fan messages arrive in one inbox.",
+  ],
   say: "Use my link in bio to get 20% off your first 3 months, plus a 7-day free trial.",
   share:
-    "Share your link in your bio, caption or video description, and mark it as a paid partnership (#ad or the platform's paid-partnership label).",
+    "Mention MePersona in your content and share your link in your bio, caption or video description. Tell your audience what they get: 20% off their first 3 months on any plan. Mark it as a paid partnership (#ad or the platform's paid-partnership label).",
+  talkingPoints: [
+    "One inbox for fan messages from your connected platforms.",
+    "Replies drafted in your own voice, so you can answer more fans without losing your personal touch.",
+    "Available in English, Spanish and Traditional Chinese.",
+  ],
+  freeMonth: [
+    "You get 30 days of Pro Elite, starting the day you sign up.",
+    "It ends on its own, and you won't be charged.",
+    "Want to keep it? Go to Billing in your MePersona account and click Keep my plan before your trial ends.",
+  ],
+  goodToKnow: [
+    "Your link name can't be changed once you choose it.",
+    "You can't use your own link to get the discount on your own account.",
+    "The 20% off and the free trial are for new MePersona customers, and they're applied automatically at checkout. Your audience doesn't need a code.",
+  ],
+  supportEmail: "support@mepersona.ai",
+  contact: { name: "Steven Hacker", email: "info@mepersona.ai" },
   guidePdf: "/affiliates/mepersona-creator-guide.pdf",
   linkExample: "mepersona.ai/go/yourname",
   linkPattern: /^https:\/\/mepersona\.ai\/go\/[a-z0-9._-]+$/i,
