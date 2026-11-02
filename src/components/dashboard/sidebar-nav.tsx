@@ -7,6 +7,7 @@ import {
   UserCircle,
   Send,
   Wallet,
+  BadgePercent,
   GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,12 @@ const MAIN_ITEMS = [
     href: "/dashboard/recruiting/earnings",
     label: "Earnings",
     icon: Wallet,
+    countKey: null,
+  },
+  {
+    href: "/dashboard/recruiting/affiliates",
+    label: "Affiliates",
+    icon: BadgePercent,
     countKey: null,
   },
   {

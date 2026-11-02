@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function CopyLinkButton({ url }: { url: string }) {
+export function CopyLinkButton({ url, label = "Copy link" }: { url: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
@@ -22,7 +22,7 @@ export function CopyLinkButton({ url }: { url: string }) {
       }}
     >
       {copied ? <Check size={16} /> : <Copy size={16} />}
-      {copied ? "Copied" : "Copy link"}
+      {copied ? "Copied" : label}
     </Button>
   );
 }

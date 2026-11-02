@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac } from "node:crypto";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { freshStorage as storage } from "@/lib/supabase/fresh-storage";
 import { decryptDetails, encryptDetails } from "@/lib/secret-box";
 import { bankSummary, type BankDetails } from "@/lib/bank-details";
 
@@ -31,24 +31,8 @@ function payoutKey(): Buffer {
   return createHmac("sha256", service).update("oncamera:payout-details:v1").digest();
 }
 
-/**
- * Storage with nothing cached: these files change (a creator updates their bank, a brand pays a batch), and a
- * copy served from a cache would put old bank details in a payment file. Every read asks the server itself.
- */
-function storage() {
-  createAdminClient(); // checks the environment points at the right project
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { autoRefreshToken: false, persistSession: false },
-    global: {
-      fetch: (input, init) => {
-        const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
-        if ((init?.method ?? "GET") === "GET" && url.pathname.includes("/storage/v1/object/")) url.searchParams.set("fresh", String(Date.now()));
-        return fetch(typeof input === "string" || input instanceof URL ? url : new Request(url, input), { ...init, cache: "no-store" });
-      },
-    },
-  }).storage;
-}
-
+// Read fresh every time (lib/supabase/fresh-storage.ts): a copy served from a cache would put old bank details in a
+// payment file.
 async function bucket() {
   const store = storage();
   const { data } = await store.getBucket(BUCKET);

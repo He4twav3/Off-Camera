@@ -20,6 +20,8 @@ import { campaignHold } from "@/lib/campaign-holds";
 import { YourPosts } from "@/components/tracking/YourPosts";
 import { postReviews, reviewedOf } from "@/lib/post-review";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
+import { programFor } from "@/lib/affiliate-programs";
+import { AffiliateSection } from "@/components/app/AffiliateSection";
 
 const APPLICATION_LABELS: Record<string, string> = {
   pending: "Waiting to hear back",
@@ -343,11 +345,15 @@ export default async function JobDetailPage(props: {
     );
   }
 
+  // A brand with an affiliate program shows it under the pay; the code itself is in Affiliates.
+  const program = programFor(job);
+
   return (
     <CampaignView
       job={job}
       terms={terms}
       postTerms={postTerms}
+      affiliate={program ? <AffiliateSection program={program} joined={Boolean(assignment)} /> : null}
       guide={await guidePromise}
       intro={intro}
       cta={cta}

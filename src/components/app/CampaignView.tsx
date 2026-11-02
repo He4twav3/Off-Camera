@@ -50,6 +50,7 @@ export function CampaignView({
   terms,
   postTerms = null,
   results,
+  affiliate,
   intro,
   cta,
   notice,
@@ -66,6 +67,8 @@ export function CampaignView({
   postTerms?: PostTerms | null;
   /** The creator's own results on this campaign, shown under how it pays. */
   results?: ReactNode;
+  /** The brand's affiliate program (lib/affiliate-programs.ts), shown right under how it pays. */
+  affiliate?: ReactNode;
   intro: string;
   cta?: ReactNode;
   notice?: ReactNode;
@@ -293,6 +296,8 @@ export function CampaignView({
                   </p>
                 )}
               </section>
+
+              {affiliate}
 
               {results}
 

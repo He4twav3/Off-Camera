@@ -9,6 +9,7 @@ const SECTIONS: { prefix: string; label: string }[] = [
   { prefix: "/dashboard/recruiting/jobs", label: "Campaigns" },
   { prefix: "/dashboard/recruiting/submissions", label: "Submissions" },
   { prefix: "/dashboard/recruiting/earnings", label: "Earnings" },
+  { prefix: "/dashboard/recruiting/affiliates", label: "Affiliates" },
   { prefix: "/dashboard/recruiting/profile-setup", label: "Profile" },
   { prefix: "/dashboard/account", label: "Account" },
   { prefix: "/dashboard", label: "Course" },
