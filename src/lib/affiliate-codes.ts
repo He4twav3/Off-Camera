@@ -37,10 +37,15 @@ async function writeCodes(key: string, codes: AffiliateCode[]): Promise<boolean>
 }
 
 /** Adds the codes from the brand's list; codes already given out are left exactly as they are. */
-export async function importCodes(key: string, incoming: AffiliateCode[]): Promise<{ ok: boolean; added: number; total: number }> {
+export async function importCodes(
+  key: string,
+  incoming: AffiliateCode[],
+): Promise<{ ok: boolean; added: number; total: number; error?: string }> {
   const { codes, added } = mergeCodes(await readCodes(key), incoming);
   if (added === 0) return { ok: true, added, total: codes.length };
-  return { ok: await writeCodes(key, codes), added, total: codes.length };
+  const body = new Blob([JSON.stringify({ v: 1, codes })], { type: "application/json" });
+  const { error } = await (await bucket()).upload(path(key), body, { upsert: true, contentType: "application/json", cacheControl: "0" });
+  return { ok: !error, added, total: codes.length, error: error?.message };
 }
 
 export type CodeResult = { code: AffiliateCode } | { none: "not_uploaded" | "all_given" | "error" };

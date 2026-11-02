@@ -25,7 +25,7 @@ export default async function AdminAffiliatesPage() {
   );
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="mx-auto flex max-w-5xl flex-col gap-10 px-5 py-10">
       <header>
         <h1 className="font-heading text-xl font-semibold text-foreground sm:text-2xl">Affiliates</h1>
         <p className="mt-1 text-sm text-muted-foreground">

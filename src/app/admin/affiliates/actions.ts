@@ -21,7 +21,7 @@ export async function uploadCodesAction(_prev: CodesState, formData: FormData): 
   const parsed = parseCodesCsv(await file.text());
   if (!parsed.ok) return { error: parsed.error };
   const result = await importCodes(program.key, parsed.codes);
-  if (!result.ok) return { error: "Couldn't save the codes. Please try again." };
+  if (!result.ok) return { error: `Couldn't save the codes (${result.error ?? "unknown error"}). Please try again.` };
   await (await createClient()).rpc("log_admin_action", { p_action: "affiliate_codes_uploaded", p_target: program.key });
   revalidatePath("/admin/affiliates");
   return {
