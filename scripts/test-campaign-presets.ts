@@ -64,8 +64,8 @@ t("the saved terms keep the version through parsing", parsedRow.success && parse
   t("Getimg matches its campaign only", presetFor({ title: "Getimg", about: null }) === GETIMG && presetFor({ title: "MePersona", about: null }) !== GETIMG);
   t("Getimg sets its pay and keeps who reviews", terms.basePerPost === 10 && terms.cycleSize === 15 && terms.maxPerPost === 740 && terms.reviewer === "brand", terms);
   t("Getimg keeps the brand's agreement", JSON.stringify(terms.contract) === JSON.stringify({ agreedAt: "x" }), terms);
-  t("Getimg's setup is marked", terms.preset === "getimg@2", terms);
-  t("Getimg keeps its videos and sample setting, and sets the payout", !("example_urls" in g) && !("sample_required" in g) && g.payout_amount === 10, Object.keys(g));
+  t("Getimg's setup is marked", terms.preset === `getimg@${GETIMG.version}`, terms);
+  t("Getimg sets its example videos and payout, and keeps its sample setting", Array.isArray(g.example_urls) && !("sample_required" in g) && g.payout_amount === 10, Object.keys(g));
   t("Getimg's brief has 5 points, the pay and 5 hooks", (GETIMG.description.match(/^## /gm) ?? []).length === 5 && (GETIMG.description.match(/^- /gm) ?? []).length === 10);
   t("Getimg has 5 scripts", (GETIMG.scripts.match(/^### /gm) ?? []).length === 5);
 }
