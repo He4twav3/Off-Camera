@@ -223,7 +223,7 @@ export function CampaignView({
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 flex-1 basis-72">
               <p className="font-heading text-[17px] font-semibold text-foreground">
-                Earn {headline.charAt(0).toLowerCase() + headline.slice(1)}
+                {postTerms?.agreedPerCreator ? headline : <>Earn {headline.charAt(0).toLowerCase() + headline.slice(1)}</>}
               </p>
               <p className="mt-0.5 text-sm text-muted-foreground">{intro}</p>
             </div>
@@ -293,7 +293,7 @@ export function CampaignView({
                     {formatPayoutSummary(job.payout_type, job.payout_amount)}
                   </p>
                 )}
-                {job.payout_notes && (
+                {job.payout_notes && !postTerms?.agreedPerCreator && (
                   <p className="mt-3 text-sm text-muted-foreground">
                     {job.payout_notes}
                   </p>
