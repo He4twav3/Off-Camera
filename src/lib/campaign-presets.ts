@@ -90,7 +90,10 @@ export const MEPERSONA: CampaignPreset = {
 
 export const GETIMG: CampaignPreset = {
   key: "getimg",
-  version: 1,
+  version: 2,
+  // 2026-11-06: the owner set new pay ($10 a video, $3 CPM from 1K to 100K, rewards up to $750 a video, 7 videos a
+  // week), put it in the brief, and added creative freedom for creators' own ideas.
+  requested: { version: 2, parts: ["description", "guide", "scripts", "pay"] },
   label: "Getimg",
   matches: (job) => job.title.trim().toLowerCase().startsWith("getimg"),
   about:
@@ -100,12 +103,16 @@ export const GETIMG: CampaignPreset = {
     "It explains what Getimg is and what it does, and has scripts you can use.",
     "## Pick a script and make it your own",
     "Show the result on screen. The output is what sells it.",
-    "## Your own ideas are welcome",
-    "Unique videos and new formats that work are welcome too, and rewarded if they go viral.",
+    "## Creative freedom",
+    "You have full creative freedom. Bring your own innovative video ideas and new formats: the scripts are a starting point, not a rule. Unique videos that work are rewarded if they go viral.",
     "## Use Getimg before you film",
     "Make a few things first, so you know what to show.",
-    "## Get paid on views",
-    "With rewards when a video reaches 250K, 500K and 1M views.",
+    "## How you get paid",
+    "- $10 for every unique video",
+    "- $3 per 1,000 views, from 1K to 100K views",
+    "- Rewards of $250 at 250K views, $350 at 500K and $750 at 1M (the highest one reached counts)",
+    "- Up to $750 per video",
+    "- 7 videos a week on TikTok, Instagram Reels or YouTube Shorts",
     "### Hooks you can use",
     '- "I made this ad in 60 seconds."',
     '- "Stop paying for 10 different AI apps."',
@@ -131,9 +138,20 @@ export const GETIMG: CampaignPreset = {
     "",
     "## Elements",
     "Save a character, style or product and reuse it, so it looks the same in every video.",
+    "",
+    "## Creative freedom",
+    "**You have full creative freedom.** The scripts are a starting point, not a rule. Bring your own innovative video ideas, new formats and your own style. If it shows what Getimg can make and it works, it's welcome, and unique videos that go viral are rewarded.",
+    "",
+    "## How you get paid",
+    "- **$10** for every unique video. The same video posted on another platform earns view pay only.",
+    "- **$3 per 1,000 views**, from 1K to 100K views",
+    "- **Rewards**: $250 at 250K views, $350 at 500K and $750 at 1M. The highest one a video reaches counts.",
+    "- **Up to $750 per video**",
+    "- **7 videos a week** on TikTok, Instagram Reels or YouTube Shorts",
+    "- Only views in the first 30 days after a post goes live count. Keep each post public for 90 days.",
   ].join("\n"),
   scripts: [
-    "Use these hooks or similar ones, and make each format your own. Show what Getimg makes on screen: the result is the proof.",
+    "Use these hooks or similar ones, and make each format your own. Show what Getimg makes on screen: the result is the proof. You have full creative freedom, so your own innovative ideas and new formats are just as welcome as these scripts.",
     "",
     "## Which account to use",
     "**Post on your own account, or a new one made for this campaign. Both are fine.**",
@@ -161,6 +179,25 @@ export const GETIMG: CampaignPreset = {
     "- Take a dull product photo, relight it, upscale it and turn it into a 360° spin.",
     "- Show the reveal side by side.",
   ].join("\n"),
+  postTerms: {
+    v: 2,
+    // $10 for each unique video; the same video on another platform earns view pay only.
+    basePerPost: 10,
+    cycleSize: 15,
+    repostsEarnBase: false,
+    // $3 per 1,000 views from 1K to 100K, plus the highest reward a video reaches; at most $750 a video in all.
+    cpm: [{ from: 1_000, rate: 3 }],
+    cpmCap: 100_000,
+    milestones: [
+      { views: 250_000, amount: 250 },
+      { views: 500_000, amount: 350 },
+      { views: 1_000_000, amount: 750 },
+    ],
+    maxPerPost: 740,
+    windowDays: 30,
+    keepPublicDays: 90,
+    platforms: ["tiktok", "instagram", "youtube_shorts"],
+  },
 };
 
 export const CAMPAIGN_PRESETS: CampaignPreset[] = [MEPERSONA, GETIMG];

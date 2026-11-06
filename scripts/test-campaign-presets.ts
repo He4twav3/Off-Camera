@@ -56,17 +56,17 @@ t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Sen
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
 t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@21", parsedRow);
 
-// Getimg's setup keeps the campaign's own pay terms, contract, example videos and sample setting.
+// Getimg's setup sets its pay ($10 a video, $3 CPM from 1K to 100K, rewards up to $750) and keeps the contract, who reviews, example videos and sample setting.
 {
   const live = { v: 2, basePerPost: 0, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"], reviewer: "brand", contract: { agreedAt: "x" } } as never;
   const g = presetRow(GETIMG, live) as Record<string, unknown>;
   const terms = g.post_terms as Record<string, unknown>;
   t("Getimg matches its campaign only", presetFor({ title: "Getimg", about: null }) === GETIMG && presetFor({ title: "MePersona", about: null }) !== GETIMG);
-  t("Getimg keeps its pay terms", terms.basePerPost === 0 && terms.cycleSize === 15 && terms.reviewer === "brand", terms);
+  t("Getimg sets its pay and keeps who reviews", terms.basePerPost === 10 && terms.cycleSize === 15 && terms.maxPerPost === 740 && terms.reviewer === "brand", terms);
   t("Getimg keeps the brand's agreement", JSON.stringify(terms.contract) === JSON.stringify({ agreedAt: "x" }), terms);
-  t("Getimg's setup is marked", terms.preset === "getimg@1", terms);
-  t("Getimg keeps its videos, sample setting and payout", !("example_urls" in g) && !("sample_required" in g) && !("payout_amount" in g), Object.keys(g));
-  t("Getimg's brief has 5 points and 5 hooks", (GETIMG.description.match(/^## /gm) ?? []).length === 5 && (GETIMG.description.match(/^- /gm) ?? []).length === 5);
+  t("Getimg's setup is marked", terms.preset === "getimg@2", terms);
+  t("Getimg keeps its videos and sample setting, and sets the payout", !("example_urls" in g) && !("sample_required" in g) && g.payout_amount === 10, Object.keys(g));
+  t("Getimg's brief has 5 points, the pay and 5 hooks", (GETIMG.description.match(/^## /gm) ?? []).length === 5 && (GETIMG.description.match(/^- /gm) ?? []).length === 10);
   t("Getimg has 5 scripts", (GETIMG.scripts.match(/^### /gm) ?? []).length === 5);
 }
 
