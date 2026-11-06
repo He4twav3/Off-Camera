@@ -56,7 +56,7 @@ export default async function SubmissionsPage(props: {
 
   const rows = (assignments ?? []).map((a) => {
     // A campaign paid per post: views and dollars come from its posts, counted one by one.
-    const postTerms = parsePostTerms(a.jobs?.post_terms);
+    const postTerms = parsePostTerms(a.jobs?.post_terms, a.id);
     if (postTerms) {
       const pay = payFor(
         postTerms,

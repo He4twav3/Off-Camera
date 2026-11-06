@@ -53,7 +53,7 @@ const STATUS: Record<string, string> = {
 };
 
 export function myCampaignRow(i: Input, now: Date = new Date()): MyCampaignRow {
-  const terms = parsePostTerms(i.job.post_terms);
+  const terms = parsePostTerms(i.job.post_terms, i.assignmentId);
   const base = {
     jobId: i.job.id,
     assignmentId: i.assignmentId,

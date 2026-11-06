@@ -135,7 +135,7 @@ export async function getBrandCampaigns(
         ]);
         // A campaign paid per post counts each post on its own; any other campaign counts
         // the creator's views by campaign title and handle, as before.
-        const postTerms = parsePostTerms(job.post_terms);
+        const postTerms = parsePostTerms(job.post_terms, a.id);
         const posts = postsByAssignment.get(a.id) ?? [];
         const counted = posts.filter(
           (p) => p.state !== "rejected" && p.author_verified,

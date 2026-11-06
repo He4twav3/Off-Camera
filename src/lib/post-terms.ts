@@ -110,21 +110,59 @@ export const postTermsSchema = z.object({
   /** Set once the brand has filled in and agreed to the contract (see lib/contract.ts). */
   contract: contractSchema.optional(),
   requirements: requirementsSchema.optional(),
+  /**
+   * Pay is agreed with each creator, not set for the whole campaign: the campaign page shows "Pay agreed with you"
+   * instead of numbers, and each creator is paid their own rate from `rates`.
+   */
+  agreedPerCreator: z.boolean().optional(),
+  /** Each creator's agreed pay on a campaign with `agreedPerCreator`, by assignment id: a flat amount per unique video. */
+  rates: z.record(z.string(), z.object({ basePerPost: z.number().min(0).max(100_000) })).optional(),
 });
 
 export type PostTerms = z.infer<typeof postTermsSchema>;
 
-export function parsePostTerms(raw: unknown): PostTerms | null {
+/**
+ * The campaign's pay terms. Pass the creator's assignment id where the pay is for one creator: on a campaign with pay
+ * agreed per creator, that creator's own rate is then used (see termsFor).
+ */
+export function parsePostTerms(raw: unknown, assignmentId?: string | null): PostTerms | null {
   const parsed = postTermsSchema.safeParse(raw);
   if (!parsed.success) return null;
-  return {
+  return termsFor({
     ...parsed.data,
     milestones: [...parsed.data.milestones].sort((a, b) => a.views - b.views),
     ...(parsed.data.cpm?.length
       ? { cpm: [...parsed.data.cpm].sort((a, b) => a.from - b.from), cpmCap: parsed.data.cpmCap, minViews: parsed.data.minViews, maxPerPost: parsed.data.maxPerPost }
       : { cpm: undefined, cpmCap: undefined, minViews: undefined, maxPerPost: undefined }),
+  }, assignmentId);
+}
+
+/**
+ * One creator's pay. On a campaign with pay agreed per creator, a creator with a saved rate is paid that flat amount
+ * per unique video and nothing on views; a creator without one yet earns nothing until it is set. Any other campaign
+ * is the same for everyone.
+ */
+export function termsFor(terms: PostTerms, assignmentId?: string | null): PostTerms;
+export function termsFor(terms: PostTerms | null, assignmentId?: string | null): PostTerms | null;
+export function termsFor(terms: PostTerms | null, assignmentId?: string | null): PostTerms | null {
+  if (!terms?.agreedPerCreator || !assignmentId) return terms;
+  const rate = terms.rates?.[assignmentId];
+  return {
+    ...terms,
+    basePerPost: rate?.basePerPost ?? 0,
+    milestones: [],
+    cpm: undefined,
+    cpmCap: undefined,
+    minViews: undefined,
+    maxPerPost: undefined,
+    // With a rate set, the creator sees their own numbers; without one, "Pay agreed with you" until it is set.
+    agreedPerCreator: !rate,
+    rates: undefined,
   };
 }
+
+/** The line shown in place of numbers on a campaign whose pay is agreed with each creator. */
+export const AGREED_PAY = "Pay agreed with you";
 
 /** The Getimg contract (SideShift agreement, section 3). */
 export const GETIMG_TERMS: PostTerms = {
@@ -183,8 +221,8 @@ export function bonusFor(views: number, terms: Pick<PostTerms, "milestones" | "c
  * The most one video can earn, as a dollar figure however the brand entered the limit (as dollars, or as a number of
  * views that stop counting). Null when nothing limits it. Base pay is included, so the creator reads one number.
  */
-export function maxPerVideo(terms: Pick<PostTerms, "basePerPost" | "cpm" | "cpmCap" | "maxPerPost"> & Partial<Pick<PostTerms, "milestones">>): number | null {
-  if (!terms.cpm?.length) return null;
+export function maxPerVideo(terms: Pick<PostTerms, "basePerPost" | "cpm" | "cpmCap" | "maxPerPost"> & Partial<Pick<PostTerms, "milestones" | "agreedPerCreator">>): number | null {
+  if (!terms.cpm?.length || terms.agreedPerCreator) return null;
   const reward = terms.milestones?.reduce((m, x) => Math.max(m, x.amount), 0) ?? 0;
   const fromViews = terms.cpmCap ? cpmBonus(terms.cpmCap, terms.cpm) + reward : null;
   const limits = [fromViews, terms.maxPerPost ?? null].filter((n): n is number => n !== null);
@@ -365,6 +403,7 @@ export function ratePhrase(tiers: CpmTier[]): string {
 
 /** The pay as short labels for a strip: base, CPM or milestones, cycle, window. */
 export function postTermsChips(terms: PostTerms): string[] {
+  if (terms.agreedPerCreator) return [AGREED_PAY];
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per ${terms.repostsEarnBase ? "post" : "unique video"}`);
   if (terms.cpm?.length) {
@@ -387,6 +426,11 @@ export function postTermsChips(terms: PostTerms): string[] {
 
 /** The pay in plain sentences, for the campaign page and the contract. */
 export function describePostTerms(terms: PostTerms): string[] {
+  if (terms.agreedPerCreator)
+    return [
+      "Your pay is agreed with you directly: a set amount for each unique video, confirmed before you start.",
+      "Your first post sets your main platform. The same video on your other platforms is a repost and isn't paid again.",
+    ];
   const lines: string[] = [];
   if (terms.basePerPost > 0) {
     if (terms.repostsEarnBase) {

@@ -41,7 +41,7 @@ export async function submitPost(
   if (!assignment || assignment.applicants?.user_id !== userId)
     return { ok: false, error: "We couldn't find that campaign." };
 
-  const terms = parsePostTerms(assignment.jobs?.post_terms);
+  const terms = parsePostTerms(assignment.jobs?.post_terms, assignmentId);
   if (!terms) return { ok: false, error: "This campaign isn't paid per post." };
 
   const identity = postIdentity(rawUrl);

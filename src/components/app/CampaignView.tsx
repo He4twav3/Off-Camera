@@ -21,6 +21,7 @@ import {
 } from "@/lib/payout-terms";
 import {
   describePostTerms,
+  AGREED_PAY,
   postTermsChips,
   ratePhrase,
   type PostTerms,
@@ -87,7 +88,9 @@ export function CampaignView({
     chips[0] ?? formatPayoutSummary(job.payout_type, job.payout_amount);
   const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
   const topBonus = postTerms?.milestones.at(-1);
-  const stats = postTerms
+  const stats = postTerms?.agreedPerCreator
+    ? [{ icon: DollarSign, label: AGREED_PAY }]
+    : postTerms
     ? ([
         postTerms.basePerPost > 0
           ? {

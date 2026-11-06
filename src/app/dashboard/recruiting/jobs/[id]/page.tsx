@@ -9,7 +9,7 @@ import { CampaignView } from "@/components/app/CampaignView";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { SubmitContent } from "./SubmitContent";
 import { SubmitPost } from "@/components/app/SubmitPost";
-import { mainPlatformOf, parsePostTerms } from "@/lib/post-terms";
+import { termsFor, mainPlatformOf, parsePostTerms } from "@/lib/post-terms";
 import type { VideoItem } from "@/components/app/VideosCard";
 import { parsePayoutTerms } from "@/lib/payout-terms";
 import { formatDate } from "@/lib/utils";
@@ -58,7 +58,7 @@ export default async function JobDetailPage(props: {
   if (!job) notFound();
   const terms = parsePayoutTerms(job.payout_terms);
   // A campaign whose contract pays per post (the Getimg kind) is tracked and paid post by post.
-  const postTerms = parsePostTerms(job.post_terms);
+  const campaignTerms = parsePostTerms(job.post_terms);
   // Started now, read while the rest of the page loads.
   const guidePromise = readCampaignGuide(job);
 
@@ -101,6 +101,8 @@ export default async function JobDetailPage(props: {
           .order("created_at", { ascending: false }),
       ])
     : [{ data: null }, { data: null }, { data: null }, { data: null }];
+  // On a campaign with pay agreed per creator, a creator on it sees and is paid their own rate.
+  const postTerms = termsFor(campaignTerms, assignment?.id);
 
   // What the creator can do next, split the way the page uses it: `cta` is the one
   // button (shown top right), `notice` explains a state

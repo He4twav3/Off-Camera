@@ -48,7 +48,7 @@ export default async function BrandCreatorPage(props: {
     .eq("id", assignmentId)
     .maybeSingle();
   if (!assignment || assignment.jobs?.brand_account_id !== brand.id) notFound();
-  const terms = parsePostTerms(assignment.jobs?.post_terms);
+  const terms = parsePostTerms(assignment.jobs?.post_terms, assignment.id);
   if (!terms) notFound();
 
   const [{ data: postRows }, { data: payments }, { data: handleRows }] =

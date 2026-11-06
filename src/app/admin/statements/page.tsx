@@ -79,7 +79,7 @@ export default async function AdminStatementsPage(props: {
       // A campaign paid per post: what the contract says is due, worked out post by post,
       // less what earlier statements already cover. One more ready row appears whenever
       // there is something new to put on a statement.
-      const postTerms = parsePostTerms(a.jobs?.post_terms);
+      const postTerms = parsePostTerms(a.jobs?.post_terms, a.id);
       if (postTerms) {
         const posts = a.assignment_posts.map((p) => ({
           id: p.id,

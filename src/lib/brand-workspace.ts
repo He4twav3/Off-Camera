@@ -1,7 +1,7 @@
 import { cache } from "react";
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parsePostTerms, payFor, type PostTerms } from "@/lib/post-terms";
+import { termsFor, parsePostTerms, payFor, type PostTerms } from "@/lib/post-terms";
 import { postReviews, reviewedOf } from "@/lib/post-review";
 
 /**
@@ -132,7 +132,7 @@ async function loadBrandWorkspaceUncached(brandId: string): Promise<Workspace> {
         const rows = (postRows ?? []).filter((p) => p.assignment_id === a.id);
         const pay = terms
           ? payFor(
-              terms,
+              termsFor(terms, a.id),
               rows.map((p) => ({
                 id: p.id,
                 state: p.state,

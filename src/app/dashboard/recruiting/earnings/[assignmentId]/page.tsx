@@ -40,7 +40,7 @@ export default async function CampaignEarningsPage(props: {
     .eq("applicant_id", applicant.id)
     .maybeSingle();
   const job = assignment?.jobs;
-  const terms = job ? parsePostTerms(job.post_terms) : null;
+  const terms = job ? parsePostTerms(job.post_terms, assignment?.id) : null;
   if (!assignment || !job || !terms) notFound();
 
   const [{ data: postRows }, { data: handles }] = await Promise.all([

@@ -16,6 +16,7 @@ import { describeFee } from "@/lib/fee";
 import { postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
+import { CreatorRatesForm } from "./CreatorRatesForm";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
@@ -128,6 +129,21 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
               </div>
             )}
           </dl>
+        </section>
+      )}
+
+      {c.terms && (
+        <section className="mb-4 rounded-xl border border-border/70 bg-card px-4 py-4">
+          <h2 className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Pay per creator</h2>
+          <CreatorRatesForm
+            jobId={c.id}
+            agreed={!!c.terms.agreedPerCreator}
+            creators={c.creators.map((cr) => ({
+              assignmentId: cr.assignmentId,
+              name: cr.name,
+              rate: c.terms?.rates?.[cr.assignmentId]?.basePerPost ?? null,
+            }))}
+          />
         </section>
       )}
 

@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { parsePostTerms, payFor, type PostTerms } from "@/lib/post-terms";
+import { parsePostTerms, payFor, termsFor, type PostTerms } from "@/lib/post-terms";
 import { postReviews, reviewedOf } from "@/lib/post-review";
 import { statementState, type StatementState } from "@/lib/direct-pay";
 
@@ -140,7 +140,7 @@ export async function loadAdminWorkspace(supabase: Supabase): Promise<AdminWorks
         const rows = (postRows ?? []).filter((p) => p.assignment_id === a.id);
         const pay = terms
           ? payFor(
-              terms,
+              termsFor(terms, a.id),
               rows.map((p) => ({
                 id: p.id,
                 state: p.state,

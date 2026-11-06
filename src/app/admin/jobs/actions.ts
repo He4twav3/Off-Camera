@@ -295,3 +295,55 @@ export async function saveFeeAction(_prev: PayTermsState, formData: FormData): P
   return { success: parsed.bands.length || minimum > 0 ? "Fee saved. New statements are filled in from it." : "Fee cleared." };
 }
 
+
+/**
+ * Pay agreed with each creator: turn it on or off for a campaign, and save each creator's flat rate per unique video
+ * (lib/post-terms.ts, termsFor). Admin only (the table's policy). A creator with no rate earns nothing until one is set.
+ */
+export async function saveCreatorRatesAction(_prev: PayTermsState, formData: FormData): Promise<PayTermsState> {
+  const jobId = z.string().uuid().safeParse(formData.get("job_id"));
+  if (!jobId.success) return { error: "Check the fields." };
+  const agreed = formData.get("agreed") === "on";
+
+  const supabase = await createClient();
+  const [{ data: job }, { data: assignments }] = await Promise.all([
+    supabase.from("jobs").select("post_terms").eq("id", jobId.data).maybeSingle(),
+    supabase.from("assignments").select("id").eq("job_id", jobId.data),
+  ]);
+  const terms = parsePostTerms(job?.post_terms);
+  if (!terms) return { error: "This campaign has no pay terms to change." };
+  const onCampaign = new Set((assignments ?? []).map((a) => a.id));
+
+  const rates: Record<string, { basePerPost: number }> = { ...(terms.rates ?? {}) };
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("rate_")) continue;
+    const assignmentId = key.slice("rate_".length);
+    if (!onCampaign.has(assignmentId)) continue;
+    const raw = String(value).replace(/[$,\s]/g, "");
+    if (!raw) {
+      delete rates[assignmentId];
+      continue;
+    }
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount < 0 || amount > 100_000) return { error: "Each rate must be an amount per video, like 50." };
+    rates[assignmentId] = { basePerPost: Math.round(amount * 100) / 100 };
+  }
+
+  const next = postTermsSchema.safeParse({
+    ...terms,
+    agreedPerCreator: agreed || undefined,
+    rates: Object.keys(rates).length ? rates : undefined,
+  });
+  if (!next.success) return { error: "Check the rates: every amount must be valid." };
+  const { error } = await supabase
+    .from("jobs")
+    .update({ post_terms: next.data as unknown as Record<string, unknown> })
+    .eq("id", jobId.data);
+  if (error) return { error: "Couldn't save the rates. Please try again." };
+
+  revalidatePath(`/admin/jobs/${jobId.data}`, "layout");
+  revalidatePath("/admin/statements");
+  revalidatePath("/dashboard/recruiting", "layout");
+  revalidatePath("/brand", "layout");
+  return { success: agreed ? "Saved. Each creator is paid their own rate." : "Saved. Everyone is paid the campaign's pay." };
+}
