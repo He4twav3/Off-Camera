@@ -23,8 +23,11 @@ export function JobCard({ job, href }: JobCardProps) {
     : terms
       ? termsChips(terms)
       : [];
-  const headline =
-    chips[0] ?? formatPayoutSummary(job.payout_type, job.payout_amount);
+  // Pay agreed with each creator isn't shown on the card: the creator sees their own rate once they're on it.
+  const hidePay = !!postTerms?.agreedPerCreator;
+  const headline = hidePay
+    ? job.title
+    : chips[0] ?? formatPayoutSummary(job.payout_type, job.payout_amount);
   const extra = chips[1] ?? null;
 
   // "$20 per post" reads best as a big amount with the unit beside it.
@@ -69,7 +72,7 @@ export function JobCard({ job, href }: JobCardProps) {
 
         {/* With a logo on top, the pay is shown here. Without one, the banner already shows it. */}
         <div className="mt-auto flex flex-col gap-3 border-t border-border/60 pt-4">
-          {job.logo_url && (
+          {job.logo_url && !hidePay && (
             <p className="flex items-baseline gap-1.5">
               {split ? (
                 <>

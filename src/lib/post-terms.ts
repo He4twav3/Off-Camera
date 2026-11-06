@@ -155,14 +155,14 @@ export function termsFor(terms: PostTerms | null, assignmentId?: string | null):
     cpmCap: undefined,
     minViews: undefined,
     maxPerPost: undefined,
-    // With a rate set, the creator sees their own numbers; without one, "Pay agreed with you" until it is set.
+    // With a rate set, the creator sees their own numbers; without one, no pay is shown until it is set.
     agreedPerCreator: !rate,
     rates: undefined,
   };
 }
 
-/** The line shown in place of numbers on a campaign whose pay is agreed with each creator. */
-export const AGREED_PAY = "Pay agreed with you";
+/** How admin labels a campaign whose pay is agreed with each creator (creators see no pay until theirs is set). */
+export const AGREED_PAY = "Pay agreed per creator";
 
 /** The Getimg contract (SideShift agreement, section 3). */
 export const GETIMG_TERMS: PostTerms = {
@@ -403,7 +403,8 @@ export function ratePhrase(tiers: CpmTier[]): string {
 
 /** The pay as short labels for a strip: base, CPM or milestones, cycle, window. */
 export function postTermsChips(terms: PostTerms): string[] {
-  if (terms.agreedPerCreator) return [AGREED_PAY];
+  // Pay agreed with each creator is not shown on the campaign: a creator sees their own rate once they're on it.
+  if (terms.agreedPerCreator) return [];
   const chips: string[] = [];
   if (terms.basePerPost > 0) chips.push(`${usd(terms.basePerPost)} per ${terms.repostsEarnBase ? "post" : "unique video"}`);
   if (terms.cpm?.length) {
@@ -426,11 +427,7 @@ export function postTermsChips(terms: PostTerms): string[] {
 
 /** The pay in plain sentences, for the campaign page and the contract. */
 export function describePostTerms(terms: PostTerms): string[] {
-  if (terms.agreedPerCreator)
-    return [
-      "Your pay is agreed with you directly: a set amount for each unique video, confirmed before you start.",
-      "Your first post sets your main platform. The same video on your other platforms is a repost and isn't paid again.",
-    ];
+  if (terms.agreedPerCreator) return [];
   const lines: string[] = [];
   if (terms.basePerPost > 0) {
     if (terms.repostsEarnBase) {

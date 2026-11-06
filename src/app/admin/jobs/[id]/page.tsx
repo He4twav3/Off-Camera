@@ -13,7 +13,7 @@ import { contractStatus } from "@/lib/contract";
 import { requirementItems } from "@/lib/requirements";
 import { getFeeBands } from "@/lib/campaign-fees";
 import { describeFee } from "@/lib/fee";
-import { postTermsChips } from "@/lib/post-terms";
+import { AGREED_PAY, postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
 import { CreatorRatesForm } from "./CreatorRatesForm";
@@ -56,7 +56,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
           </p>
           {c.terms && (
             <p className="mt-3 flex flex-wrap gap-2">
-              {postTermsChips(c.terms).map((chip) => (
+              {(c.terms.agreedPerCreator ? [AGREED_PAY] : postTermsChips(c.terms)).map((chip) => (
                 <span key={chip} className="rounded-full border border-border/70 px-3 py-1 text-xs font-medium text-muted-foreground">
                   {chip}
                 </span>

@@ -21,7 +21,6 @@ import {
 } from "@/lib/payout-terms";
 import {
   describePostTerms,
-  AGREED_PAY,
   postTermsChips,
   ratePhrase,
   type PostTerms,
@@ -88,8 +87,10 @@ export function CampaignView({
     chips[0] ?? formatPayoutSummary(job.payout_type, job.payout_amount);
   const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
   const topBonus = postTerms?.milestones.at(-1);
-  const stats = postTerms?.agreedPerCreator
-    ? [{ icon: DollarSign, label: AGREED_PAY }]
+  // Pay agreed with each creator: nothing about pay is shown until the creator is on the campaign with their own rate.
+  const hidePay = !!postTerms?.agreedPerCreator;
+  const stats = hidePay
+    ? []
     : postTerms
     ? ([
         postTerms.basePerPost > 0
@@ -172,7 +173,7 @@ export function CampaignView({
           <div className="relative">
             <CampaignBanner
               seed={job.id}
-              headline={headline}
+              headline={hidePay ? job.title : headline}
               caption={PLATFORM_LABELS[job.platform]}
               className="aspect-[16/9] w-full rounded-2xl sm:aspect-[16/10] sm:max-h-64 lg:max-h-none"
               logoUrl={job.logo_url}
@@ -223,7 +224,7 @@ export function CampaignView({
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 flex-1 basis-72">
               <p className="font-heading text-[17px] font-semibold text-foreground">
-                {postTerms?.agreedPerCreator ? headline : <>Earn {headline.charAt(0).toLowerCase() + headline.slice(1)}</>}
+                {hidePay ? job.title : <>Earn {headline.charAt(0).toLowerCase() + headline.slice(1)}</>}
               </p>
               <p className="mt-0.5 text-sm text-muted-foreground">{intro}</p>
             </div>
@@ -288,12 +289,12 @@ export function CampaignView({
                       </li>
                     ))}
                   </ul>
-                ) : (
+                ) : hidePay ? null : (
                   <p className="rounded-xl border border-border/70 bg-card px-5 py-3.5 font-heading text-xl font-semibold text-primary">
                     {formatPayoutSummary(job.payout_type, job.payout_amount)}
                   </p>
                 )}
-                {job.payout_notes && !postTerms?.agreedPerCreator && (
+                {job.payout_notes && !hidePay && (
                   <p className="mt-3 text-sm text-muted-foreground">
                     {job.payout_notes}
                   </p>

@@ -16,7 +16,7 @@ function Save() {
 }
 
 /**
- * Pay agreed with each creator: when on, the campaign shows "Pay agreed with you" instead of numbers, and each creator
+ * Pay agreed with each creator: when on, the campaign shows no pay, and each creator
  * is paid the flat amount per unique video set here. Admin only.
  */
 export function CreatorRatesForm({
@@ -37,7 +37,7 @@ export function CreatorRatesForm({
         <span>
           <span className="font-medium">Pay agreed with each creator</span>
           <span className="block text-muted-foreground">
-            Creators see &ldquo;Pay agreed with you&rdquo; instead of the campaign&rsquo;s numbers, and each one is paid their own rate per unique video, with no view pay. A creator without a rate earns nothing until you set one.
+            Creators see no pay on the campaign. Once they&rsquo;re on it, each one sees and is paid their own rate per unique video, with no view pay. A creator without a rate earns nothing and sees no pay until you set one.
           </span>
         </span>
       </label>
