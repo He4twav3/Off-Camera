@@ -34,4 +34,4 @@ export const POST_STATUS_STYLES: Record<PostStatusTone, string> = {
 };
 
 /** One line explaining the colours, for the top of a list of posts. */
-export const POST_STATUS_KEY = "Grey: checking it's your post. Amber: being reviewed. Green: approved, views count. Red: not approved.";
+export const POST_STATUS_KEY = "Grey: checking it's your post. Amber: being reviewed. Green: approved, views count. Red: not approved. Views update once every 24 hours.";

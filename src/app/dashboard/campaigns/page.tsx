@@ -29,8 +29,8 @@ export default async function CampaignViewsPage() {
         Campaign views
       </h1>
       <p className="mt-1.5 text-muted-foreground">
-        Views on the posts you submitted for each campaign. Counts refresh
-        after your submission is approved.
+        Views on the posts you submitted for each campaign. Counts start
+        after your submission is approved and update once every 24 hours.
       </p>
 
       {!rows || rows.length === 0 ? (

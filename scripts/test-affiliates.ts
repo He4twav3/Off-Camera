@@ -64,7 +64,7 @@ const report = reportCsv([{ ...given[0], email: "sam@x.com", link: "https://mepe
 t("the report lists code number, code, creator, link and results", report.includes("1,XX-001-TEST,given,Sam,sam@x.com,https://mepersona.ai/go/sam,2026-11-02,3,12500"), report);
 
 // The scripts end on the partner link
-t("every script ends on the partner link", (MEPERSONA.scripts.match(/Use my link in bio for 20% off your first 3 months/g) ?? []).length === 5);
+t("every script ends on the partner link", (MEPERSONA.scripts.match(/Use my link in bio for 20% off your first 3 months/g) ?? []).length === 7);
 t("no script still sends viewers to the free plan link", !/Free to start, link in bio|About 300 replies a month free\.|Link in bio\."/.test(MEPERSONA.scripts));
 
 console.log(bad ? `\n${bad} failed` : "\nAll passed");

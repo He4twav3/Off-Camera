@@ -38,19 +38,21 @@ export type CampaignPreset = {
 
 export const MEPERSONA: CampaignPreset = {
   key: "mepersona",
-  version: 22,
+  version: 23,
+  // 2026-11-14 (v23): the dashboard line no longer promises sign-ups (they aren't tracked on the site yet) and says
+  // views update once every 24 hours.
   // 2026-11-13 (v22): the owner asked to widen the brief for small and new creators (captions and scheduling, not
   // only replies): a "Who it's for" section, two scripts, and the dashboard tracking line under pay.
   // 2026-11-02: each script ends on the creator's partner link and its discount (lib/affiliate-programs.ts). 2026-10-28:
   // the owner raised the pay on the first 10K views (more for the 1K–10K views most creators get).
-  requested: { version: 22, parts: ["description", "guide", "scripts"] },
+  requested: { version: 23, parts: ["description"] },
   label: "MePersona",
   matches: (job) =>
     `${job.title} ${job.about ?? ""}`.toLowerCase().includes("mepersona"),
   about:
     "Answer every comment, in your own voice. MePersona is an AI inbox for creators. It brings your post comments and DMs from Instagram, Facebook, YouTube and more into one place, drafts replies that sound like you, and schedules your posts across platforms. Answering every comment keeps the conversation going, and MePersona makes that possible without living in your apps all day.",
   description:
-    "## Read the full brief\nIt explains what MePersona is and what it does, and has scripts you can use.\n## Pick a script and make it your own\nWatch its example video below. Keep the example's hook and structure, then fill it with your own setup, your own platforms and your own real results, built around MePersona.\n## Your own ideas are welcome\nUnique videos and new formats that work are welcome too, and rewarded if they go viral.\n## Use MePersona for a few days first\nSo what you show on screen is real: your inbox, your drafted replies, your scheduled posts.\n## Get paid monthly\nOne statement a month for everything you earned, paid within 7 days. Your views, sign-ups and earnings are all tracked on your dashboard.\n### Hooks you can use\n- \"Why aren't more people batching?\"\n- \"Why is your engagement so low?\"\n- \"Small creators, stop doing everything manually.\"\n- \"This feels illegal to know.\"\n- \"Why posting on one platform is holding you back.\"\n- \"Stop relying on one platform to grow. Here's why.\"\n- \"How I post on 5 platforms in 20 minutes a week.\"\n- \"What I'd do if I were starting as a creator today.\"",
+    "## Read the full brief\nIt explains what MePersona is and what it does, and has scripts you can use.\n## Pick a script and make it your own\nWatch its example video below. Keep the example's hook and structure, then fill it with your own setup, your own platforms and your own real results, built around MePersona.\n## Your own ideas are welcome\nUnique videos and new formats that work are welcome too, and rewarded if they go viral.\n## Use MePersona for a few days first\nSo what you show on screen is real: your inbox, your drafted replies, your scheduled posts.\n## Get paid monthly\nOne statement a month for everything you earned, paid within 7 days. Your videos, views and earnings are tracked on your dashboard, and views update once every 24 hours.\n### Hooks you can use\n- \"Why aren't more people batching?\"\n- \"Why is your engagement so low?\"\n- \"Small creators, stop doing everything manually.\"\n- \"This feels illegal to know.\"\n- \"Why posting on one platform is holding you back.\"\n- \"Stop relying on one platform to grow. Here's why.\"\n- \"How I post on 5 platforms in 20 minutes a week.\"\n- \"What I'd do if I were starting as a creator today.\"",
   exampleUrls: [
     "https://www.tiktok.com/@dawn_flaherty/video/7595217979986529567",
     "https://www.tiktok.com/@sabrina_ramonov/video/7618606049490111758",

@@ -48,13 +48,13 @@ t("matches the MePersona campaign", presetFor({ title: "Creator campaign", about
 t("doesn't match others", presetFor({ title: "Acme", about: "AI images" }) === null);
 
 const row = presetRow(MEPERSONA, { reviewer: "brand", contract: undefined });
-t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@22");
+t("the row records the version", (row.post_terms as { preset?: string }).preset === presetMarker(MEPERSONA) && presetMarker(MEPERSONA) === "mepersona@23");
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
 t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Send a short sample video."));
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
-t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@22", parsedRow);
+t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@23", parsedRow);
 
 // Getimg's setup sets its pay ($10 a video, $3 CPM from 1K to 100K, rewards up to $750) and keeps the contract, who reviews, example videos and sample setting.
 {
