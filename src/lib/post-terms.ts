@@ -420,9 +420,15 @@ export function postTermsChips(terms: PostTerms): string[] {
     if (top) chips.push(`Up to ${usd(top.amount)} bonus per video`);
   }
   // With no base pay there is nothing to pay per batch of posts: view pay is due once each video's window closes.
-  if (terms.basePerPost > 0) chips.push(`Paid every ${terms.cycleSize} posts`);
-  chips.push(`${terms.windowDays}-day counting window`);
+  if (terms.basePerPost > 0) chips.push(terms.statementEvery === "month" ? "Paid monthly" : terms.cycleSize === 1 ? "Paid per video" : `Paid every ${terms.cycleSize} posts`);
+  // A flat rate with no view pay has no counting window worth showing.
+  if (hasViewPay(terms)) chips.push(`${terms.windowDays}-day counting window`);
   return chips;
+}
+
+/** Whether views earn anything on these terms (a CPM or milestone bonuses), or the pay is a flat rate per video only. */
+function hasViewPay(terms: PostTerms): boolean {
+  return !!terms.cpm?.length || terms.milestones.length > 0;
 }
 
 /** The pay in plain sentences, for the campaign page and the contract. */
@@ -434,7 +440,11 @@ export function describePostTerms(terms: PostTerms): string[] {
       lines.push(`Base pay: ${usd(terms.basePerPost)} for each approved post.${terms.statementEvery === "month" ? "" : ` It is paid ${terms.cycleSize === 1 ? "after each post" : `after every ${terms.cycleSize} posts`} you deliver.`}`);
     } else {
       lines.push(`Base pay: ${usd(terms.basePerPost)} for each unique video.${terms.statementEvery === "month" ? "" : ` It is paid ${terms.cycleSize === 1 ? "after each unique video" : `after every ${terms.cycleSize} unique videos`} you deliver.`}`);
-      lines.push("Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost: it earns view bonuses only.");
+      lines.push(
+        hasViewPay(terms)
+          ? "Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost: it earns view bonuses only."
+          : "Your first post sets your main platform. Posts on your main platform earn the base pay. The same video on your other platforms is a repost and isn't paid again.",
+      );
     }
   }
   if (terms.cpm?.length) {
@@ -453,12 +463,12 @@ export function describePostTerms(terms: PostTerms): string[] {
     );
     lines.push("Bonuses don't stack. A post that reaches 5K after 1K earns the 5K bonus in total: you are paid the difference.");
   }
-  lines.push(`Every post is measured on its own. Only views within ${terms.windowDays} days of the post going live count, then the number is final.`);
+  if (hasViewPay(terms)) lines.push(`Every post is measured on its own. Only views within ${terms.windowDays} days of the post going live count, then the number is final.`);
   lines.push("Your post has to be on one of your own verified accounts, and go live after you connected that account and joined.");
   if (terms.keepPublicDays > 0) lines.push(`Keep each post public for ${terms.keepPublicDays} days.`);
   if (terms.statementEvery === "month") lines.push("You get one statement a month, for everything you earned that month.");
   lines.push(`After each ${terms.statementEvery === "month" ? "statement" : "payment"}, the brand has ${terms.dueDays ?? STATEMENT_DUE_DAYS} days to pay you directly into your bank account through Wise. Amounts are in US dollars and Wise converts them to your currency.`);
-  lines.push("Views are updated about once a day.");
+  lines.push("Views update once every 24 hours.");
   return lines;
 }
 

@@ -113,8 +113,8 @@ export function CampaignView({
         maxPerVideo(postTerms) !== null
           ? { icon: DollarSign, label: `${usd(maxPerVideo(postTerms) as number)} max per video` }
           : null,
-        postTerms.cpm?.length ? null : postTerms.basePerPost > 0 ? { icon: Video, label: `Paid every ${postTerms.cycleSize} posts` } : null,
-        postTerms.cpm?.length ? null : { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
+        postTerms.cpm?.length ? null : postTerms.basePerPost > 0 ? { icon: Video, label: postTerms.statementEvery === "month" ? "Paid monthly" : postTerms.cycleSize === 1 ? "Paid per video" : `Paid every ${postTerms.cycleSize} posts` } : null,
+        postTerms.cpm?.length || postTerms.milestones.length === 0 ? null : { icon: Eye, label: `${postTerms.windowDays}-day counting window` },
       ].filter(Boolean) as { icon: typeof Eye; label: string }[])
     : ([
         terms?.cpm

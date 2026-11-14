@@ -112,7 +112,7 @@ export default async function BrandHomePage(props: { searchParams: Promise<{ c?:
       </div>
 
       <BestVideos videos={topPosts(ws.posts, 3)} />
-      <p className="mt-6 text-sm text-muted-foreground">Views are read from each platform about once a day.</p>
+      <p className="mt-6 text-sm text-muted-foreground">Views are read from each platform once every 24 hours.</p>
     </PageShell>
   );
 }

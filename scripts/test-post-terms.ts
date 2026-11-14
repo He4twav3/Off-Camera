@@ -86,7 +86,7 @@ const words = describePostTerms(T).join(" ");
 t("the words give the base pay and cycle", /\$20 for each unique video/.test(words) && /every 15 unique videos/.test(words) && /repost/.test(words), words);
 t("the words list every milestone", /1K views, \$2/.test(words) && /5K views, \$10/.test(words) && /10K views, \$20/.test(words) && /100K views, \$200/.test(words), words);
 t("the words say bonuses don't stack", /don't stack/.test(words));
-t("the words give the window, the own-account rule and the update rate", /30 days/.test(words) && /own verified accounts/.test(words) && /once a day/.test(words), words);
+t("the words give the window, the own-account rule and the update rate", /30 days/.test(words) && /own verified accounts/.test(words) && /once every 24 hours/.test(words), words);
 
 // --- the tracking view: money bar, history, average --------------------------------------------------------------
 const row = (p: Partial<PostRowData> = {}): PostRowData => ({ ...post(p), platform: "tiktok", url: "https://www.tiktok.com/@a/video/1", rejectReason: null, lastError: null, ...p } as PostRowData);

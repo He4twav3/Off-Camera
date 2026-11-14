@@ -94,19 +94,32 @@ export function TrackingHeader({
       <div className="mt-4">
         <MoneyBar {...bar} />
       </div>
-      <div className="mt-5 flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          <span className="font-semibold text-foreground">{inCycle}</span>/
-          {terms.cycleSize} posts this cycle
-        </span>
-        <span>Paid every {terms.cycleSize} posts</span>
-      </div>
-      <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-primary"
-          style={{ width: `${(inCycle / terms.cycleSize) * 100}%` }}
-        />
-      </div>
+      {terms.cycleSize > 1 && terms.statementEvery !== "month" ? (
+        <>
+          <div className="mt-5 flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              <span className="font-semibold text-foreground">{inCycle}</span>/
+              {terms.cycleSize} posts this cycle
+            </span>
+            <span>Paid every {terms.cycleSize} posts</span>
+          </div>
+          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${(inCycle / terms.cycleSize) * 100}%` }}
+            />
+          </div>
+        </>
+      ) : (
+        // Paid per video or once a month: there is no batch of posts to fill, so no cycle bar.
+        <div className="mt-5 flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            <span className="font-semibold text-foreground">{pay.counted}</span>{" "}
+            {pay.counted === 1 ? "video" : "videos"} counted
+          </span>
+          <span>{terms.statementEvery === "month" ? "Paid monthly" : "Paid per video"}</span>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { GETIMG, MEPERSONA, presetFor, presetRow, presetMarker } from "../src/lib/campaign-presets";
-import { describePostTerms, postTermsChips, postTermsSchema } from "../src/lib/post-terms";
+import { describePostTerms, postTermsChips, postTermsSchema, termsFor } from "../src/lib/post-terms";
 import { parseBrief, parseBriefSteps, parseGuide, parseScripts, briefPlainText } from "../src/lib/campaign-guide";
 import { parseExampleLinks } from "../src/lib/campaign-brief";
 
@@ -12,20 +12,22 @@ const t = (n: string, ok: boolean, got?: unknown) => {
 const terms = postTermsSchema.safeParse({ ...MEPERSONA.postTerms, reviewer: "oncamera" });
 t("the pay terms are valid", terms.success, terms);
 if (terms.success) {
-  const lines = describePostTerms(terms.data).join(" ");
-  t("$5 for each unique video", lines.includes("Base pay: $5 for each unique video."), lines);
-  t("reposts earn view pay only", lines.includes("it earns view bonuses only"), lines);
-  t("$2 per 1,000 views", lines.includes("$2 CPM"), lines);
-  t("counted up to 100K views", lines.includes("up to 100K views"), lines);
-  t("rewards 100/300/500", lines.includes("$100 at 250K views, $300 at 500K views, $500 at 1M views"), lines);
-  t("$725 max per video", lines.includes("$725 max per video"), lines);
-  t("no minimum views", !lines.includes("starts earning view pay once"), lines);
-  t("no keep-public rule", !lines.includes("Keep each post public"), lines);
+  // Pay is agreed with each creator: the campaign shows no pay, and a creator sees their own flat rate per Reel.
+  t("pay is agreed per creator", terms.data.agreedPerCreator === true);
+  t("the campaign shows no pay", describePostTerms(terms.data).length === 0 && postTermsChips(terms.data).length === 0);
+  const mine = termsFor({ ...terms.data, rates: { a1: { basePerPost: 150 } } }, "a1");
+  const lines = describePostTerms(mine).join(" ");
+  t("a creator sees their own rate", lines.includes("Base pay: $150 for each unique video."), lines);
+  t("no view pay for a creator with a rate", !mine.cpm && mine.milestones.length === 0 && !lines.includes("CPM") && !lines.includes("view bonuses"), lines);
+  t("a repost isn't paid again", lines.includes("is a repost and isn't paid again"), lines);
+  t("no counting window when views don't pay", !lines.includes("Only views within"), lines);
   t("monthly statement, 7 days", lines.includes("one statement a month") && lines.includes("has 7 days"), lines);
-  t("pay strip says per unique video", postTermsChips(terms.data)[0] === "$5 per unique video", postTermsChips(terms.data));
+  t("views update every 24 hours", lines.includes("Views update once every 24 hours."), lines);
+  t("pay strip: rate, then monthly", postTermsChips(mine).join("|") === "$150 per unique video|Paid monthly", postTermsChips(mine));
+  t("a creator without a rate sees no pay yet", describePostTerms(termsFor(terms.data, "a2")).length === 0);
 }
 const steps = parseBriefSteps(MEPERSONA.description);
-t("the brief is 5 steps", steps.map((s) => s.title).join("|") === "Read the full brief|Pick a script and make it your own|Your own ideas are welcome|Use MePersona for a few days first|Get paid monthly", steps);
+t("the brief is 5 steps", steps.map((s) => s.title).join("|") === "Read the full brief|Pick a script and make it your own|Your own ideas are welcome|Use MePersona for a few days first|How it works|Get paid monthly", steps);
 t("every step has text", steps.every((s) => s.text.length > 20));
 t("plain text drops the step marks", !briefPlainText(MEPERSONA.description).includes("##"));
 const sc = parseScripts(MEPERSONA.scripts);
@@ -52,7 +54,7 @@ t("the row records the version", (row.post_terms as { preset?: string }).preset 
 t("the row keeps who reviews", row.post_terms.reviewer === "brand");
 t("the row clears formats", row.formats === null);
 t("creators apply with a sample video", row.sample_required === true);
-t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Send a short sample video."));
+t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Send a short sample video.") && (row.sample_criteria ?? "").includes("recent Reels"));
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
 t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@23", parsedRow);
 
