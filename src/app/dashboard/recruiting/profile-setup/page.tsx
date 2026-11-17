@@ -23,6 +23,12 @@ export default async function ProfilePage(props: {
       summary="Manage your personal information and account settings."
       icon={User}
     >
+      {!applicant && (
+        <p className="mb-6 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-medium text-foreground">
+          Save your profile first. Accounts, Videos, Payments, Affiliates and Submissions open as
+          soon as it&apos;s saved.
+        </p>
+      )}
       <ProfileForm
         existing={applicant ?? null}
         defaultName={session?.displayName ?? ""}

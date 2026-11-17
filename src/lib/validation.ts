@@ -211,7 +211,7 @@ export function checkName(value: string): CheckResult {
   const trimmed = value.trim();
 
   if (trimmed.length < 2) {
-    return { ok: false, error: "Enter your full name." };
+    return { ok: false, error: "Enter your real first name and surname (at least 2 letters)." };
   }
   if (!/^[\p{L}][\p{L}\s'’.-]*$/u.test(trimmed)) {
     return {
@@ -220,7 +220,7 @@ export function checkName(value: string): CheckResult {
     };
   }
   if (!/\p{L}{2,}/u.test(trimmed)) {
-    return { ok: false, error: "Enter your full name." };
+    return { ok: false, error: "Enter your real first name and surname (at least 2 letters)." };
   }
 
   return checkText(trimmed, { label: "Your name" });
