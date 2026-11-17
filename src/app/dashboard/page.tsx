@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Lock, Briefcase, GraduationCap } from "lucide-react";
+import { Lock, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { ContinueLearning } from "@/components/dashboard/continue-learning";
@@ -26,32 +26,21 @@ export default async function DashboardPage() {
       supabase.from("applicants").select("id").eq("user_id", user.id).maybeSingle(),
     ]);
     if (isAdmin && !creator) redirect("/admin");
+    if (!creator) {
+      const { data: brand } = await supabase
+        .from("brand_accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (brand) redirect("/brand");
+    }
   }
 
-  // The course isn't ready yet. Everything below stays in place for when it is: remove this
-  // return to bring it back.
-  return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 py-24 text-center sm:px-6 lg:px-8">
-      <span className="flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
-        <GraduationCap className="size-6" />
-      </span>
-      <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight">
-        The course is coming soon
-      </h1>
-      <p className="mt-2 max-w-md text-muted-foreground">
-        We&apos;re still putting it together. In the meantime you can browse campaigns and start earning.
-      </p>
-      <Button
-        className="mt-6"
-        nativeButton={false}
-        render={<Link href="/dashboard/recruiting/jobs" />}
-      >
-        Browse campaigns
-      </Button>
-    </div>
-  );
+  // The course isn't ready yet, so /dashboard is never a destination: everyone who lands here
+  // (the logo, sign-in and email links all default to it) goes straight to campaigns. Everything
+  // below stays in place for when the course is ready: remove this redirect to bring it back.
+  redirect("/dashboard/recruiting/jobs");
 
-  // eslint-disable-next-line no-unreachable
   const session = await getSession();
   const firstName = session?.displayName.split(" ")[0] ?? "Creator";
 

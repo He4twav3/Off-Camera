@@ -48,6 +48,7 @@ const MAIN_ITEMS = [
 ];
 
 // Quieter, set apart at the bottom. The course is optional: nothing waits on it.
+const COURSE_LINK_VISIBLE = false;
 const SECONDARY_ITEMS = [
   { href: "/dashboard", label: "Course (coming soon)", icon: GraduationCap },
 ];
@@ -130,15 +131,19 @@ export function SidebarNav({
         ))}
       </div>
 
-      <div className="flex flex-col gap-0.5 border-t border-border/70 pt-4">
-        {SECONDARY_ITEMS.map((item) => (
-          <NavLink
-            key={item.href}
-            {...item}
-            active={isActive(pathname, item.href)}
-          />
-        ))}
-      </div>
+      {/* The course isn't ready and /dashboard redirects to campaigns, so its link is hidden
+          until it is. */}
+      {COURSE_LINK_VISIBLE && (
+        <div className="flex flex-col gap-0.5 border-t border-border/70 pt-4">
+          {SECONDARY_ITEMS.map((item) => (
+            <NavLink
+              key={item.href}
+              {...item}
+              active={isActive(pathname, item.href)}
+            />
+          ))}
+        </div>
+      )}
     </nav>
   );
 }
