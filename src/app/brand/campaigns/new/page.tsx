@@ -21,7 +21,7 @@ export default async function NewCampaignPage() {
         <div className="mt-3">
           <PageHeader title="New campaign" summary="Set the brief and the pay. Creators can join as soon as you post it." />
         </div>
-        {brand.status !== "approved" ? <PendingNotice status={brand.status} /> : <NewCampaignForm niches={niches ?? []} />}
+        {brand.status === "rejected" ? <PendingNotice status={brand.status} /> : <NewCampaignForm niches={niches ?? []} />}
       </div>
     </PageShell>
   );

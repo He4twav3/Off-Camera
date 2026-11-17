@@ -61,8 +61,8 @@ export async function markBrandPaidAction(
     .select("id, status")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!brand || brand.status !== "approved")
-    return { error: "Your brand account isn't approved yet." };
+  if (!brand || brand.status === "rejected")
+    return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const db = createAdminClient();
   const { data: row } = await db
@@ -134,8 +134,8 @@ export async function setCampaignLogoAction(
     .select("id, status")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!brand || brand.status !== "approved")
-    return { error: "Your brand account isn't approved yet." };
+  if (!brand || brand.status === "rejected")
+    return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const db = createAdminClient();
   const { data: job } = await db
@@ -217,8 +217,8 @@ export async function denyPostAction(
     .select("id, status")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!brand || brand.status !== "approved")
-    return { error: "Your brand account isn't approved yet." };
+  if (!brand || brand.status === "rejected")
+    return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const db = createAdminClient();
   const { data: post } = await db
@@ -257,7 +257,7 @@ async function approvedBrand() {
     .select("id, status")
     .eq("user_id", user.id)
     .maybeSingle();
-  return brand && brand.status === "approved" ? brand : null;
+  return brand && brand.status !== "rejected" ? brand : null;
 }
 
 /** The brand approves a post, when it has chosen to review its own posts. */
@@ -268,7 +268,7 @@ export async function approvePostAsBrandAction(
   const id = z.string().uuid().safeParse(formData.get("post_id"));
   if (!id.success) return { error: "Check the fields." };
   const brand = await approvedBrand();
-  if (!brand) return { error: "Your brand account isn't approved yet." };
+  if (!brand) return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const db = createAdminClient();
   const { data: post } = await db
@@ -309,7 +309,7 @@ export async function setPostReviewerAction(
   });
   if (!parsed.success) return { error: "Check the fields." };
   const brand = await approvedBrand();
-  if (!brand) return { error: "Your brand account isn't approved yet." };
+  if (!brand) return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const db = createAdminClient();
   const { data: job } = await db
@@ -386,7 +386,7 @@ export async function createCampaignAction(
   const fail = (error: string): NewCampaignState => ({ error, values });
 
   const brand = await approvedBrand();
-  if (!brand) return fail("Your brand account isn't approved yet.");
+  if (!brand) return fail("Your brand account isn't active. Get in touch if you think that's a mistake.");
 
   const parsed = newCampaignSchema.safeParse({
     title: formData.get("title"),
@@ -484,7 +484,7 @@ export async function setCampaignStatusAction(
   });
   if (!parsed.success) return { error: "Check the fields." };
   const brand = await approvedBrand();
-  if (!brand) return { error: "Your brand account isn't approved yet." };
+  if (!brand) return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const { data, error } = await createAdminClient()
     .from("jobs")
@@ -589,7 +589,7 @@ export async function updateCampaignAction(
   if (!requirements.ok) return { error: requirements.error };
 
   const brand = await approvedBrand();
-  if (!brand) return { error: "Your brand account isn't approved yet." };
+  if (!brand) return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   // Pay terms and requirements are saved together with the brief. Who approves and the signed contract stay as they are:
   // if the pay terms changed, the contract no longer matches and the brand is asked to agree to it again.
@@ -668,7 +668,7 @@ export async function saveContractAction(_prev: BrandPayState, formData: FormDat
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the fields." };
   const brand = await approvedBrand();
-  if (!brand) return { error: "Your brand account isn't approved yet." };
+  if (!brand) return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." };
 
   const supabase = await createClient();
   const {

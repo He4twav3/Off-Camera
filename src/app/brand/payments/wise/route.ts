@@ -11,7 +11,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return new NextResponse("Not signed in", { status: 401 });
   const { data: brand } = await supabase.from("brand_accounts").select("id, status").eq("user_id", user.id).maybeSingle();
-  if (!brand || brand.status !== "approved") return new NextResponse("Not found", { status: 404 });
+  if (!brand || brand.status === "rejected") return new NextResponse("Not found", { status: 404 });
 
   const batch = await buildWiseBatch(brand.id);
   if (batch.statementIds.length === 0) return new NextResponse("Nothing to pay right now.", { status: 404 });

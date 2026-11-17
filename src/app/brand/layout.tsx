@@ -25,7 +25,7 @@ export default async function BrandLayout({ children }: { children: ReactNode })
   if (!brand) redirect("/dashboard");
 
   // The number beside Approvals: videos this brand has chosen to approve itself and hasn't yet.
-  const ws = brand.status === "approved" ? await loadBrandWorkspace(brand.id) : null;
+  const ws = brand.status !== "rejected" ? await loadBrandWorkspace(brand.id) : null;
   const approvals = (ws?.campaigns ?? []).reduce((n, c) => n + (c.reviewer === "brand" ? c.awaitingReview : 0), 0);
 
   return (

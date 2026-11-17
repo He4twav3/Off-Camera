@@ -36,7 +36,7 @@ export default async function BrandCreatorPage(props: {
     .select("id, status")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!brand || brand.status !== "approved") notFound();
+  if (!brand || brand.status === "rejected") notFound();
 
   // From here the service role reads, so every query is tied to this brand's own campaign.
   const db = createAdminClient();

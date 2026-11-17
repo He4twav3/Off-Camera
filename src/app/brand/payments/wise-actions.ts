@@ -24,7 +24,7 @@ async function currentBrand() {
   if (!user) return { error: "You need to be logged in." } as const;
   // RLS: a brand can only read its own account row.
   const { data: brand } = await supabase.from("brand_accounts").select("id, status, company_name").eq("user_id", user.id).maybeSingle();
-  if (!brand || brand.status !== "approved") return { error: "Your brand account isn't approved yet." } as const;
+  if (!brand || brand.status === "rejected") return { error: "Your brand account isn't active. Get in touch if you think that's a mistake." } as const;
   return { brand } as const;
 }
 

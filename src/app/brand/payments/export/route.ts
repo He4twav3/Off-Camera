@@ -16,7 +16,7 @@ export async function GET() {
     .select("id, status")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (!brand || brand.status !== "approved") return new NextResponse("Not found", { status: 404 });
+  if (!brand || brand.status === "rejected") return new NextResponse("Not found", { status: 404 });
 
   const day = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
   const rows = (await getBrandStatements(brand.id)).map((s) => [

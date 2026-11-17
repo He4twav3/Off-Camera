@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "Edit campaign" };
 export default async function EditCampaignPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const brand = await requireBrand(`/brand/campaigns/${id}/edit`);
-  if (brand.status !== "approved")
+  if (brand.status === "rejected")
     return (
       <PageShell>
         <PendingNotice status={brand.status} />

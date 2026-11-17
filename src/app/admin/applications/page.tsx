@@ -1,3 +1,4 @@
+import { parsePostTerms } from "@/lib/post-terms";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,7 +32,7 @@ export default async function AdminApplicationsPage() {
   const { data: applications } = await supabase
     .from("applications")
     .select(
-      "id, status, cover_note, sample_url, video_urls, created_at, decided_at, jobs(id, title, platform, payout_type, payout_amount), applicants(*, niches(label))",
+      "id, status, cover_note, sample_url, video_urls, created_at, decided_at, jobs(id, title, platform, payout_type, payout_amount, post_terms), applicants(*, niches(label))",
     )
     .order("created_at", { ascending: false });
 
@@ -171,7 +172,8 @@ function ApplicationRow({ app, handles }: RowProps) {
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Applied {formatDate(app.created_at)}
-            {job
+            {/* Campaigns with a rate agreed per creator (MePersona) have no list price to show. */}
+            {job && !parsePostTerms((job as { post_terms?: unknown }).post_terms)?.agreedPerCreator
               ? ` · listed at ${formatPayoutSummary(job.payout_type, job.payout_amount)}`
               : ""}
             {app.decided_at ? ` · decided ${formatDate(app.decided_at)}` : ""}

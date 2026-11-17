@@ -40,7 +40,7 @@ export function pendingContracts(ws: Workspace): WCampaign[] {
 /** The brand and everything about its campaigns (empty until the account is approved). */
 export async function loadBrandPage(next: string): Promise<{ brand: CurrentBrand; ws: Workspace; approved: boolean }> {
   const brand = await requireBrand(next);
-  const approved = brand.status === "approved";
+  const approved = brand.status !== "rejected";
   const ws = approved
     ? await loadBrandWorkspace(brand.id)
     : { campaigns: [], creators: [], posts: [], reviewAvailable: false };
