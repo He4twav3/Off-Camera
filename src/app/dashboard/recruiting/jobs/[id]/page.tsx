@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-import { ProfileCard } from "@/components/ProfileCard";
 import { ApplyForm } from "./ApplyForm";
 import { CampaignView } from "@/components/app/CampaignView";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
@@ -259,7 +258,7 @@ export default async function JobDetailPage(props: {
         </div>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {application.status === "pending"
-            ? "We review applications by hand. You'll get an email either way."
+            ? "You'll be admitted shortly."
             : application.status === "declined"
               ? "Not a fit for this one, but it doesn't affect future campaigns."
               : "Check your dashboard for the brief."}
@@ -278,47 +277,24 @@ export default async function JobDetailPage(props: {
       </Button>
     );
   } else if (job.sample_required) {
-    // The brand wants to see a sample first, so this one is an application.
-    intro =
-      "This brand wants a sample video first, so each application is reviewed.";
-    if (applicant.status !== "approved") {
+    // Applying is one click: no waiting for profile approval and no sample video.
+    // We admit creators by hand right after (accepting also approves the profile).
+    intro = "Apply in one click and you'll be admitted shortly.";
+    if (applicant.status === "rejected") {
       notice = (
         <div className="rounded-xl border border-border/70 bg-card p-4">
-          <p className="font-semibold text-foreground">
-            {applicant.status === "pending"
-              ? "Your profile is under review"
-              : "Your profile isn't eligible right now"}
-          </p>
+          <p className="font-semibold text-foreground">Your profile isn&apos;t eligible right now</p>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            {applicant.status === "pending"
-              ? "We check new creators by hand, usually within a few days. Once you're approved you can apply to campaigns like this one."
-              : "If you think that's a mistake, get in touch and we'll take another look."}
+            If you think that&apos;s a mistake, get in touch and we&apos;ll take another look.
           </p>
         </div>
       );
     } else {
-      below = (
-        <section className="mt-8">
-          <h2 className="font-heading text-lg font-semibold text-foreground">
-            Apply for this campaign
-          </h2>
-          <p className="mt-1 mb-4 text-sm text-muted-foreground">
-            Your profile and videos go with your application.
-          </p>
-          <ProfileCard
-            applicant={applicant}
-            handles={handles ?? []}
-            variant="self"
-          />
-          <div className="mt-6">
-            <ApplyForm
-              jobId={job.id}
-              videos={(videos ?? []) as VideoItem[]}
-              sampleRequired={job.sample_required}
-              sampleCriteria={job.sample_criteria}
-            />
-          </div>
-        </section>
+      cta = (
+        <ApplyForm
+          jobId={job.id}
+          videos={(videos ?? []) as VideoItem[]}
+        />
       );
     }
   } else if (!(handles ?? []).some((h) => h.verified_at)) {

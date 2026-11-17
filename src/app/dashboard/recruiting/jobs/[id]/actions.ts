@@ -56,11 +56,8 @@ export async function applyToJobAction(
   if (!applicant) {
     return { error: "Set up your profile before applying." };
   }
-  if (applicant.status !== "approved") {
-    return {
-      error:
-        "Your profile is still being reviewed. Once you're approved you can apply to campaigns.",
-    };
+  if (applicant.status === "rejected") {
+    return { error: "Your profile isn't eligible right now. Get in touch if you think that's a mistake." };
   }
 
   // Don't let people apply to something that's already gone.
@@ -77,11 +74,10 @@ export async function applyToJobAction(
   const applyHold = campaignHold(job);
   if (applyHold) return { error: applyHold.note };
 
-  // The sample video is only asked for when the campaign turns it on. If the
-  // creator pastes one anyway it still has to be a real Google Drive link.
+  // No sample video any more. One pasted by an older form still has to be a real Drive link.
   let sampleUrl: string | null = null;
-  if (job.sample_required || parsed.data.sample_url) {
-    const link = parseDriveLink(parsed.data.sample_url ?? "");
+  if (parsed.data.sample_url) {
+    const link = parseDriveLink(parsed.data.sample_url);
     if (!link.ok) return { error: link.error };
     sampleUrl = link.url;
   }
@@ -89,23 +85,24 @@ export async function applyToJobAction(
   // The videos the creator chose to apply with. They must be on the creator's own
   // profile (row-level security only shows them their own); the links are copied
   // onto the application so later profile changes don't alter what was sent.
-  const picked = pickVideoIds(formData.getAll("video_ids").map(String));
-  if (!picked.ok) return { error: picked.error };
-  const { data: owned } = await supabase
-    .from("applicant_videos")
-    .select("id, url")
-    .eq("applicant_id", applicant.id)
-    .in("id", picked.ids);
-  if (!owned || owned.length !== picked.ids.length) {
-    return {
-      error:
-        "One of those videos is no longer on your profile. Refresh the page and pick again.",
-    };
+  // Videos are optional: a creator with none can still apply.
+  const rawIds = formData.getAll("video_ids").map(String).filter(Boolean);
+  let videoUrls: string[] = [];
+  if (rawIds.length > 0) {
+    const picked = pickVideoIds(rawIds);
+    if (!picked.ok) return { error: picked.error };
+    const { data: owned } = await supabase
+      .from("applicant_videos")
+      .select("id, url")
+      .eq("applicant_id", applicant.id)
+      .in("id", picked.ids);
+    const urlById = new Map((owned ?? []).map((v) => [v.id, v.url]));
+    videoUrls = picked.ids.map((id) => urlById.get(id)).filter((u): u is string => Boolean(u));
   }
-  const urlById = new Map(owned.map((v) => [v.id, v.url]));
-  const videoUrls = picked.ids.map((id) => urlById.get(id)!);
 
-  const { error } = await supabase.from("applications").insert({
+  // The database only lets approved creators insert applications; creators now apply
+  // before approval, so the insert runs server-side once the checks above have passed.
+  const { error } = await createAdminClient().from("applications").insert({
     job_id: parsed.data.job_id,
     applicant_id: applicant.id,
     cover_note: parsed.data.cover_note || null,

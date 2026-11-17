@@ -88,6 +88,14 @@ export async function acceptApplicationAction(
     };
   }
 
+  // Creators can apply before their profile is approved; admitting them approves it
+  // (withdrawals and announcements only go to approved creators).
+  await supabase
+    .from("applicants")
+    .update({ status: "approved" })
+    .eq("id", application.applicant_id)
+    .eq("status", "pending");
+
   const person = application.applicants;
   const job = application.jobs;
   if (person && job) {
