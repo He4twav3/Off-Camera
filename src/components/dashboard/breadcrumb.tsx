@@ -12,7 +12,7 @@ const SECTIONS: { prefix: string; label: string }[] = [
   { prefix: "/dashboard/recruiting/affiliates", label: "Affiliates" },
   { prefix: "/dashboard/recruiting/profile-setup", label: "Profile" },
   { prefix: "/dashboard/account", label: "Account" },
-  { prefix: "/dashboard", label: "Course" },
+  { prefix: "/dashboard", label: "Dashboard" },
 ];
 
 const ACCOUNT_PAGES: Record<string, string> = {

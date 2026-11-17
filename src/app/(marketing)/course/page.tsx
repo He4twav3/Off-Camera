@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { COURSE_PUBLIC } from "@/lib/feature-flags";
 import { Hero } from "@/components/marketing/hero";
@@ -95,7 +96,8 @@ export const metadata: Metadata = COURSE_PUBLIC
     }
   : { title: "Course, coming soon", description: "The course is coming soon.", robots: { index: false, follow: false } };
 
-/** While the course is detached from the site, this is all /course shows. The full page below is untouched. */
+/** Unused while the course is off the site (/course 404s); kept for when it comes back. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ComingSoon() {
   return (
     <section className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-4 py-24 text-center sm:px-6">
@@ -106,7 +108,8 @@ function ComingSoon() {
 }
 
 export default async function CoursePage() {
-  if (!COURSE_PUBLIC) return <ComingSoon />;
+  // The course is removed from the site for now: /course does not exist until COURSE_PUBLIC is on.
+  if (!COURSE_PUBLIC) notFound();
   // Resolved once on the server and cached (lib/proof-thumbnails.ts), not
   // per-card in the browser: these posters are the first thing on the
   // page, and the wall cannot be empty for the first second of a visit.

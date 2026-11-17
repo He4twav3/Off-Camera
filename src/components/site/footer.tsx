@@ -76,7 +76,6 @@ const columns = [
       { href: "/about", label: "About" },
       { href: "/changelog", label: "Changelog" },
       { href: "/dashboard", label: "Dashboard" },
-      ...(COURSE_PUBLIC ? [] : [{ href: "/course", label: "Course (coming soon)" }]),
     ],
   },
   {
