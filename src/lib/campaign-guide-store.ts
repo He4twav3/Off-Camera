@@ -43,7 +43,7 @@ export async function writeCampaignGuide(jobId: string, docs: CampaignGuide): Pr
   for (const part of ["guide", "scripts"] as const) {
     const text = docs[part].trim();
     const { error } = text
-      ? await bucket.upload(path(jobId, part), new Blob([text], { type: "text/plain;charset=utf-8" }), { upsert: true, contentType: "text/plain;charset=utf-8" })
+      ? await bucket.upload(path(jobId, part), new Blob([text], { type: "text/plain;charset=utf-8" }), { upsert: true, contentType: "text/plain;charset=utf-8", cacheControl: "0" })
       : await bucket.remove([path(jobId, part)]);
     if (error) {
       console.error(`campaign-briefs: couldn't save the ${part}:`, error.message);
