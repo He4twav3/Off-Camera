@@ -102,6 +102,9 @@ export async function saveJobAction(
     brand_account_id: (formData.get("brand_account_id") as string) || "",
     notion_sop_url: formData.get("notion_sop_url") ?? "",
     about: formData.get("about") ?? "",
+    // Both were missing here, so every save wiped them to null.
+    sample_criteria: formData.get("sample_criteria") ?? "",
+    affiliate_url: formData.get("affiliate_url") ?? "",
   });
 
   if (!parsed.success) {
