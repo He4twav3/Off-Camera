@@ -116,3 +116,33 @@ export async function deleteApplicationAction(_prev: DeleteState, formData: Form
   revalidatePath("/admin");
   return { success: "Deleted." };
 }
+
+/**
+ * Take a creator off a campaign: removes their assignment and marks their application declined. Refused once
+ * anything is on record for that assignment (tracked posts, earnings, payouts), so no money history is lost.
+ */
+export async function removeFromCampaignAction(_prev: DeleteState, formData: FormData): Promise<DeleteState> {
+  const id = idSchema.safeParse({ id: formData.get("id") });
+  if (!id.success) return { error: "Invalid request." };
+  const blocked = await adminGuard();
+  if (blocked) return { error: blocked };
+
+  const db = createAdminClient();
+  const { data: a } = await db.from("assignments").select("id, job_id, applicant_id").eq("id", id.data.id).maybeSingle();
+  if (!a) return { success: "Already removed." };
+
+  const { error } = await db.from("assignments").delete().eq("id", a.id);
+  if (error)
+    return { error: "They already have posts or payments on this campaign, so they can't be removed. Flag it as disputed instead." };
+
+  await db
+    .from("applications")
+    .update({ status: "declined", decided_at: new Date().toISOString() })
+    .eq("job_id", a.job_id)
+    .eq("applicant_id", a.applicant_id);
+
+  revalidatePath("/admin/payouts");
+  revalidatePath("/admin/applications");
+  revalidatePath("/admin");
+  return { success: "Removed." };
+}

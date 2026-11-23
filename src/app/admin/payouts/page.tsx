@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge, assignmentStatusTone } from "@/components/ui/status-badge";
 import { PayoutForm } from "./PayoutForm";
 import { setAssignmentStatusAction } from "./actions";
+import { ConfirmDelete } from "@/components/admin/confirm-delete";
+import { removeFromCampaignAction } from "../delete-actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { calculatePayout, parsePayoutTerms } from "@/lib/payout-terms";
 
@@ -259,6 +261,19 @@ function Section({
                         Resolve — back to awaiting payout
                       </button>
                     </form>
+                  )}
+
+                  {a.status === "active" && (
+                    <div className="mt-4">
+                      <ConfirmDelete
+                        action={removeFromCampaignAction}
+                        id={a.id}
+                        what={a.applicants?.name ?? "this creator"}
+                        label="Remove from campaign"
+                        question={`Remove ${a.applicants?.name ?? "this creator"} from ${a.jobs?.title ?? "this campaign"}?`}
+                        doneLabel="Removed"
+                      />
+                    </div>
                   )}
                 </div>
                 </CardContent>

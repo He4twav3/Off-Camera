@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 
 type State = { error?: string; success?: string };
 
-function Yes() {
+function Yes({ label = "Yes, delete" }: { label?: string }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -13,7 +13,7 @@ function Yes() {
       disabled={pending}
       className="cursor-pointer rounded-md bg-destructive px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-60"
     >
-      {pending ? "Deleting…" : "Yes, delete"}
+      {pending ? "Working…" : label}
     </button>
   );
 }
@@ -25,6 +25,9 @@ export function ConfirmDelete({
   what,
   forceAction,
   forceLabel = "Delete everything they made",
+  label = "Delete",
+  question,
+  doneLabel = "Deleted",
 }: {
   action: (prev: State, formData: FormData) => Promise<State>;
   id: string;
@@ -32,12 +35,16 @@ export function ConfirmDelete({
   /** A deliberate second step, offered only after the safe delete refuses. */
   forceAction?: (prev: State, formData: FormData) => Promise<State>;
   forceLabel?: string;
+  /** Button text, the confirm question and the text shown when done, for actions other than delete. */
+  label?: string;
+  question?: string;
+  doneLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState<State, FormData>(action, {});
   const [forceState, forceFormAction] = useActionState<State, FormData>(forceAction ?? action, {});
   if (forceAction && forceState.success) return <span className="text-xs font-semibold text-muted-foreground">Deleted</span>;
-  if (state.success) return <span className="text-xs font-semibold text-muted-foreground">Deleted</span>;
+  if (state.success) return <span className="text-xs font-semibold text-muted-foreground">{doneLabel}</span>;
   if (!open)
     return (
       <button
@@ -45,14 +52,14 @@ export function ConfirmDelete({
         onClick={() => setOpen(true)}
         className="cursor-pointer text-xs font-semibold text-destructive hover:underline"
       >
-        Delete
+        {label}
       </button>
     );
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={id} />
-      <span className="text-xs text-foreground">Delete {what} for good?</span>
-      <Yes />
+      <span className="text-xs text-foreground">{question ?? `Delete ${what} for good?`}</span>
+      <Yes label={label === "Delete" ? "Yes, delete" : `Yes, ${label.toLowerCase()}`} />
       <button type="button" onClick={() => setOpen(false)} className="cursor-pointer text-xs text-muted-foreground">
         Cancel
       </button>
