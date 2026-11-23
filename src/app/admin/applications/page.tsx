@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { ProfileCard } from "@/components/ProfileCard";
 import { ReviewActions } from "./ReviewActions";
 import { ConfirmDelete } from "@/components/admin/confirm-delete";
-import { deleteApplicationAction } from "../delete-actions";
+import { deleteApplicationAction, removeFromCampaignAction } from "../delete-actions";
 import { formatDate, formatPayoutSummary, PLATFORM_LABELS } from "@/lib/utils";
 import type { Applicant, ApplicantHandle } from "@/lib/database.types";
 
@@ -117,7 +117,17 @@ export default async function AdminApplicationsPage() {
                     <span className="text-muted-foreground">
                       {app.jobs ? app.jobs.title : "Campaign removed"} · applied {formatDate(app.created_at)}
                     </span>
-                    <span className="ml-auto">
+                    <span className="ml-auto flex items-center gap-4">
+                      {app.status === "accepted" && (
+                        <ConfirmDelete
+                          action={removeFromCampaignAction}
+                          id={app.id}
+                          what={app.applicants?.name ?? "this creator"}
+                          label="Remove from campaign"
+                          question={`Remove ${app.applicants?.name ?? "this creator"} from ${app.jobs?.title ?? "this campaign"}?`}
+                          doneLabel="Removed"
+                        />
+                      )}
                       <ConfirmDelete action={deleteApplicationAction} id={app.id} what="this application" />
                     </span>
                   </li>

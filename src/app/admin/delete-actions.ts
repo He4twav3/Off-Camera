@@ -128,18 +128,20 @@ export async function removeFromCampaignAction(_prev: DeleteState, formData: For
   if (blocked) return { error: blocked };
 
   const db = createAdminClient();
-  const { data: a } = await db.from("assignments").select("id, job_id, applicant_id").eq("id", id.data.id).maybeSingle();
-  if (!a) return { success: "Already removed." };
+  // The id is an assignment (payouts screen) or an accepted application (applications screen).
+  let target = (await db.from("assignments").select("job_id, applicant_id").eq("id", id.data.id).maybeSingle()).data;
+  if (!target) target = (await db.from("applications").select("job_id, applicant_id").eq("id", id.data.id).maybeSingle()).data;
+  if (!target) return { success: "Already removed." };
 
-  const { error } = await db.from("assignments").delete().eq("id", a.id);
+  const { error } = await db.from("assignments").delete().eq("job_id", target.job_id).eq("applicant_id", target.applicant_id);
   if (error)
-    return { error: "They already have posts or payments on this campaign, so they can't be removed. Flag it as disputed instead." };
+    return { error: "They already have posts or payments on this campaign, so they can't be removed." };
 
   await db
     .from("applications")
     .update({ status: "declined", decided_at: new Date().toISOString() })
-    .eq("job_id", a.job_id)
-    .eq("applicant_id", a.applicant_id);
+    .eq("job_id", target.job_id)
+    .eq("applicant_id", target.applicant_id);
 
   revalidatePath("/admin/payouts");
   revalidatePath("/admin/applications");
