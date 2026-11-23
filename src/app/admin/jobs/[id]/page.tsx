@@ -17,6 +17,8 @@ import { AGREED_PAY, postTermsChips } from "@/lib/post-terms";
 import { PLATFORM_LABELS, formatCurrency, formatDate } from "@/lib/utils";
 import { JobForm } from "../JobForm";
 import { CreatorRatesForm } from "./CreatorRatesForm";
+import { ConfirmDelete } from "@/components/admin/confirm-delete";
+import { removeFromCampaignAction } from "../../delete-actions";
 import { readCampaignGuide } from "@/lib/campaign-guide-store";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 
@@ -191,9 +193,19 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
                 <Td right>{formatCurrency(cr.ourFees)}</Td>
                 <Td right>{formatCurrency(cr.paid)}</Td>
                 <Td right>
-                  <Link href={`/admin/jobs/${c.id}/creators/${cr.assignmentId}`} aria-label={`Open ${cr.name}`}>
+                  <div className="flex items-center justify-end gap-3">
+                    <ConfirmDelete
+                      action={removeFromCampaignAction}
+                      id={cr.assignmentId}
+                      what={cr.name}
+                      label="Remove"
+                      question={`Remove ${cr.name} from this campaign?`}
+                      doneLabel="Removed"
+                    />
+                    <Link href={`/admin/jobs/${c.id}/creators/${cr.assignmentId}`} aria-label={`Open ${cr.name}`}>
                     <ChevronRight className="size-4 text-muted-foreground" />
                   </Link>
+                  </div>
                 </Td>
               </tr>
             ))}

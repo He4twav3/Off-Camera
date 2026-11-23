@@ -145,6 +145,7 @@ export async function removeFromCampaignAction(_prev: DeleteState, formData: For
 
   revalidatePath("/admin/payouts");
   revalidatePath("/admin/applications");
+  revalidatePath(`/admin/jobs/${target.job_id}`);
   revalidatePath("/admin");
   return { success: "Removed." };
 }
