@@ -78,7 +78,7 @@ type Db = ReturnType<typeof createAdminClient>;
 const t = (db: Db, name: string) => (db as unknown as { from: (n: string) => ReturnType<Db["from"]> }).from(name);
 
 /** Everything hanging off these assignments, then the assignments themselves. */
-async function deleteAssignments(db: Db, ids: string[]): Promise<string | null> {
+export async function deleteAssignments(db: Db, ids: string[]): Promise<string | null> {
   if (ids.length === 0) return null;
   for (const table of ["assignment_posts", "direct_payments", "payouts", "balance_entries"]) {
     const { error } = await t(db, table).delete().in("assignment_id", ids);

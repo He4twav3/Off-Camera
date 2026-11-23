@@ -199,7 +199,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
                       id={cr.assignmentId}
                       what={cr.name}
                       label="Remove"
-                      question={`Remove ${cr.name} from this campaign?`}
+                      question={`Remove ${cr.name} from this campaign? Their videos and payments on it are deleted too.`}
                       doneLabel="Removed"
                     />
                     <Link href={`/admin/jobs/${c.id}/creators/${cr.assignmentId}`} aria-label={`Open ${cr.name}`}>
