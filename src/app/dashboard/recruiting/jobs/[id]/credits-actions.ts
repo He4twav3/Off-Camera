@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { creditProgramFor, normalizeEmail } from "@/lib/tool-credits";
 import { saveRequest } from "@/lib/tool-credits-store";
@@ -40,5 +41,7 @@ export async function saveCreditsEmailAction(_prev: CreditsState, formData: Form
   });
   if (!ok) return { error: "Couldn't save it. Please try again.", value: typed };
   revalidatePath(`/dashboard/recruiting/jobs/${jobId}`);
-  return { success: "Saved. We'll send it to the brand for your credits.", value: toolEmail };
+  // "Continue to getimg.ai": the email is saved first, then the creator goes to the brand's sign-up page.
+  if (formData.get("go") === "1") redirect(program.signupUrl);
+  return { success: `Saved. Use this same email on ${program.brand}.`, value: toolEmail };
 }

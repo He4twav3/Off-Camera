@@ -341,7 +341,7 @@ export default async function JobDetailPage(props: {
         program || credits ? (
           <>
             {program && <AffiliateSection program={program} joined={Boolean(assignment)} />}
-            {credits && <CreditsSection program={credits} jobId={job.id} joined={Boolean(assignment)} request={creditRequest} />}
+            {credits && <CreditsSection program={credits} jobId={job.id} joined={Boolean(assignment)} request={creditRequest} defaultEmail={applicant?.email ?? ""} />}
           </>
         ) : null
       }

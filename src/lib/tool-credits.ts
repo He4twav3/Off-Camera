@@ -20,7 +20,7 @@ export const GETIMG_CREDITS: CreditProgram = {
   key: "getimg",
   brand: "getimg.ai",
   matches: GETIMG.matches,
-  signupUrl: "https://getimg.ai",
+  signupUrl: "https://getimg.ai/register",
   signupLabel: "getimg.ai",
 };
 
