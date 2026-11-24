@@ -21,6 +21,9 @@ import { postReviews, reviewedOf } from "@/lib/post-review";
 import { ensureCampaignPreset } from "@/lib/apply-campaign-presets";
 import { programFor } from "@/lib/affiliate-programs";
 import { AffiliateSection } from "@/components/app/AffiliateSection";
+import { creditProgramFor } from "@/lib/tool-credits";
+import { requestFor } from "@/lib/tool-credits-store";
+import { CreditsSection } from "@/components/app/CreditsSection";
 
 const APPLICATION_LABELS: Record<string, string> = {
   pending: "Waiting to hear back",
@@ -325,13 +328,23 @@ export default async function JobDetailPage(props: {
 
   // A brand with an affiliate program shows it under the pay; the code itself is in Affiliates.
   const program = programFor(job);
+  // A brand that tops up creators' accounts by hand: creators on the campaign give their account email here.
+  const credits = creditProgramFor(job);
+  const creditRequest = credits && assignment && applicant ? await requestFor(credits.key, applicant.id) : null;
 
   return (
     <CampaignView
       job={job}
       terms={terms}
       postTerms={postTerms}
-      affiliate={program ? <AffiliateSection program={program} joined={Boolean(assignment)} /> : null}
+      affiliate={
+        program || credits ? (
+          <>
+            {program && <AffiliateSection program={program} joined={Boolean(assignment)} />}
+            {credits && <CreditsSection program={credits} jobId={job.id} joined={Boolean(assignment)} request={creditRequest} />}
+          </>
+        ) : null
+      }
       guide={await guidePromise}
       intro={intro}
       cta={cta}

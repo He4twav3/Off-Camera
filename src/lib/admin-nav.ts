@@ -38,6 +38,7 @@ export function adminNavGroups(directPay: boolean, hide: string[] = []): AdminNa
         { href: "/admin/applications", label: "Applications", icon: "applications", blurb: "Applications to campaigns that ask for a sample video: accept or decline." },
         { href: "/admin/announce", label: "Announcements", icon: "signups", blurb: "Email every approved creator about a new campaign, once each." },
         { href: "/admin/affiliates", label: "Affiliates", icon: "signups", blurb: "Brands' partner codes: upload them, see which creator has which, and download the report for the brand." },
+        { href: "/admin/credits", label: "Credits", icon: "signups", blurb: "Creators' getimg.ai account emails: send the new ones to the brand to top up, then mark them sent." },
         { href: "/admin/campaigns", label: "Campaign signups", icon: "signups", blurb: "Older campaign sign-ups to review and count." },
       ],
     },
