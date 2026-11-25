@@ -5,6 +5,7 @@ import { Body, Head, Table, Td, Th } from "@/components/admin/table";
 import { ConfirmDelete } from "@/components/admin/confirm-delete";
 import { StatusButtons } from "./ApplicantActions";
 import { deleteCreatorAction, deleteCreatorEverythingAction } from "../delete-actions";
+import { toggleHandleVerifiedAction } from "../applications/actions";
 import { formatDate, PLATFORM_LABELS } from "@/lib/utils";
 import { compactViews } from "@/lib/format";
 import { PLATFORM_RULES } from "@/lib/handles";
@@ -130,6 +131,14 @@ function Socials({ handles, fallback }: { handles: ApplicantHandle[]; fallback: 
           </a>
           {h.follower_count != null && ` · ${compactViews(h.follower_count)} followers`}
           {h.verified_at ? " · Verified" : " · Not verified"}
+          {!h.verified_at && h.id !== "fallback" && (
+            <form action={toggleHandleVerifiedAction} className="ml-2 inline">
+              <input type="hidden" name="handle_id" value={h.id} />
+              <button type="submit" className="cursor-pointer font-semibold text-primary hover:underline">
+                Verify
+              </button>
+            </form>
+          )}
         </li>
       ))}
     </ul>
