@@ -300,7 +300,7 @@ export async function saveFeeAction(_prev: PayTermsState, formData: FormData): P
 
 
 /**
- * Pay agreed with each creator: turn it on or off for a campaign, and save each creator's flat rate per unique video
+ * Pay agreed with each creator: turn it on or off for a campaign, and save each creator's rate per unique video and CPM
  * (lib/post-terms.ts, termsFor). Admin only (the table's policy). A creator with no rate earns nothing until one is set.
  */
 export async function saveCreatorRatesAction(_prev: PayTermsState, formData: FormData): Promise<PayTermsState> {
@@ -317,19 +317,22 @@ export async function saveCreatorRatesAction(_prev: PayTermsState, formData: For
   if (!terms) return { error: "This campaign has no pay terms to change." };
   const onCampaign = new Set((assignments ?? []).map((a) => a.id));
 
-  const rates: Record<string, { basePerPost: number }> = { ...(terms.rates ?? {}) };
-  for (const [key, value] of formData.entries()) {
-    if (!key.startsWith("rate_")) continue;
-    const assignmentId = key.slice("rate_".length);
-    if (!onCampaign.has(assignmentId)) continue;
-    const raw = String(value).replace(/[$,\s]/g, "");
-    if (!raw) {
+  const rates: Record<string, { basePerPost: number; cpm?: number }> = { ...(terms.rates ?? {}) };
+  for (const assignmentId of onCampaign) {
+    // Only the creators the form listed: anyone it didn't keeps what is saved.
+    if (!formData.has(`rate_${assignmentId}`)) continue;
+    const read = (name: string) => String(formData.get(`${name}_${assignmentId}`) ?? "").replace(/[$,\s]/g, "");
+    const flat = read("rate");
+    const perThousand = read("cpm");
+    if (!flat && !perThousand) {
       delete rates[assignmentId];
       continue;
     }
-    const amount = Number(raw);
+    const amount = Number(flat || 0);
     if (!Number.isFinite(amount) || amount < 0 || amount > 100_000) return { error: "Each rate must be an amount per video, like 50." };
-    rates[assignmentId] = { basePerPost: Math.round(amount * 100) / 100 };
+    const cpm = Math.round(Number(perThousand || 0) * 100) / 100;
+    if (!Number.isFinite(cpm) || cpm < 0 || cpm > 1000) return { error: "Each CPM must be an amount per 1,000 views, like 1.50." };
+    rates[assignmentId] = { basePerPost: Math.round(amount * 100) / 100, ...(cpm > 0 ? { cpm } : {}) };
   }
 
   const next = postTermsSchema.safeParse({

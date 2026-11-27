@@ -115,8 +115,13 @@ export const postTermsSchema = z.object({
    * instead of numbers, and each creator is paid their own rate from `rates`.
    */
   agreedPerCreator: z.boolean().optional(),
-  /** Each creator's agreed pay on a campaign with `agreedPerCreator`, by assignment id: a flat amount per unique video. */
-  rates: z.record(z.string(), z.object({ basePerPost: z.number().min(0).max(100_000) })).optional(),
+  /**
+   * Each creator's agreed pay on a campaign with `agreedPerCreator`, by assignment id: a flat amount per unique video,
+   * and optionally a CPM (dollars per 1,000 views) on top.
+   */
+  rates: z
+    .record(z.string(), z.object({ basePerPost: z.number().min(0).max(100_000), cpm: z.number().positive().max(1000).optional() }))
+    .optional(),
 });
 
 export type PostTerms = z.infer<typeof postTermsSchema>;
@@ -139,8 +144,8 @@ export function parsePostTerms(raw: unknown, assignmentId?: string | null): Post
 
 /**
  * One creator's pay. On a campaign with pay agreed per creator, a creator with a saved rate is paid that flat amount
- * per unique video and nothing on views; a creator without one yet earns nothing until it is set. Any other campaign
- * is the same for everyone.
+ * per unique video, plus their own CPM on views if one is set for them; a creator without a rate yet earns nothing
+ * until it is set. Any other campaign is the same for everyone.
  */
 export function termsFor(terms: PostTerms, assignmentId?: string | null): PostTerms;
 export function termsFor(terms: PostTerms | null, assignmentId?: string | null): PostTerms | null;
@@ -151,7 +156,7 @@ export function termsFor(terms: PostTerms | null, assignmentId?: string | null):
     ...terms,
     basePerPost: rate?.basePerPost ?? 0,
     milestones: [],
-    cpm: undefined,
+    cpm: rate?.cpm ? [{ from: 0, rate: rate.cpm }] : undefined,
     cpmCap: undefined,
     minViews: undefined,
     maxPerPost: undefined,

@@ -58,17 +58,17 @@ t("the sample instructions are set", (row.sample_criteria ?? "").startsWith("Sen
 const parsedRow = postTermsSchema.safeParse(row.post_terms);
 t("the saved terms keep the version through parsing", parsedRow.success && parsedRow.data.preset === "mepersona@23", parsedRow);
 
-// Getimg's setup sets its pay ($10 a video, $3 CPM from 1K to 100K, rewards up to $750) and keeps the contract, who reviews, example videos and sample setting.
+// Getimg runs like MePersona: no pay on the campaign, agreed with each creator; it keeps the contract and who reviews.
 {
   const live = { v: 2, basePerPost: 0, cycleSize: 15, milestones: [], windowDays: 30, keepPublicDays: 90, platforms: ["tiktok"], reviewer: "brand", contract: { agreedAt: "x" } } as never;
   const g = presetRow(GETIMG, live) as Record<string, unknown>;
   const terms = g.post_terms as Record<string, unknown>;
   t("Getimg matches its campaign only", presetFor({ title: "Getimg", about: null }) === GETIMG && presetFor({ title: "MePersona", about: null }) !== GETIMG);
-  t("Getimg sets its pay and keeps who reviews", terms.basePerPost === 10 && terms.cycleSize === 15 && terms.maxPerPost === 740 && terms.reviewer === "brand", terms);
+  t("Getimg pay is agreed per creator, with no campaign view pay", terms.agreedPerCreator === true && !terms.cpm && (terms.milestones as unknown[]).length === 0 && terms.reviewer === "brand", terms);
   t("Getimg keeps the brand's agreement", JSON.stringify(terms.contract) === JSON.stringify({ agreedAt: "x" }), terms);
   t("Getimg's setup is marked", terms.preset === `getimg@${GETIMG.version}`, terms);
-  t("Getimg sets its example videos and payout, and keeps its sample setting", Array.isArray(g.example_urls) && !("sample_required" in g) && g.payout_amount === 10, Object.keys(g));
-  t("Getimg's brief has 5 points, the pay and 5 hooks", (GETIMG.description.match(/^## /gm) ?? []).length === 5 && (GETIMG.description.match(/^- /gm) ?? []).length === 10);
+  t("Getimg sets its example videos, and creators apply with a sample", Array.isArray(g.example_urls) && g.sample_required === true && g.payout_amount === 50, Object.keys(g));
+  t("Getimg's brief has no pay figures", !/\$\d+ (for|per)|per 1,000/.test(GETIMG.description.split("### Hooks")[0] + GETIMG.guide), GETIMG.description);
   t("Getimg has 5 scripts", (GETIMG.scripts.match(/^### /gm) ?? []).length === 5);
 }
 

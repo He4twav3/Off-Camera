@@ -17,7 +17,7 @@ function Save() {
 
 /**
  * Pay agreed with each creator: when on, the campaign shows no pay, and each creator
- * is paid the flat amount per unique video set here. Admin only.
+ * is paid the flat amount per unique video set here, plus a CPM on views if one is set. Admin only.
  */
 export function CreatorRatesForm({
   jobId,
@@ -26,7 +26,7 @@ export function CreatorRatesForm({
 }: {
   jobId: string;
   agreed: boolean;
-  creators: { assignmentId: string; name: string; rate: number | null }[];
+  creators: { assignmentId: string; name: string; rate: number | null; cpm: number | null }[];
 }) {
   const [state, action] = useActionState<PayTermsState, FormData>(saveCreatorRatesAction, {});
   return (
@@ -37,7 +37,7 @@ export function CreatorRatesForm({
         <span>
           <span className="font-medium">Pay agreed with each creator</span>
           <span className="block text-muted-foreground">
-            Creators see no pay on the campaign. Once they&rsquo;re on it, each one sees and is paid their own rate per unique video, with no view pay. A creator without a rate earns nothing and sees no pay until you set one.
+            Creators see no pay on the campaign. Once they&rsquo;re on it, each one sees and is paid their own rate per unique video. Add a CPM (dollars per 1,000 views, no cap) only for a creator who should also earn on views. A creator with neither earns nothing and sees no pay until you set one.
           </span>
         </span>
       </label>
@@ -57,6 +57,17 @@ export function CreatorRatesForm({
                 step="0.01"
                 defaultValue={c.rate ?? ""}
                 placeholder="$ per video"
+                className="w-32"
+              />
+              <Input
+                name={`cpm_${c.assignmentId}`}
+                aria-label={`CPM for ${c.name}`}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                defaultValue={c.cpm ?? ""}
+                placeholder="CPM (optional)"
                 className="w-36"
               />
             </div>

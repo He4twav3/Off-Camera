@@ -144,6 +144,7 @@ export default async function AdminCampaignPage(props: { params: Promise<{ id: s
               assignmentId: cr.assignmentId,
               name: cr.name,
               rate: c.terms?.rates?.[cr.assignmentId]?.basePerPost ?? null,
+              cpm: c.terms?.rates?.[cr.assignmentId]?.cpm ?? null,
             }))}
           />
         </section>

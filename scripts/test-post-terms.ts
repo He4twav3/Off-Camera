@@ -231,5 +231,15 @@ t("average with no posts is zero, not a crash", averagePerPost({ earned: 0, coun
   t("Getimg's fixed bonuses are untouched", payFor(T, [post({ views: 5400 })], now).posts[0].bonus === 10);
 }
 
+// Pay agreed per creator: a creator's own flat rate, with a CPM on views only when one is set for them.
+{
+  const campaign = { ...T, agreedPerCreator: true, rates: { a: { basePerPost: 50 }, b: { basePerPost: 25, cpm: 2 } } };
+  const flat = parsePostTerms(campaign, "a")!;
+  const withCpm = parsePostTerms(campaign, "b")!;
+  t("flat rate has no view pay", flat.basePerPost === 50 && bonusFor(10_000, flat) === 0, flat);
+  t("a creator's CPM pays on views", withCpm.basePerPost === 25 && bonusFor(10_000, withCpm) === 20, withCpm);
+  t("no rate earns nothing", parsePostTerms(campaign, "c")!.basePerPost === 0 && bonusFor(10_000, parsePostTerms(campaign, "c")!) === 0);
+}
+
 console.log(bad ? `\n${bad} FAILED` : "\nall passed");
 process.exit(bad ? 1 : 0);

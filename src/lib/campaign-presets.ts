@@ -98,14 +98,16 @@ export const MEPERSONA: CampaignPreset = {
 
 export const GETIMG: CampaignPreset = {
   key: "getimg",
-  version: 4,
+  version: 5,
+  // 2026-11-27 (v5): the owner asked to take the pay format off the campaign and run it like MePersona: pay agreed
+  // with each creator (set in Admin, with an optional CPM), and creators apply with a sample video.
   // 2026-11-06: the owner set new pay ($10 a video, $3 CPM from 1K to 100K, rewards up to $750 a video, 7 videos a
   // week), put it in the brief, and added creative freedom for creators' own ideas.
   // 2026-11-06 (v3): the owner asked to replace every old example video and hook with the current formats in the
   // AI video and image generator niche (no-yapping, wait-for-it, one photo to commercial, recreate, reaction + demo).
   // 2026-11-06 (v4): the owner wants every example and script to show a product demo, not just the result
   // (no-yapping split screen, reaction hook + demo, as in the Eromify and Amboras campaigns).
-  requested: { version: 4, parts: ["description", "scripts", "examples"] },
+  requested: { version: 5, parts: ["description", "guide", "pay", "sample"] },
   label: "Getimg",
   matches: (job) => job.title.trim().toLowerCase().startsWith("getimg"),
   about:
@@ -116,15 +118,13 @@ export const GETIMG: CampaignPreset = {
     "## Pick a script and make it your own",
     "Show the result on screen. The output is what sells it.",
     "## Creative freedom",
-    "You have full creative freedom. Bring your own innovative video ideas and new formats: the scripts are a starting point, not a rule. Unique videos that work are rewarded if they go viral.",
+    "You have full creative freedom. Bring your own innovative video ideas and new formats: the scripts are a starting point, not a rule.",
     "## Use Getimg before you film",
     "Make a few things first, so you know what to show.",
     "## How you get paid",
-    "- $10 for every unique video",
-    "- $3 per 1,000 views, from 1K to 100K views",
-    "- Rewards of $250 at 250K views, $350 at 500K and $750 at 1M (the highest one reached counts)",
-    "- Up to $750 per video",
-    "- 7 videos a week on TikTok, Instagram Reels or YouTube Shorts",
+    "- Your pay is agreed with you directly, and shows on this page once it's set",
+    "- Paid monthly through Wise",
+    "- Keep each post public for 90 days",
     "### Hooks you can use",
     '- "Making a $5,000 product ad in 67 seconds no yapping (watch me cook)"',
     '- "No way this is legal…"',
@@ -160,15 +160,12 @@ export const GETIMG: CampaignPreset = {
     "Save a character, style or product and reuse it, so it looks the same in every video.",
     "",
     "## Creative freedom",
-    "**You have full creative freedom.** The scripts are a starting point, not a rule. Bring your own innovative video ideas, new formats and your own style. If it shows what Getimg can make and it works, it's welcome, and unique videos that go viral are rewarded.",
+    "**You have full creative freedom.** The scripts are a starting point, not a rule. Bring your own innovative video ideas, new formats and your own style. If it shows what Getimg can make and it works, it's welcome.",
     "",
     "## How you get paid",
-    "- **$10** for every unique video. The same video posted on another platform earns view pay only.",
-    "- **$3 per 1,000 views**, from 1K to 100K views",
-    "- **Rewards**: $250 at 250K views, $350 at 500K and $750 at 1M. The highest one a video reaches counts.",
-    "- **Up to $750 per video**",
-    "- **7 videos a week** on TikTok, Instagram Reels or YouTube Shorts",
-    "- Only views in the first 30 days after a post goes live count. Keep each post public for 90 days.",
+    "- Your pay is agreed with you directly, and shows on this campaign once it's set for you.",
+    "- Paid monthly through Wise.",
+    "- Keep each post public for 90 days.",
   ].join("\n"),
   scripts: [
     "Use these hooks or similar ones, and make each format your own. Show what Getimg makes on screen: the result is the proof. You have full creative freedom, so your own innovative ideas and new formats are just as welcome as these scripts.",
@@ -207,24 +204,24 @@ export const GETIMG: CampaignPreset = {
     "",
     "**Don't promise income, views or results in your videos.** A price tag on the ad you made is fine; saying viewers will earn money is not.",
   ].join("\n"),
+  sampleRequired: true,
+  sampleCriteria: "Send a short sample video. A link to one of your recent Reels is fine.",
   postTerms: {
     v: 2,
-    // $10 for each unique video; the same video on another platform earns view pay only.
-    basePerPost: 10,
-    cycleSize: 15,
+    basePerPost: 50,
+    cycleSize: 1,
     repostsEarnBase: false,
-    // $3 per 1,000 views from 1K to 100K, plus the highest reward a video reaches; at most $750 a video in all.
-    cpm: [{ from: 1_000, rate: 3 }],
-    cpmCap: 100_000,
-    milestones: [
-      { views: 250_000, amount: 250 },
-      { views: 500_000, amount: 350 },
-      { views: 1_000_000, amount: 750 },
-    ],
-    maxPerPost: 740,
+    // No campaign-wide view pay or rewards: each creator's rate (and any CPM) is set in Admin.
+    cpm: undefined,
+    cpmCap: undefined,
+    milestones: [],
+    maxPerPost: undefined,
     windowDays: 30,
     keepPublicDays: 90,
     platforms: ["tiktok", "instagram", "youtube_shorts"],
+    statementEvery: "month",
+    dueDays: 7,
+    agreedPerCreator: true,
   },
 };
 
